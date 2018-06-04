@@ -14,6 +14,7 @@ namespace Webhook {
             type: 'LINE' | 'FACEBOOK' | 'WECHAT',
             name: string,
             photo: string,
+            photoOriginal: string,
             gender?: string
         }
     }
@@ -186,13 +187,13 @@ namespace Webhook {
         interface Entry {
             id: string,
             time: number,
-            messaging: MessagingObject[],
+            messaging: Messaging[],
         }
         
         /**
          * https://developers.facebook.com/docs/messenger-platform/reference/webhook-events#messaging
          */
-        interface MessagingObject {
+        interface Messaging {
             sender: {
                 id: string
             },

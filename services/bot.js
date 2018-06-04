@@ -291,10 +291,8 @@ module.exports = (function() {
                                     return storageHlp.filesUpload(_message.fromPath, contentBuffer);
                                 }).then(() => {
                                     return storageHlp.sharingCreateSharedLink(_message.fromPath);
-                                }).then((response) => {
-                                    let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                                    let src = wwwurl.replace('?dl=0', '');
-                                    _message.src = src;
+                                }).then((url) => {
+                                    _message.src = url;
                                     messages.push(_message);
                                 });
                             }
@@ -308,33 +306,34 @@ module.exports = (function() {
                         for (let i in entries) {
                             let messaging = entries[i].messaging || [];
                             for (let j in messaging) {
+                                let msg = messaging[j];
                                 // 如果有 is_echo 的 flag 並且有 fb 的 app_id
                                 // 代表是從 Chatshier 透過 API 發送，此訊息不用再進行處理
-                                if (messaging[j].message.is_echo && messaging[j].message.app_id) {
+                                if (msg.message.is_echo && msg.message.app_id) {
                                     continue;
                                 }
 
-                                let attachments = messaging[j].message.attachments;
-                                let text = messaging[j].message.text || '';
+                                let attachments = msg.message.attachments;
+                                let text = msg.message.text || '';
 
                                 // !attachments 沒有夾帶檔案
                                 if (!attachments && text) {
                                     let _message = {
                                         messager_id: messagerId,
                                         // 有 is_echo 的 flag 代表從粉絲專頁透過 Messenger 來回覆用戶的
-                                        from: messaging[j].message.is_echo ? VENDOR : FACEBOOK,
+                                        from: msg.message.is_echo ? VENDOR : FACEBOOK,
                                         text: text,
                                         type: 'text',
                                         time: Date.now(), // 將要回覆的訊息加上時戳
                                         src: '',
-                                        message_id: messaging[j].message.mid // FACEBOOK 平台的 訊息 id
+                                        message_id: msg.message.mid // FACEBOOK 平台的 訊息 id
                                     };
                                     messages.push(_message);
                                     continue;
                                 }
 
                                 if (attachments) {
-                                    messages.concat(attachments.map((attachment) => {
+                                    messages = messages.concat(attachments.map((attachment) => {
                                         let src = '';
                                         if ('location' === attachment.type) {
                                             let coordinates = attachment.payload.coordinates;
@@ -348,19 +347,10 @@ module.exports = (function() {
                                             src = attachment.fallback.url;
                                         }
 
-                                        if ('image' === attachment.type) {
-                                            src = attachment.payload.url;
-                                        }
-
-                                        if ('video' === attachment.type) {
-                                            src = attachment.payload.url;
-                                        }
-
-                                        if ('audio' === attachment.type) {
-                                            src = attachment.payload.url;
-                                        }
-
-                                        if ('file' === attachment.type) {
+                                        if ('image' === attachment.type ||
+                                            'video' === attachment.type ||
+                                            'audio' === attachment.type ||
+                                            'file' === attachment.type) {
                                             src = attachment.payload.url;
                                         }
 
@@ -371,7 +361,7 @@ module.exports = (function() {
                                             type: attachment.type || 'text',
                                             time: Date.now(), // 將要回覆的訊息加上時戳
                                             src: src,
-                                            message_id: messaging[j].message.mid // FACEBOOK 平台的 訊息 id
+                                            message_id: msg.message.mid // FACEBOOK 平台的 訊息 id
                                         };
                                         return _message;
                                     }));
@@ -453,10 +443,8 @@ module.exports = (function() {
                                     return storageHlp.filesUpload(message.fromPath, outputBuffer);
                                 }).then(() => {
                                     return storageHlp.sharingCreateSharedLink(message.fromPath);
-                                }).then((response) => {
-                                    let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                                    let src = wwwurl.replace('?dl=0', '');
-                                    message.src = src;
+                                }).then((url) => {
+                                    message.src = url;
                                     return message;
                                 });
                             } else if ('location' === message.type) {
@@ -500,7 +488,8 @@ module.exports = (function() {
                 let senderProfile = {
                     type: app.type,
                     name: '',
-                    photo: ''
+                    photo: '',
+                    photoOriginal: ''
                 };
                 let platformGroupId = webhookInfo.platformGroupId;
                 let platformGroupType = webhookInfo.platformGroupType;
@@ -524,7 +513,7 @@ module.exports = (function() {
                         }).then((lineUserProfile) => {
                             lineUserProfile = lineUserProfile || {};
                             senderProfile.name = lineUserProfile.displayName;
-                            senderProfile.photo = lineUserProfile.pictureUrl;
+                            senderProfile.photo = senderProfile.photoOriginal = lineUserProfile.pictureUrl;
                             return senderProfile;
                         }).catch((err) => {
                             // 無法抓到使用者 profile 時，回傳 undefined
@@ -539,7 +528,7 @@ module.exports = (function() {
                         return bot.getProfile(platformUid).then((fbUserProfile) => {
                             fbUserProfile = fbUserProfile || {};
                             senderProfile.name = fbUserProfile.first_name + ' ' + fbUserProfile.last_name;
-                            senderProfile.photo = fbUserProfile.profile_pic;
+                            senderProfile.photo = senderProfile.photoOriginal = fbUserProfile.profile_pic;
                             return senderProfile;
                         }).catch((ex) => {
                             // 如果此 app 的 page access token 已經無法使用
@@ -567,7 +556,7 @@ module.exports = (function() {
                         }).then((wxUser) => {
                             wxUser = wxUser || {};
                             senderProfile.name = wxUser.nickname;
-                            senderProfile.photo = wxUser.headimgurl;
+                            senderProfile.photo = senderProfile.photoOriginal = wxUser.headimgurl;
                             return senderProfile;
                         });
                     default:
@@ -642,17 +631,22 @@ module.exports = (function() {
                         });
                     case FACEBOOK:
                         return Promise.all(messages.map((message) => {
-                            if ('text' === message.type) {
+                            if ('text' === message.type && message.text) {
                                 return bot.sendTextMessage(platformUid, message.text);
                             }
-                            if ('image' === message.type) {
-                                return bot.sendImageMessage(platformUid, message.src, true);
+
+                            if (message.src) {
+                                if ('image' === message.type) {
+                                    return bot.sendImageMessage(platformUid, message.src, true);
+                                } else if ('audio' === message.type) {
+                                    return bot.sendAudioMessage(platformUid, message.src, true);
+                                } else if ('video' === message.type) {
+                                    return bot.sendVideoMessage(platformUid, message.src, true);
+                                }
                             }
-                            if ('audio' === message.type) {
-                                return bot.sendAudioMessage(platformUid, message.src, true);
-                            }
-                            if ('video' === message.type) {
-                                return bot.sendVideoMessage(platformUid, message.src, true);
+
+                            if (!message.text) {
+                                return Promise.resolve();
                             }
                             return bot.sendTextMessage(platformUid, message.text);
                         })).then(() => {
@@ -667,6 +661,9 @@ module.exports = (function() {
                     default:
                         break;
                 }
+            }).catch((err) => {
+                // 把錯誤訊息打出，但不要中斷整個 webhook 處理
+                console.error(err);
             });
         }
 

@@ -8,7 +8,7 @@ module.exports = (function() {
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
     const CHATSHIER = require('../config/chatshier');
-    const DEFAULT = 'DEFAULT';
+    const OF_GROUP = '的群組';
 
     let grecaptchaHlp = require('../helpers/grecaptcha');
     let ciperHlp = require('../helpers/cipher');
@@ -97,9 +97,9 @@ module.exports = (function() {
                 };
 
                 res.cookie('jwt', token, options);
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -108,7 +108,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 let suc = {
-                    msg: API_SUCCESS.USER_SUCCEEDED_TO_SIGNOUT.MSG,
+                    msg: API_SUCCESS.USER_SUCCEEDED_TO_SIGNOUT.MSG
                 };
                 let options = {
                     domain: domain,
@@ -117,9 +117,9 @@ module.exports = (function() {
                     expires: Date.now()
                 };
                 res.cookie('jwt', '', options);
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -153,13 +153,13 @@ module.exports = (function() {
                             reject(API_ERROR.USER_EMAIL_HAD_BEEN_SIGNED_UP);
                             return;
                         };
-                        resolve();
+                        resolve(users);
                     });
                 });
             }).then(() => {
                 userId = groupsMdl.Types.ObjectId().toHexString();
                 let group = {
-                    name: DEFAULT
+                    name: (req.body.name) + OF_GROUP
                 };
                 return new Promise((resolve, reject) => {
                     groupsMdl.insert(userId, group, (groups) => {
@@ -242,9 +242,9 @@ module.exports = (function() {
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
                 };
                 res.cookie('jwt', token, options);
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -288,9 +288,9 @@ module.exports = (function() {
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
                 };
                 res.cookie('jwt', token, options);
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -331,11 +331,11 @@ module.exports = (function() {
                 });
             }).then(() => {
                 let suc = {
-                    msg:API_SUCCESS.USER_SUCCEEDED_TO_RESET_PASSWORD.MSG
+                    msg: API_SUCCESS.USER_SUCCEEDED_TO_RESET_PASSWORD.MSG
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -390,9 +390,9 @@ module.exports = (function() {
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
                 };
                 res.cookie('jwt', token, options);
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -439,9 +439,9 @@ module.exports = (function() {
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
                 };
                 res.cookie('jwt', token, options);
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
     }

@@ -1,6 +1,6 @@
 module.exports = (function() {
     const CHATSHIER = require('../config/chatshier');
-    const mongoose = require('mongoose');
+    let mongoose = require('mongoose');
 
     // region DB 連線只需要做一次，故放 class 外面
     const url = 'mongodb://' + CHATSHIER.MONGODB.HOST + ':' + CHATSHIER.MONGODB.PORT + '/' + CHATSHIER.MONGODB.DATABASE;
@@ -12,10 +12,10 @@ module.exports = (function() {
 
     const db = mongoose.connection;
     db.on('error', () => {
-        console.log('[FAILED] the db client of service.chatshier is not connecting to MongoDB !!');
+        console.log('[FAILED] the db client of api-chatshier is not connecting to MongoDB !!');
     });
     db.once('open', () => {
-        console.log('[SUCCEEDED] the db client of service.chatshier is connecting to MongoDB !!');
+        console.log('[SUCCEEDED] the db client of api-chatshier is connecting to MongoDB !!');
     });
     // endregion
 
@@ -264,7 +264,8 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'name': {type: String, default: ''},
-        'photo': {type: String, default: ''}
+        'photo': {type: String, default: ''},
+        'photoOriginal': {type: String, default: ''}
     });
 
     // endregion

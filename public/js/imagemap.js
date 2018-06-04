@@ -5,6 +5,11 @@
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
 
+    const ICONS = {
+        LINE: 'fab fa-line fa-fw line-color',
+        FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+    };
+
     var api = window.restfulAPI;
     var nowSelectAppId = '';
     var size = {};
@@ -277,8 +282,8 @@
 
     function cleanmodal() {
         imageFile = '';
-        $('#insert-btn').removeAttr('disabled').removeClass('d-none');
-        $('#update-btn').removeAttr('disabled').removeClass('d-none');
+        $('#insert-btn').removeAttr('disabled').removeClass('d-none').empty().append('新增');
+        $('#update-btn').removeAttr('disabled').removeClass('d-none').empty().append('修改');
         $('.form-group.col-sm-12').addClass('d-none');
         $('.chsr-form > div').removeClass('d-none');
         $modal.find('input[type = text]').val('');
@@ -294,20 +299,19 @@
     }
 
     function insertImagemap() {
-        $(this).attr('disabled', 'disabled');
+        $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
         let appId = $appSelector.find('option:selected').val();
         let title = $('#title').val();
         let form = $('input[name = imagemap-form]:checked').val();
 
         if (!appId || !title) {
-            $(this).removeAttr('disabled');
+            $(this).removeAttr('disabled').empty().append('新增');
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         }
 
         let actions = composeActions();
-
         Promise.resolve().then(() => {
-            return api.bot.uploadFile(appId, userId, imageFile);
+            return api.image.uploadFile(appId, userId, imageFile);
         }).then((resJson) => {
             let url = resJson.data.url;
 
@@ -328,7 +332,7 @@
             $('#imagemap-modal').modal('hide');
             $appDropdown.find('#' + appId).click();
             return $.notify('新增成功', { type: 'success' });
-        }).catch(() => {
+        }).catch((ERR) => {
             $('#imagemap-modal').modal('hide');
             return $.notify('新增失敗', { type: 'danger' });
         });
@@ -367,12 +371,12 @@
         $('#update-btn').removeClass('d-none');
 
         $('#update-btn').off('click').on('click', () => {
-            $('#update-btn').attr('disabled', 'disabled');
+            $('#update-btn').attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
             let title = $('#title').val();
             let form = $('input[name = imagemap-form]:checked').val();
 
             if (!title) {
-                $(this).removeAttr('disabled');
+                $('#update-btn').removeAttr('disabled').empty().append('修改');
                 return $.notify('標題不可為空', { type: 'warning' });
             }
 
@@ -402,7 +406,7 @@
                 });
             }
 
-            return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
+            return api.image.uploadFile(appId, userId, imageFile).then((resJson) => {
                 putImagemap.baseUri = resJson.data;
                 return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap);
             }).then((resJson) => {
@@ -502,9 +506,10 @@
     }
 
     function appSourceChanged(ev) {
-        nowSelectAppId = ev.target.id;
-        $appDropdown.find('.dropdown-text').text(ev.target.text);
-        loadImagemaps(nowSelectAppId, userId);
+        let $dropdownItem = $(this);
+        nowSelectAppId = $dropdownItem.attr('id');
+        $appDropdown.find('.dropdown-text').text($dropdownItem.text());
+        return loadImagemaps(nowSelectAppId, userId);
     }
 
     function loadImagemaps(appId, userId) {
@@ -609,11 +614,20 @@
         nowSelectAppId = '';
         for (var appId in appsData) {
             var app = appsData[appId];
-            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
+
+            // 目前只有 LINE 支援此功能
+            if (app.isDeleted ||
+                app.type !== api.apps.enums.type.LINE) {
                 delete appsData[appId];
                 continue;
             }
-            $dropdownMenu.append('<li><a  class="dropdown-item" id="' + appId + '">' + app.name + '</a></li>');
+
+            $dropdownMenu.append(
+                '<a class="px-3 dropdown-item" id="' + appId + '">' +
+                    '<i class="' + ICONS[app.type] + '"></i>' +
+                    app.name +
+                '</a>'
+            );
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;

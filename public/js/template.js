@@ -3,6 +3,11 @@
     var api = window.restfulAPI;
     var $jqDoc = $(document);
 
+    const ICONS = {
+        LINE: 'fab fa-line fa-fw line-color',
+        FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+    };
+
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
     var nowSelectAppId = '';
@@ -39,34 +44,43 @@
     });
 
     return api.apps.findAll(userId).then(function(respJson) {
-        var appsData = respJson.data;
+        var apps = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
         $jqDoc.find('button.inner-add').attr('disabled', true);
 
-        for (var appId in appsData) {
-            var app = appsData[appId];
-            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
-                delete appsData[appId];
+        for (var appId in apps) {
+            var app = apps[appId];
+
+            // 目前只有 LINE 支援此功能
+            if (app.isDeleted ||
+                app.type !== api.apps.enums.type.LINE) {
+                delete apps[appId];
                 continue;
             }
 
-            $dropdownMenu.append('<li><a class="dropdown-item" id="' + appId + '">' + appsData[appId].name + '</a></li>');
-            $appSelector.append('<option id="' + appId + '">' + appsData[appId].name + '</option>');
+            $dropdownMenu.append(
+                '<a class="px-3 dropdown-item" id="' + appId + '">' +
+                    '<i class="' + ICONS[app.type] + '"></i>' +
+                    app.name +
+                '</a>'
+            );
+            $appSelector.append('<option id="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
         }
 
         if (nowSelectAppId) {
             loadTemplates(nowSelectAppId, userId);
-            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
 
     function appSourceChanged(ev) {
-        nowSelectAppId = ev.target.id;
-        $appDropdown.find('.dropdown-text').text(ev.target.text);
-        loadTemplates(nowSelectAppId, userId);
+        let $dropdownItem = $(this);
+        nowSelectAppId = $dropdownItem.attr('id');
+        $appDropdown.find('.dropdown-text').text($dropdownItem.text());
+        return loadTemplates(nowSelectAppId, userId);
     }
 
     function loadTemplates(appId, userId) {
@@ -231,7 +245,7 @@
     }
 
     function updateTemplate() {
-        $('#edit-modal-save').attr('disabled', true);
+        $('#edit-modal-save').attr('disabled', true).empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
         let appId = $('#app-select option:selected').attr('id');
         let altText = $('#template-altText').val();
         let keyword = $('#template-keyword').val();
@@ -239,7 +253,7 @@
         let templateId = $('#template-id').text();
 
         if (!altText) {
-            $('#edit-modal-save').removeAttr('disabled');
+            $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
             $.notify('電腦版替代文字不可為空', { type: 'warning' });
             return null;
         } else {
@@ -264,7 +278,7 @@
             return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
                 return Promise.resolve().then(() => {
                     if (imageFile[imageFileNum]) {
-                        return api.bot.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson) => {
+                        return api.image.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson) => {
                             return resJson.data.url;
                         });
                     }
@@ -285,19 +299,19 @@
             }).then(() => {
                 $('#template-modal').modal('hide');
                 $.notify('修改成功！', { type: 'success' });
-                $('#edit-modal-save').removeAttr('disabled');
+                $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
                 return loadTemplates(appId, userId);
             }).catch((resJson) => {
                 if (undefined === resJson.status) {
                     $('#template-modal').modal('hide');
-                    $.notify('失敗', { type: 'danger' });
-                    $('#edit-modal-save').removeAttr('disabled');
+                    $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
+                    return $.notify('失敗', { type: 'danger' });
                 }
 
                 if (NO_PERMISSION_CODE === resJson.code) {
                     $('#template-modal').modal('hide');
-                    $.notify('無此權限', { type: 'danger' });
-                    $('#edit-modal-save').removeAttr('disabled');
+                    $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
+                    return $.notify('無此權限', { type: 'danger' });
                 }
             });
         }
@@ -311,7 +325,12 @@
         let typeSelect = '[rel~="' + type + '"]';
         $(viewClass + ':not(' + typeSelect + ')').addClass('d-none');
         $(viewClass + typeSelect).removeClass('d-none');
-        if ('carousel' === type) checkCarouselSide();
+        if ('carousel' === type) {
+            $('.carousel-control.text-info').removeClass('d-none');
+            checkCarouselSide();
+        } else {
+            $('.carousel-control.text-info').addClass('d-none');
+        }
     }
 
     function clickImageUpload() {
@@ -371,18 +390,18 @@
     }
 
     function insertTemplate() {
-        $('#modal-save').attr('disabled', true);
+        $('#modal-save').attr('disabled', true).empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
         appId = $('#app-select option:selected').attr('id');
         keyword = $('#template-keyword').val();
         let type = $('#template-type').val();
 
         if (!keyword || !type) {
-            $('#modal-save').removeAttr('disabled');
+            $('#modal-save').removeAttr('disabled').empty().append('新增');
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         } else {
             let template = createTemplate(type);
             if (!template) {
-                $('#modal-save').removeAttr('disabled');
+                $('#modal-save').removeAttr('disabled').empty().append('新增');
                 $.notify('模板資料輸入有誤，請完成正確的模板設定', { type: 'warning' });
                 return;
             }
@@ -390,7 +409,7 @@
             return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
                 return Promise.resolve().then(() => {
                     if (imageFile[imageFileNum]) {
-                        return api.bot.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson) => {
+                        return api.image.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson) => {
                             return resJson.data.url;
                         });
                     }
@@ -412,11 +431,11 @@
                 return api.appsTemplates.insert(appId, userId, template);
             }).then(() => {
                 $('#template-modal').modal('hide');
-                $('#modal-save').removeAttr('disabled');
+                $('#modal-save').removeAttr('disabled').empty().append('新增');
                 $.notify('新增成功！', { type: 'success' });
                 return loadTemplates(appId, userId);
             }).catch((ERR) => {
-                $('#modal-save').removeAttr('disabled');
+                $('#modal-save').removeAttr('disabled').empty().append('新增');
                 $.notify('新增失敗', { type: 'danger' });
             });
         }
@@ -425,7 +444,8 @@
     function createTemplate(type) {
         let altText = $('#template-altText').val();
         if (!altText) {
-            $('#modal-save').removeAttr('disabled');
+            $('#modal-save').removeAttr('disabled').empty().append('新增');
+            $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
             $.notify('電腦版替代文字不可為空', { type: 'warning' });
             return null;
         } else {
@@ -456,8 +476,8 @@
         let container = $('.template-view[rel="confirm"] .rounded-border');
         let text = container.find('.line-text').val();
         if (!text) {
-            $('#modal-save').removeAttr('disabled');
-            $('#edit-modal-save').removeAttr('disabled');
+            $('#modal-save').removeAttr('disabled').empty().append('新增');
+            $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
             $.notify('說明文字不可為空', { type: 'warning' });
             return null;
         }
@@ -479,8 +499,8 @@
         let actions = getAction(container);
 
         if (!text) {
-            $('#modal-save').removeAttr('disabled');
-            $('#edit-modal-save').removeAttr('disabled');
+            $('#modal-save').removeAttr('disabled').empty().append('新增');
+            $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
             $.notify('說明文字不可為空', { type: 'warning' });
             return null;
         }

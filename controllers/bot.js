@@ -128,9 +128,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: data
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         };
 
@@ -173,9 +173,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         };
 
@@ -212,9 +212,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsRichmenus
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         };
 
@@ -245,18 +245,25 @@ module.exports = (function() {
                 };
                 return botSvc.getProfile(platformInfo, appId, app);
             }).then((profile) => {
-                if (!profile) {
-                    return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
-                }
-                return consumersMdl.replace(platformUid, profile);
+                let fileName = `${platformUid}_${Date.now()}.jpg`;
+                let filePath = `${storageHlp.tempPath}/${fileName}`;
+                let putConsumer = Object.assign({}, profile);
+
+                return storageHlp.filesSaveUrl(filePath, profile.photo).then((url) => {
+                    putConsumer.photo = url;
+                    let toPath = `/consumers/${platformUid}/photo/${fileName}`;
+                    return storageHlp.filesMoveV2(filePath, toPath);
+                }).then(() => {
+                    return consumersMdl.replace(platformUid, putConsumer);
+                });
             }).then((data) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -273,18 +280,14 @@ module.exports = (function() {
                 return storageHlp.filesUpload(originalFilePath, file);
             }).then((response) => {
                 return storageHlp.sharingCreateSharedLink(originalFilePath);
-            }).then((response) => {
-                let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                let url = wwwurl.replace('?dl=0', '');
-                return url;
             }).then((url) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: {url, originalFilePath} // TO DO ， BAD FORMAT
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         };
 
@@ -305,9 +308,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: data
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -324,9 +327,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
     }

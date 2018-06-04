@@ -33,6 +33,11 @@
         userId = '';
     }
 
+    const ICONS = {
+        LINE: 'fab fa-line fa-fw line-color',
+        FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+    };
+
     $jqDoc.on('click', '#remove-btn', remove);
 
     elementHide($('.content-bar'));
@@ -93,12 +98,20 @@
         nowSelectAppId = '';
         for (var appId in apps) {
             var app = apps[appId];
-            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
+
+            // 目前只有 LINE 支援此功能
+            if (app.isDeleted ||
+                app.type !== api.apps.enums.type.LINE) {
                 delete apps[appId];
                 continue;
             }
 
-            $dropdownMenu.append('<li><a  class="dropdown-item" id="' + appId + '">' + app.name + '</a></li>');
+            $dropdownMenu.append(
+                '<a class="px-3 dropdown-item" id="' + appId + '">' +
+                    '<i class="' + ICONS[app.type] + '"></i>' +
+                    app.name +
+                '</a>'
+            );
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
@@ -112,8 +125,9 @@
     });
 
     function appSourceChanged(ev) {
-        nowSelectAppId = ev.target.id;
-        $appDropdown.find('.dropdown-text').text(ev.target.text);
+        let $dropdownItem = $(this);
+        nowSelectAppId = $dropdownItem.attr('id');
+        $appDropdown.find('.dropdown-text').text($dropdownItem.text());
         return loadRichmenus(nowSelectAppId, userId);
     }
 

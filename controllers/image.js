@@ -27,18 +27,14 @@ module.exports = (function() {
                 return storageHlp.filesUpload(originalFilePath, file);
             }).then((response) => {
                 return storageHlp.sharingCreateSharedLink(originalFilePath);
-            }).then((response) => {
-                let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                let url = wwwurl.replace('?dl=0', '');
-                return url;
             }).then((url) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: {url, originalFilePath} // TO DO ， BAD FORMAT
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         };
 
@@ -59,9 +55,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: data
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
     }
