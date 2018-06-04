@@ -157,28 +157,6 @@
             return;
         }
 
-        // // 將檔案轉 blob 的 URL
-        // // URL 沒有用到後，要呼叫 URL.revokeObjectURL()，將 create 的 URl 釋放
-        // let url = URL.createObjectURL(file) || webkitURL.createObjectURL(file);
-        // // 取得圖檔的長 寬
-        // reader.onload = function(e) {
-        //     let binaryString = e.target.result;
-        //     let image = new Image();
-        //     image.onload = function() {
-        //         imgWidth = image.width;
-        //         imgHeight = image.height;
-        //         size.width = imgWidth;
-        //         size.height = imgHeight;
-        //     };
-        //     image.src = url;
-        //     $('.show-richmenu-type')
-        //         .css('background', 'url(' + url + ') center no-repeat')
-        //         .css('background-size', 'cover')
-        //         .css('background-color', 'none');
-        //     imageFile = binaryString;
-        // };
-        // reader.readAsBinaryString(file);
-
         // 將檔案轉 base64 的 URL
         reader.onloadend = function(e) {
             let url = e.target.result;
@@ -416,7 +394,7 @@
             $(`#${boxInputId} #text`).val('').siblings('#url').val('');
         }
 
-        elementHide($('.content-input')); 
+        elementHide($('.content-input'));
         $(`#${boxInputId} #${contentInputId}`).removeClass('d-none');
         $(`#${boxInputId} #${contentInputId}`).change(function() {
             var val = $(this).val();
@@ -488,8 +466,6 @@
         $(this).attr('disabled', 'disabled').text('啟用中...');
         let appId = $(this).parents().parents().attr('rel');
         let richmenuId = $(this).parents().parents().attr('id');
-
-        console.log($(`#activated-richmenu tr`).attr('id'));
 
         return api.bot.activateMenu(appId, richmenuId, userId).then(() => {
             $(this).removeAttr('disabled');
@@ -837,11 +813,7 @@
     function remove() {
         let appId = $(this).parent().parent().attr('rel');
         let richmenuId = $(this).parent().parent().attr('id');
-        // let status = JSON.parse($(this).parent().siblings().children().attr('data-status')); // 將string轉成boolean
-        // TODO
-        return Promise.resolve().then(() => {
-            return showDialog('確定要刪除嗎？');
-        }).then(function(isOK) {
+        return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
                 let cancelDelete = '取消刪除';
                 return Promise.reject(cancelDelete);
@@ -859,7 +831,7 @@
             if ('取消刪除' === ERR) {
                 return $.notify(ERR, { type: 'warning' });
             }
-            return $.notify('失敗', { type: 'danger' });
+            $.notify('失敗', { type: 'danger' });
         });
     }
 
