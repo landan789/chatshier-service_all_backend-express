@@ -101,14 +101,14 @@ module.exports = (function() {
                 this.noRedis = false;
                 subscriberReadyResolve && subscriberReadyResolve();
                 subscriberReadyResolve = void 0;
-                console.log('[SUCCEEDED] the sub of service.chatshier is connecting to Redis !!');
+                console.log('[SUCCEEDED] the sub of api-chatshier is connecting to Redis !!');
             });
 
             this.subscriber.on('error', (s) => {
                 this.noRedis = true;
                 subscriberReadyResolve && subscriberReadyResolve();
                 subscriberReadyResolve = void 0;
-                console.log('[FAILED] the sub of service.chatshier is not connecting to Redis !!');
+                console.log('[FAILED] the sub of api-chatshier is not connecting to Redis !!');
             });
 
             this.subscriber.on('end', () => {
