@@ -78,6 +78,9 @@
             }
             return appsKeywordreplies[appId].keywordreplies;
         }).then((keywordreplies) => {
+            if (!keywordreplies) {
+                return;
+            }
             let keywordreplyStr = '<option disabled value="">-- 請選擇關鍵字 --</option>';
             for (let keywordreplyId in keywordreplies) {
                 let keyword = keywordreplies[keywordreplyId].keyword;
