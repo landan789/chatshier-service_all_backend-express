@@ -681,7 +681,7 @@
         }).then(() => {
             $('#richmenu-modal').modal('hide');
             $.notify('新增成功', { type: 'success' });
-            loadRichmenus(appId, userId, true);
+            $appDropdown.find('#' + appId).click();
         }).catch(() => {
             elementEnabled($('#modal-save'), handleMessages.addFinished);
             $.notify('新增失敗', { type: 'danger' });
@@ -709,7 +709,7 @@
                 let _appsRichmenus = resJson.data;
                 Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
                 $('#richmenu-modal').modal('hide');
-                return loadRichmenus(appId, userId, true);
+                $appDropdown.find('#' + appId).click();
             }).then(() => {
                 $.notify('修改成功', { type: 'success' });
             }).catch(() => {
@@ -725,7 +725,7 @@
             let _appsRichmenus = resJson.data;
             Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
             $('#richmenu-modal').modal('hide');
-            return loadRichmenus(appId, userId, true);
+            $appDropdown.find('#' + appId).click();
         }).then(() => {
             $.notify('修改成功', { type: 'success' });
         }).catch(() => {
@@ -743,8 +743,8 @@
         let imgWidth = size.width;
         let imgHeight = size.height;
         if (!imgWidth || !imgHeight) {
-            $('#modal-save').removeAttr('disabled');
-            $('#modal-update-save').removeAttr('disabled');
+            elementEnabled($('#modal-save'), handleMessages.addFinished);
+            elementEnabled($('#modal-update-save'), handleMessages.editFinished);
             return $.notify('請上傳圖片', { type: 'warning' });
         }
 
@@ -762,7 +762,7 @@
             let boxId = $box.attr('id');
             let textType = $boxesInputs.find('#' + boxId + '-input input[name="content"]:checked').val();
             let $textInput = $formInputs.find('#' + boxId + '-input #' + textType);
-            let text = $textInput.val();
+            let text = $textInput.val() || $box.attr('ref');
 
             if ('url' === textType && text) {
                 if (!text.startsWith('http://') && !text.startsWith('https://')) {
