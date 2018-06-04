@@ -134,6 +134,7 @@ module.exports = (function() {
         'name': {type: String, default: ''},
         'src': {type: String, default: ''},
         'platformMenuId': {type: String, default: ''},
+        'isActivated': {type: Boolean, default: false},
         'size': {type: Object, default: {}},
         'areas': [{
             'bounds': {type: Object, default: {}},

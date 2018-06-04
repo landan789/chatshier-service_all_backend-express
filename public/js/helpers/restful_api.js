@@ -1188,14 +1188,33 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標Richmenu的 App ID
          * @param {string} userId
-         * @param {*} postRichmenuData - 新增的Richmenu資料
+         * @param {any} postRichmenu - 新增的 richmenu 資料
+         * @param {File} postImageFile
          */
-        AppsRichmenusAPI.prototype.insert = function(appId, userId, postRichmenuData) {
+        AppsRichmenusAPI.prototype.insert = function(appId, userId, postRichmenu, postImageFile) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+
+            var formData = new FormData();
+            formData.append('file', postImageFile);
+            formData.append('fileName', postImageFile.name);
+            formData.append('mimeType', postImageFile.type);
+
+            for (var prop in postRichmenu) {
+                if ('object' === typeof postRichmenu[prop]) {
+                    formData.append(prop, JSON.stringify(postRichmenu[prop]));
+                } else {
+                    formData.append(prop, postRichmenu[prop]);
+                }
+            }
+
+            // 由於要使用 formData, Content-type 不同，因此使用新的 Headers
+            var _reqHeaders = new Headers();
+            _reqHeaders.set('Authorization', reqHeaders.get('Authorization'));
+
             var reqInit = {
                 method: 'POST',
-                headers: reqHeaders,
-                body: JSON.stringify(postRichmenuData)
+                headers: _reqHeaders,
+                body: formData
             };
             return sendRequest(destUrl, reqInit);
         };
@@ -1203,17 +1222,38 @@ window.restfulAPI = (function() {
         /**
          * 修改一筆Richmenu資料
          *
-         * @param {string} appId - 目標Richmenu的 App ID
-         * @param {string} richmenuId - 目標Richmenu的 ID
+         * @param {string} appId - 目標 Richmenu 的 App ID
+         * @param {string} richmenuId - 目標 Richmenu 的 ID
          * @param {string} userId
-         * @param {*} putRichmenuData - 更新的Richmenu資料
+         * @param {any} putRichmenu - 更新的 Richmenu 資料
+         * @param {File} [putImageFile]
          */
-        AppsRichmenusAPI.prototype.update = function(appId, richmenuId, userId, putRichmenuData) {
+        AppsRichmenusAPI.prototype.update = function(appId, richmenuId, userId, putRichmenu, putImageFile) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/richmenus/' + richmenuId + '/users/' + userId;
+
+            var formData = new FormData();
+            if (putImageFile) {
+                formData.append('file', putImageFile);
+                formData.append('fileName', putImageFile.name);
+                formData.append('mimeType', putImageFile.type);
+            }
+
+            for (var prop in putRichmenu) {
+                if ('object' === typeof putRichmenu[prop]) {
+                    formData.append(prop, JSON.stringify(putRichmenu[prop]));
+                } else {
+                    formData.append(prop, putRichmenu[prop]);
+                }
+            }
+
+            // 由於要使用 formData, Content-type 不同，因此使用新的 Headers
+            var _reqHeaders = new Headers();
+            _reqHeaders.set('Authorization', reqHeaders.get('Authorization'));
+
             var reqInit = {
                 method: 'PUT',
-                headers: reqHeaders,
-                body: JSON.stringify(putRichmenuData)
+                headers: _reqHeaders,
+                body: formData
             };
             return sendRequest(destUrl, reqInit);
         };
@@ -1388,22 +1428,6 @@ window.restfulAPI = (function() {
          */
         BotAPI.prototype.deactivateMenu = function(appId, menuId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/users/' + userId;
-            var reqInit = {
-                method: 'DELETE',
-                headers: reqHeaders
-            };
-            return sendRequest(destUrl, reqInit);
-        };
-
-        /**
-         * 刪除一筆在 LINE 或 Wechat server 的 Menu 資料
-         *
-         * @param {string} appId - 目標Menu的 App ID
-         * @param {string} menuId - 目標Menu的 ID
-         * @param {string} userId
-         */
-        BotAPI.prototype.deleteMenu = function(appId, menuId, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/users/' + userId + '/content/';
             var reqInit = {
                 method: 'DELETE',
                 headers: reqHeaders

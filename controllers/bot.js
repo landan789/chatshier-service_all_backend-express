@@ -23,7 +23,6 @@ module.exports = (function() {
             this._findPlatformUids = this._findPlatformUids.bind(this);
             this.activateMenu = this.activateMenu.bind(this);
             this.deactivateMenu = this.deactivateMenu.bind(this);
-            this.deleteMenu = this.deleteMenu.bind(this);
             this.getProfile = this.getProfile.bind(this);
             this.uploadFile = this.uploadFile.bind(this);
             this.leaveGroupRoom = this.leaveGroupRoom.bind(this);
@@ -87,7 +86,7 @@ module.exports = (function() {
                 let fileName = imageSrc.split('/').pop();
                 let path = `/apps/${appId}/richmenus/${menuId}/src/${fileName}`;
                 return Promise.all([
-                    botSvc.createMenu(postMenu, appId, app),
+                    botSvc.createRichMenu(postMenu, appId, app),
                     storageHlp.filesDownload(path)
                 ]);
             }).then(([response, image]) => {
@@ -172,45 +171,6 @@ module.exports = (function() {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
-                };
-                return this.successJson(req, res, suc);
-            }).catch((err) => {
-                return this.errorJson(req, res, err);
-            });
-        };
-
-        deleteMenu(req, res) {
-            let appId = req.params.appid;
-            let menuId = req.params.menuid;
-            let app;
-            let richmenu;
-
-            return this.appsRequestVerify(req).then(() => {
-                return this._createBot(appId);
-            }).then((_app) => {
-                if (!_app) {
-                    return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
-                }
-                app = _app;
-                return appsRichmenusMdl.find(appId, menuId);
-            }).then((appsRichmenus) => {
-                if (!appsRichmenus) {
-                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
-                }
-                richmenu = appsRichmenus[appId].richmenus[menuId];
-                let platformMenuId = richmenu.platformMenuId;
-                return botSvc.deleteMenu(platformMenuId, appId, app);
-            }).then((result) => {
-                if (!result) {
-                    return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_REMOVE);
-                }
-                richmenu.platformMenuId = '';
-                richmenu.isDeleted = true;
-                return appsRichmenusMdl.update(appId, menuId, richmenu);
-            }).then((appsRichmenus) => {
-                let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
-                    data: appsRichmenus
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {

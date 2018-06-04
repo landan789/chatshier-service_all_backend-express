@@ -48,7 +48,7 @@ module.exports = (function() {
          * @param {any} req
          * @param {any} res
          * @param {string} appId
-         * @param {any} app
+         * @param {Chatshier.Models.App} app
          */
         parser(req, res, appId, app) {
             switch (app.type) {
@@ -82,7 +82,7 @@ module.exports = (function() {
 
         /**
          * @param {string} appId
-         * @param {any} app
+         * @param {Chatshier.Models.App} app
          */
         create(appId, app) {
             return Promise.resolve().then(() => {
@@ -108,13 +108,15 @@ module.exports = (function() {
                         this.bots[appId] = facebookBot;
                         return facebookBot;
                     case WECHAT:
+                        /** @type {any} */
+                        let _app = Object.assign({}, app);
                         let getToken = (callback) => {
                             // 此 callback 在 instance 被建立會要發 API 時會執行
                             // 從資料庫抓取出目前 app 的 accessToken 回傳給 instance
-                            if (app.token1) {
+                            if (_app.token1) {
                                 let token = {
-                                    accessToken: app.token1,
-                                    expireTime: app.token1ExpireTime
+                                    accessToken: _app.token1,
+                                    expireTime: _app.token1ExpireTime
                                 };
                                 callback(null, token);
                                 return;
@@ -126,13 +128,13 @@ module.exports = (function() {
                             // 當 wechat sdk 發送 API 時，沒有 accessToken 或是 accessToken 過期
                             // 會自動抓取新的 accessToken 並呼叫此函式
                             // 此時將新的 wechat app accessToken 更新至資料庫中
-                            app.token1 = tokenJson.accessToken;
-                            app.token1ExpireTime = tokenJson.expireTime;
-                            let _app = {
-                                token1: app.token1,
-                                token1ExpireTime: app.token1ExpireTime
+                            _app.token1 = tokenJson.accessToken;
+                            _app.token1ExpireTime = tokenJson.expireTime;
+                            let putApp = {
+                                token1: _app.token1,
+                                token1ExpireTime: _app.token1ExpireTime
                             };
-                            return appsMdl.update(appId, _app).then((apps) => {
+                            return appsMdl.update(appId, putApp).then((apps) => {
                                 if (!apps) {
                                     callback(API_ERROR.APP_FAILED_TO_UPDATE);
                                     return;
@@ -140,7 +142,7 @@ module.exports = (function() {
                                 callback();
                             });
                         };
-                        let wechatBot = new WechatAPI(app.id1, app.secret, getToken, setToken);
+                        let wechatBot = new WechatAPI(_app.id1, _app.secret, getToken, setToken);
                         this.bots[appId] = wechatBot;
                         return wechatBot;
                     default:
@@ -151,7 +153,7 @@ module.exports = (function() {
 
         /**
          * @param {any} req
-         * @param {any} app
+         * @param {Chatshier.Models.App} app
          * @returns {Webhook.Chatshier.Information}
          */
         retrieveWebhookInfo(req, app) {
@@ -208,6 +210,8 @@ module.exports = (function() {
          * 根據不同 BOT 把 webhook 打進來的 HTTP BODY 轉換成 message 格式
          *
          * @param {string} messagerId - 這裡是代表 Chatshier chatroom 裡的 messager_id
+         * @param {string} appId
+         * @param {Chatshier.Models.App} app
          * @return {Promise<any>}
          */
         getReceivedMessages(req, res, messagerId, appId, app) {
@@ -473,17 +477,11 @@ module.exports = (function() {
          * 多型處理， 取得 LINE 或 FACEBOOK 來的 customer 用戶端資料
          * @param {Webhook.Chatshier.Information} webhookInfo
          * @param {string} appId
-         * @param {any} app
+         * @param {Chatshier.Models.App} app
          * @returns {Promise<Webhook.Chatshier.Profile>}
          */
         getProfile(webhookInfo, appId, app) {
-            return Promise.resolve().then(() => {
-                let bot = this.bots[appId];
-                if (!bot) {
-                    return this.create(appId, app);
-                }
-                return bot;
-            }).then((bot) => {
+            return this._protectBot(appId, app).then((bot) => {
                 /** @type {Webhook.Chatshier.Profile} */
                 let senderProfile = {
                     type: app.type,
@@ -804,16 +802,11 @@ module.exports = (function() {
          * @param {any} app
          */
         multicast(recipientUids, messages, appId, app) {
-            let bot = this.bots[appId];
             let _multicast;
 
-            return Promise.resolve().then(() => {
-                if (!bot) {
-                    return this.create(appId, app).then((_bot) => {
-                        this.bots[appId] = bot = _bot;
-                    });
-                };
-            }).then(() => {
+            return this._protectBot(appId, app).then((_bot) => {
+                let bot = _bot;
+
                 switch (app.type) {
                     case LINE:
                         _multicast = (_recipientUids, messages) => {
@@ -899,35 +892,50 @@ module.exports = (function() {
         };
 
         /**
-         * @param {any} postMenu
+         * @param {any} postRichmenu
          * @param {string} appId
-         * @param {any} app
+         * @param {Chatshier.Models.App} [app]
          */
-        createMenu(postMenu, appId, app) {
-            let bot = this.bots[appId];
-            switch (app.type) {
-                case LINE:
-                    return bot.createRichMenu(postMenu);
-                case WECHAT:
-                default:
-                    return Promise.resolve([]);
-            }
+        createRichMenu(postRichmenu, appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            let lineRichmenu = {
+                                size: postRichmenu.size,
+                                selected: postRichmenu.selected,
+                                name: postRichmenu.name,
+                                chatBarText: postRichmenu.chatBarText,
+                                areas: postRichmenu.areas
+                            };
+                            return bot.createRichMenu(lineRichmenu);
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve();
+                    }
+                });
+            });
         };
 
         /**
          * @param {string} platformMenuId
          * @param {string} appId
-         * @param {any} app
+         * @param {Chatshier.Models.App} [app]
          */
-        deleteMenu(platformMenuId, appId, app) {
-            let bot = this.bots[appId];
-            switch (app.type) {
-                case LINE:
-                    return bot.deleteRichMenu(platformMenuId);
-                case WECHAT:
-                default:
-                    return Promise.resolve([]);
-            }
+        deleteRichMenu(platformMenuId, appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            return bot.deleteRichMenu(platformMenuId);
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve();
+                    }
+                });
+            });
         };
 
         /**
@@ -958,13 +966,24 @@ module.exports = (function() {
 
         /**
          * @param {string} platformMenuId
-         * @param {any} richmenuImg
+         * @param {Buffer} imageBuffer
+         * @param {string} mimeType
          * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
          */
-        setRichMenuImage(platformMenuId, richmenuImg, appId) {
-            let bot = this.bots[appId];
-            let imageBuffer = richmenuImg.fileBinary;
-            return bot.setRichMenuImage(platformMenuId, imageBuffer, null);
+        setRichMenuImage(platformMenuId, imageBuffer, mimeType, appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            return bot.setRichMenuImage(platformMenuId, imageBuffer, mimeType);
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve();
+                    }
+                });
+            });
         };
 
         /**
@@ -1018,6 +1037,39 @@ module.exports = (function() {
                 } else if (FACEBOOK === app.type) {
                     // Facebook 無支援群組聊天
                 }
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
+        _protectBot(appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                let bot = this.bots[appId];
+                if (!bot) {
+                    return this.create(appId, _app);
+                }
+                return bot;
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
+        _protectApps(appId, app) {
+            return Promise.resolve().then(() => {
+                if (!app) {
+                    return appsMdl.find(appId).then((apps) => {
+                        if (!(apps && apps[appId])) {
+                            return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        }
+                        app = apps[appId];
+                        return Promise.resolve(app);
+                    });
+                }
+                return app;
             });
         }
     }

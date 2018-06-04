@@ -13,7 +13,9 @@
 
     var nowSelectAppId = '';
     var size = {};
-    var imageFile = '';
+
+    /** @type {File} */
+    var imageFile;
 
     var $modal = $('#richmenu-modal');
 
@@ -32,7 +34,7 @@
         FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
     };
 
-    $jqDoc.on('click', '#remove-btn', remove);
+    $jqDoc.on('click', '#remove-btn', removeRichmenu);
 
     $('.content-bar').addClass('d-none');
     $('.content-input').addClass('d-none');
@@ -51,7 +53,7 @@
         $('#modal-save').removeAttr('disabled').empty().text('新增');
         $('#modal-update-save').removeAttr('disabled').empty().text('修改');
         $(`.form-inputs input`).val('');
-        imageFile = '';
+        imageFile = void 0;
     });
 
     $modal.on('show.bs.modal', function() {
@@ -543,7 +545,7 @@
                 '<td id="photoForm" data-form="' + richmenu.form + '" data-url="' + richmenu.src + '">版型 ' + richmenu.form.slice(-1) + '</td>' +
                 '<td>' + linkText + '</td>' +
                 (() => {
-                    if (richmenu.platformMenuId) {
+                    if (richmenu.isActivated) {
                         return (
                             '<td>' +
                                 '<button type="button" id="activate-btn" class="btn btn-success btn-border" data-status="true">已啟用</button>' +
@@ -565,7 +567,7 @@
             '</tr>'
         );
 
-        if (richmenu.platformMenuId) {
+        if (richmenu.isActivated) {
             $('table #activated-richmenu').append(richmenuRow);
             return;
         }
@@ -599,8 +601,9 @@
                     if (!appsRichmenus[appId]) {
                         appsRichmenus[appId] = { richmenus: {} };
                     }
-                    Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
-                    richemnu = _appsRichmenus[appId].richmenus[richmenuId];
+                    let richmenus = _appsRichmenus[appId].richmenus;
+                    Object.assign(appsRichmenus[appId].richmenus, richmenus);
+                    richemnu = richmenus[richmenuId];
                     return richemnu;
                 });
             }
@@ -660,9 +663,9 @@
             if (!appsRichmenus[appId]) {
                 appsRichmenus[appId] = { richmenus: {} };
             }
-            Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+            let richmenus = _appsRichmenus[appId].richmenus;
+            Object.assign(appsRichmenus[appId].richmenus, richmenus);
 
-            let richmenus = appsRichmenus[appId].richmenus;
             for (let richmenuId in richmenus) {
                 let richmenu = richmenus[richmenuId];
                 if (richmenu.isDeleted) {
@@ -676,10 +679,9 @@
     function insertRichmenu() {
         $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
         let appId = $appSelector.find('option:selected').val();
-        let selected = $('.richmenu-select').val();
+        let selected = 'true' === $('.richmenu-select').val();
         let chatBarText = $('input[name="chatbarText"]').val();
         let form = $('input[name = richmenu-form]:checked').val();
-        let originalFilePath = '';
 
         if (!appId || !chatBarText) {
             $('#modal-save').removeAttr('disabled');
@@ -687,35 +689,28 @@
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         }
 
-        return api.image.uploadFile(appId, userId, imageFile).then((resJson) => {
-            let url = resJson.data.url;
-            originalFilePath = resJson.data.originalFilePath;
+        let areas = composeAreaObject();
+        let postRichmenu = {
+            selected: selected,
+            chatBarText: chatBarText,
+            name: 'Chatshier Richmenu',
+            form: form,
+            src: '',
+            size: size,
+            areas: areas
+        };
 
-            let areas = composeAreaObject();
-            let postRichmenu = {
-                selected: selected,
-                chatBarText: chatBarText,
-                name: 'Chatshier Richmenu',
-                form: form,
-                src: url,
-                size: size,
-                areas: areas
-            };
-            return api.appsRichmenus.insert(appId, userId, postRichmenu);
-        }).then((resJson) => {
+        return api.appsRichmenus.insert(appId, userId, postRichmenu, imageFile).then((resJson) => {
             let _appsRichmenus = resJson.data;
             if (!appsRichmenus[appId]) {
                 appsRichmenus[appId] = { richmenus: {} };
             }
-            Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
-
-            let richemnu = _appsRichmenus[appId].richmenus;
-            let richmenuId = Object.keys(richemnu)[0];
-            return api.image.moveFile(appId, richmenuId, userId, originalFilePath);
+            let richmenus = _appsRichmenus[appId].richmenus;
+            Object.assign(appsRichmenus[appId].richmenus, richmenus);
         }).then(() => {
             $('#richmenu-modal').modal('hide');
             $.notify('新增成功', { type: 'success' });
-            loadRichmenus(appId, userId, true);
+            return loadRichmenus(appId, userId, true);
         }).catch(() => {
             $('#modal-save').removeAttr('disabled').empty().text('新增');
             $('#modal-update-save').removeAttr('disabled').empty().text('修改');
@@ -724,7 +719,7 @@
     }
 
     function updateRichmenu(appId, richmenuId, src) {
-        let selected = $('.richmenu-select').val();
+        let selected = 'true' === $('.richmenu-select').val();
         let chatBarText = $('input[name="chatbarText"]').val();
         let form = $('input[name="richmenu-form"]:checked').val();
         let areas = composeAreaObject();
@@ -741,35 +736,49 @@
 
         $('#modal-update-save').attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
 
-        if (!imageFile) {
-            return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {
-                let _appsRichmenus = resJson.data;
-                Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
-                $('#richmenu-modal').modal('hide');
-                return loadRichmenus(appId, userId, true);
-            }).then(() => {
-                $('#modal-update-save').removeAttr('disabled');
-                return $.notify('修改成功', { type: 'success' });
-            }).catch(() => {
-                $('#modal-update-save').removeAttr('disabled').empty().text('修改');
-                $.notify('修改失敗', { type: 'danger' });
-            });
-        }
-
-        return api.image.uploadFile(appId, userId, imageFile).then((resJson) => {
-            putRichmenu.src = resJson.data.url;
-            return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu);
-        }).then((resJson) => {
+        return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu, imageFile).then((resJson) => {
             let _appsRichmenus = resJson.data;
-            Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+            let richmenus = _appsRichmenus[appId].richmenus;
+            Object.assign(appsRichmenus[appId].richmenus, richmenus);
 
             $('#richmenu-modal').modal('hide');
-            $.notify('修改成功', { type: 'success' });
             return loadRichmenus(appId, userId, true);
+        }).then(() => {
+            $('#modal-update-save').removeAttr('disabled');
+            return $.notify('修改成功', { type: 'success' });
         }).catch(() => {
-            $('#modal-save').removeAttr('disabled').empty().text('新增');
             $('#modal-update-save').removeAttr('disabled').empty().text('修改');
             $.notify('修改失敗', { type: 'danger' });
+        });
+    }
+
+    function removeRichmenu() {
+        let appId = $(this).parent().parent().attr('rel');
+        let richmenuId = $(this).parent().parent().attr('id');
+        // let status = JSON.parse($(this).parent().siblings().children().attr('data-status')); // 將string轉成boolean
+        // TODO
+        return Promise.resolve().then(() => {
+            return showDialog('確定要刪除嗎？');
+        }).then(function(isOK) {
+            if (!isOK) {
+                let cancelDelete = '取消刪除';
+                return Promise.reject(cancelDelete);
+            }
+            return Promise.resolve();
+        }).then(() => {
+            return api.appsRichmenus.remove(appId, richmenuId, userId);
+        }).then((resJson) => {
+            delete appsRichmenus[appId].richmenus[richmenuId];
+            $('#' + richmenuId).remove();
+            $.notify('刪除成功！', { type: 'success' });
+        }).catch((ERR) => {
+            if (NO_PERMISSION_CODE === ERR.code) {
+                return $.notify('無此權限', { type: 'danger' });
+            }
+            if ('取消刪除' === ERR) {
+                return $.notify(ERR, { type: 'warning' });
+            }
+            return $.notify('失敗', { type: 'danger' });
         });
     }
 
@@ -849,35 +858,6 @@
         richmenuTextType.type = 'message';
         richmenuTextType.text = text;
         return richmenuTextType;
-    }
-
-    function remove() {
-        let appId = $(this).parent().parent().attr('rel');
-        let richmenuId = $(this).parent().parent().attr('id');
-        // let status = JSON.parse($(this).parent().siblings().children().attr('data-status')); // 將string轉成boolean
-        // TODO
-        return Promise.resolve().then(() => {
-            return showDialog('確定要刪除嗎？');
-        }).then(function(isOK) {
-            if (!isOK) {
-                let cancelDelete = '取消刪除';
-                return Promise.reject(cancelDelete);
-            }
-            return Promise.resolve();
-        }).then(() => {
-            return api.appsRichmenus.remove(appId, richmenuId, userId);
-        }).then((resJson) => {
-            $('#' + richmenuId).remove();
-            $.notify('刪除成功！', { type: 'success' });
-        }).catch((ERR) => {
-            if (NO_PERMISSION_CODE === ERR.code) {
-                return $.notify('無此權限', { type: 'danger' });
-            }
-            if ('取消刪除' === ERR) {
-                return $.notify(ERR, { type: 'warning' });
-            }
-            return $.notify('失敗', { type: 'danger' });
-        });
     }
 
     function showDialog(textContent) {

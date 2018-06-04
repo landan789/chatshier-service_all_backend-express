@@ -15,7 +15,7 @@ declare module Chatshier {
             secret: string,
             token1: string,
             token2: string,
-            type: string,
+            type: 'LINE' | 'FACEBOOK' | 'WECHAT' | 'CHATSHIER',
             webhook_id: string,
             isDeleted: boolean
         }

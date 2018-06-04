@@ -22,7 +22,6 @@ router.use(
 // bot
 router.post('/apps/:appid/menus/:menuid/users/:userid', botCtl.activateMenu);
 router.delete('/apps/:appid/menus/:menuid/users/:userid', botCtl.deactivateMenu);
-router.delete('/apps/:appid/menus/:menuid/users/:userid/content/', botCtl.deleteMenu);
 router.get('/apps/:appid/consumers/:platformuid', botCtl.getProfile);
 router.delete('/leave-group-room/apps/:appid/chatrooms/:chatroomid/users/:userid', botCtl.leaveGroupRoom);
 // ==========
