@@ -20,6 +20,12 @@
 
     // const NO_PERMISSION_CODE = '3.16'; // not sure what this is for
 
+    const handleMessages = {
+        working: '<i class="fas fa-circle-notch fa-spin"></i>處理中',
+        addFinished: '新增',
+        editFinished: '修改'
+    };
+
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -36,8 +42,8 @@
     $jqDoc.on('click', '#remove-btn', removeImagemap);
     $jqDoc.on('click', '#turnOn-update-btn', turnOnUpdateModal);
     $modal.on('show.bs.modal', function() {
-        $('.form-group').removeClass('d-none');
-        $('#update-btn').addClass('d-none');
+        elementShow($('.form-group'));
+        elementHide($('#update-btn'));
     });
     $modal.on('hidden.bs.modal', function() {
         cleanmodal();
@@ -94,8 +100,8 @@
         let height = $modal.find('.show-imagemap-form').height();
         let boxWidth = width / 3;
         let boxHeight = height / 2;
-        $('.content-input').addClass('d-none');
-        $('.form-group.col-sm-12').addClass('d-none');
+        elementHide($('.content-input'));
+        elementHide($('.form-group.col-sm-12'));
         $modal.find('.show-imagemap-form').css('background-color', '#CBCBCB');
         $modal.find('.show-imagemap-form').find('.box').remove();
         let checked = $('input[name = imagemap-form]:checked').val();
@@ -128,7 +134,7 @@
                 box6Input = showBoxInputs('box6');
                 $modal.find('.boxes-inputs').empty();
                 $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input + box5Input + box6Input);
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form7':
                 let heightForm7 = boxHeight;
@@ -142,7 +148,7 @@
                 box3Input = showBoxInputs('box3');
                 $modal.find('.boxes-inputs').empty();
                 $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input);
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form6':
                 let widthForm6 = boxWidth;
@@ -156,7 +162,7 @@
                 box3Input = showBoxInputs('box3');
                 $modal.find('.boxes-inputs').empty();
                 $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input);
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form5':
                 let widthForm5 = boxWidth;
@@ -172,7 +178,7 @@
                 box4Input = showBoxInputs('box4');
                 $modal.find('.boxes-inputs').empty();
                 $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input);
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form4':
                 let heightForm4 = boxHeight * 2 / 3;
@@ -185,7 +191,7 @@
                 box3Input = showBoxInputs('box3');
                 $modal.find('.boxes-inputs').empty();
                 $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input);
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form3':
                 box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height: ' + boxHeight + 'px"></div>';
@@ -195,7 +201,7 @@
                 box2Input = showBoxInputs('box2');
                 $modal.find('.boxes-inputs').empty();
                 $modal.find('.boxes-inputs').append(box1Input + box2Input);
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form2':
                 let widthForm2 = boxWidth;
@@ -207,7 +213,7 @@
                 box2Input = showBoxInputs('box2');
                 $modal.find('.boxes-inputs').empty();
                 $modal.find('.boxes-inputs').append(box1Input + box2Input);
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form1':
                 box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height:' + height + 'px"></div>';
@@ -215,7 +221,7 @@
                 box1Input = showBoxInputs('box1');
                 $modal.find('.boxes-inputs').empty();
                 $modal.find('.boxes-inputs').append(box1Input);
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             default:
                 break;
@@ -230,21 +236,21 @@
             inputTypeCheck(id, inputValue);
         }
         $(`.form-inputs input`).val('');
-        $('.content-input').addClass('d-none');
+        elementHide($('.content-input'));
         $(`#${id} input[name = content]`).removeAttr('checked');
         $(`.boxes-inputs .content-bar`).removeClass('d-none').addClass('d-none');
-        $(`.boxes-inputs #${id}-input`).removeClass('d-none');
-        $(`.form-inputs .form-group.col-sm-12`).addClass('d-none');
-        $(`.form-inputs #${id}-input`).removeClass('d-none');
+        elementShow($(`.boxes-inputs #${id}-input`));
+        elementHide($(`.form-inputs .form-group.col-sm-12`));
+        elementShow($(`.form-inputs #${id}-input`));
         $(this).css('background-color', 'rgba(158,158,158,0.7)');
         $(this).addClass('checked');
         if (!inputValue) {
         } else if (inputValue.includes('http://') || inputValue.includes('https://')) {
             $(`.form-inputs #${id}-input #url`).val(inputValue);
-            $(`.form-inputs #${id}-input #url`).removeClass('d-none');
+            elementShow($(`.form-inputs #${id}-input #url`));
         } else {
             $(`.form-inputs #${id}-input #text`).val(inputValue);
-            $(`.form-inputs #${id}-input #text`).removeClass('d-none');
+            elementShow($(`.form-inputs #${id}-input #text`));
         }
     }
 
@@ -266,9 +272,9 @@
         if (!contentInputValue) {
             $('.content-input').val('');
         }
-        $('.content-input').addClass('d-none');
+        elementHide($('.content-input'));
         $(`.form-group.col-sm-12#${boxInput}`).removeClass('d-none').siblings().addClass('d-none');
-        $(`#${boxInput} #${contentInputId}`).removeClass('d-none');
+        elementShow($(`#${boxInput} #${contentInputId}`));
         $(`#${boxInput} #${contentInputId}`).change(function() {
             var val = $(this).val();
             if (val) {
@@ -282,14 +288,14 @@
 
     function cleanmodal() {
         imageFile = '';
-        $('#insert-btn').removeAttr('disabled').removeClass('d-none').empty().append('新增');
-        $('#update-btn').removeAttr('disabled').removeClass('d-none').empty().append('修改');
-        $('.form-group.col-sm-12').addClass('d-none');
-        $('.chsr-form > div').removeClass('d-none');
+        elementEnabled($('#insert-btn'), handleMessages.addFinished);
+        elementEnabled($('#update-btn'), handleMessages.editFinished);
+        elementShow($('#insert-btn'));
+        elementShow($('#update-btn'));
+        elementHide($('.form-group.col-sm-12'));
+        elementShow($('.chsr-form > div'));
         $modal.find('input[type = text]').val('');
-        $modal.find('input[type = datetime-local]').val('');
         $modal.find('input[type = url]').val('');
-        $modal.find('input[type = file]').val('');
         $modal.find('.show-imagemap-form').removeAttr('style');
         $modal.find('.show-imagemap-form').css('background-color', '#CBCBCB');
         $modal.find('.show-imagemap-form').find('.box').remove();
@@ -299,7 +305,7 @@
     }
 
     function insertImagemap() {
-        $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
+        elementDisabled($(this), handleMessages.working);
         let appId = $appSelector.find('option:selected').val();
         let title = $('#title').val();
         let form = $('input[name = imagemap-form]:checked').val();
@@ -367,11 +373,11 @@
         let imagemapId = $(this).parent().parent().attr('id');
 
         $appSelector.parent().parent().addClass('d-none');
-        $('#insert-btn').addClass('d-none');
-        $('#update-btn').removeClass('d-none');
+        elementHide($('#insert-btn'));
+        elementShow($('#update-btn'));
 
         $('#update-btn').off('click').on('click', () => {
-            $('#update-btn').attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
+            elementDisabled($('#update-btn'), handleMessages.working);
             let title = $('#title').val();
             let form = $('input[name = imagemap-form]:checked').val();
 
@@ -603,12 +609,25 @@
         });
     }
 
+    function elementDisabled(element, message) {
+        element.attr('disabled', true).empty().append(message);
+    }
+    function elementEnabled(element, message) {
+        element.removeAttr('disabled').empty().text(message);
+    }
+    function elementShow(element) {
+        element.removeClass('d-none');
+    }
+    function elementHide(element) {
+        element.addClass('d-none');
+    }
+
     return api.apps.findAll(userId).then(function(resJson) {
         var appsData = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
-        $('.content-bar').addClass('d-none');
-        $('.content-input').addClass('d-none');
+        elementHide($('.content-bar'));
+        elementHide($('.content-input'));
         cleanmodal();
 
         nowSelectAppId = '';
