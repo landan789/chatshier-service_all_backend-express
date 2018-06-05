@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const CHATSHIER = require('../config/chatshier');
 
 var app = require('../app');
 var http = require('http');
@@ -6,7 +7,7 @@ var server = http.createServer(app);
 var socketInit = require('../sockets/index');
 socketInit(server);
 
-var port = process.env.PORT || '3002';
+var port = process.env.PORT || CHATSHIER.API.PORT;
 
 server.listen(port);
 
@@ -30,5 +31,5 @@ server.on('error', (error) => {
 server.on('listening', (event) => {
     var addr = server.address();
     var bind = 'string' === typeof addr ? 'pipe ' + addr : 'port ' + addr.port;
-    console.log('[SUCCEEDED] the web of service.chatshier is listening on ' + bind + ' !!');
+    console.log('[SUCCEEDED] the web of api-chatshier is listening on ' + bind + ' !!');
 });
