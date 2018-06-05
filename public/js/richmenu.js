@@ -598,10 +598,7 @@
             $boxes.each(function(i) {
                 let $box = $($boxes[i]);
                 let text = !areas[i].action.text ? areas[i].action.uri : areas[i].action.text;
-                let type = 'postback' === areas[i].action.type ? '未設定' : areas[i].action.type;
 
-                $box.css('background-color', 'rgba(158,158,158, 0.7)');
-                $box.text(`${type}:\n${text || ''}`);
                 $box.addClass('marked');
                 $box.attr('ref', text);
             });
