@@ -190,6 +190,11 @@
         .message .content.found {
             color:white;
             background-color: #33ccff !important; }
+        .message .content.media {
+            position: relative; }
+        .message .content.media .template-btn {
+            position: absolute; 
+            top: -1.5rem; }
         .message .content .text-content {
             line-height: 1.25rem;
             white-space: pre-wrap; }
@@ -253,10 +258,15 @@
 
     .message .box {
         position: relative; 
-        text-align: center; 
-        border: .5px solid #ccc; }
+        text-align: center; }
         .message .box .imagemap-text-space {
-            background-color:  rgba(204,204,204, .3); }
+            border-radius: .5rem;
+            color: #ffffff;
+            background-color:  rgba(0, 0, 0, 0.6);
+            visibility: hidden; }
+        .message .box .imagemap-text-space a {
+            color: #ffffff;
+            text-decoration: none; }
 .message-group {
     display: flex;
     align-items: flex-end; }

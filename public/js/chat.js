@@ -466,6 +466,8 @@
     $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
     $(document).on('click', '#imagemap', showImagemapArea);
     $(document).on('click', '#send-imagemap-btn', sendImagemap);
+    $(document).on('mouseover', '.imagemap-message-content', function() { $(this).find('.imagemap-text-space').css('visibility', 'visible'); });
+    $(document).on('mouseleave', '.imagemap-message-content', function() { $(this).find('.imagemap-text-space').css('visibility', 'hidden'); });
     $mediaBtns.on('click', triggerFileUpload); // 傳圖，音，影檔功能
     $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
@@ -1359,7 +1361,7 @@
             case 'imagemap':
                 return (
                     '<div class="imagemap-message-container">' +
-                        `<span class="imagemap-btn">圖文訊息</span>` +
+                        `<span class="imagemap-btn badge badge-pill badge-dark">圖文訊息</span>` +
                         `<img class="imagemap-image" src="${message.src || ''}" />` +
                         `<div class="imagemap-message-content row mx-0">${(message.imagemap ? photoFormShow(message) : '')}</div>` +
                     '</div>'
@@ -1457,6 +1459,7 @@
         switch (template.type) {
             case 'confirm':
                 return (
+                    `<span class="template-btn badge badge-pill badge-dark">格式訊息</span>` +
                     '<div class="template-sm">' +
                         `<div class="d-flex flex-wrap align-items-center template-sm-title">
                             <span>${template.text}</span>
@@ -1475,6 +1478,7 @@
                 );
             case 'buttons':
                 return (
+                    `<span class="template-btn badge badge-pill badge-dark">格式訊息</span>` +
                     '<div class="template">' +
                         '<div class="text-center top-img-container">' +
                             `<img src="${template.thumbnailImageUrl}" alt="未顯示圖片" />` +
@@ -1499,6 +1503,7 @@
                 );
             case 'carousel':
                 return template.columns.map((column) => (
+                    `<span class="template-btn badge badge-pill badge-dark">格式訊息</span>` +
                     '<div class="template">' +
                         '<div class="text-center top-img-container">' +
                             `<img src="${column.thumbnailImageUrl}" alt="未顯示圖片" />` +
