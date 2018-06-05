@@ -348,7 +348,7 @@ module.exports = (function() {
                                                 let consumer = consumers[groupMemberId];
                                                 let shouldUpload = (
                                                     groupMemberProfile.photo.startsWith('http://') &&
-                                                    (!consumer || !(consumer && groupMemberProfile.photo !== consumer.photoOriginal))
+                                                    (!consumer || (consumer && groupMemberProfile.photo !== consumer.photoOriginal))
                                                 );
 
                                                 if (shouldUpload) {
