@@ -52,8 +52,7 @@ label *:not(strong) {
 } */
 
 .rounded-border {
-    border: 2px #ccc solid;
-    border-radius: 10px;
+    border-radius: 1rem;
     /*width: 80%;*/
     /*height:60px;*/
     background-color: #FFF;
