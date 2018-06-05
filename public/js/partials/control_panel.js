@@ -13,12 +13,7 @@
     $ctrlPanel.on('click', '.has-collapse', toggleCollapse);
     $ctrlPanelBackdrop.on('click', closeCtrlPanel);
 
-    var $scrollTop = $ctrlPanel.find('.scroll-top');
     var $scrollBottom = $ctrlPanel.find('.scroll-bottom');
-    $scrollTop.on('click', function(ev) {
-        var $slideActive = $ctrlPanel.find('.swiper-slide.swiper-slide-active');
-        $slideActive.animate({ scrollTop: 0 }, 300);
-    });
     $scrollBottom.on('click', function(ev) {
         var $slideActive = $ctrlPanel.find('.swiper-slide.swiper-slide-active');
         $slideActive.animate({ scrollTop: $slideActive.prop('scrollHeight') }, 300);
@@ -68,7 +63,6 @@
                 // 如果從 localStorage 得知目前 Control Panel 是處於收起狀態，則一載入頁面後就將之收起
                 if (isCtrlPanelPutAway) {
                     window.innerWidth >= BREAKPOINT_SM && switchCtrlPanel();
-                    $scrollTop.addClass('d-none');
                     $scrollBottom.addClass('d-none');
                 }
                 onScrollCtrlPanel({ target: $ctrlPanel.find('.swiper-slide.swiper-slide-active').get(0) });
@@ -155,7 +149,6 @@
         window.localStorage.setItem('isCtrlPanelPutAway', isCtrlPanelPutAway);
 
         if (isCtrlPanelPutAway) {
-            $scrollTop.addClass('d-none');
             $scrollBottom.addClass('d-none');
         }
 
@@ -179,12 +172,6 @@
             $scrollBottom.addClass('d-none');
         } else {
             $scrollBottom.removeClass('d-none');
-        }
-
-        if (ev.target.scrollTop <= maxScrollHeight * 0.25) {
-            $scrollTop.addClass('d-none');
-        } else {
-            $scrollTop.removeClass('d-none');
         }
     }
 })();

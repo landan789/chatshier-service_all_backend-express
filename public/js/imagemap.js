@@ -242,7 +242,7 @@
         elementShow($(`.boxes-inputs #${id}-input`));
         elementHide($(`.form-inputs .form-group.col-sm-12`));
         elementShow($(`.form-inputs #${id}-input`));
-        $(this).css('background-color', 'rgba(158,158,158,0.7)');
+        $(this).css('background-color', 'rgba(158,158,158,0.7)').siblings().css('background-color', '');
         $(this).addClass('checked');
         if (!inputValue) {
         } else if (inputValue.includes('http://') || inputValue.includes('https://')) {
@@ -439,8 +439,8 @@
             let $boxes = $('.box');
             $boxes.each(function(i) {
                 let output = !imagemap.actions[i].text ? imagemap.actions[i].linkUri : imagemap.actions[i].text;
-                $(this).css('background-color', 'rgba(158,158,158, 0.7)');
-                $(this).text(output);
+                // $(this).css('background-color', 'rgba(158,158,158, 0.7)');
+                // $(this).text(output);
                 $(this).addClass('marked')
                     .attr('ref', output);
                 let id = $(this).attr('id');

@@ -600,18 +600,10 @@
                     }
 
                     let condition = {
-                        type: conditionType,
+                        type: conditionType || '',
                         values: contentValues,
-                        field_id: typeFieldId
+                        field_id: typeFieldId || ''
                     };
-
-                    for (let i in conditions) {
-                        if (conditions[i].type === condition.type &&
-                            conditions[i].field_id === condition.field_id) {
-                            conditions[i].values = condition.values;
-                            break;
-                        }
-                    }
                     conditions.push(condition);
                 });
                 return conditions;

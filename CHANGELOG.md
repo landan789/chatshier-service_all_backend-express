@@ -1,14 +1,17 @@
 = Release 1.3.2 =
 MASTER release： Not Ready
 RELEASE release：2018-06-05
+== Features ==
+ * Removed: remove scroll to top button of control panel
+== Bug Fixes ==
+ * Fixed: fix LINE richmenu link logic
 
 = Release 1.3.1 =
 MASTER release： Not Ready
 RELEASE release：2018-06-01
 == Features ==
- 
-== Bug Fixes ==
 
+== Bug Fixes ==
 
 
 = Release 1.3.0 =

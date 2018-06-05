@@ -1,4 +1,4 @@
-namespace Webhook {
+declare module Webhook {
     namespace Chatshier {
         interface Information {
             eventType?: string,
@@ -11,7 +11,7 @@ namespace Webhook {
         }
 
         interface Profile {
-            type: 'LINE' | 'FACEBOOK' | 'WECHAT',
+            type: 'LINE' | 'FACEBOOK' | 'WECHAT' | 'CHATSHIER',
             name: string,
             photo: string,
             photoOriginal: string,

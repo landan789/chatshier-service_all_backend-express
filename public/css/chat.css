@@ -190,6 +190,11 @@
         .message .content.found {
             color:white;
             background-color: #33ccff !important; }
+        .message .content.media {
+            position: relative; }
+        .message .content.media .template-btn {
+            position: absolute; 
+            top: -1.5rem; }
         .message .content .text-content {
             line-height: 1.25rem;
             white-space: pre-wrap; }
@@ -214,7 +219,16 @@
             position: absolute;
             right: 0;
             bottom: 0; 
-            border: 1px solid #000000; }
+            border: 1px solid #ccc;
+            border-radius: .5rem; 
+            padding: 1%; }
+        .message .content .imagemap-message-container .imagemap-btn {
+            position: absolute; 
+            width: 5rem;
+            height: 1.4rem;
+            top: -1.5rem; 
+            left: 0; 
+            font-size: 1rem; }
         .send-imagemap-btn {
             margin-left: .5rem; }
         .message .content .image-container:hover {
@@ -242,6 +256,17 @@
             padding: .25rem;
             color: #aaa; }
 
+    .message .box {
+        position: relative; 
+        text-align: center; }
+        .message .box .imagemap-text-space {
+            border-radius: .5rem;
+            color: #ffffff;
+            background-color:  rgba(0, 0, 0, 0.6);
+            visibility: hidden; }
+        .message .box .imagemap-text-space a {
+            color: #ffffff;
+            text-decoration: none; }
 .message-group {
     display: flex;
     align-items: flex-end; }
