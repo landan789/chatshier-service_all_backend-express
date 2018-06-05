@@ -2270,11 +2270,8 @@
             fileSize = fileSize.toFixed(1) + ' KB';
         }
 
-        // 發送給各平台時，文字訊息前面加上自己的名稱當成前輟
-        var messagePrefix = appType !== CHATSHIER ? '[' + users[userId].name + ']\n' : '';
-
         // 傳送檔案時，帶上檔案大小當成文字訊息
-        var fileText = 'file' === messageType ? messagePrefix + '傳送檔案:\n檔案大小: ' + fileSize + '\n' : '';
+        var fileText = 'file' === messageType ? '小幫手傳送檔案給你:\n檔案大小: ' + fileSize + '\n' : '';
 
         /** @type {ChatshierMessage} */
         var messageToSend = {
