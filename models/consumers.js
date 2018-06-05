@@ -20,7 +20,7 @@ module.exports = (function() {
         /**
          * 查找時必須使用各平台的 platformUid 而不是 consumerId
          *
-         * @param {string|string[]|null} platformUids
+         * @param {string|string[]} [platformUids]
          * @param {(consumers: any) => any} [callback]
          * @returns {Promise<any>}
          */
