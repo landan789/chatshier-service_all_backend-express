@@ -22,6 +22,12 @@
     const NO_PERMISSION_CODE = '3.16';
     const BOT_UPLOAD_IMAGE_TOO_LARGE = '19.2';
 
+    const handleMessages = {
+        working: '<i class="fas fa-circle-notch fa-spin"></i>處理中',
+        addFinished: '新增',
+        editFinished: '修改'
+    };
+
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -37,8 +43,8 @@
 
     $jqDoc.on('click', '#remove-btn', removeRichmenu);
 
-    $('.content-bar').addClass('d-none');
-    $('.content-input').addClass('d-none');
+    elementHide($('.content-bar'));
+    elementHide($('.content-input'));
     $jqDoc.on('click', '#modal-save', insertRichmenu); // add richmenu, not activated.
     $jqDoc.on('click', '#add-btn', cleanModal); // cleaning the options in modal.
     $jqDoc.on('change', '.image-ghost', uploadImage);
@@ -52,10 +58,9 @@
 
     $modal.on('hidden.bs.modal', function() {
         $appSelector.parent().parent().removeClass('d-none');
-        $('#modal-save').removeAttr('disabled').empty().text('新增');
-        $('#modal-update-save').removeAttr('disabled').empty().text('修改');
         $(`.form-inputs input`).val('');
         imageFile = void 0;
+        cleanModal();
     });
 
     $modal.on('show.bs.modal', function() {
@@ -77,6 +82,9 @@
             }
             return appsKeywordreplies[appId].keywordreplies;
         }).then((keywordreplies) => {
+            if (!keywordreplies) {
+                return;
+            }
             let keywordreplyStr = '<option disabled value="">-- 請選擇關鍵字 --</option>';
             for (let keywordreplyId in keywordreplies) {
                 let keyword = keywordreplies[keywordreplyId].keyword;
@@ -157,28 +165,6 @@
             return;
         }
 
-        // // 將檔案轉 blob 的 URL
-        // // URL 沒有用到後，要呼叫 URL.revokeObjectURL()，將 create 的 URl 釋放
-        // let url = URL.createObjectURL(file) || webkitURL.createObjectURL(file);
-        // // 取得圖檔的長 寬
-        // reader.onload = function(e) {
-        //     let binaryString = e.target.result;
-        //     let image = new Image();
-        //     image.onload = function() {
-        //         imgWidth = image.width;
-        //         imgHeight = image.height;
-        //         size.width = imgWidth;
-        //         size.height = imgHeight;
-        //     };
-        //     image.src = url;
-        //     $('.show-richmenu-type')
-        //         .css('background', 'url(' + url + ') center no-repeat')
-        //         .css('background-size', 'cover')
-        //         .css('background-color', 'none');
-        //     imageFile = binaryString;
-        // };
-        // reader.readAsBinaryString(file);
-
         // 將檔案轉 base64 的 URL
         reader.onloadend = function(e) {
             let url = e.target.result;
@@ -211,7 +197,7 @@
         let boxWidth = width / 3;
         let boxHeight = height / 2;
 
-        $('.content-input').addClass('d-none');
+        elementHide($('.content-input'));
         $showRichmenuForm.css('background-color', '#CBCBCB');
         $showRichmenuForm.find('.box').remove();
         let checked = $('input[name = richmenu-form]:checked').val();
@@ -224,7 +210,7 @@
                 $modal.find('.boxes-inputs').html(
                     generateBoxInputs('box1')
                 );
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form2':
                 let widthForm6 = (boxWidth * 3) / 2;
@@ -236,7 +222,7 @@
                     generateBoxInputs('box1') +
                     generateBoxInputs('box2')
                 );
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form3':
                 $showRichmenuForm.append(
@@ -247,7 +233,7 @@
                     generateBoxInputs('box1') +
                     generateBoxInputs('box2')
                 );
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form4':
                 let widthForm4 = boxWidth * 2;
@@ -261,7 +247,7 @@
                     generateBoxInputs('box2') +
                     generateBoxInputs('box3')
                 );
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form5':
                 let widthForm2 = boxWidth;
@@ -278,7 +264,7 @@
                     generateBoxInputs('box3') +
                     generateBoxInputs('box4')
                 );
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form6':
                 $showRichmenuForm.append(
@@ -293,7 +279,7 @@
                     generateBoxInputs('box3') +
                     generateBoxInputs('box4')
                 );
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form7':
                 $showRichmenuForm.append(
@@ -312,7 +298,7 @@
                     generateBoxInputs('box5') +
                     generateBoxInputs('box6')
                 );
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form8':
                 let widthForm8 = (boxWidth * 3) / 4;
@@ -336,7 +322,7 @@
                     generateBoxInputs('box7') +
                     generateBoxInputs('box8')
                 );
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             case 'form9':
                 let heightForm9 = (boxHeight * 2) / 3;
@@ -362,7 +348,7 @@
                     generateBoxInputs('box8') +
                     generateBoxInputs('box9')
                 );
-                $('.content-bar').addClass('d-none');
+                elementHide($('.content-bar'));
                 break;
             default:
                 break;
@@ -416,7 +402,7 @@
             $(`#${boxInputId} #text`).val('').siblings('#url').val('');
         }
 
-        $('.content-input').addClass('d-none');
+        elementHide($('.content-input'));
         $(`#${boxInputId} #${contentInputId}`).removeClass('d-none');
         $(`#${boxInputId} #${contentInputId}`).change(function() {
             var val = $(this).val();
@@ -443,7 +429,7 @@
         $box.siblings().removeClass('checked').css('background-color', '');
         $box.addClass('checked').css('background-color', 'rgba(158, 158, 158, .7)');
 
-        $('.content-input').addClass('d-none');
+        elementHide($('.content-input'));
         $('#' + boxId + ' input[name="content"]').removeAttr('checked');
         $boxesInputs.find('.content-bar').addClass('d-none').trigger('click');
         $boxesInputs.find('#' + boxId + '-input').removeClass('d-none');
@@ -455,7 +441,7 @@
         $formInput.removeClass('d-none').siblings().addClass('d-none');
 
         if (inputValue) {
-            $formInputs.removeClass('d-none');
+            elementShow($formInputs);
             if (inputValue.startsWith('http://') || inputValue.startsWith('https://')) {
                 $formInput.find('#url').attr('value', inputValue).val(inputValue).removeClass('d-none');
             } else {
@@ -482,25 +468,6 @@
             $(`#${id}-input #text`).val(inputValue);
             $(`#${id}-input input[value="text"]`).prop('checked', true);
         }
-    }
-
-    function cleanModal() {
-        $('#modal-save').removeClass('d-none');
-        $('#modal-update-save').addClass('d-none');
-
-        $modal.find('input[type="text"]').val('');
-        $modal.find('input[type="datetime-local"]').val('');
-        $modal.find('input[type="url"]').val('');
-        $modal.find('input[type="file"]').val('');
-
-        let $showRichmenuForm = $modal.find('.show-richmenu-form');
-        $showRichmenuForm.removeAttr('style');
-        $showRichmenuForm.css('background-color', '#CBCBCB');
-        $showRichmenuForm.empty();
-
-        $modal.find('input[value="form1"]').prop('checked', true);
-        $modal.find('input[name="content"]').prop('checked', false);
-        photoFormShow();
     }
 
     function activateRichmenu() {
@@ -633,8 +600,8 @@
         let appId = $(this).parent().parent().attr('rel');
         let richmenuId = $(this).parent().parent().attr('id');
         let src;
-        $('#modal-save').addClass('d-none');
-        $('#modal-update-save').removeClass('d-none');
+        elementHide($('#modal-save'));
+        elementShow($('#modal-update-save'));
         $modal.find('#modal-update-save').off('click').on('click', () => updateRichmenu(appId, richmenuId, src));
 
         return Promise.resolve().then(() => {
@@ -860,20 +827,22 @@
             }));
 
             return Promise.all([ insertPromise, updatePromise, removePromise ]);
+        }).catch(() => {
+            $.notify('同步資料失敗', { type: 'danger' });
         }).then(() => {
             $dropdownText.html(bakAppName);
         });
     }
 
     function insertRichmenu() {
+        elementDisabled($(this), handleMessages.working);
         let appId = $appSelector.find('option:selected').val();
         let selected = 'true' === $('.richmenu-select').val();
         let chatBarText = $('input[name="chatbarText"]').val();
         let form = $('input[name = richmenu-form]:checked').val();
 
         if (!appId || !chatBarText) {
-            $('#modal-save').removeAttr('disabled');
-            $('#modal-update-save').removeAttr('disabled');
+            elementEnabled($('#modal-save'), handleMessages.addFinished);
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         }
 
@@ -902,10 +871,9 @@
 
             $('#richmenu-modal').modal('hide');
             $.notify('新增成功', { type: 'success' });
-            return reloadRichmenus(appId, userId);
+            $appDropdown.find('#' + appId).trigger('click');
         }).catch((err) => {
-            $('#modal-save').removeAttr('disabled').empty().text('新增');
-            $('#modal-update-save').removeAttr('disabled').empty().text('修改');
+            elementEnabled($('#modal-save'), handleMessages.addFinished);
             if (BOT_UPLOAD_IMAGE_TOO_LARGE === err.code) {
                 return $.notify('上傳的圖像大小過大 (限制 1 MB)', { type: 'danger' });
             }
@@ -914,6 +882,7 @@
     }
 
     function updateRichmenu(appId, richmenuId, src) {
+        elementDisabled($('#modal-update-save'), handleMessages.working);
         let selected = 'true' === $('.richmenu-select').val();
         let chatBarText = $('input[name="chatbarText"]').val();
         let form = $('input[name="richmenu-form"]:checked').val();
@@ -937,14 +906,13 @@
         return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu, imageFile).then((resJson) => {
             let _appsRichmenus = resJson.data;
             Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
-
             $('#richmenu-modal').modal('hide');
-            return reloadRichmenus(appId, userId);
-        }).then(() => {
+
             $('#modal-update-save').removeAttr('disabled');
-            return $.notify('修改成功', { type: 'success' });
+            $.notify('修改成功', { type: 'success' });
+            $appDropdown.find('#' + appId).click();
         }).catch((err) => {
-            $('#modal-update-save').removeAttr('disabled').empty().text('修改');
+            elementEnabled($('#modal-update-save'), handleMessages.editFinished);
             if (BOT_UPLOAD_IMAGE_TOO_LARGE === err.code) {
                 return $.notify('上傳的圖像大小過大 (限制 1 MB)', { type: 'danger' });
             }
@@ -987,8 +955,8 @@
         let imgWidth = size.width;
         let imgHeight = size.height;
         if (!imgWidth || !imgHeight) {
-            $('#modal-save').removeAttr('disabled');
-            $('#modal-update-save').removeAttr('disabled');
+            elementEnabled($('#modal-save'), handleMessages.addFinished);
+            elementEnabled($('#modal-update-save'), handleMessages.editFinished);
             $.notify('請上傳圖片', { type: 'warning' });
             return;
         }
@@ -1010,7 +978,7 @@
             let text = $textInput.val() || $box.attr('ref');
 
             if ('url' === textType && text) {
-                if (!text.startsWith('http://') || !text.startsWith('https://')) {
+                if (!text.startsWith('http://') && !text.startsWith('https://')) {
                     text = window.location.protocol + '//' + text;
                 }
             }
@@ -1080,5 +1048,37 @@
                 show: true
             });
         });
+    }
+
+    function elementDisabled(element, message) {
+        element.attr('disabled', true).empty().append(message);
+    }
+    function elementEnabled(element, message) {
+        element.removeAttr('disabled').empty().text(message);
+    }
+    function elementShow(element) {
+        element.removeClass('d-none');
+    }
+    function elementHide(element) {
+        element.addClass('d-none');
+    }
+    function cleanModal() {
+        elementShow($('#modal-save'));
+        elementHide($('#modal-update-save'));
+        elementEnabled($('#modal-save'), handleMessages.addFinished);
+        elementEnabled($('#modal-update-save'), handleMessages.editFinished);
+
+        $modal.find('textarea').val('');
+        $modal.find('input[type="text"]').val('');
+        $modal.find('input[type="url"]').val('');
+
+        let $showRichmenuForm = $modal.find('.show-richmenu-form');
+        $showRichmenuForm.removeAttr('style');
+        $showRichmenuForm.css('background-color', '#CBCBCB');
+        $showRichmenuForm.empty();
+
+        $modal.find('input[value="form1"]').prop('checked', true);
+        $modal.find('input[name="content"]').prop('checked', false);
+        photoFormShow();
     }
 })();
