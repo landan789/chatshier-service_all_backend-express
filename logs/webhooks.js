@@ -5,7 +5,7 @@ module.exports = (function() {
     class WebhooksLog extends LogCore {
         constructor() {
             super();
-            this.type = 'webhook';
+            this.type = WEBHOOKS;
         }
 
         insert(body) {
