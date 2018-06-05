@@ -1,3 +1,7 @@
+= Release 1.3.2 =
+MASTER release： Not Ready
+RELEASE release：2018-06-05
+
 = Release 1.3.1 =
 MASTER release： Not Ready
 RELEASE release：2018-06-01
