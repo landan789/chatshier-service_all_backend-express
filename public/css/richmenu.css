@@ -85,7 +85,7 @@ tr:nth-child(even) {
 .box {
     padding: .25rem;
     white-space: pre-wrap;
-    border: 1px solid;
+    border: 1px solid #ccc;
     float: left;
     font-size: .5rem; }
     .box:hover {
@@ -93,7 +93,7 @@ tr:nth-child(even) {
         cursor: pointer; }
 
 .linebar {
-    border: 1px solid;
+    border: 1px solid #ccc;
     width: 100%;
 }
 
