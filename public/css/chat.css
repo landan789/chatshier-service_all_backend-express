@@ -214,7 +214,16 @@
             position: absolute;
             right: 0;
             bottom: 0; 
-            border: 1px solid #000000; }
+            border: 1px solid #ccc;
+            border-radius: .5rem; 
+            padding: 1%; }
+        .message .content .imagemap-message-container .imagemap-btn {
+            position: absolute; 
+            width: 5rem;
+            height: 1.4rem;
+            top: -1.5rem; 
+            left: 0; 
+            font-size: 1rem; }
         .send-imagemap-btn {
             margin-left: .5rem; }
         .message .content .image-container:hover {
@@ -242,6 +251,12 @@
             padding: .25rem;
             color: #aaa; }
 
+    .message .box {
+        position: relative; 
+        text-align: center; 
+        border: .5px solid #ccc; }
+        .message .box .imagemap-text-space {
+            background-color:  rgba(204,204,204, .3); }
 .message-group {
     display: flex;
     align-items: flex-end; }

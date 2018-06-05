@@ -1359,8 +1359,9 @@
             case 'imagemap':
                 return (
                     '<div class="imagemap-message-container">' +
+                        `<span class="imagemap-btn">圖文訊息</span>` +
                         `<img class="imagemap-image" src="${message.src || ''}" />` +
-                        `<div class="imagemap-message-content">${'輸出內容：' + (message.imagemap ? photoFormShow(message) : '')}</div>` +
+                        `<div class="imagemap-message-content row mx-0">${(message.imagemap ? photoFormShow(message) : '')}</div>` +
                     '</div>'
                 );
             case 'text':
@@ -1372,99 +1373,84 @@
     }
 
     function photoFormShow(message) {
-        let width = $('.imagemap-message-container').width();
-        let height = $('.imagemap-message-container').height();
-        let boxWidth = width / 3;
-        let boxHeight = height / 2;
-        let box1 = '';
-        let box2 = '';
-        let box3 = '';
-        let box4 = '';
-        let box5 = '';
-        let box6 = '';
-        let str1 = '';
-        let str2 = '';
-        let str3 = '';
-        let str4 = '';
-        let str5 = '';
-        let str6 = '';
+        let box1, box2, box3, box4, box5, box6, str1, str2, str3, str4, str5, str6;
         switch (message.imagemap.form) {
             case 'form8':
-                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
-                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
-                str3 = !message.imagemap.actions[2].text ? message.imagemap.actions[2].linkUri : message.imagemap.actions[2].text;
-                str4 = !message.imagemap.actions[3].text ? message.imagemap.actions[3].linkUri : message.imagemap.actions[3].text;
-                str5 = !message.imagemap.actions[4].text ? message.imagemap.actions[4].linkUri : message.imagemap.actions[4].text;
-                str6 = !message.imagemap.actions[5].text ? message.imagemap.actions[5].linkUri : message.imagemap.actions[5].text;
-                box1 = `<div class="box" id="box1" data-x="0" data-y="0" style="height: ${boxHeight}px">${str1}</div>`;
-                box2 = `<div class="box" id="box2" data-x="${boxWidth}" data-y="0" style="height: ${boxHeight}px">${str2}</div>`;
-                box3 = `<div class="box" id="box3" data-x="${boxWidth * 2}" data-y="0" style="height: ${boxHeight}px">${str3}</div>`;
-                box4 = `<div class="box" id="box4" data-x="0" data-y="${boxHeight}" style="height: ${boxHeight}px">${str4}</div>`;
-                box5 = `<div class="box" id="box5" data-x="${boxWidth}" data-y="${boxHeight}" style="height: ${boxHeight}px">${str5}</div>`;
-                box6 = `<div class="box" id="box6" data-x="${boxWidth * 2}" data-y="${boxHeight}" style="height: ${boxHeight}px">${str6}</div>`;
+                str1 = !message.imagemap.actions[0].text ? imagemapLink(message.imagemap.actions[0].linkUri) : imagemapText(message.imagemap.actions[0].text);
+                str2 = !message.imagemap.actions[1].text ? imagemapLink(message.imagemap.actions[1].linkUri) : imagemapText(message.imagemap.actions[1].text);
+                str3 = !message.imagemap.actions[2].text ? imagemapLink(message.imagemap.actions[2].linkUri) : imagemapText(message.imagemap.actions[2].text);
+                str4 = !message.imagemap.actions[3].text ? imagemapLink(message.imagemap.actions[3].linkUri) : imagemapText(message.imagemap.actions[3].text);
+                str5 = !message.imagemap.actions[4].text ? imagemapLink(message.imagemap.actions[4].linkUri) : imagemapText(message.imagemap.actions[4].text);
+                str6 = !message.imagemap.actions[5].text ? imagemapLink(message.imagemap.actions[5].linkUri) : imagemapText(message.imagemap.actions[5].text);
+                box1 = `<div class="box" id="box1" style="width: 33%; padding-top: 20%;">${str1}</div>`;
+                box2 = `<div class="box" id="box2" style="width: 33%; padding-top: 20%;">${str2}</div>`;
+                box3 = `<div class="box" id="box3" style="width: 33%; padding-top: 20%;">${str3}</div>`;
+                box4 = `<div class="box" id="box4" style="width: 33%; padding-top: 20%;">${str4}</div>`;
+                box5 = `<div class="box" id="box5" style="width: 33%; padding-top: 20%;">${str5}</div>`;
+                box6 = `<div class="box" id="box6" style="width: 33%; padding-top: 20%;">${str6}</div>`;
                 return box1 + box2 + box3 + box4 + box5 + box6;
             case 'form7':
-                let heightForm7 = boxHeight;
-                heightForm7 = heightForm7 / 2;
-                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
-                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
-                str3 = !message.imagemap.actions[2].text ? message.imagemap.actions[2].linkUri : message.imagemap.actions[2].text;
-                box1 = `<div class="box" id="box1" data-x="0" data-y="0" style="width: ${width}px; height: ${boxHeight}px">${str1}</div>`;
-                box2 = `<div class="box" id="box2" data-x="0" data-y="${boxHeight}" style="width: ${width}px; height: ${heightForm7}px">${str2}</div>`;
-                box3 = `<div class="box" id="box3" data-x="0" data-y="${heightForm7}" style="width: ${width}px; height: ${heightForm7}px">${str3}</div>`;
+                str1 = !message.imagemap.actions[0].text ? imagemapLink(message.imagemap.actions[0].linkUri) : imagemapText(message.imagemap.actions[0].text);
+                str2 = !message.imagemap.actions[1].text ? imagemapLink(message.imagemap.actions[1].linkUri) : imagemapText(message.imagemap.actions[1].text);
+                str3 = !message.imagemap.actions[2].text ? imagemapLink(message.imagemap.actions[2].linkUri) : imagemapText(message.imagemap.actions[2].text);
+                box1 = `<div class="box" id="box1" style="width: 100%; height: 50%; padding-top: 20%;">${str1}</div>`;
+                box2 = `<div class="box" id="box2" style="width: 100%; height: 25%; padding-top: 10%;">${str2}</div>`;
+                box3 = `<div class="box" id="box3" style="width: 100%; height: 25%; padding-top: 10%;">${str3}</div>`;
                 return box1 + box2 + box3;
             case 'form6':
-                let widthForm6 = boxWidth;
-                widthForm6 = (widthForm6 * 3) / 2;
-                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
-                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
-                str3 = !message.imagemap.actions[2].text ? message.imagemap.actions[2].linkUri : message.imagemap.actions[2].text;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height: ' + boxHeight + 'px">' + str1 + '</div>';
-                box2 = `<div class="box" id="box2" data-x="0" data-y="${boxHeight}" style="width: ${(width / 2)}px; height: ${boxHeight}px">${str2}</div>`;
-                box3 = `<div class="box" id="box3" data-x="${widthForm6}" data-y="${boxHeight}" style="width: ${(width / 2)}px; height: ${boxHeight}px">${str3}</div>`;
+                str1 = !message.imagemap.actions[0].text ? imagemapLink(message.imagemap.actions[0].linkUri) : imagemapText(message.imagemap.actions[0].text);
+                str2 = !message.imagemap.actions[1].text ? imagemapLink(message.imagemap.actions[1].linkUri) : imagemapText(message.imagemap.actions[1].text);
+                str3 = !message.imagemap.actions[2].text ? imagemapLink(message.imagemap.actions[2].linkUri) : imagemapText(message.imagemap.actions[2].text);
+                box1 = `<div class="box" id="box1" style="width: 100%; padding-top: 20%;">${str1}</div>`;
+                box2 = `<div class="box" id="box2" style="width: 50%; padding-top: 20%;">${str2}</div>`;
+                box3 = `<div class="box" id="box3" style="width: 50%; padding-top: 20%;">${str3}</div>`;
                 return box1 + box2 + box3;
             case 'form5':
-                let widthForm5 = boxWidth;
-                widthForm5 = (widthForm5 * 3) / 2;
-                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
-                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
-                str3 = !message.imagemap.actions[2].text ? message.imagemap.actions[2].linkUri : message.imagemap.actions[2].text;
-                str4 = !message.imagemap.actions[3].text ? message.imagemap.actions[3].linkUri : message.imagemap.actions[3].text;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px">' + str1 + '</div>';
-                box2 = '<div class="box" id="box2" data-x="' + widthForm5 + '" data-y="0" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px">' + str2 + '</div>';
-                box3 = '<div class="box" id="box3" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px">' + str3 + '</div>';
-                box4 = '<div class="box" id="box4" data-x="' + widthForm5 + '" data-y="' + boxHeight + '" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px">' + str4 + '</div>';
+                str1 = !message.imagemap.actions[0].text ? imagemapLink(message.imagemap.actions[0].linkUri) : imagemapText(message.imagemap.actions[0].text);
+                str2 = !message.imagemap.actions[1].text ? imagemapLink(message.imagemap.actions[1].linkUri) : imagemapText(message.imagemap.actions[1].text);
+                str3 = !message.imagemap.actions[2].text ? imagemapLink(message.imagemap.actions[2].linkUri) : imagemapText(message.imagemap.actions[2].text);
+                str4 = !message.imagemap.actions[3].text ? imagemapLink(message.imagemap.actions[3].linkUri) : imagemapText(message.imagemap.actions[3].text);
+                box1 = '<div class="box" id="box1" style="width: 50%; padding-top: 20%;">' + str1 + '</div>';
+                box2 = '<div class="box" id="box2" style="width: 50%; padding-top: 20%;">' + str2 + '</div>';
+                box3 = '<div class="box" id="box3" style="width: 50%; padding-top: 20%;">' + str3 + '</div>';
+                box4 = '<div class="box" id="box4" style="width: 50%; padding-top: 20%;">' + str4 + '</div>';
                 return box1 + box2 + box3 + box4;
             case 'form4':
-                let heightForm4 = boxHeight * 2 / 3;
-                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
-                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
-                str3 = !message.imagemap.actions[2].text ? message.imagemap.actions[2].linkUri : message.imagemap.actions[2].text;
-                box1 = `<div class="box" id="box1" data-x="0" data-y="0" style="width: ${width}px; height: ${heightForm4}px">${str1}</div>`;
-                box2 = `<div class="box" id="box2" data-x="0" data-y="${heightForm4}" style="width: ${width}px; height: ${heightForm4}px">${str2}</div>`;
-                box3 = `<div class="box" id="box3" data-x="0" data-y="${heightForm4 * 2}" style="width: ${width}px; height: ${heightForm4}px">${str3}</div>`;
+                str1 = !message.imagemap.actions[0].text ? imagemapLink(message.imagemap.actions[0].linkUri) : imagemapText(message.imagemap.actions[0].text);
+                str2 = !message.imagemap.actions[1].text ? imagemapLink(message.imagemap.actions[1].linkUri) : imagemapText(message.imagemap.actions[1].text);
+                str3 = !message.imagemap.actions[2].text ? imagemapLink(message.imagemap.actions[2].linkUri) : imagemapText(message.imagemap.actions[2].text);
+                box1 = `<div class="box" id="box1" style="width: 100%; padding-top: 13%;">${str1}</div>`;
+                box2 = `<div class="box" id="box2" style="width: 100%; padding-top: 13%;">${str2}</div>`;
+                box3 = `<div class="box" id="box3" style="width: 100%; padding-top: 13%;">${str3}</div>`;
                 return box1 + box2 + box3;
             case 'form3':
-                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
-                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height: ' + boxHeight + 'px">' + str1 + '</div>';
-                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '" style="width:' + width + 'px; height: ' + boxHeight + 'px">' + str2 + '</div>';
+                str1 = !message.imagemap.actions[0].text ? imagemapLink(message.imagemap.actions[0].linkUri) : imagemapText(message.imagemap.actions[0].text);
+                str2 = !message.imagemap.actions[1].text ? imagemapLink(message.imagemap.actions[1].linkUri) : imagemapText(message.imagemap.actions[1].text);
+                box1 = '<div class="box" id="box1" style="width: 100%; padding-top: 20%;">' + str1 + '</div>';
+                box2 = '<div class="box" id="box2" style="width: 100%; padding-top: 20%;">' + str2 + '</div>';
                 return box1 + box2;
             case 'form2':
-                let widthForm2 = boxWidth;
-                widthForm2 = (widthForm2 * 3) / 2;
-                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
-                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm2 + 'px; height:' + height + 'px">' + str1 + '</div>';
-                box2 = '<div class="box" id="box2" data-x="' + widthForm2 + '" data-y="0" style="width:' + widthForm2 + 'px; height:' + height + 'px">' + str2 + '</div>';
+                console.log($('.imagemap-message-content'));
+                str1 = !message.imagemap.actions[0].text ? imagemapLink(message.imagemap.actions[0].linkUri) : imagemapText(message.imagemap.actions[0].text);
+                str2 = !message.imagemap.actions[1].text ? imagemapLink(message.imagemap.actions[1].linkUri) : imagemapText(message.imagemap.actions[1].text);
+                box1 = '<div class="box col-sm" id="box1" style="padding-top: 45%">' + str1 + '</div>';
+                box2 = '<div class="box col-sm" id="box2" style="padding-top: 45%">' + str2 + '</div>';
                 return box1 + box2;
             case 'form1':
-                let str = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height:' + height + 'px">' + str + '</div>';
+                let str = !message.imagemap.actions[0].text ? imagemapLink(message.imagemap.actions[0].linkUri) : imagemapText(message.imagemap.actions[0].text);
+                box1 = '<div class="box" id="box1" style="width: 100%; padding-top: 45%">' + str + '</div>';
                 return box1;
             default:
                 return '';
         }
+    }
+
+    function imagemapLink(url) {
+        return `<span class="imagemap-text-space p-3"><a href="${url}" target="_blank">導入連結</a></span>`;
+    }
+
+    function imagemapText(text) {
+        return `<span class="imagemap-text-space p-3">${text}</span>`;
     }
 
     function templateMessageType(template) {
