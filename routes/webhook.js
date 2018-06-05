@@ -127,6 +127,7 @@ router.post('/:webhookid', (req, res, next) => {
             let webhook = {
                 url: req.hostname + req.originalUrl,
                 body: req.body,
+                createdTime: Date.now(),
                 status: false
             };
             return webhooksLog.insert(webhook);
