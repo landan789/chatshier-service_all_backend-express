@@ -132,6 +132,7 @@ module.exports = (function() {
             let appId = req.params.appid;
             let richmenuId = req.params.menuid;
             let deactivateRichmenu;
+            let defaultRichmenu;
 
             return this.appsRequestVerify(req).then(() => {
                 return appsRichmenusMdl.find(appId, richmenuId);
@@ -143,9 +144,15 @@ module.exports = (function() {
                 deactivateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
                 return appsRichmenusMdl.update(appId, richmenuId, { isActivated: false, isDefault: false });
             }).then((appsRichmenus) => {
+                if (!(appsRichmenus && appsRichmenus[appId])) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
+                }
+                let isDefault = deactivateRichmenu.isDefault;
+                deactivateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
+
                 // 如果取消啟用的 richmenu 是預設啟用的 richmenu
                 // 則取消啟用後，必須設定成其他已啟用的 richmenu 並 link 至用戶
-                if (deactivateRichmenu.isDefault) {
+                if (isDefault) {
                     return appsRichmenusMdl.findActivated(appId).then((_appsRichmenus) => {
                         if (!(_appsRichmenus && _appsRichmenus[appId])) {
                             // 沒有其他已啟用的 richmenu 則不做任何事
@@ -157,10 +164,10 @@ module.exports = (function() {
                             if (!(_appsRichmenus && _appsRichmenus[appId])) {
                                 return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
                             }
-                            let activateRichmenu = _appsRichmenus[appId].richmenus[activateRichmenuId];
-                            return activateRichmenu;
+                            defaultRichmenu = _appsRichmenus[appId].richmenus[activateRichmenuId];
+                            return defaultRichmenu;
                         });
-                    }).then((activateRichmenu) => {
+                    }).then((defaultRichmenu) => {
                         /** @type {Chatshier.Models.App} */
                         let app;
                         return appsMdl.find(appId).then((apps) => {
@@ -178,8 +185,8 @@ module.exports = (function() {
                                     // 沒有已啟用的 richmenu 則 unlink 所有平台用戶的 richmenu
                                     return Promise.resolve().then(() => {
                                         if (_platformMenuId && _platformMenuId === deactivateRichmenu.platformMenuId) {
-                                            if (activateRichmenu) {
-                                                return botSvc.linkRichMenuToUser(platformUid, activateRichmenu.platformMenuId, appId, app);
+                                            if (defaultRichmenu) {
+                                                return botSvc.linkRichMenuToUser(platformUid, defaultRichmenu.platformMenuId, appId, app);
                                             }
                                             return botSvc.unlinkRichMenuFromUser(platformUid, deactivateRichmenu.platformMenuId, appId);
                                         }
@@ -198,10 +205,20 @@ module.exports = (function() {
                     });
                 }
                 return appsRichmenus;
-            }).then((appsRichmenus) => {
+            }).then(() => {
+                // 變更的資料可能會有 deactivate 的 richmenu
+                // 以及設為預設的 richmenu
+                // 因此必須把資料有更新的 richmenus 回傳給 client
+                let response = {
+                    [appId]: {
+                        richmenus: { [richmenuId]: deactivateRichmenu }
+                    }
+                };
+                defaultRichmenu && (response[appId].richmenus[defaultRichmenu._id] = defaultRichmenu);
+
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-                    data: appsRichmenus
+                    data: response
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -268,10 +285,21 @@ module.exports = (function() {
                     appsRichmenusMdl.update(appId, richmenuId, { isDefault: true }),
                     defaultRichmenu && appsRichmenusMdl.update(appId, defaultRichmenu._id, { isDefault: false })
                 ]);
-            }).then(([ appsRichmenus ]) => {
+            }).then(([ appsRichmenus, defaultAppsRichmenus ]) => {
+                // 變更的資料可能會有設為預設的 richmenu
+                // 以及之前預設的 richmenu
+                // 因此必須把資料有更新的 richmenus 回傳給 client
+                let response = {
+                    [appId]: {
+                        richmenus: {}
+                    }
+                };
+                Object.assign(response[appId].richmenus, appsRichmenus[appId].richmenus);
+                defaultAppsRichmenus && Object.assign(response[appId].richmenus, defaultAppsRichmenus[appId].richmenus);
+
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-                    data: appsRichmenus
+                    data: response
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
