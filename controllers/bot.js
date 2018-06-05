@@ -19,7 +19,6 @@ module.exports = (function() {
     class BotController extends ControllerCore {
         constructor() {
             super();
-            this._createBot = this._createBot.bind(this);
             this._findPlatformUids = this._findPlatformUids.bind(this);
             this.activateMenu = this.activateMenu.bind(this);
             this.deactivateMenu = this.deactivateMenu.bind(this);
@@ -28,76 +27,86 @@ module.exports = (function() {
             this.leaveGroupRoom = this.leaveGroupRoom.bind(this);
         }
 
-        _createBot(appId) {
-            let app;
-            return appsMdl.find(appId).then((apps) => {
-                if (!apps) {
-                    return Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
-                }
-                app = apps[appId];
-                return botSvc.create(appId, app);
-            }).then((bot) => {
-                if (!bot) {
-                    return null;
+        _findPlatformUids(appId, app) {
+            return Promise.resolve().then(() => {
+                if (!app) {
+                    return appsMdl.find(appId).then((apps) => {
+                        if (!(apps && apps[appId])) {
+                            return Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
+                        }
+                        return Promise.resolve(apps[appId]);
+                    });
                 }
                 return app;
-            });
-        };
-
-        _findPlatformUids(appId, appType) {
-            return appsChatroomsMessagersMdl.find(appId, null, null, appType).then((appsChatroomsMessagers) => {
-                let platformUids = [];
-                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                for (let chatroomId in chatrooms) {
-                    let chatroomMessagers = chatrooms[chatroomId].messagers;
-                    for (let messagerId in chatroomMessagers) {
-                        let messager = chatroomMessagers[messagerId];
-                        platformUids.push(messager.platformUid);
+            }).then((_app) => {
+                let appType = _app.type;
+                return appsChatroomsMessagersMdl.find(appId, null, null, appType).then((appsChatroomsMessagers) => {
+                    let platformUidsMap = {};
+                    let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                    for (let chatroomId in chatrooms) {
+                        let messagers = chatrooms[chatroomId].messagers;
+                        for (let messagerId in messagers) {
+                            let messager = messagers[messagerId];
+                            platformUidsMap[messager.platformUid] = messager;
+                        }
                     }
-                }
-                return platformUids;
+                    return Object.keys(platformUidsMap);
+                });
             });
         };
 
         activateMenu(req, res) {
             let appId = req.params.appid;
             let richmenuId = req.params.menuid;
-            let richmenu = {};
-            /** @type {Chatshier.Models.App} */
-            let app;
+            let defaultRichmenu;
 
             return this.appsRequestVerify(req).then(() => {
-                return this._createBot(appId);
-            }).then((_app) => {
-                if (!_app) {
-                    return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
-                }
-                app = _app;
-                return appsRichmenusMdl.find(appId, richmenuId);
-            }).then((appsRichmenu) => {
-                if (!appsRichmenu) {
+                // 查找是否已經有預設啟用的 richmenu
+                // 如果沒有則將此筆啟用的 richmenu 設為預設啟用的 richmenu
+                return appsRichmenusMdl.findActivated(appId, true);
+            }).then((appsRichemnus) => {
+                defaultRichmenu = (appsRichemnus && appsRichemnus[appId]) ? appsRichemnus[appId].richmenus[richmenuId] : void 0;
+                let putRichmenu = {
+                    isActivated: true,
+                    isDefault: !defaultRichmenu
+                };
+                return appsRichmenusMdl.update(appId, richmenuId, putRichmenu);
+            }).then((appsRichemnus) => {
+                if (!(appsRichemnus && appsRichemnus[appId])) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
+                let richmenu = appsRichemnus[appId].richmenus[richmenuId];
 
-                richmenu = appsRichmenu[appId].richmenus[richmenuId];
-                return this._findPlatformUids(appId, app.type);
-            }).then((platformUids) => {
-                let platformMenuId = richmenu.platformMenuId;
-                return Promise.all(platformUids.map((platformUid) => {
-                    return botSvc.linkRichMenuToUser(platformUid, platformMenuId, appId).then((resJson) => {
-                        if (!resJson) {
-                            return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                // 如果此 app 尚未有預設啟用的 richmenu
+                // 代表此筆啟用的 richmenu 是第一筆啟用的 richmenu
+                // 則必須將此筆 richmenu link 至所有聊天室中的 platformUid
+                if (!defaultRichmenu) {
+                    // 取出此 app 底下所有聊天室的 platformUid
+                    return appsMdl.find(appId).then((apps) => {
+                        if (!(apps && apps[appId])) {
+                            return Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
                         }
-                        return platformUid;
+                        let app = apps[appId];
+                        return Promise.all([ app, this._findPlatformUids(appId, app) ]);
+                    }).then(([ app, platformUids ]) => {
+                        let platformMenuId = richmenu.platformMenuId;
+                        return Promise.all(platformUids.map((platformUid) => {
+                            return botSvc.linkRichMenuToUser(platformUid, platformMenuId, appId, app).then((resJson) => {
+                                if (!resJson) {
+                                    return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                                }
+                                return Promise.resolve();
+                            });
+                        }));
+                    }).then(() => {
+                        return appsRichemnus;
                     });
-                }));
-            }).then(() => {
-                richmenu.isActivated = true;
-                return appsRichmenusMdl.update(appId, richmenuId, richmenu);
-            }).then((appsRichemnu) => {
+                }
+                return appsRichemnus;
+            }).then((appsRichemnus) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: appsRichemnu
+                    data: appsRichemnus
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -108,38 +117,78 @@ module.exports = (function() {
         deactivateMenu(req, res) {
             let appId = req.params.appid;
             let richmenuId = req.params.menuid;
-            let richmenu;
-            /** @type {Chatshier.Models.App} */
-            let app;
+            let deactivateMenu;
 
             return this.appsRequestVerify(req).then(() => {
-                return this._createBot(appId);
-            }).then((_app) => {
-                if (!_app) {
-                    return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
-                }
-                app = _app;
                 return appsRichmenusMdl.find(appId, richmenuId);
             }).then((appsRichmenus) => {
-                if (!appsRichmenus) {
+                if (!(appsRichmenus && appsRichmenus[appId])) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
 
-                richmenu = appsRichmenus[appId].richmenus[richmenuId];
-                return this._findPlatformUids(appId, app.type);
-            }).then((platformUids) => {
-                let platformMenuId = richmenu.platformMenuId;
-                return Promise.all(platformUids.map((platformUid) => {
-                    return botSvc.unlinkRichMenuFromUser(platformUid, platformMenuId, appId).then((result) => {
-                        if (!result) {
-                            return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_UNLINK);
+                deactivateMenu = appsRichmenus[appId].richmenus[richmenuId];
+                let putRichmenu = {
+                    isActivated: false,
+                    isDefault: false
+                };
+                return appsRichmenusMdl.update(appId, richmenuId, putRichmenu);
+            }).then((appsRichmenus) => {
+                // 如果取消啟用的 richmenu 是預設啟用的 richmenu
+                // 則取消啟用後，必須設定成其他已啟用的 richmenu 並 link 至用戶
+                if (deactivateMenu.isDefault) {
+                    return appsRichmenusMdl.findActivated(appId).then((_appsRichmenus) => {
+                        if (!(_appsRichmenus && _appsRichmenus[appId])) {
+                            // 沒有其他已啟用的 richmenu 則不做任何事
+                            return Promise.resolve();
                         }
-                        return platformUid;
+                        // 將第一筆(最後更新)的已啟用 richmenu 設為預設 (TODO: 資料庫排序)
+                        let _richmenuId = Object.keys(_appsRichmenus[appId].richmenus).shift() || '';
+                        let _putRichmenu = { isDefault: true };
+                        return appsRichmenusMdl.update(appId, _richmenuId, _putRichmenu).then((_appsRichmenus) => {
+                            if (!(_appsRichmenus && _appsRichmenus[appId])) {
+                                return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
+                            }
+                            let activateMenu = _appsRichmenus[appId].richmenus[richmenuId];
+                            return activateMenu;
+                        });
+                    }).then((activateMenu) => {
+                        /** @type {Chatshier.Models.App} */
+                        let app;
+                        return appsMdl.find(appId).then((apps) => {
+                            if (!(apps && apps[appId])) {
+                                return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                            }
+                            app = apps[appId];
+                            return this._findPlatformUids(appId, app);
+                        }).then((platformUids) => {
+                            return Promise.all(platformUids.map((platformUid) => {
+                                // 取得平台用戶目前啟用的 richmenu ID
+                                return botSvc.getRichMenuIdOfUser(platformUid, appId, app).then((_platformMenuId) => {
+                                    // 如果是與取消啟用的 richmenu 相同 ID
+                                    // 有其他的啟用 richmenu 的話 link 其他的啟用 richmenu
+                                    // 沒有已啟用的 richmenu 則 unlink 所有平台用戶的 richmenu
+                                    return Promise.resolve().then(() => {
+                                        if (_platformMenuId && _platformMenuId === deactivateMenu.platformMenuId) {
+                                            if (activateMenu) {
+                                                return botSvc.linkRichMenuToUser(platformUid, activateMenu.platformMenuId, appId, app);
+                                            }
+                                            return botSvc.unlinkRichMenuFromUser(platformUid, deactivateMenu.platformMenuId, appId);
+                                        }
+                                        return {};
+                                    }).then((resJson) => {
+                                        if (!resJson) {
+                                            return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                                        }
+                                        return Promise.resolve();
+                                    });
+                                });
+                            }));
+                        });
+                    }).then(() => {
+                        return appsRichmenus;
                     });
-                }));
-            }).then(() => {
-                richmenu.isActivated = false;
-                return appsRichmenusMdl.update(appId, richmenuId, richmenu);
+                }
+                return appsRichmenus;
             }).then((appsRichmenus) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,

@@ -690,6 +690,10 @@
         }
 
         let areas = composeAreaObject();
+        if (!areas) {
+            return;
+        }
+
         let postRichmenu = {
             selected: selected,
             chatBarText: chatBarText,
@@ -700,7 +704,7 @@
             areas: areas
         };
 
-        $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
+        $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin fa-fw"></i>處理中');
         return api.appsRichmenus.insert(appId, userId, postRichmenu, imageFile).then((resJson) => {
             let _appsRichmenus = resJson.data;
             if (!appsRichmenus[appId]) {
@@ -728,6 +732,10 @@
         let form = $('input[name="richmenu-form"]:checked').val();
         let areas = composeAreaObject();
 
+        if (!areas) {
+            return;
+        }
+
         let putRichmenu = {
             selected: selected,
             chatBarText: chatBarText,
@@ -738,7 +746,7 @@
             areas: areas
         };
 
-        $('#modal-update-save').attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
+        $('#modal-update-save').attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin fa-fw"></i>處理中');
         return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu, imageFile).then((resJson) => {
             let _appsRichmenus = resJson.data;
             let richmenus = _appsRichmenus[appId].richmenus;
@@ -795,7 +803,8 @@
         if (!imgWidth || !imgHeight) {
             $('#modal-save').removeAttr('disabled');
             $('#modal-update-save').removeAttr('disabled');
-            return $.notify('請上傳圖片', { type: 'warning' });
+            $.notify('請上傳圖片', { type: 'warning' });
+            return;
         }
 
         // 取得 長 寬 比例尺

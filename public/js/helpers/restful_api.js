@@ -1195,9 +1195,11 @@ window.restfulAPI = (function() {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
 
             var formData = new FormData();
-            formData.append('file', postImageFile);
-            formData.append('fileName', postImageFile.name);
-            formData.append('mimeType', postImageFile.type);
+            if (postImageFile) {
+                formData.append('file', postImageFile);
+                formData.append('fileName', postImageFile.name);
+                formData.append('mimeType', postImageFile.type);
+            }
 
             for (var prop in postRichmenu) {
                 if ('object' === typeof postRichmenu[prop]) {
