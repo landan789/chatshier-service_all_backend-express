@@ -1,4 +1,4 @@
-namespace OneSignal {
+declare module OneSignal {
     interface App {
         id: string;
         name: string;
@@ -155,7 +155,6 @@ namespace OneSignal {
         canceled?: boolean;
         converted?: number;
         errored?: number;
-        excluded_segments?: any[];
         failed?: number;
         id?: string;
         include_player_ids?: string[];

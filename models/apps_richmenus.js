@@ -124,6 +124,66 @@ module.exports = (function() {
         }
 
         /**
+         * 查找啟用的 richmenu
+         *
+         * @param {string|string[]} appIds
+         * @param {boolean} [isDefault]
+         * @param {(appsRichmenus: any) => any} [callback]
+         * @return {Promise<any>}
+         */
+        findActivated(appIds, isDefault, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
+
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
+                'isDeleted': false,
+                'richmenus.isDeleted': false,
+                'richmenus.isActivated': true
+            };
+            isDefault && (query['richmenus.isDefault'] = true);
+
+            let aggregations = [
+                {
+                    // 只針對特定 document 處理
+                    $unwind: '$richmenus'
+                }, {
+                    // 尋找符合 ID 的欄位
+                    $match: query
+                }, {
+                    // 篩選項目
+                    $project: {
+                        richmenus: true
+                    }
+                }
+            ];
+
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsRichmenus = {};
+                if (0 === results.length) {
+                    return appsRichmenus;
+                }
+
+                appsRichmenus = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { richmenus: {} };
+                    Object.assign(output[app._id].richmenus, this.toObject(app.richmenus));
+                    return output;
+                }, {});
+
+                return appsRichmenus;
+            }).then((appsRichmenus) => {
+                ('function' === typeof callback) && callback(appsRichmenus);
+                return appsRichmenus;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
          * 輸入 指定 appId 的陣列清單，新增一筆圖文選單的資料
          *
          * @param {string} appId

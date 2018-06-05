@@ -235,7 +235,7 @@ module.exports = (function() {
                     if (!apps) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                     }
-                    return apps;
+                    return Promise.resolve(apps);
                 });
             }).then((apps) => {
                 let appIds = Object.keys(apps);

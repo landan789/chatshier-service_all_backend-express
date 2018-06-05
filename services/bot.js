@@ -1,7 +1,9 @@
 module.exports = (function() {
     /** @type {any} */
     const API_ERROR = require('../config/api_error.json');
+    const SOCKET_EVENTS = require('../config/socket-events');
 
+    const PassThrough = require('stream').PassThrough;
     const line = require('@line/bot-sdk');
     const Wechat = require('wechat');
     const WechatAPI = require('wechat-api');
@@ -11,13 +13,18 @@ module.exports = (function() {
 
     const appsMdl = require('../models/apps');
     const appsChatroomsMdl = require('../models/apps_chatrooms');
+    const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
+    const appsRichmenusMdl = require('../models/apps_richmenus');
+    const consumersMdl = require('../models/consumers');
     const storageHlp = require('../helpers/storage');
+    const socketHlp = require('../helpers/socket');
     const wechatSvc = require('./wechat');
 
     // app type defined
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
     const WECHAT = 'WECHAT';
+    const CHATSHIER = 'CHATSHIER';
     const VENDOR = 'VENDOR';
 
     const LINE_WEBHOOK_VERIFY_UID = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
@@ -48,7 +55,7 @@ module.exports = (function() {
          * @param {any} req
          * @param {any} res
          * @param {string} appId
-         * @param {any} app
+         * @param {Chatshier.Models.App} app
          */
         parser(req, res, appId, app) {
             switch (app.type) {
@@ -82,7 +89,7 @@ module.exports = (function() {
 
         /**
          * @param {string} appId
-         * @param {any} app
+         * @param {Chatshier.Models.App} app
          */
         create(appId, app) {
             return Promise.resolve().then(() => {
@@ -108,13 +115,15 @@ module.exports = (function() {
                         this.bots[appId] = facebookBot;
                         return facebookBot;
                     case WECHAT:
+                        /** @type {any} */
+                        let _app = Object.assign({}, app);
                         let getToken = (callback) => {
                             // 此 callback 在 instance 被建立會要發 API 時會執行
                             // 從資料庫抓取出目前 app 的 accessToken 回傳給 instance
-                            if (app.token1) {
+                            if (_app.token1) {
                                 let token = {
-                                    accessToken: app.token1,
-                                    expireTime: app.token1ExpireTime
+                                    accessToken: _app.token1,
+                                    expireTime: _app.token1ExpireTime
                                 };
                                 callback(null, token);
                                 return;
@@ -126,13 +135,13 @@ module.exports = (function() {
                             // 當 wechat sdk 發送 API 時，沒有 accessToken 或是 accessToken 過期
                             // 會自動抓取新的 accessToken 並呼叫此函式
                             // 此時將新的 wechat app accessToken 更新至資料庫中
-                            app.token1 = tokenJson.accessToken;
-                            app.token1ExpireTime = tokenJson.expireTime;
-                            let _app = {
-                                token1: app.token1,
-                                token1ExpireTime: app.token1ExpireTime
+                            _app.token1 = tokenJson.accessToken;
+                            _app.token1ExpireTime = tokenJson.expireTime;
+                            let putApp = {
+                                token1: _app.token1,
+                                token1ExpireTime: _app.token1ExpireTime
                             };
-                            return appsMdl.update(appId, _app).then((apps) => {
+                            return appsMdl.update(appId, putApp).then((apps) => {
                                 if (!apps) {
                                     callback(API_ERROR.APP_FAILED_TO_UPDATE);
                                     return;
@@ -140,7 +149,7 @@ module.exports = (function() {
                                 callback();
                             });
                         };
-                        let wechatBot = new WechatAPI(app.id1, app.secret, getToken, setToken);
+                        let wechatBot = new WechatAPI(_app.id1, _app.secret, getToken, setToken);
                         this.bots[appId] = wechatBot;
                         return wechatBot;
                     default:
@@ -151,7 +160,7 @@ module.exports = (function() {
 
         /**
          * @param {any} req
-         * @param {any} app
+         * @param {Chatshier.Models.App} app
          * @returns {Webhook.Chatshier.Information}
          */
         retrieveWebhookInfo(req, app) {
@@ -205,9 +214,204 @@ module.exports = (function() {
         }
 
         /**
+         * @param {Webhook.Chatshier.Information} webhookInfo
+         * @param {string} appId
+         * @param {Chatshier.Models.App} app
+         * @returns {Promise<boolean>}
+         */
+        resolveSpecificEvent(webhookInfo, appId, app) {
+            let isContinue = true;
+            let platformUid = webhookInfo.platformUid;
+
+            return Promise.resolve().then(() => {
+                if (LINE === app.type) {
+                    let isFollow = webhookInfo.eventType === this.LINE_EVENT_TYPES.FOLLOW;
+                    let isUnfollow = webhookInfo.eventType === this.LINE_EVENT_TYPES.UNFOLLOW;
+
+                    // LINE 用戶加 LINE@ 好友時，檢查有無啟用的 richmenu
+                    // 將預設的 richmenu link 至 LINE 用戶
+                    if (isFollow) {
+                        return appsRichmenusMdl.findActivated(appId, true).then((appsRichmenus) => {
+                            return this.getRichMenuIdOfUser(platformUid, appId, app).then((_platformMenuId) => {
+                                if (!(appsRichmenus && appsRichmenus[appId])) {
+                                    // 沒有預設的 richmenu 時，如果用戶有 link 之前的 richmenu 時
+                                    // 必須 unlink LINE 用戶的 richmenu
+                                    return _platformMenuId && this.unlinkRichMenuFromUser(platformUid, _platformMenuId, appId, app);
+                                }
+
+                                // 只有 richmenu ID 與預設的 richmenu ID 不同時才需要重新 link LINE 用戶
+                                let richmenu = Object.values(appsRichmenus[appId].richmenus).shift();
+                                if (richmenu.platformMenuId && _platformMenuId !== richmenu.platformMenuId) {
+                                    return this.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId, app).catch(() => void 0);
+                                }
+                            });
+                        // LINE 用戶加 LINE@ 好友時，還是要繼續 webhook 的訊息回覆處理，因此不要回傳 false flag
+                        }).then(() => (isContinue = true));
+                    }
+
+                    // 如果 LINE 用戶封鎖 LINE@ 時，將聊天室中的 messager 的 isUnfollow 設為 true
+                    // 來表示用戶已取消關注 LINE@, 此時無法傳送任何訊息給 LINE 用戶
+                    if (isUnfollow) {
+                        return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, webhookInfo.platformUid).then((appsChatroomsMessagers) => {
+                            if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                                return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                            }
+
+                            let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                            let platformMessager;
+                            let putMessagers = {
+                                isUnfollow: true
+                            };
+
+                            return Promise.all(Object.keys(chatrooms).map((_chatroomId) => {
+                                return appsChatroomsMessagersMdl.updateByPlatformUid(appId, _chatroomId, webhookInfo.platformUid, putMessagers).then((_appsChatroomsMessagers) => {
+                                    if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
+                                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                                    }
+                                    platformMessager = _appsChatroomsMessagers[appId].chatrooms[_chatroomId].messagers[webhookInfo.platformUid];
+                                    return appsChatroomsMessagersMdl.find(appId, _chatroomId, void 0, CHATSHIER);
+                                }).then((_appsChatroomsMessagers) => {
+                                    if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
+                                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                    }
+
+                                    let chatroom = _appsChatroomsMessagers[appId].chatrooms[_chatroomId];
+                                    let messagers = chatroom.messagers;
+                                    let _recipientUserIds = Object.keys(messagers).map((messagerId) => messagers[messagerId].platformUid);
+
+                                    let socketBody = {
+                                        appId: appId,
+                                        chatroomId: _chatroomId,
+                                        messager: platformMessager
+                                    };
+                                    return socketHlp.emitToAll(_recipientUserIds, SOCKET_EVENTS.CONSUMER_UNFOLLOW, socketBody);
+                                });
+                            }));
+                        }).then(() => (isContinue = false));
+                    }
+
+                    if (webhookInfo.platformGroupId) {
+                        let isJoin = webhookInfo.eventType === this.LINE_EVENT_TYPES.JOIN;
+                        let isLeave = webhookInfo.eventType === this.LINE_EVENT_TYPES.LEAVE;
+
+                        // 則根據平台的群組 ID 查找聊天室
+                        // 若未找到記有群組 ID 的聊天室則自動建立一個聊天室
+                        let platformGroupId = webhookInfo.platformGroupId;
+                        let platformGroupType = webhookInfo.platformGroupType;
+                        let webhookChatroomId = '';
+
+                        // 如果 LINE@ 被加入至群組時，會接收到 join 事件
+                        // 此時建立一個聊天室，抓取群組內的所有成員的 profile 並加入至聊天室中，
+                        if (isJoin) {
+                            return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId, {}).then((appsChatrooms) => {
+                                if (!(appsChatrooms && appsChatrooms[appId])) {
+                                    let chatroom = {
+                                        platformGroupId: platformGroupId,
+                                        platformGroupType: platformGroupType
+                                    };
+                                    return appsChatroomsMdl.insert(appId, chatroom);
+                                }
+                                return appsChatrooms;
+                            }).then((appsChatrooms) => {
+                                let chatrooms = appsChatrooms[appId].chatrooms;
+                                let chatroomId = Object.keys(chatrooms).shift() || '';
+                                let chatroom = chatrooms[chatroomId];
+                                webhookChatroomId = chatroomId;
+
+                                // 如果此群組聊天室存在但是已經離開過，則將此聊天室重新啟用
+                                if (chatroom.isDeleted) {
+                                    return appsChatroomsMdl.update(appId, chatroomId, { isDeleted: false }).then((_appsChatrooms) => {
+                                        if (!(_appsChatrooms && _appsChatrooms[appId])) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
+                                        }
+                                        chatroom = _appsChatrooms[appId].chatrooms[chatroomId];
+                                        return chatroom;
+                                    });
+                                }
+                                return chatroom;
+                            }).then(() => {
+                                // 使用 LINE API 抓取群組內的所有的 LINE 成員用戶
+                                return this.getGroupMemberIds(platformGroupId, appId, app).then((groupMemberIds) => {
+                                    return Promise.all(groupMemberIds.map((groupMemberId) => {
+                                        /** @type {Webhook.Chatshier.Information} */
+                                        let _webhookInfo = {
+                                            platformUid: groupMemberId,
+                                            platformGroupId: platformGroupId,
+                                            platformGroupType: platformGroupType
+                                        };
+                                        return this.getProfile(_webhookInfo, appId, app).then((groupMemberProfile) => {
+                                            if (!groupMemberProfile.photo) {
+                                                return consumersMdl.replace(groupMemberId, groupMemberProfile);
+                                            }
+
+                                            return consumersMdl.find(groupMemberId).then((consumers) => {
+                                                let consumer = consumers[groupMemberId];
+                                                let shouldUpload = (
+                                                    groupMemberProfile.photo.startsWith('http://') &&
+                                                    (!consumer || !(consumer && groupMemberProfile.photo !== consumer.photoOriginal))
+                                                );
+
+                                                if (shouldUpload) {
+                                                    let fileName = `${groupMemberId}_${Date.now()}.jpg`;
+                                                    let filePath = `${storageHlp.tempPath}/${fileName}`;
+                                                    let putConsumer = Object.assign({}, groupMemberProfile);
+
+                                                    return storageHlp.filesSaveUrl(filePath, groupMemberProfile.photo).then((url) => {
+                                                        putConsumer.photo = url;
+                                                        let toPath = `/consumers/${groupMemberId}/photo/${fileName}`;
+                                                        return storageHlp.filesMoveV2(filePath, toPath);
+                                                    }).then(() => {
+                                                        return consumersMdl.replace(groupMemberId, putConsumer);
+                                                    });
+                                                }
+                                                return consumersMdl.replace(platformUid, groupMemberProfile);
+                                            });
+                                        }).then(() => {
+                                            let _messager = {
+                                                type: app.type,
+                                                platformUid: groupMemberId,
+                                                lastTime: Date.now(),
+                                                isDeleted: false
+                                            };
+                                            return appsChatroomsMessagersMdl.replace(appId, webhookChatroomId, _messager);
+                                        });
+                                    }));
+                                });
+                            }).then(() => (isContinue = false));
+                        // 如果 LINE@ 被踢出群組或經由 API 自行離開時，會接收到 leave 事件
+                        // 此時將 LINE@ 的群組聊天室刪除
+                        } else if (isLeave) {
+                            return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId).then((appsChatrooms) => {
+                                if (!(appsChatrooms && appsChatrooms[appId])) {
+                                    return;
+                                }
+
+                                let chatrooms = appsChatrooms[appId].chatrooms;
+                                let chatroomId = Object.keys(chatrooms).shift() || '';
+                                webhookChatroomId = chatroomId;
+                                return appsChatroomsMdl.remove(appId, chatroomId);
+                            }).then(() => (isContinue = false));
+                        }
+                    }
+                } else if (FACEBOOK === app.type) {
+                    // Facebook 如果使用 "粉絲專頁收件夾" 或 "專頁小助手" 回覆時
+                    // 如果有開啟 message_echoes 時，會收到 webhook 事件
+                    if (webhookInfo.isEcho && webhookInfo.platfromAppId) {
+                        // 如果是由我們自己的 Facebook app 發送的不需處理 echo
+                        isContinue = false;
+                    }
+                    return isContinue;
+                }
+                return isContinue;
+            }).then(() => isContinue);
+        }
+
+        /**
          * 根據不同 BOT 把 webhook 打進來的 HTTP BODY 轉換成 message 格式
          *
          * @param {string} messagerId - 這裡是代表 Chatshier chatroom 裡的 messager_id
+         * @param {string} appId
+         * @param {Chatshier.Models.App} app
          * @return {Promise<any>}
          */
         getReceivedMessages(req, res, messagerId, appId, app) {
@@ -473,17 +677,11 @@ module.exports = (function() {
          * 多型處理， 取得 LINE 或 FACEBOOK 來的 customer 用戶端資料
          * @param {Webhook.Chatshier.Information} webhookInfo
          * @param {string} appId
-         * @param {any} app
+         * @param {Chatshier.Models.App} app
          * @returns {Promise<Webhook.Chatshier.Profile>}
          */
         getProfile(webhookInfo, appId, app) {
-            return Promise.resolve().then(() => {
-                let bot = this.bots[appId];
-                if (!bot) {
-                    return this.create(appId, app);
-                }
-                return bot;
-            }).then((bot) => {
+            return this._protectBot(appId, app).then((bot) => {
                 /** @type {Webhook.Chatshier.Profile} */
                 let senderProfile = {
                     type: app.type,
@@ -795,7 +993,7 @@ module.exports = (function() {
                 default:
                     return Promise.resolve();
             }
-        };
+        }
 
         /**
          * @param {string[]} recipientUids
@@ -804,16 +1002,11 @@ module.exports = (function() {
          * @param {any} app
          */
         multicast(recipientUids, messages, appId, app) {
-            let bot = this.bots[appId];
             let _multicast;
 
-            return Promise.resolve().then(() => {
-                if (!bot) {
-                    return this.create(appId, app).then((_bot) => {
-                        this.bots[appId] = bot = _bot;
-                    });
-                };
-            }).then(() => {
+            return this._protectBot(appId, app).then((_bot) => {
+                let bot = _bot;
+
                 switch (app.type) {
                     case LINE:
                         _multicast = (_recipientUids, messages) => {
@@ -896,97 +1089,200 @@ module.exports = (function() {
                         return Promise.resolve([]);
                 }
             });
-        };
-
-        /**
-         * @param {any} postMenu
-         * @param {string} appId
-         * @param {any} app
-         */
-        createMenu(postMenu, appId, app) {
-            let bot = this.bots[appId];
-            switch (app.type) {
-                case LINE:
-                    return bot.createRichMenu(postMenu);
-                case WECHAT:
-                default:
-                    return Promise.resolve([]);
-            }
-        };
-
-        /**
-         * @param {string} platformMenuId
-         * @param {string} appId
-         * @param {any} app
-         */
-        deleteMenu(platformMenuId, appId, app) {
-            let bot = this.bots[appId];
-            switch (app.type) {
-                case LINE:
-                    return bot.deleteRichMenu(platformMenuId);
-                case WECHAT:
-                default:
-                    return Promise.resolve([]);
-            }
-        };
-
-        /**
-         * @param {string} appId
-         */
-        getRichMenuList(appId) {
-            let bot = this.bots[appId];
-            return bot.getRichMenuList();
-        };
-
-        /**
-         * @param {string} platformMenuId
-         * @param {string} appId
-         */
-        getRichMenu(platformMenuId, appId) {
-            let bot = this.bots[appId];
-            return bot.getRichMenu(platformMenuId);
-        };
-
-        /**
-         * @param {string} platformMenuId
-         * @param {string} appId
-         */
-        getRichMenuImage(platformMenuId, appId) {
-            let bot = this.bots[appId];
-            return bot.getRichMenuImage(platformMenuId);
-        };
-
-        /**
-         * @param {string} platformMenuId
-         * @param {any} richmenuImg
-         * @param {string} appId
-         */
-        setRichMenuImage(platformMenuId, richmenuImg, appId) {
-            let bot = this.bots[appId];
-            let imageBuffer = richmenuImg.fileBinary;
-            return bot.setRichMenuImage(platformMenuId, imageBuffer, null);
-        };
-
-        /**
-         * @param {string} userId
-         * @param {string} platformMenuId
-         * @param {string} appId
-         */
-        linkRichMenuToUser(userId, platformMenuId, appId) {
-            let bot = this.bots[appId];
-            return bot.linkRichMenuToUser(userId, platformMenuId);
         }
 
         /**
-         * @param {string} userId
-         * @param {string} platformMenuId
          * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         * @returns {Promise<Array>}
          */
-        unlinkRichMenuFromUser(userId, platformMenuId, appId) {
-            let bot = this.bots[appId];
-            return bot.unlinkRichMenuFromUser(userId, platformMenuId);
+        getRichmenuList(appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            return bot.getRichMenuList();
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve([]);
+                    }
+                });
+            });
         }
 
+        /**
+         * @param {any} postRichmenu
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
+        createRichMenu(postRichmenu, appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            let lineRichmenu = {
+                                size: postRichmenu.size,
+                                selected: postRichmenu.selected,
+                                name: postRichmenu.name,
+                                chatBarText: postRichmenu.chatBarText,
+                                areas: postRichmenu.areas
+                            };
+                            return bot.createRichMenu(lineRichmenu);
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve();
+                    }
+                });
+            });
+        }
+
+        /**
+         * @param {string} platformMenuId
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
+        deleteRichMenu(platformMenuId, appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            return bot.deleteRichMenu(platformMenuId);
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve();
+                    }
+                });
+            });
+        }
+
+        /**
+         * @param {string} platformMenuId
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         * @returns {Promise<Buffer>}
+         */
+        getRichMenuImage(platformMenuId, appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            return bot.getRichMenuImage(platformMenuId).then((imageStream) => {
+                                return new Promise((resolve, reject) => {
+                                    let passThrough = new PassThrough();
+                                    let bufferArray = [];
+                                    passThrough.on('data', (chunk) => bufferArray.push(chunk));
+                                    passThrough.once('error', reject);
+                                    passThrough.once('end', () => {
+                                        let buffer = Buffer.concat(bufferArray);
+                                        bufferArray.length = 0;
+                                        passThrough.destroy();
+                                        imageStream.destroy();
+                                        resolve(buffer);
+                                    });
+                                    imageStream.pipe(passThrough, { end: true });
+                                });
+                            });
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve();
+                    }
+                });
+            });
+        }
+
+        /**
+         * @param {string} platformMenuId
+         * @param {Buffer} imageBuffer
+         * @param {string} mimeType
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
+        setRichMenuImage(platformMenuId, imageBuffer, mimeType, appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            return bot.setRichMenuImage(platformMenuId, imageBuffer, mimeType);
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve();
+                    }
+                });
+            });
+        }
+
+        /**
+         * @param {string} platformUid
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         * @returns {Promise<string>}
+         */
+        getRichMenuIdOfUser(platformUid, appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            return bot.getRichMenuIdOfUser(platformUid).catch(() => '');
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve('');
+                    }
+                });
+            });
+        }
+
+        /**
+         * @param {string} platformUid
+         * @param {string} platformMenuId
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
+        linkRichMenuToUser(platformUid, platformMenuId, appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            return bot.linkRichMenuToUser(platformUid, platformMenuId);
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve();
+                    }
+                });
+            });
+        }
+
+        /**
+         * @param {string} platformUid
+         * @param {string} platformMenuId
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
+        unlinkRichMenuFromUser(platformUid, platformMenuId, appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            return bot.unlinkRichMenuFromUser(platformUid, platformMenuId);
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve();
+                    }
+                });
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {string} chatroomId
+         */
         leaveGroupRoom(appId, chatroomId) {
             return appsMdl.find(appId).then((apps) => {
                 apps = apps || {};
@@ -1018,6 +1314,38 @@ module.exports = (function() {
                 } else if (FACEBOOK === app.type) {
                     // Facebook 無支援群組聊天
                 }
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
+        _protectBot(appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                let bot = this.bots[appId];
+                if (!bot) {
+                    return this.create(appId, _app);
+                }
+                return bot;
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
+        _protectApps(appId, app) {
+            return Promise.resolve().then(() => {
+                if (!app) {
+                    return appsMdl.find(appId).then((apps) => {
+                        if (!(apps && apps[appId])) {
+                            return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        }
+                        return Promise.resolve(apps[appId]);
+                    });
+                }
+                return app;
             });
         }
     }

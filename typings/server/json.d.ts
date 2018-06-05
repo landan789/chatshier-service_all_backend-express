@@ -1,3 +1,4 @@
 declare module '*.json' {
-    export default {} as any;
+    const json: any;
+    export default json;
 }

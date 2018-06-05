@@ -4,7 +4,6 @@ module.exports = (function() {
 
     class SocketHelper {
         constructor() {
-            /** @type {{ [socketId: string]: { [appId: string]: SocketIO.Socket } }} */
             this.socketsAppsMap = {};
 
             this._subscriberOnMessage = this._subscriberOnMessage.bind(this);
@@ -56,7 +55,7 @@ module.exports = (function() {
 
         /**
          * @param {string} userId
-         * @param {SocketIO.Socket} socket
+         * @param {any} socket
          * @returns {boolean}
          */
         addSocket(userId, socket) {
@@ -72,7 +71,7 @@ module.exports = (function() {
         };
 
         /**
-         * @param {SocketIO.Socket} socket
+         * @param {any} socket
          * @returns {boolean}
          */
         removeSocket(socket) {

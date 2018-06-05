@@ -24,7 +24,7 @@ module.exports = (function() {
                 type: type,                           // TABLE
                 id: id,
                 body: body                            // ROW
-            });            
+            });
         }
     };
 
