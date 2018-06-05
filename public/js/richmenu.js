@@ -51,8 +51,8 @@
     $jqDoc.on('click', 'input[name = richmenu-form]', photoFormShow);
     $jqDoc.on('click', 'input[name = content]', contentInputShow);
     $jqDoc.on('click', '.box', contentBarShow);
-    $jqDoc.on('click', '#deactivate-btn', activateRichmenu);
-    $jqDoc.on('click', '#activate-btn', deactivateRichmenu);
+    $jqDoc.on('click', '.activate-btn', activateRichmenu);
+    $jqDoc.on('click', '.deactivate-btn', deactivateRichmenu);
     $jqDoc.on('click', '#update-btn', appendRichmenu);
     $jqDoc.on('click', '.set-default-btn', setDefaultRichmenu);
 
@@ -530,7 +530,6 @@
 
             let _appsRichmenus = resJson.data;
             Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
-
             return reloadRichmenus(appId, userId);
         }).catch(() => {
             $setDefaultBtn.removeAttr('disabled').text('設為預設');
@@ -557,7 +556,7 @@
                     if (richmenu.isActivated) {
                         return (
                             '<td>' +
-                                '<button type="button" id="activate-btn" class="btn btn-success btn-border" data-status="true">已啟用' + (richmenu.isDefault ? ' (預設)' : '') + '</button>' +
+                                '<button type="button" class="btn btn-success btn-border deactivate-btn' + (richmenu.isDefault ? ' is-default' : '') + '" data-status="true">已啟用' + (richmenu.isDefault ? ' (預設)' : '') + '</button>' +
                             '</td>' +
                             '<td>' +
                                 '<button type="button" class="mb-1 mr-1 btn btn-light set-default-btn' + (richmenu.isDefault ? ' d-none' : '') + '">設為預設</button>' +
@@ -567,7 +566,7 @@
 
                     return (
                         '<td>' +
-                            '<button type="button" id="deactivate-btn" class="btn btn-light btn-border" data-status="false">未啟用</button>' +
+                            '<button type="button" class="btn btn-light btn-border activate-btn' + (richmenu.isDefault ? ' is-default' : '') + '" data-status="false" data-isDefault="' + richmenu.isDefault + '">未啟用</button>' +
                         '</td>' +
                         '<td>' +
                             '<button type="button" id="update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#richmenu-modal" aria-hidden="true"></button>' +
