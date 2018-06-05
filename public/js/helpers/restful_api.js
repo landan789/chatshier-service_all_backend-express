@@ -1403,16 +1403,32 @@ window.restfulAPI = (function() {
     var BotAPI = (function() {
         function BotAPI() {
             this.urlPrefix = apiUrlTable.bot;
+        }
+
+        /**
+         * 取得平台的所有 Richmenu 清單，非資料庫內的資料
+         *
+         * @param {string} appId - 目標 Menu 的 App ID
+         * @param {string} userId
+         * @returns {Promise<any[]>}
+         */
+        BotAPI.prototype.getRichmenuList = function(appId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
-         * 連結 目標Menu 與 Consumers
+         * 連結目標 Richmenu 與 Consumers
          *
          * @param {string} appId - 目標Menu的 App ID
          * @param {string} menuId - 目標Menu的 ID
          * @param {string} userId
          */
-        BotAPI.prototype.activateMenu = function(appId, menuId, userId) {
+        BotAPI.prototype.activateRichmenu = function(appId, menuId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/users/' + userId;
             var reqInit = {
                 method: 'POST',
@@ -1422,16 +1438,32 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * 解除 目標Menu 與 Consumers 的連結
+         * 解除目標 Richmenu 與 Consumers 的連結
          *
          * @param {string} appId - 目標 Menu的 App ID
          * @param {string} menuId - 目標 Menu的 ID
          * @param {string} userId
          */
-        BotAPI.prototype.deactivateMenu = function(appId, menuId, userId) {
+        BotAPI.prototype.deactivateRichmenu = function(appId, menuId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/users/' + userId;
             var reqInit = {
                 method: 'DELETE',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 設定目標 Richmenu 在 Consumers 關注 bot 時預設的連結 Richmenu
+         *
+         * @param {string} appId - 目標 Richmenu 的 App ID
+         * @param {string} menuId - 目標 Richmenu 的 ID
+         * @param {string} userId
+         */
+        BotAPI.prototype.setDefaultRichmenu = function(appId, menuId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
                 headers: reqHeaders
             };
             return sendRequest(destUrl, reqInit);

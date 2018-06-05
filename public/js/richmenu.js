@@ -45,9 +45,10 @@
     $jqDoc.on('click', 'input[name = richmenu-form]', photoFormShow);
     $jqDoc.on('click', 'input[name = content]', contentInputShow);
     $jqDoc.on('click', '.box', contentBarShow);
-    $jqDoc.on('click', '#deactivate-btn', activateMenu);
-    $jqDoc.on('click', '#activate-btn', deactivateMenu);
+    $jqDoc.on('click', '#deactivate-btn', activateRichmenu);
+    $jqDoc.on('click', '#activate-btn', deactivateRichmenu);
     $jqDoc.on('click', '#update-btn', appendRichmenu);
+    $jqDoc.on('click', '.set-default-btn', setDefaultRichmenu);
 
     $modal.on('hidden.bs.modal', function() {
         $appSelector.parent().parent().removeClass('d-none');
@@ -117,8 +118,9 @@
 
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
-            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
-            return loadRichmenus(nowSelectAppId, userId);
+            return reloadRichmenus(nowSelectAppId, userId).then(() => {
+                $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            });
         }
     });
 
@@ -126,7 +128,7 @@
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
-        return loadRichmenus(nowSelectAppId, userId);
+        return reloadRichmenus(nowSelectAppId, userId);
     }
 
     function uploadImage() {
@@ -501,32 +503,71 @@
         photoFormShow();
     }
 
-    function activateMenu() {
-        $(this).attr('disabled', 'disabled').text('啟用中...');
-        let appId = $(this).parents().parents().attr('rel');
-        let richmenuId = $(this).parents().parents().attr('id');
+    function activateRichmenu() {
+        let $activateBtn = $(this);
+        $activateBtn.attr('disabled', 'disabled').text('啟用中...');
 
-        return api.bot.activateMenu(appId, richmenuId, userId).then(() => {
-            $(this).removeAttr('disabled');
+        let $richmenuRow = $activateBtn.parents('tr');
+        let appId = $richmenuRow.attr('rel');
+        let richmenuId = $richmenuRow.attr('id');
+
+        return api.bot.activateRichmenu(appId, richmenuId, userId).then((resJson) => {
+            $activateBtn.removeAttr('disabled');
             $('#' + richmenuId).remove();
-            return loadRichmenus(appId, userId);
+
+            let _appsRichmenus = resJson.data;
+            Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+
+            return reloadRichmenus(appId, userId);
         }).then(() => {
             $.notify('成功啟用', { type: 'success' });
         }).catch(() => {
-            $(this).removeAttr('disabled').text('未啟用');
-            $.notify('失敗', { type: 'danger' });
+            $activateBtn.removeAttr('disabled').text('未啟用');
+            $.notify('啟用失敗', { type: 'danger' });
         });
     }
 
-    function deactivateMenu() {
-        $(this).attr('disabled', 'disabled').text('取消啟用...');
-        let appId = $(this).parents().parents().attr('rel');
-        let richmenuId = $(this).parents().parents().attr('id');
-        return api.bot.deactivateMenu(appId, richmenuId, userId).then(() => {
-            return loadRichmenus(appId, userId);
-        }).then(() => {
-            $(this).removeAttr('disabled');
-            return $.notify('成功取消啟用', { type: 'success' });
+    function deactivateRichmenu() {
+        let $deactivateBtn = $(this);
+        $deactivateBtn.attr('disabled', 'disabled').text('取消啟用...');
+
+        let $richmenuRow = $deactivateBtn.parents('tr');
+        let appId = $richmenuRow.attr('rel');
+        let richmenuId = $richmenuRow.attr('id');
+
+        return api.bot.deactivateRichmenu(appId, richmenuId, userId).then((resJson) => {
+            $deactivateBtn.removeAttr('disabled');
+
+            let _appsRichmenus = resJson.data;
+            Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+
+            $.notify('成功取消啟用', { type: 'success' });
+            return reloadRichmenus(appId, userId);
+        }).catch(() => {
+            $deactivateBtn.removeAttr('disabled').text('未啟用');
+            $.notify('取消啟用失敗', { type: 'danger' });
+        });
+    }
+
+    function setDefaultRichmenu() {
+        let $setDefaultBtn = $(this);
+        $setDefaultBtn.attr('disabled', 'disabled').text('設定中...');
+
+        let $richmenuRow = $setDefaultBtn.parents('tr');
+        let appId = $richmenuRow.attr('rel');
+        let richmenuId = $richmenuRow.attr('id');
+
+        return api.bot.setDefaultRichmenu(appId, richmenuId, userId).then((resJson) => {
+            $setDefaultBtn.removeAttr('disabled').addClass('d-none');
+            $.notify('已成功設定', { type: 'success' });
+
+            let _appsRichmenus = resJson.data;
+            Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+
+            return reloadRichmenus(appId, userId);
+        }).catch(() => {
+            $setDefaultBtn.removeAttr('disabled').text('設為預設');
+            $.notify('設定失敗', { type: 'danger' });
         });
     }
 
@@ -549,9 +590,11 @@
                     if (richmenu.isActivated) {
                         return (
                             '<td>' +
-                                '<button type="button" id="activate-btn" class="btn btn-success btn-border" data-status="true">已啟用</button>' +
+                                '<button type="button" id="activate-btn" class="btn btn-success btn-border" data-status="true">已啟用' + (richmenu.isDefault ? ' (預設)' : '') + '</button>' +
                             '</td>' +
-                            '<td></td>'
+                            '<td>' +
+                                '<button type="button" class="mb-1 mr-1 btn btn-light set-default-btn' + (richmenu.isDefault ? ' d-none' : '') + '">設為預設</button>' +
+                            '</td>'
                         );
                     }
 
@@ -645,27 +688,26 @@
         });
     }
 
-    function loadRichmenus(appId, userId, noFetch) {
+    function reloadRichmenus(appId, userId) {
         $('table #richmenu').empty();
         $('table #activated-richmenu').empty();
 
         return Promise.resolve().then(() => {
-            if (!noFetch) {
+            if (!appsRichmenus[appId]) {
+                appsRichmenus[appId] = { richmenus: {} };
                 return api.appsRichmenus.findAll(appId, userId).then((resJson) => {
-                    return resJson.data;
+                    let _appsRichmenus = resJson.data;
+                    if (_appsRichmenus[appId]) {
+                        Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+                    }
+                    return syncRichmenus(appId);
+                }).then(() => {
+                    return appsRichmenus;
                 });
             }
             return appsRichmenus;
-        }).then(function(_appsRichmenus) {
-            if (!(_appsRichmenus && _appsRichmenus[appId])) {
-                return;
-            }
-
-            if (!appsRichmenus[appId]) {
-                appsRichmenus[appId] = { richmenus: {} };
-            }
-            let richmenus = _appsRichmenus[appId].richmenus;
-            Object.assign(appsRichmenus[appId].richmenus, richmenus);
+        }).then(function() {
+            let richmenus = appsRichmenus[appId].richmenus;
 
             for (let richmenuId in richmenus) {
                 let richmenu = richmenus[richmenuId];
@@ -674,6 +716,152 @@
                 }
                 generateRichmenuRow(richmenuId, richmenu, appId);
             }
+        });
+    }
+
+    function syncRichmenus(appId) {
+        let app = apps[appId];
+        if (app.type !== api.apps.enums.type.LINE) {
+            return Promise.resolve();
+        }
+
+        let $dropdownText = $appDropdown.find('.dropdown-toggle .dropdown-text');
+        let bakAppName = $dropdownText.html();
+        $dropdownText.html(bakAppName + '<i class="ml-2 fas fa-sync fa-spin"></i>');
+
+        let richmenus = appsRichmenus[appId].richmenus;
+        let richmenuIds = Object.keys(richmenus);
+        return api.bot.getRichmenuList(appId, userId).then((resJson) => {
+            let platformRichmenuList = resJson.data || [];
+            let platformRichmenuMap = platformRichmenuList.reduce((output, platfromRichmenu) => {
+                output[platfromRichmenu.richMenuId] = platfromRichmenu;
+                return output;
+            }, {});
+
+            let shouldRemoveIds = [];
+            let shouldSyncRichmenus = {};
+            richmenuIds.forEach((richmenuId) => {
+                let richmenu = richmenus[richmenuId];
+                let platformRichmenu = platformRichmenuMap[richmenu.platformMenuId];
+                if (!platformRichmenu) {
+                    shouldRemoveIds.push(richmenuId);
+                    return;
+                }
+
+                if (richmenu.name !== platformRichmenu.name ||
+                    richmenu.size.width !== platformRichmenu.size.width ||
+                    richmenu.size.height !== platformRichmenu.size.height ||
+                    richmenu.chatBarText !== platformRichmenu.chatBarText ||
+                    richmenu.selected !== platformRichmenu.selected ||
+                    richmenu.areas.length !== platformRichmenu.areas.length) {
+                    let putRichmenu = {
+                        selected: platformRichmenu.selected,
+                        chatBarText: platformRichmenu.chatBarText,
+                        name: platformRichmenu.name,
+                        form: richmenu.form,
+                        src: richmenu.src,
+                        size: platformRichmenu.size,
+                        areas: platformRichmenu.areas
+                    };
+                    shouldSyncRichmenus[richmenuId] = putRichmenu;
+                    delete platformRichmenuMap[richmenu.platformMenuId];
+                    return;
+                }
+
+                for (let i in richmenu.areas) {
+                    let area = richmenu.areas[i];
+                    let platformArea = platformRichmenu.areas[i];
+
+                    if (area.bounds.x !== platformArea.bounds.x ||
+                        area.bounds.y !== platformArea.bounds.y ||
+                        area.bounds.width !== platformArea.bounds.width ||
+                        area.bounds.height !== platformArea.bounds.height ||
+                        area.action.data !== platformArea.action.data ||
+                        area.action.type !== platformArea.action.type ||
+                        area.action.uri !== platformArea.action.uri ||
+                        area.action.text !== platformArea.action.text) {
+                        let putRichmenu = {
+                            selected: platformRichmenu.selected,
+                            chatBarText: platformRichmenu.chatBarText,
+                            name: platformRichmenu.name,
+                            form: richmenu.form,
+                            src: richmenu.src,
+                            size: platformRichmenu.size,
+                            areas: platformRichmenu.areas
+                        };
+                        shouldSyncRichmenus[richmenuId] = putRichmenu;
+                        delete platformRichmenuMap[richmenu.platformMenuId];
+                        break;
+                    }
+                }
+                delete platformRichmenuMap[richmenu.platformMenuId];
+            });
+
+            let insertPromise = Promise.all(Object.keys(platformRichmenuMap).map((platformMenuId) => {
+                let platformRichmenu = platformRichmenuMap[platformMenuId];
+                let form = 'form' + platformRichmenu.areas.length;
+
+                if (2 === platformRichmenu.areas.length) {
+                    if (platformRichmenu.areas[0].width < platformRichmenu.areas[0].height) {
+                        form = 'form2';
+                    } else {
+                        form = 'form3';
+                    }
+                } else if (3 === platformRichmenu.areas.length) {
+                    form = 'form4';
+                } else if (4 === platformRichmenu.areas.length) {
+                    if (platformRichmenu.areas[0].width === platformRichmenu.areas[1].width &&
+                        platformRichmenu.areas[0].width === platformRichmenu.areas[2].width &&
+                        platformRichmenu.areas[0].width === platformRichmenu.areas[3].width) {
+                        form = 'form5';
+                    } else {
+                        form = 'form6';
+                    }
+                } else if (6 === platformRichmenu.areas.length) {
+                    form = 'form7';
+                }
+
+                let postRichmenu = {
+                    selected: platformRichmenu.selected,
+                    chatBarText: platformRichmenu.chatBarText,
+                    name: platformRichmenu.name,
+                    form: form,
+                    src: '',
+                    size: platformRichmenu.size,
+                    areas: platformRichmenu.areas,
+                    platformMenuId: platformMenuId
+                };
+                return api.appsRichmenus.insert(appId, userId, postRichmenu).then((resJson) => {
+                    let _appsRichmenus = resJson.data;
+                    if (!appsRichmenus[appId]) {
+                        appsRichmenus[appId] = { richmenus: {} };
+                    }
+                    Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+                });
+            }));
+
+            let updatePromise = Promise.all(Object.keys(shouldSyncRichmenus).map((richmenuId) => {
+                let putRichmenu = shouldSyncRichmenus[richmenuId];
+                return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {
+                    let _appsRichmenus = resJson.data;
+                    if (!appsRichmenus[appId]) {
+                        appsRichmenus[appId] = { richmenus: {} };
+                    }
+                    Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+                });
+            }));
+
+            let removePromise = Promise.all(shouldRemoveIds.map((richmenuId) => {
+                return api.appsRichmenus.remove(appId, richmenuId, userId).then(() => {
+                    if (!appsRichmenus[appId] && appsRichmenus[appId].richmenus[richmenuId]) {
+                        delete appsRichmenus[appId].richmenus[richmenuId];
+                    }
+                });
+            }));
+
+            return Promise.all([ insertPromise, updatePromise, removePromise ]);
+        }).then(() => {
+            $dropdownText.html(bakAppName);
         });
     }
 
@@ -704,18 +892,17 @@
             areas: areas
         };
 
-        $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin fa-fw"></i>處理中');
+        $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-circle-notch fa-spin fa-fw"></i>處理中');
         return api.appsRichmenus.insert(appId, userId, postRichmenu, imageFile).then((resJson) => {
             let _appsRichmenus = resJson.data;
             if (!appsRichmenus[appId]) {
                 appsRichmenus[appId] = { richmenus: {} };
             }
-            let richmenus = _appsRichmenus[appId].richmenus;
-            Object.assign(appsRichmenus[appId].richmenus, richmenus);
-        }).then(() => {
+            Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+
             $('#richmenu-modal').modal('hide');
             $.notify('新增成功', { type: 'success' });
-            return loadRichmenus(appId, userId, true);
+            return reloadRichmenus(appId, userId);
         }).catch((err) => {
             $('#modal-save').removeAttr('disabled').empty().text('新增');
             $('#modal-update-save').removeAttr('disabled').empty().text('修改');
@@ -746,14 +933,13 @@
             areas: areas
         };
 
-        $('#modal-update-save').attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin fa-fw"></i>處理中');
+        $('#modal-update-save').attr('disabled', 'disabled').empty().append('<i class="fas fa-circle-notch fa-spin fa-fw"></i>處理中');
         return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu, imageFile).then((resJson) => {
             let _appsRichmenus = resJson.data;
-            let richmenus = _appsRichmenus[appId].richmenus;
-            Object.assign(appsRichmenus[appId].richmenus, richmenus);
+            Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
 
             $('#richmenu-modal').modal('hide');
-            return loadRichmenus(appId, userId, true);
+            return reloadRichmenus(appId, userId);
         }).then(() => {
             $('#modal-update-save').removeAttr('disabled');
             return $.notify('修改成功', { type: 'success' });

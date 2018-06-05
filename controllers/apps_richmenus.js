@@ -88,7 +88,7 @@ module.exports = (function() {
          */
         postOne(req, res, next) {
             let appId = req.params.appid;
-
+            
             let richmentImgFile = req.body.file;
             let richmentImgFileName = req.body.fileName || '';
             let richmentImgMimeType = req.body.mimeType || 'image/jpeg';
@@ -108,7 +108,7 @@ module.exports = (function() {
                 chatBarText: req.body.chatBarText || '',
                 form: req.body.form || '',
                 areas: JSON.parse(req.body.areas) || [],
-                platformMenuId: ''
+                platformMenuId: req.body.platformMenuId || ''
             };
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
@@ -116,43 +116,56 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
                 }
 
-                if (!(richmentImgFile && richmentImgFileName)) {
-                    return Promise.reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
+                if (!postRichmenu.platformMenuId) {
+                    if (!(richmentImgFile && richmentImgFileName)) {
+                        return Promise.reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
+                    }
+
+                    // 將上傳的圖像檔案 stream 讀取成 buffer 後釋放 stream 資源
+                    // 將此 binary buffer 同時上傳到 storage 以及設定 LINE richmenu
+                    return new Promise((resolve, reject) => {
+                        let passThrough = new PassThrough();
+                        let bufferArray = [];
+                        passThrough.on('data', (chunk) => bufferArray.push(chunk));
+                        passThrough.once('error', () => {
+                            reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
+                        });
+                        passThrough.once('end', () => {
+                            let buffer = Buffer.concat(bufferArray);
+                            bufferArray.length = 0;
+                            passThrough.destroy();
+                            richmentImgFile.destroy();
+                            resolve(buffer);
+                        });
+                        richmentImgFile.pipe(passThrough, { end: true });
+                    }).then((_fileBinary) => {
+                        fileBinary = _fileBinary;
+                        let fileSize = fileBinary.length / (1024 * 1024);
+                        // 限定 richmenu 的圖檔大小在 1 MB 以下
+                        if (fileSize > 1) {
+                            return Promise.reject(API_ERROR.BOT_UPLOAD_IMAGE_TOO_LARGE);
+                        }
+                        return storageHlp.filesUpload(tempFilePath, fileBinary);
+                    }).then(() => {
+                        return storageHlp.sharingCreateSharedLink(tempFilePath);
+                    }).then((url) => {
+                        postRichmenu.src = url;
+                        return botSvc.createRichMenu(postRichmenu, appId);
+                    }).then((platformMenuId) => {
+                        postRichmenu.platformMenuId = platformMenuId;
+                        return botSvc.setRichMenuImage(platformMenuId, fileBinary, richmentImgMimeType, appId);
+                    });
                 }
 
-                // 將上傳的圖像檔案 stream 讀取成 buffer 後釋放 stream 資源
-                // 將此 binary buffer 同時上傳到 storage 以及設定 LINE richmenu
-                return new Promise((resolve, reject) => {
-                    let passThrough = new PassThrough();
-                    let bufferArray = [];
-                    passThrough.on('data', (chunk) => bufferArray.push(chunk));
-                    passThrough.once('error', () => {
-                        reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
-                    });
-                    passThrough.once('end', () => {
-                        let buffer = Buffer.concat(bufferArray);
-                        bufferArray.length = 0;
-                        passThrough.destroy();
-                        resolve(buffer);
-                    });
-                    richmentImgFile.pipe(passThrough, { end: true });
+                return botSvc.getRichMenuImage(postRichmenu.platformMenuId, appId).then((imageBuffer) => {
+                    richmentImgFileName = `${postRichmenu.platformMenuId}.jpg`;
+                    tempFilePath = `${storageHlp.tempPath}/${richmentImgFileName}`;
+                    return storageHlp.filesUpload(tempFilePath, imageBuffer);
+                }).then(() => {
+                    return storageHlp.sharingCreateSharedLink(tempFilePath);
+                }).then((url) => {
+                    postRichmenu.src = url;
                 });
-            }).then((_fileBinary) => {
-                fileBinary = _fileBinary;
-                let fileSize = fileBinary.length / (1024 * 1024);
-                // 限定 richmenu 的圖檔大小在 1 MB 以下
-                if (fileSize > 1) {
-                    return Promise.reject(API_ERROR.BOT_UPLOAD_IMAGE_TOO_LARGE);
-                }
-                return storageHlp.filesUpload(tempFilePath, fileBinary);
-            }).then(() => {
-                return storageHlp.sharingCreateSharedLink(tempFilePath);
-            }).then((url) => {
-                postRichmenu.src = url;
-                return botSvc.createRichMenu(postRichmenu, appId);
-            }).then((platformMenuId) => {
-                postRichmenu.platformMenuId = platformMenuId;
-                return botSvc.setRichMenuImage(platformMenuId, fileBinary, richmentImgMimeType, appId);
             }).then(() => {
                 return appsRichmenusMdl.insert(appId, postRichmenu).then((appsRichmenus) => {
                     if (!(appsRichmenus && appsRichmenus[appId])) {

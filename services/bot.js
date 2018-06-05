@@ -3,6 +3,7 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error.json');
     const SOCKET_EVENTS = require('../config/socket-events');
 
+    const PassThrough = require('stream').PassThrough;
     const line = require('@line/bot-sdk');
     const Wechat = require('wechat');
     const WechatAPI = require('wechat-api');
@@ -1091,6 +1092,26 @@ module.exports = (function() {
         }
 
         /**
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         * @returns {Promise<Array>}
+         */
+        getRichmenuList(appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            return bot.getRichMenuList();
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve([]);
+                    }
+                });
+            });
+        }
+
+        /**
          * @param {any} postRichmenu
          * @param {string} appId
          * @param {Chatshier.Models.App} [app]
@@ -1128,6 +1149,42 @@ module.exports = (function() {
                     switch (_app.type) {
                         case LINE:
                             return bot.deleteRichMenu(platformMenuId);
+                        case FACEBOOK:
+                        case WECHAT:
+                        default:
+                            return Promise.resolve();
+                    }
+                });
+            });
+        }
+
+        /**
+         * @param {string} platformMenuId
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         * @returns {Promise<Buffer>}
+         */
+        getRichMenuImage(platformMenuId, appId, app) {
+            return this._protectApps(appId, app).then((_app) => {
+                return this._protectBot(appId, _app).then((bot) => {
+                    switch (_app.type) {
+                        case LINE:
+                            return bot.getRichMenuImage(platformMenuId).then((imageStream) => {
+                                return new Promise((resolve, reject) => {
+                                    let passThrough = new PassThrough();
+                                    let bufferArray = [];
+                                    passThrough.on('data', (chunk) => bufferArray.push(chunk));
+                                    passThrough.once('error', reject);
+                                    passThrough.once('end', () => {
+                                        let buffer = Buffer.concat(bufferArray);
+                                        bufferArray.length = 0;
+                                        passThrough.destroy();
+                                        imageStream.destroy();
+                                        resolve(buffer);
+                                    });
+                                    imageStream.pipe(passThrough, { end: true });
+                                });
+                            });
                         case FACEBOOK:
                         case WECHAT:
                         default:

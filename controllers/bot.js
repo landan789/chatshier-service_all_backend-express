@@ -5,8 +5,6 @@ module.exports = (function() {
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
-    const LINE = 'LINE';
-
     let botSvc = require('../services/bot');
     let consumersMdl = require('../models/consumers');
     let storageHlp = require('../helpers/storage');
@@ -19,9 +17,10 @@ module.exports = (function() {
     class BotController extends ControllerCore {
         constructor() {
             super();
-            this._findPlatformUids = this._findPlatformUids.bind(this);
-            this.activateMenu = this.activateMenu.bind(this);
-            this.deactivateMenu = this.deactivateMenu.bind(this);
+            this.getRichmenuList = this.getRichmenuList.bind(this);
+            this.activateRichmenu = this.activateRichmenu.bind(this);
+            this.deactivateRichmenu = this.deactivateRichmenu.bind(this);
+            this.setDefaultRichmenu = this.setDefaultRichmenu.bind(this);
             this.getProfile = this.getProfile.bind(this);
             this.uploadFile = this.uploadFile.bind(this);
             this.leaveGroupRoom = this.leaveGroupRoom.bind(this);
@@ -53,9 +52,24 @@ module.exports = (function() {
                     return Object.keys(platformUidsMap);
                 });
             });
-        };
+        }
 
-        activateMenu(req, res) {
+        getRichmenuList(req, res) {
+            let appId = req.params.appid;
+            return this.appsRequestVerify(req).then(() => {
+                return botSvc.getRichmenuList(appId);
+            }).then((richmenuArray) => {
+                let suc = {
+                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    data: richmenuArray
+                };
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
+            });
+        }
+
+        activateRichmenu(req, res) {
             let appId = req.params.appid;
             let richmenuId = req.params.menuid;
             let defaultRichmenu;
@@ -64,18 +78,18 @@ module.exports = (function() {
                 // 查找是否已經有預設啟用的 richmenu
                 // 如果沒有則將此筆啟用的 richmenu 設為預設啟用的 richmenu
                 return appsRichmenusMdl.findActivated(appId, true);
-            }).then((appsRichemnus) => {
-                defaultRichmenu = (appsRichemnus && appsRichemnus[appId]) ? appsRichemnus[appId].richmenus[richmenuId] : void 0;
+            }).then((appsRichmenus) => {
+                defaultRichmenu = (appsRichmenus && appsRichmenus[appId]) ? Object.values(appsRichmenus[appId].richmenus).shift() : void 0;
                 let putRichmenu = {
                     isActivated: true,
                     isDefault: !defaultRichmenu
                 };
                 return appsRichmenusMdl.update(appId, richmenuId, putRichmenu);
-            }).then((appsRichemnus) => {
-                if (!(appsRichemnus && appsRichemnus[appId])) {
+            }).then((appsRichmenus) => {
+                if (!(appsRichmenus && appsRichmenus[appId])) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
-                let richmenu = appsRichemnus[appId].richmenus[richmenuId];
+                let richmenu = appsRichmenus[appId].richmenus[richmenuId];
 
                 // 如果此 app 尚未有預設啟用的 richmenu
                 // 代表此筆啟用的 richmenu 是第一筆啟用的 richmenu
@@ -99,25 +113,25 @@ module.exports = (function() {
                             });
                         }));
                     }).then(() => {
-                        return appsRichemnus;
+                        return appsRichmenus;
                     });
                 }
-                return appsRichemnus;
-            }).then((appsRichemnus) => {
+                return appsRichmenus;
+            }).then((appsRichmenus) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: appsRichemnus
+                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    data: appsRichmenus
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
-        };
+        }
 
-        deactivateMenu(req, res) {
+        deactivateRichmenu(req, res) {
             let appId = req.params.appid;
             let richmenuId = req.params.menuid;
-            let deactivateMenu;
+            let deactivateRichmenu;
 
             return this.appsRequestVerify(req).then(() => {
                 return appsRichmenusMdl.find(appId, richmenuId);
@@ -126,32 +140,27 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
 
-                deactivateMenu = appsRichmenus[appId].richmenus[richmenuId];
-                let putRichmenu = {
-                    isActivated: false,
-                    isDefault: false
-                };
-                return appsRichmenusMdl.update(appId, richmenuId, putRichmenu);
+                deactivateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
+                return appsRichmenusMdl.update(appId, richmenuId, { isActivated: false, isDefault: false });
             }).then((appsRichmenus) => {
                 // 如果取消啟用的 richmenu 是預設啟用的 richmenu
                 // 則取消啟用後，必須設定成其他已啟用的 richmenu 並 link 至用戶
-                if (deactivateMenu.isDefault) {
+                if (deactivateRichmenu.isDefault) {
                     return appsRichmenusMdl.findActivated(appId).then((_appsRichmenus) => {
                         if (!(_appsRichmenus && _appsRichmenus[appId])) {
                             // 沒有其他已啟用的 richmenu 則不做任何事
                             return Promise.resolve();
                         }
-                        // 將第一筆(最後更新)的已啟用 richmenu 設為預設 (TODO: 資料庫排序)
-                        let _richmenuId = Object.keys(_appsRichmenus[appId].richmenus).shift() || '';
-                        let _putRichmenu = { isDefault: true };
-                        return appsRichmenusMdl.update(appId, _richmenuId, _putRichmenu).then((_appsRichmenus) => {
+                        // 將第一筆(最後更新)的已啟用 richmenu 設為預設 (TODO: 資料庫須根據 updatedTime 排序)
+                        let activateRichmenuId = Object.keys(_appsRichmenus[appId].richmenus).shift() || '';
+                        return appsRichmenusMdl.update(appId, activateRichmenuId, { isDefault: true }).then((_appsRichmenus) => {
                             if (!(_appsRichmenus && _appsRichmenus[appId])) {
                                 return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
                             }
-                            let activateMenu = _appsRichmenus[appId].richmenus[richmenuId];
-                            return activateMenu;
+                            let activateRichmenu = _appsRichmenus[appId].richmenus[activateRichmenuId];
+                            return activateRichmenu;
                         });
-                    }).then((activateMenu) => {
+                    }).then((activateRichmenu) => {
                         /** @type {Chatshier.Models.App} */
                         let app;
                         return appsMdl.find(appId).then((apps) => {
@@ -168,11 +177,11 @@ module.exports = (function() {
                                     // 有其他的啟用 richmenu 的話 link 其他的啟用 richmenu
                                     // 沒有已啟用的 richmenu 則 unlink 所有平台用戶的 richmenu
                                     return Promise.resolve().then(() => {
-                                        if (_platformMenuId && _platformMenuId === deactivateMenu.platformMenuId) {
-                                            if (activateMenu) {
-                                                return botSvc.linkRichMenuToUser(platformUid, activateMenu.platformMenuId, appId, app);
+                                        if (_platformMenuId && _platformMenuId === deactivateRichmenu.platformMenuId) {
+                                            if (activateRichmenu) {
+                                                return botSvc.linkRichMenuToUser(platformUid, activateRichmenu.platformMenuId, appId, app);
                                             }
-                                            return botSvc.unlinkRichMenuFromUser(platformUid, deactivateMenu.platformMenuId, appId);
+                                            return botSvc.unlinkRichMenuFromUser(platformUid, deactivateRichmenu.platformMenuId, appId);
                                         }
                                         return {};
                                     }).then((resJson) => {
@@ -191,14 +200,84 @@ module.exports = (function() {
                 return appsRichmenus;
             }).then((appsRichmenus) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsRichmenus
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
-        };
+        }
+
+        setDefaultRichmenu(req, res) {
+            let appId = req.params.appid;
+            let richmenuId = req.params.menuid;
+            let platformUids = [];
+            let defaultRichmenu;
+            let app;
+
+            return this.appsRequestVerify(req).then(() => {
+                return appsMdl.find(appId).then((apps) => {
+                    if (!(apps && apps[appId])) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    app = apps[appId];
+                    return this._findPlatformUids(appId, app);
+                });
+            }).then((_platformUids) => {
+                platformUids = _platformUids;
+                // 查找原本的預設啟用 richmenu
+                // 如果沒有則將此筆啟用的 richmenu 設為預設啟用的 richmenu
+                return appsRichmenusMdl.findActivated(appId, true);
+            }).then((appsRichmenus) => {
+                if (!(appsRichmenus && appsRichmenus[appId])) {
+                    // 沒有其他已啟用的 richmenu 則不做任何事
+                    return;
+                }
+                defaultRichmenu = Object.values(appsRichmenus[appId].richmenus).shift();
+
+                return appsRichmenusMdl.find(appId, richmenuId);
+            }).then((appsRichmenus) => {
+                if (!(appsRichmenus && appsRichmenus[appId])) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                }
+                let activateRichmenu = Object.values(appsRichmenus[appId].richmenus).shift();
+
+                return Promise.all(platformUids.map((platformUid) => {
+                    // 取得平台用戶目前啟用的 richmenu ID
+                    return botSvc.getRichMenuIdOfUser(platformUid, appId, app).then((_platformMenuId) => {
+                        let shouldLink = (
+                            !_platformMenuId ||
+                            (_platformMenuId && _platformMenuId !== activateRichmenu.platformMenuId) ||
+                            (defaultRichmenu && _platformMenuId && _platformMenuId === defaultRichmenu.platformMenuId)
+                        );
+
+                        if (shouldLink) {
+                            return botSvc.linkRichMenuToUser(platformUid, activateRichmenu.platformMenuId, appId, app);
+                        }
+                        return {};
+                    }).then((resJson) => {
+                        if (!resJson) {
+                            return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                        }
+                        return Promise.resolve();
+                    });
+                }));
+            }).then(() => {
+                return Promise.all([
+                    appsRichmenusMdl.update(appId, richmenuId, { isDefault: true }),
+                    defaultRichmenu && appsRichmenusMdl.update(appId, defaultRichmenu._id, { isDefault: false })
+                ]);
+            }).then(([ appsRichmenus ]) => {
+                let suc = {
+                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    data: appsRichmenus
+                };
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
+            });
+        }
 
         getProfile(req, res) {
             let appId = req.params.appid;
@@ -272,7 +351,7 @@ module.exports = (function() {
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
-        };
+        }
 
         moveFile(req, res) {
             let appId = req.query.appid;
