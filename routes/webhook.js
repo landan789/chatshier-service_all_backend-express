@@ -166,7 +166,7 @@ router.post('/:webhookid', (req, res, next) => {
                             let consumer = consumers[platformUid];
                             let shouldUpload = (
                                 profile.photo.startsWith('http://') &&
-                                (!consumer || !(consumer && profile.photo !== consumer.photoOriginal))
+                                (!consumer || (consumer && profile.photo !== consumer.photoOriginal))
                             );
 
                             if (shouldUpload) {
