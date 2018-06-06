@@ -125,7 +125,7 @@ module.exports = (function() {
             let imagemapId = req.params.imagemapid;
 
             let type = req.body.type || '';
-            let baseUri = req.body.baseUri.url || req.body.baseUri;
+            let baseUri = req.body.baseUri || '';
             let altText = req.body.altText || '';
             let baseSize = req.body.baseSize || {};
             let actions = req.body.actions || {};

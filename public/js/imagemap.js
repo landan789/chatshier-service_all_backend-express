@@ -275,10 +275,8 @@
         elementHide($('.content-input'));
         $(`.form-group.col-sm-12#${boxInput}`).removeClass('d-none').siblings().addClass('d-none');
         elementShow($(`#${boxInput} #${contentInputId}`));
-        console.log(boxInput, contentInputId);
         $(`#${boxInput} #${contentInputId}`).change(function() {
             var val = $(this).val();
-            console.log(val);
             if (val) {
                 let boxId = $('.box.checked').attr('id');
                 $('#' + boxId).attr('ref', val);
@@ -404,7 +402,6 @@
             };
 
             if (!imageFile) {
-                debugger;
                 return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap).then(() => {
                     $('#imagemap-modal').modal('hide');
                     loadImagemaps(appId, userId);
@@ -414,9 +411,8 @@
                     return $.notify('修改失敗', { type: 'danger' });
                 });
             }
-            debugger;
             return api.image.uploadFile(appId, userId, imageFile).then((resJson) => {
-                putImagemap.baseUri = resJson.data;
+                putImagemap.baseUri = resJson.data.url;
                 return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap);
             }).then((resJson) => {
                 $('#imagemap-modal').modal('hide');
