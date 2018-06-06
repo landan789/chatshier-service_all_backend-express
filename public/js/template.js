@@ -441,7 +441,7 @@
                 $appDropdown.find('#' + appId).click();
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 $.notify('新增成功！', { type: 'success' });
-            }).catch((ERR) => {
+            }).catch(() => {
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 $.notify('新增失敗', { type: 'danger' });
             });
@@ -638,14 +638,16 @@
     function elementDisabled(element, message) {
         element.attr('disabled', true).empty().append(message);
     }
+
     function elementEnabled(element, message) {
         element.removeAttr('disabled').empty().text(message);
     }
+
     function elementShow(element) {
         element.removeClass('d-none');
     }
+
     function elementHide(element) {
         element.addClass('d-none');
     }
-
 })();
