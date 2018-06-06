@@ -1459,7 +1459,7 @@
         switch (template.type) {
             case 'confirm':
                 return (
-                    `<span class="template-btn badge badge-pill badge-dark">格式訊息</span>` +
+                    `<span class="template-btn badge badge-pill badge-dark">模板訊息</span>` +
                     '<div class="template-sm">' +
                         `<div class="d-flex flex-wrap align-items-center template-sm-title">
                             <span>${template.text}</span>
@@ -1478,23 +1478,23 @@
                 );
             case 'buttons':
                 return (
-                    `<span class="template-btn badge badge-pill badge-dark">格式訊息</span>` +
+                    `<span class="template-btn badge badge-pill badge-dark">模板訊息</span>` +
                     '<div class="template">' +
                         '<div class="text-center top-img-container">' +
-                            `<img src="${template.thumbnailImageUrl}" alt="未顯示圖片" />` +
+                            `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
                         '</div>' +
                         `<div class="d-flex flex-wrap align-items-center template-title">
-                            <span>${template.title}</span>
+                            <span class="template-title">${template.title}</span>
                         </div>` +
                         `<div class="d-flex flex-wrap align-items-center template-desc">
-                            <span>${template.text}</span>
+                            <span class="template-desc">${template.text}</span>
                         </div>` +
                         '<div class="d-flex flex-column template-buttons">' +
                             (function() {
                                 return template.actions.map((action, i) => (
-                                    `<div class="d-flex flex-column justify-content-center my-auto text-center template-button${i + 1}">
-                                        <span>${action.label}</span>
-                                        <span>(輸出：${getTemplateOutput(action)})</span>
+                                    `<div class="d-flex flex-column justify-content-center my-1 text-center template-button${i + 1}">
+                                        <span class="template-button">${action.label}</span>
+                                        <span class="template-button">(輸出：${getTemplateOutput(action)})</span>
                                     </div>`
                                 )).join('');
                             })() +
@@ -1503,23 +1503,23 @@
                 );
             case 'carousel':
                 return template.columns.map((column) => (
-                    `<span class="template-btn badge badge-pill badge-dark">格式訊息</span>` +
+                    `<span class="template-btn badge badge-pill badge-dark">模板訊息</span>` +
                     '<div class="template">' +
                         '<div class="text-center top-img-container">' +
-                            `<img src="${column.thumbnailImageUrl}" alt="未顯示圖片" />` +
+                            `<img src="${column.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
                         '</div>' +
                         `<div class="d-flex flex-wrap align-items-center template-title">
-                            <span>${column.title}</span>
+                            <span class="template-title">${column.title}</span>
                         </div>` +
                         `<div class="d-flex flex-wrap align-items-center template-desc">
-                            <span>${column.text}</span>
+                            <span class="template-desc">${column.text}</span>
                         </div>` +
                         '<div class="d-flex flex-column template-buttons">' +
                             (function() {
                                 return column.actions.map((action, i) => (
-                                    `<div class="d-flex flex-column justify-content-center my-auto text-center template-button${i + 1}">
-                                        <span>${action.label}</span>
-                                        <span>(輸出：${getTemplateOutput(action)})</span>
+                                    `<div class="d-flex flex-column justify-content-center my-1 text-center template-button${i + 1}">
+                                        <span class="template-button">${action.label}</span>
+                                        <span class="template-button">(輸出：${getTemplateOutput(action)})</span>
                                     </div>`
                                 )).join('');
                             })() +
