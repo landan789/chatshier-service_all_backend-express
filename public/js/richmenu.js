@@ -48,13 +48,16 @@
     $jqDoc.on('click', '#modal-save', insertRichmenu); // add richmenu, not activated.
     $jqDoc.on('click', '#add-btn', cleanModal); // cleaning the options in modal.
     $jqDoc.on('change', '.image-ghost', uploadImage);
-    $jqDoc.on('click', 'input[name = richmenu-form]', photoFormShow);
-    $jqDoc.on('click', 'input[name = content]', contentInputShow);
+    $jqDoc.on('click', 'input[name="richmenu-form"]', photoFormShow);
+    $jqDoc.on('click', 'input[name="content"]', contentInputShow);
     $jqDoc.on('click', '.box', contentBarShow);
     $jqDoc.on('click', '.activate-btn', activateRichmenu);
     $jqDoc.on('click', '.deactivate-btn', deactivateRichmenu);
     $jqDoc.on('click', '#update-btn', appendRichmenu);
     $jqDoc.on('click', '.set-default-btn', setDefaultRichmenu);
+
+    $modal.on('input', '.form-input .content-input', contentInputChange);
+    $modal.on('change', '.form-input select.content-input', contentInputChange);
 
     $modal.on('hidden.bs.modal', function() {
         $appSelector.parent().parent().removeClass('d-none');
@@ -406,11 +409,27 @@
         let $contentInput = $(`#${boxInputId} #${contentInputId}`);
         $contentInput.removeClass('d-none');
 
-        $contentInput.off('input').on('input', function() {
-            let val = $(this).val() || '';
+        if ('url' === contentInputId) {
             let boxId = $('.box.checked').attr('id');
-            $('#' + boxId).attr('ref', val);
-        });
+            let $box = $('#' + boxId);
+            $contentInput.off('blur').on('blur', function() {
+                let val = $contentInput.val() || '';
+                if (0 !== val.indexOf('https://') &&
+                    0 !== val.indexOf('http://')) {
+                    val = 'http://' + val;
+                    $contentInput.val(val);
+                    $box.attr('ref', val);
+                }
+            });
+        }
+    }
+
+    function contentInputChange() {
+        let $contentInput = $(this);
+        let $formInput = $contentInput.parents('.form-input');
+        let boxId = $formInput.attr('id').replace('-input', '');
+        let $box = $('.show-richmenu-form #' + boxId);
+        $box.attr('ref', $contentInput.val() || '');
     }
 
     function contentBarShow() {
@@ -420,17 +439,14 @@
 
         let boxId = $box.attr('id');
         let inputValue = $box.attr('ref');
-        if ($box.hasClass('marked')) {
-            inputTypeCheck(boxId, inputValue);
-        }
 
         $box.siblings().removeClass('checked').css('background-color', '');
         $box.addClass('checked').css('background-color', 'rgba(158, 158, 158, .7)');
 
         elementHide($('.content-input'));
         $('#' + boxId + ' input[name="content"]').removeAttr('checked');
-        $boxesInputs.find('.content-bar').addClass('d-none').trigger('click');
-        $boxesInputs.find('#' + boxId + '-input').removeClass('d-none');
+        $boxesInputs.find('.content-bar').addClass('d-none');
+        $boxesInputs.find('.content-bar#' + boxId + '-input').removeClass('d-none');
 
         $formInputs.find('input').val('');
         $formInputs.find('.content-bar').addClass('d-none');
@@ -446,6 +462,7 @@
                 $formInput.find('#text').attr('value', inputValue).val(inputValue).removeClass('d-none');
             }
         }
+        inputTypeCheck(boxId, inputValue);
     }
 
     function inputTypeCheck(id, inputValue) {
@@ -453,13 +470,13 @@
         keywordOptionElement.each(function() {
             if ($(this).val() === inputValue) {
                 $(this).prop('select', true);
-                $(`#${id}-input input[value = keyword]`).prop('checked', true);
+                $(`#${id}-input input[value="keyword"]`).prop('checked', true);
             }
         });
 
         if (!inputValue) {
             $(`#${id}-input input[value="no-action"]`).prop('checked', true);
-        } else if (inputValue.includes('http://') || inputValue.includes('https://')) {
+        } else if (inputValue.startsWith('http://') || inputValue.startsWith('https://')) {
             $(`#${id}-input #url`).val(inputValue);
             $(`#${id}-input input[value="url"]`).prop('checked', true);
         } else {
@@ -1047,15 +1064,19 @@
     function elementDisabled(element, message) {
         element.attr('disabled', true).empty().append(message);
     }
+
     function elementEnabled(element, message) {
         element.removeAttr('disabled').empty().text(message);
     }
+
     function elementShow(element) {
         element.removeClass('d-none');
     }
+
     function elementHide(element) {
         element.addClass('d-none');
     }
+
     function cleanModal() {
         elementShow($('#modal-save'));
         elementHide($('#modal-update-save'));
