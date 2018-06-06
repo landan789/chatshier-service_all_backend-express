@@ -14,6 +14,11 @@
         WORDCLOUR: 4
     });
 
+    const ICONS = {
+        LINE: 'fab fa-line fa-fw line-color',
+        FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+    };
+
     var HOUR = 60 * 60 * 1000;
     var DATE = 24 * HOUR;
 
@@ -110,7 +115,7 @@
         api.apps.findAll(userId),
         api.appsChatrooms.findAll(userId)
     ]).then(function(respJsons) {
-        var appsData = respJsons.shift().data;
+        var apps = respJsons.shift().data;
         var messagesData = respJsons.shift().data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
@@ -119,10 +124,20 @@
         // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
         messagesDataArray = {};
-        for (var appId in appsData) {
+        for (var appId in apps) {
+            var app = apps[appId];
+            if (app.isDeleted ||
+                app.type === api.apps.enums.type.CHATSHIER) {
+                delete apps[appId];
+                continue;
+            }
+
             messagesDataArray[appId] = [];
             $dropdownMenu.append(
-                '<span class="dropdown-item" app-id="' + appId + '">' + appsData[appId].name + '</span>'
+                '<a class="px-3 dropdown-item" app-id="' + appId + '">' +
+                    '<i class="' + ICONS[app.type] + '"></i>' +
+                    apps[appId].name +
+                '</a>'
             );
             $appDropdown.find('.dropdown-item[app-id="' + appId + '"]').on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
@@ -140,7 +155,7 @@
         }
 
         if (nowSelectAppId) {
-            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             messageDataPreprocess(messagesDataArray[nowSelectAppId]);
 
             $appDropdown.find('.dropdown-toggle').removeAttr('disabled'); // 有資料，才開放USER按按鈕
@@ -148,9 +163,10 @@
         }
     });
 
-    function appSourceChanged(ev) {
-        nowSelectAppId = $(ev.target).attr('app-id');
-        $appDropdown.find('.dropdown-text').text(ev.target.text);
+    function appSourceChanged() {
+        let $dropdownItem = $(this);
+        nowSelectAppId = $dropdownItem.attr('app-id');
+        $appDropdown.find('.dropdown-text').text($dropdownItem.text());
         messageDataPreprocess(messagesDataArray[nowSelectAppId]);
     }
 
@@ -272,6 +288,7 @@
         analyzeType = AnalyzeType.DAY;
         $chartBody.removeAttr('style');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = void 0;
 
@@ -322,6 +339,7 @@
         analyzeType = AnalyzeType.HOUR;
         $chartBody.removeAttr('style');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = void 0;
 
@@ -370,6 +388,7 @@
         analyzeType = AnalyzeType.TIME;
         $chartBody.removeAttr('style');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = void 0;
 
@@ -398,23 +417,36 @@
         analyzeType = AnalyzeType.WORDCLOUR;
         $chartBody.removeAttr('style');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+
         wordfreq && wordfreq.stop() && wordfreq.empty();
-        wordfreq = new window.WordFreqSync({
-            workerUrl: 'lib/js/wordfreq.worker.js',
+        wordfreq = new window.WordFreq({
+            workerUrl: 'lib/js/wordfreq.worker.min.js',
             minimumCount: 1 // 過濾文字出現的最小次數最小
         });
 
-        var msgData = getSelecedMsgData();
-        var text = msgData.join(',');
-        var cloudOptions = {
-            list: wordfreq.process(text),
-            // 文字雲字體基本大小
-            weightFactor: 24,
-            minSize: 8,
-            clearCanvas: true,
-            backgroundColor: '#eafaff'
-        };
-        window.WordCloud($chartBody.get(0), cloudOptions);
+        var $chartDropdownToggle = $chartDropdown.find('.dropdown-toggle');
+        var $appDropdownToggle = $appDropdown.find('.dropdown-toggle');
+        $chartDropdownToggle.attr('disabled', true);
+        $appDropdownToggle.attr('disabled', true);
+
+        return new Promise((resolve) => {
+            var msgData = getSelecedMsgData();
+            var totalWords = msgData.join(',');
+            wordfreq.process(totalWords, resolve);
+        }).then((wordList) => {
+            $chartDropdownToggle.removeAttr('disabled');
+            $appDropdownToggle.removeAttr('disabled');
+
+            var cloudOptions = {
+                list: wordList,
+                // 文字雲字體基本大小
+                weightFactor: 24,
+                minSize: 8,
+                clearCanvas: true,
+                backgroundColor: '#eafaff'
+            };
+            window.WordCloud($chartBody.get(0), cloudOptions);
+        });
     }
 
     function generateChart(chartData, cursorProvider) {

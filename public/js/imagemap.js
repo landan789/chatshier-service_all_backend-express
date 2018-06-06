@@ -510,7 +510,7 @@
         return actions;
     }
 
-    function appSourceChanged(ev) {
+    function appSourceChanged() {
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
