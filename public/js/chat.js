@@ -2247,9 +2247,9 @@
         var file = _this.files[0];
         _this.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
-        var config = window.chatshier.config;
         var kiloByte = 1024;
         var megaByte = kiloByte * 1024;
+        var config = window.chatshier.config;
         if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
             $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / megaByte) + ' MB', { type: 'warning' });
             return;

@@ -17,6 +17,7 @@ interface Window {
         apiUrl: string
     },
     chatshierConfig: {
+        richmenuImageFileMaxSize: number,
         imageFileMaxSize: number,
         videoFileMaxSize: number,
         audioFileMaxSize: number
