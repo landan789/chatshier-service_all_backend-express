@@ -149,6 +149,12 @@ module.exports = (function() {
                     return storageHlp.sharingCreateSharedLink(tempFilePath);
                 }).then((url) => {
                     postRichmenu.src = url;
+                }).catch((err) => {
+                    if (err && err.response && 404 === err.response.status) {
+                        postRichmenu.src = '';
+                        return Promise.resolve();
+                    }
+                    return Promise.reject(err);
                 });
             }).then(() => {
                 return appsRichmenusMdl.insert(appId, postRichmenu).then((appsRichmenus) => {
@@ -158,6 +164,10 @@ module.exports = (function() {
                     return appsRichmenus;
                 });
             }).then((appsRichmenus) => {
+                if (!postRichmenu.src) {
+                    return appsRichmenus;
+                }
+
                 let richmenuId = Object.keys(appsRichmenus[appId].richmenus).shift() || '';
                 let toPath = `/apps/${appId}/richmenus/${richmenuId}/src/${richmentImgFileName}`;
                 return storageHlp.filesMoveV2(tempFilePath, toPath).then(() => {

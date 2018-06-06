@@ -636,14 +636,16 @@
     function elementDisabled(element, message) {
         element.attr('disabled', true).empty().append(message);
     }
+
     function elementEnabled(element, message) {
         element.removeAttr('disabled').empty().text(message);
     }
+
     function elementShow(element) {
         element.removeClass('d-none');
     }
+
     function elementHide(element) {
         element.addClass('d-none');
     }
-
 })();
