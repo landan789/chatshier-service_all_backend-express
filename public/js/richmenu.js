@@ -101,6 +101,8 @@
     return api.apps.findAll(userId).then(function(resJson) {
         apps = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+        let config = window.chatshier.config;
+        $('.richmenu-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1000)))}MB`);
 
         nowSelectAppId = '';
         for (var appId in apps) {
