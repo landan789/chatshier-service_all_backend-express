@@ -440,7 +440,6 @@
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 $.notify('新增成功！', { type: 'success' });
             }).catch((ERR) => {
-                debugger;
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 $.notify('新增失敗', { type: 'danger' });
             });
