@@ -140,8 +140,8 @@ module.exports = (function() {
         }
 
         handleTooMenyRequests(err) {
-            if (err.status === 429) {
-                return new Promise((resolve) => setTimeout(resolve, 1000))
+            if (429 === err.status) {
+                return new Promise((resolve) => setTimeout(resolve, err.error.error.retry_after));
             }
             return Promise.reject(err);
         }
