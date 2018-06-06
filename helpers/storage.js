@@ -1,5 +1,6 @@
 module.exports = (function() {
     require('isomorphic-fetch'); // polyfill fetch method for Dropbox SDK
+    const PassThrough = require('stream').PassThrough;
     const chatshierCfg = require('../config/chatshier');
 
     const Dropbox = require('dropbox').Dropbox;
@@ -94,6 +95,32 @@ module.exports = (function() {
          */
         filesDownload(path) {
             return dbx.filesDownload({ path: path });
+        }
+
+        /**
+         * @param {any} stream
+         * @param {boolean} [shouldDestroyAfter]
+         * @returns {Promise<Buffer>}
+         */
+        streamToBuffer(stream, shouldDestroyAfter) {
+            shouldDestroyAfter = !!shouldDestroyAfter;
+
+            return new Promise((resolve, reject) => {
+                let passThrough = new PassThrough();
+                let bufferArray = [];
+
+                passThrough.on('data', (chunk) => bufferArray.push(chunk));
+                passThrough.once('error', reject);
+                passThrough.once('end', () => {
+                    let buffer = Buffer.concat(bufferArray);
+                    bufferArray.length = 0;
+
+                    passThrough.destroy();
+                    shouldDestroyAfter && stream.destroy();
+                    resolve(buffer);
+                });
+                stream.pipe(passThrough, { end: true });
+            });
         }
     }
 

@@ -4,7 +4,6 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
-    const PassThrough = require('stream').PassThrough;
 
     let appsRichmenusMdl = require('../models/apps_richmenus');
     let storageHlp = require('../helpers/storage');
@@ -88,7 +87,7 @@ module.exports = (function() {
          */
         postOne(req, res, next) {
             let appId = req.params.appid;
-            
+
             let richmentImgFile = req.body.file;
             let richmentImgFileName = req.body.fileName || '';
             let richmentImgMimeType = req.body.mimeType || 'image/jpeg';
@@ -123,22 +122,7 @@ module.exports = (function() {
 
                     // 將上傳的圖像檔案 stream 讀取成 buffer 後釋放 stream 資源
                     // 將此 binary buffer 同時上傳到 storage 以及設定 LINE richmenu
-                    return new Promise((resolve, reject) => {
-                        let passThrough = new PassThrough();
-                        let bufferArray = [];
-                        passThrough.on('data', (chunk) => bufferArray.push(chunk));
-                        passThrough.once('error', () => {
-                            reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
-                        });
-                        passThrough.once('end', () => {
-                            let buffer = Buffer.concat(bufferArray);
-                            bufferArray.length = 0;
-                            passThrough.destroy();
-                            richmentImgFile.destroy();
-                            resolve(buffer);
-                        });
-                        richmentImgFile.pipe(passThrough, { end: true });
-                    }).then((_fileBinary) => {
+                    return storageHlp.streamToBuffer(richmentImgFile, true).then((_fileBinary) => {
                         fileBinary = _fileBinary;
                         let fileSize = fileBinary.length / (1024 * 1024);
                         // 限定 richmenu 的圖檔大小在 1 MB 以下
@@ -165,6 +149,12 @@ module.exports = (function() {
                     return storageHlp.sharingCreateSharedLink(tempFilePath);
                 }).then((url) => {
                     postRichmenu.src = url;
+                }).catch((err) => {
+                    if (err && err.response && 404 === err.response.status) {
+                        postRichmenu.src = '';
+                        return Promise.resolve();
+                    }
+                    return Promise.reject(err);
                 });
             }).then(() => {
                 return appsRichmenusMdl.insert(appId, postRichmenu).then((appsRichmenus) => {
@@ -174,6 +164,10 @@ module.exports = (function() {
                     return appsRichmenus;
                 });
             }).then((appsRichmenus) => {
+                if (!postRichmenu.src) {
+                    return appsRichmenus;
+                }
+
                 let richmenuId = Object.keys(appsRichmenus[appId].richmenus).shift() || '';
                 let toPath = `/apps/${appId}/richmenus/${richmenuId}/src/${richmentImgFileName}`;
                 return storageHlp.filesMoveV2(tempFilePath, toPath).then(() => {
@@ -241,26 +235,11 @@ module.exports = (function() {
                 putRichmenu.src = richmenu.src;
                 putRichmenu.platformMenuId = richmenu.platformMenuId;
 
-                // 如果沒有上傳新的圖像，將之前放在 storge 的圖像重新上傳
                 // 如果有則直接使用圖檔上傳
                 if (richmentImgFile && richmentImgFileName) {
                     // 將上傳的圖像檔案 stream 讀取成 buffer 後釋放 stream 資源
                     // 將此 binary 設定到 LINE richmenu
-                    return new Promise((resolve, reject) => {
-                        let passThrough = new PassThrough();
-                        let bufferArray = [];
-                        passThrough.on('data', (chunk) => bufferArray.push(chunk));
-                        passThrough.once('error', () => {
-                            reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
-                        });
-                        passThrough.once('end', () => {
-                            let buffer = Buffer.concat(bufferArray);
-                            bufferArray.length = 0;
-                            passThrough.destroy();
-                            resolve(buffer);
-                        });
-                        richmentImgFile.pipe(passThrough, { end: true });
-                    }).then((fileBinary) => {
+                    return storageHlp.streamToBuffer(richmentImgFile, true).then((fileBinary) => {
                         let fileSize = fileBinary.length / (1024 * 1024);
                         // 限定 richmenu 的圖檔大小在 1 MB 以下
                         if (fileSize > 1) {
@@ -282,11 +261,15 @@ module.exports = (function() {
                     });
                 }
 
+                // 如果沒有上傳新的圖像，將之前放在 storge 的圖像重新上傳
                 let fileName = putRichmenu.src.split('/').pop();
                 let path = `/apps/${appId}/richmenus/${richmenuId}/src/${fileName}`;
                 return storageHlp.filesDownload(path).then((res) => {
                     /** @type {any} */
                     let dropboxFile = res;
+                    if (!dropboxFile.fileBinary) {
+                        return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
+                    }
                     return dropboxFile.fileBinary;
                 });
             }).then((fileBinary) => {

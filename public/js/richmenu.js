@@ -21,6 +21,7 @@
 
     const NO_PERMISSION_CODE = '3.16';
     const BOT_UPLOAD_IMAGE_TOO_LARGE = '19.2';
+    const BOT_MENU_IMAGE_FAILED_TO_FIND = '8.62';
 
     const handleMessages = {
         working: '<i class="fas fa-circle-notch fa-spin"></i>處理中',
@@ -505,8 +506,13 @@
             return reloadRichmenus(appId, userId);
         }).then(() => {
             $.notify('成功啟用', { type: 'success' });
-        }).catch(() => {
+        }).catch((err) => {
             $activateBtn.removeAttr('disabled').text('未啟用');
+            if (BOT_MENU_IMAGE_FAILED_TO_FIND === err.code) {
+                $.notify('未設定圖像的圖文選單無法被啟用', { type: 'danger' });
+                return;
+            }
+
             $.notify('啟用失敗', { type: 'danger' });
         });
     }
