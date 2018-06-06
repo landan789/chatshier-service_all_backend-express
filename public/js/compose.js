@@ -1033,9 +1033,9 @@
     })();
     // #endregion
 
-    function appSourceChanged(ev) {
-        nowSelectAppId = $(ev.target).attr('app-id');
-        $appSelector.find('.dropdown-text').text(ev.target.text);
+    function appSourceChanged() {
+        nowSelectAppId = $(this).attr('app-id');
+        $appSelector.find('.dropdown-text').text($(this).text());
         refreshComposes(nowSelectAppId);
     }
 

@@ -164,8 +164,9 @@
     });
 
     function appSourceChanged() {
-        nowSelectAppId = $(this).attr('app-id');
-        $appDropdown.find('.dropdown-text').text($(this).text());
+        let $dropdownItem = $(this);
+        nowSelectAppId = $dropdownItem.attr('app-id');
+        $appDropdown.find('.dropdown-text').text($dropdownItem.text());
         messageDataPreprocess(messagesDataArray[nowSelectAppId]);
     }
 
