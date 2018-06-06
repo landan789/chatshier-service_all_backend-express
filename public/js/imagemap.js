@@ -266,7 +266,7 @@
     }
 
     function contentInputShow() {
-        let boxInput = $(this).parent().parent().parent().attr('id');
+        let boxInput = $('input[name = content]:checked').parent().parent().parent().attr('id');
         let contentInputId = $('input[name = content]:checked').val();
         let contentInputValue = $('#' + contentInputId).val();
         if (!contentInputValue) {
@@ -411,9 +411,8 @@
                     return $.notify('修改失敗', { type: 'danger' });
                 });
             }
-
             return api.image.uploadFile(appId, userId, imageFile).then((resJson) => {
-                putImagemap.baseUri = resJson.data;
+                putImagemap.baseUri = resJson.data.url;
                 return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap);
             }).then((resJson) => {
                 $('#imagemap-modal').modal('hide');
