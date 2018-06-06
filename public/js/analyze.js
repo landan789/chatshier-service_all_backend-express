@@ -287,6 +287,7 @@
         analyzeType = AnalyzeType.DAY;
         $chartBody.removeAttr('style');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = void 0;
 
@@ -337,6 +338,7 @@
         analyzeType = AnalyzeType.HOUR;
         $chartBody.removeAttr('style');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = void 0;
 
@@ -385,6 +387,7 @@
         analyzeType = AnalyzeType.TIME;
         $chartBody.removeAttr('style');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = void 0;
 
@@ -413,23 +416,36 @@
         analyzeType = AnalyzeType.WORDCLOUR;
         $chartBody.removeAttr('style');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+
         wordfreq && wordfreq.stop() && wordfreq.empty();
-        wordfreq = new window.WordFreqSync({
-            workerUrl: 'lib/js/wordfreq.worker.js',
+        wordfreq = new window.WordFreq({
+            workerUrl: 'lib/js/wordfreq.worker.min.js',
             minimumCount: 1 // 過濾文字出現的最小次數最小
         });
 
-        var msgData = getSelecedMsgData();
-        var text = msgData.join(',');
-        var cloudOptions = {
-            list: wordfreq.process(text),
-            // 文字雲字體基本大小
-            weightFactor: 24,
-            minSize: 8,
-            clearCanvas: true,
-            backgroundColor: '#eafaff'
-        };
-        window.WordCloud($chartBody.get(0), cloudOptions);
+        var $chartDropdownToggle = $chartDropdown.find('.dropdown-toggle');
+        var $appDropdownToggle = $appDropdown.find('.dropdown-toggle');
+        $chartDropdownToggle.attr('disabled', true);
+        $appDropdownToggle.attr('disabled', true);
+
+        return new Promise((resolve) => {
+            var msgData = getSelecedMsgData();
+            var totalWords = msgData.join(',');
+            wordfreq.process(totalWords, resolve);
+        }).then((wordList) => {
+            $chartDropdownToggle.removeAttr('disabled');
+            $appDropdownToggle.removeAttr('disabled');
+
+            var cloudOptions = {
+                list: wordList,
+                // 文字雲字體基本大小
+                weightFactor: 24,
+                minSize: 8,
+                clearCanvas: true,
+                backgroundColor: '#eafaff'
+            };
+            window.WordCloud($chartBody.get(0), cloudOptions);
+        });
     }
 
     function generateChart(chartData, cursorProvider) {
