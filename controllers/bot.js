@@ -72,24 +72,56 @@ module.exports = (function() {
         activateRichmenu(req, res) {
             let appId = req.params.appid;
             let richmenuId = req.params.menuid;
+            let activateRichmenu;
             let defaultRichmenu;
 
+            let putRichmenu = {
+                isActivated: true
+            };
+
             return this.appsRequestVerify(req).then(() => {
+                return appsRichmenusMdl.find(appId, richmenuId);
+            }).then((appsRichmenus) => {
+                if (!(appsRichmenus && appsRichmenus[appId])) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                }
+                activateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
+
+                // 檢查 richmenu 有無設定好 richmenu image
+                // 沒有設定好 image 的 richmenu 無法被啟用
+                return botSvc.getRichMenuImage(activateRichmenu.platformMenuId, appId).then((imageBuffer) => {
+                    if (!imageBuffer) {
+                        return Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_FIND);
+                    }
+
+                    if (!activateRichmenu.src) {
+                        let richmentImgFileName = `${activateRichmenu.platformMenuId}.jpg`;
+                        let uploadFilePath = `/apps/${appId}/richmenus/${richmenuId}/src/${richmentImgFileName}`;
+                        return storageHlp.filesUpload(uploadFilePath, imageBuffer).then(() => {
+                            return storageHlp.sharingCreateSharedLink(uploadFilePath);
+                        }).then((url) => {
+                            putRichmenu.src = url;
+                            return imageBuffer;
+                        });
+                    }
+
+                    return Promise.resolve(imageBuffer);
+                }).catch(() => {
+                    return Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_FIND);
+                });
+            }).then(() => {
                 // 查找是否已經有預設啟用的 richmenu
                 // 如果沒有則將此筆啟用的 richmenu 設為預設啟用的 richmenu
                 return appsRichmenusMdl.findActivated(appId, true);
             }).then((appsRichmenus) => {
                 defaultRichmenu = (appsRichmenus && appsRichmenus[appId]) ? Object.values(appsRichmenus[appId].richmenus).shift() : void 0;
-                let putRichmenu = {
-                    isActivated: true,
-                    isDefault: !defaultRichmenu
-                };
+                putRichmenu.isDefault = !defaultRichmenu;
                 return appsRichmenusMdl.update(appId, richmenuId, putRichmenu);
             }).then((appsRichmenus) => {
                 if (!(appsRichmenus && appsRichmenus[appId])) {
-                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
                 }
-                let richmenu = appsRichmenus[appId].richmenus[richmenuId];
+                activateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
 
                 // 如果此 app 尚未有預設啟用的 richmenu
                 // 代表此筆啟用的 richmenu 是第一筆啟用的 richmenu
@@ -103,7 +135,7 @@ module.exports = (function() {
                         let app = apps[appId];
                         return Promise.all([ app, this._findPlatformUids(appId, app) ]);
                     }).then(([ app, platformUids ]) => {
-                        let platformMenuId = richmenu.platformMenuId;
+                        let platformMenuId = activateRichmenu.platformMenuId;
                         return Promise.all(platformUids.map((platformUid) => {
                             return botSvc.linkRichMenuToUser(platformUid, platformMenuId, appId, app).then((resJson) => {
                                 if (!resJson) {

@@ -16,7 +16,7 @@
         <% include ../views/partials/control_panel.ejs %>
         <div class="ml-auto w-100 page-wrapper">
             <% include ../views/partials/toolbar.ejs %>
-            <div class="container mt-5">
+            <div class="container my-5">
                 <div class="chsr card">
                     <div class="title">
                         <h3 class="pt-3 pb-0 px-5">圖文訊息</h3>
@@ -30,8 +30,6 @@
                             <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
                         </div>
                         <div class="search-add mb-2">
-                            <span class="icon"><i class="fa fa-search"></i></span>
-                            <input type="text" class="search-bar align-middle" placeholder="搜尋" aria-hidden="true">
                             <button type="button" id="add-btn" class="btn btn-light btn-border inner-add insert" data-toggle="modal" data-target="#imagemap-modal" aria-hidden="true" disabled="true">
                                 <i class="fas fa-plus"></i>
                             </button>
@@ -148,7 +146,7 @@
                             <label class="col-form-label"><strong>內容設定:</strong></label>
                             <label class="col-form-label btn btn-light btn-border">
                                 <strong>上傳圖片</strong>
-                                <input type="file" class="image-ghost" id="photo" accept="image/png|image/jpg"/>
+                                <input type="file" class="image-ghost" id="photo" accept="image/png,image/jpg,image/jpeg"/>
                             </label>
                         </div>
                         <span class="badge badge-pill badge-danger mb-2 imagemap-image-warning"></span>

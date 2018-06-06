@@ -3,7 +3,6 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error.json');
     const SOCKET_EVENTS = require('../config/socket-events');
 
-    const PassThrough = require('stream').PassThrough;
     const line = require('@line/bot-sdk');
     const Wechat = require('wechat');
     const WechatAPI = require('wechat-api');
@@ -1170,20 +1169,7 @@ module.exports = (function() {
                     switch (_app.type) {
                         case LINE:
                             return bot.getRichMenuImage(platformMenuId).then((imageStream) => {
-                                return new Promise((resolve, reject) => {
-                                    let passThrough = new PassThrough();
-                                    let bufferArray = [];
-                                    passThrough.on('data', (chunk) => bufferArray.push(chunk));
-                                    passThrough.once('error', reject);
-                                    passThrough.once('end', () => {
-                                        let buffer = Buffer.concat(bufferArray);
-                                        bufferArray.length = 0;
-                                        passThrough.destroy();
-                                        imageStream.destroy();
-                                        resolve(buffer);
-                                    });
-                                    imageStream.pipe(passThrough, { end: true });
-                                });
+                                return storageHlp.streamToBuffer(imageStream, true);
                             });
                         case FACEBOOK:
                         case WECHAT:
