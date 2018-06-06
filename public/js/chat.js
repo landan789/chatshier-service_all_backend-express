@@ -1169,7 +1169,7 @@
             '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
                     imageContentType(message.type) +
-                    '<span>' + senderName + '</span>' +
+                    '<span class="sender-name">' + senderName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
                     '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
@@ -1488,14 +1488,14 @@
                 );
             case 'buttons':
                 return (
-                    '<div class="template ml-2">' +
+                    '<div class="template ml-1">' +
                         '<div class="text-center top-img-container">' +
                             `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
                         '</div>' +
-                        `<div class="d-flex flex-wrap align-items-center template-title">
+                        `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
                             <span class="template-title">${template.title}</span>
                         </div>` +
-                        `<div class="d-flex flex-wrap align-items-center template-desc">
+                        `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
                             <span class="template-desc">${template.text}</span>
                         </div>` +
                         '<div class="d-flex flex-column template-buttons">' +
@@ -1512,14 +1512,14 @@
                 );
             case 'carousel':
                 return template.columns.map((column) => (
-                    '<div class="template ml-2">' +
+                    '<div class="template ml-1">' +
                         '<div class="text-center top-img-container">' +
                             `<img src="${column.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
                         '</div>' +
-                        `<div class="d-flex flex-wrap align-items-center template-title">
+                        `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
                             <span class="template-title">${column.title}</span>
                         </div>` +
-                        `<div class="d-flex flex-wrap align-items-center template-desc">
+                        `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
                             <span class="template-desc">${column.text}</span>
                         </div>` +
                         '<div class="d-flex flex-column template-buttons">' +
