@@ -150,7 +150,7 @@ module.exports = (function() {
 
                 let app = appsComposes[appId];
                 let compose = app.composes[composeId];
-                if (new Date(compose.time).getTime() < new Date().getTime()) {
+                if (true === compose.status && new Date(compose.time).getTime() < new Date().getTime()) {
                     return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
                 }
 
