@@ -1168,6 +1168,7 @@
         return (
             '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
+                    imageContentType(message.type) +
                     '<span>' + senderName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
@@ -1176,6 +1177,17 @@
                 '</span>' +
             '</div>'
         );
+    }
+
+    function imageContentType(type) {
+        switch (type) {
+            case 'template':
+                return `<span class="template-btn badge badge-pill badge-dark mr-2">模板訊息</span>`;
+            case 'imagemap':
+                return `<span class="template-btn badge badge-pill badge-dark mr-2">圖文訊息</span>`;
+            default:
+                return '';
+        }
     }
 
     function createChatroom(requireData) {
@@ -1432,7 +1444,6 @@
                 box2 = '<div class="box" id="box2" style="width: 100%; padding-top: 20%;">' + str2 + '</div>';
                 return box1 + box2;
             case 'form2':
-                console.log($('.imagemap-message-content'));
                 str1 = !message.imagemap.actions[0].text ? imagemapLink(message.imagemap.actions[0].linkUri) : imagemapText(message.imagemap.actions[0].text);
                 str2 = !message.imagemap.actions[1].text ? imagemapLink(message.imagemap.actions[1].linkUri) : imagemapText(message.imagemap.actions[1].text);
                 box1 = '<div class="box col-sm" id="box1" style="padding-top: 45%">' + str1 + '</div>';
@@ -1459,7 +1470,6 @@
         switch (template.type) {
             case 'confirm':
                 return (
-                    `<span class="template-btn badge badge-pill badge-dark">模板訊息</span>` +
                     '<div class="template-sm">' +
                         `<div class="d-flex flex-wrap align-items-center template-sm-title">
                             <span>${template.text}</span>
@@ -1478,8 +1488,7 @@
                 );
             case 'buttons':
                 return (
-                    `<span class="template-btn badge badge-pill badge-dark">模板訊息</span>` +
-                    '<div class="template">' +
+                    '<div class="template ml-2">' +
                         '<div class="text-center top-img-container">' +
                             `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
                         '</div>' +
@@ -1503,8 +1512,7 @@
                 );
             case 'carousel':
                 return template.columns.map((column) => (
-                    `<span class="template-btn badge badge-pill badge-dark">模板訊息</span>` +
-                    '<div class="template">' +
+                    '<div class="template ml-2">' +
                         '<div class="text-center top-img-container">' +
                             `<img src="${column.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
                         '</div>' +

@@ -16,7 +16,7 @@
         <% include ../views/partials/control_panel.ejs %>
         <div class="ml-auto w-100 page-wrapper">
             <% include ../views/partials/toolbar.ejs %>
-            <div class="container mt-5">
+            <div class="container my-5">
                 <div class="chsr card">
                     <div class="title">
                         <h3 class="pt-3 pb-0 px-5">模板訊息</h3>
@@ -30,8 +30,6 @@
                             <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
                         </div>
                         <div class="search-add mb-2">
-                            <span class="icon"><i class="fa fa-search"></i></span>
-                            <input type="text" class="search-bar align-middle" placeholder="搜尋" aria-hidden="true">
                             <button type="button" class="btn btn-light btn-border insert" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true">
                                 <i class="fas fa-plus"></i>
                             </button>
@@ -113,7 +111,7 @@
                                 <!-- <i class="fa fa-info-circle btn" aria-hidden="true"></i> -->
                             </div>
 
-                            <span class="badge badge-pill badge-danger mb-2">圖片大小不能超過6MB</span>
+                            <span class="badge badge-pill badge-danger mb-2 template-image-warning"></span>
 
                             <div class="carousel-inner">
                                 <div class="carousel-item active template-view" rel="carousel buttons" data-slide-to="0">

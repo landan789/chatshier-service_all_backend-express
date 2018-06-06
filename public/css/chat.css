@@ -173,8 +173,7 @@
     .message-search .total-number {
         color: #b3b3b3; }
 
-.message[message-type="template"] .content {
-    max-width: 89% !important; }
+
 .message[message-type="template"] .content .template .template-image {
     width: 100%;
     height: 100%; }
@@ -204,10 +203,9 @@
             color:white;
             background-color: #33ccff !important; }
         .message .content.media {
-            position: relative; }
-        .message .content.media .template-btn {
-            position: absolute; 
-            top: -1.5rem; }
+            position: relative;
+            overflow-x: scroll;
+            height: 27rem; }
         .message .content .text-content {
             line-height: 1.25rem;
             white-space: pre-wrap; }
@@ -586,6 +584,7 @@
     border: 0.0625rem solid #efefef;
     border-radius: 1rem;
     width: 18rem;
+    min-width: 18rem;
     height: 25rem; }
     .template .top-img-container {
         position: relative;
@@ -641,3 +640,9 @@
         color: #7caeff;
         background-color: #fff;
         border-radius: 0 0 1rem 1rem; }
+
+@media (min-width: 1700px) {
+    ::-webkit-scrollbar { 
+        display: none; 
+    }
+}

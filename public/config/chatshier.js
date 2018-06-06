@@ -1,6 +1,6 @@
 window.chatshier = {
     config: {
-        imageFileMaxSize: 5 * 1000 * 1024, // 5 MB
+        imageFileMaxSize: 6 * 1000 * 1024, // 6 MB
         videoFileMaxSize: 20 * 1000 * 1024, // 20 MB
         audioFileMaxSize: 10 * 1000 * 1024, // 10 MB
         otherFileMaxSize: 100 * 1000 * 1024 // 100 MB
