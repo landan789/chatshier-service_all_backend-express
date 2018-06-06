@@ -96,33 +96,19 @@ module.exports = (function() {
                         return appsTemplates;
                     });
                 } else if (template.template.columns) {
-                    // return Promise.all(template.template.columns.map((column) => {
-                    //     if (!column.thumbnailImageUrl) {
-                    //         return Promise.resolve();
-                    //     }
-
-                    //     let fromPathArray = column.thumbnailImageUrl.split('/');
-                    //     let src = fromPathArray[fromPathArray.length - 1];
-                    //     let fromPath = `/temp/${src}`;
-                    //     let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
-                    //     return storageHlp.filesMoveV2(fromPath, toPath);
-                    // })).then(() => {
-                    //     return appsTemplates;
-                    // });
-                    let columns = template.template.columns;
-                    let handleColumns = (i) => {
-                        if ((columns.length - 1) < i) {
-                            return Promise.resolve(appsTemplates);
+                    return Promise.all(template.template.columns.map((column) => {
+                        if (!column.thumbnailImageUrl) {
+                            return Promise.resolve();
                         }
-                        let fromPathArray = columns[i].thumbnailImageUrl.split('/');
+
+                        let fromPathArray = column.thumbnailImageUrl.split('/');
                         let src = fromPathArray[fromPathArray.length - 1];
                         let fromPath = `/temp/${src}`;
                         let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
-                        return storageHlp.filesMoveV2(fromPath, toPath).then(() => {
-                            return handleColumns(++i);
-                        });
-                    };
-                    return handleColumns(0);
+                        return storageHlp.filesMoveV2(fromPath, toPath);
+                    })).then(() => {
+                        return appsTemplates;
+                    });
                 }
                 return appsTemplates;
             }).then((appsTemplates) => {

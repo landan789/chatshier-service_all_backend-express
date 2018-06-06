@@ -3,7 +3,6 @@ module.exports = (function() {
     const appsGreetingsMdl = require('../models/apps_greetings');
     const appsAutorepliesMdl = require('../models/apps_autoreplies');
     const fuseHlp = require('../helpers/fuse');
-    const storageHlp = require('../helpers/storage');
     const botSvc = require('../services/bot');
 
     const LINE = 'LINE';
@@ -184,10 +183,6 @@ module.exports = (function() {
                 return Promise.resolve(_keywordreplies);
             });
         };
-
-        handleTemplateColumns(i) {
-               
-        }
     }
 
     return new ChatshierHelp();
