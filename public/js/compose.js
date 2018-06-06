@@ -1257,7 +1257,6 @@
     }
 
     function composesSearch(ev) {
-        // debugger;
         let searchText = $(this).val().toLocaleLowerCase();
         let target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
         if (0 === target.length) {
