@@ -39,7 +39,11 @@ module.exports = (function() {
                 from_path: fromPath,
                 to_path: toPath
             };
-            return dbx.filesMoveV2(args);
+            return dbx.filesMoveV2(args).catch((err) => {
+                return this.handleTooMenyRequests(err).then(() => {
+                    return this.filesMoveV2(fromPath, toPath);
+                });
+            });
         }
 
         /**
@@ -74,6 +78,10 @@ module.exports = (function() {
                     }
                     return this.sharingCreateSharedLink(path).then(resolve);
                 }).catch(reject);
+            }).catch((err) => {
+                return this.handleTooMenyRequests(err).then(() => {
+                    return this.filesSaveUrl(path, url);
+                });
             });
         }
 
@@ -87,6 +95,10 @@ module.exports = (function() {
                     return '';
                 }
                 return response.url.replace('www.dropbox', this.sharedLinkPrefix).replace('?dl=0', '');
+            }).catch((err) => {
+                return this.handleTooMenyRequests(err).then(() => {
+                    return this.sharingCreateSharedLink(path);
+                });
             });
         }
 
@@ -94,7 +106,11 @@ module.exports = (function() {
          * @param {string} path
          */
         filesDownload(path) {
-            return dbx.filesDownload({ path: path });
+            return dbx.filesDownload({ path: path }).catch((err) => {
+                return this.handleTooMenyRequests(err).then(() => {
+                    return this.filesDownload(path);
+                });
+            });
         }
 
         /**
@@ -121,6 +137,13 @@ module.exports = (function() {
                 });
                 stream.pipe(passThrough, { end: true });
             });
+        }
+
+        handleTooMenyRequests(err) {
+            if (429 === err.status) {
+                return new Promise((resolve) => setTimeout(resolve, err.error.error.retry_after));
+            }
+            return Promise.reject(err);
         }
     }
 
