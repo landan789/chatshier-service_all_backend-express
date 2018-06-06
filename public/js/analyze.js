@@ -14,6 +14,11 @@
         WORDCLOUR: 4
     });
 
+    const ICONS = {
+        LINE: 'fab fa-line fa-fw line-color',
+        FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+    };
+
     var HOUR = 60 * 60 * 1000;
     var DATE = 24 * HOUR;
 
@@ -110,7 +115,7 @@
         api.apps.findAll(userId),
         api.appsChatrooms.findAll(userId)
     ]).then(function(respJsons) {
-        var appsData = respJsons.shift().data;
+        var apps = respJsons.shift().data;
         var messagesData = respJsons.shift().data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
@@ -119,10 +124,20 @@
         // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
         messagesDataArray = {};
-        for (var appId in appsData) {
+        for (var appId in apps) {
+            var app = apps[appId];
+            if (app.isDeleted ||
+                app.type === api.apps.enums.type.CHATSHIER) {
+                delete apps[appId];
+                continue;
+            }
+
             messagesDataArray[appId] = [];
             $dropdownMenu.append(
-                '<span class="dropdown-item" app-id="' + appId + '">' + appsData[appId].name + '</span>'
+                '<a class="px-3 dropdown-item" app-id="' + appId + '">' +
+                    '<i class="' + ICONS[app.type] + '"></i>' +
+                    apps[appId].name +
+                '</a>'
             );
             $appDropdown.find('.dropdown-item[app-id="' + appId + '"]').on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
@@ -140,7 +155,7 @@
         }
 
         if (nowSelectAppId) {
-            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             messageDataPreprocess(messagesDataArray[nowSelectAppId]);
 
             $appDropdown.find('.dropdown-toggle').removeAttr('disabled'); // 有資料，才開放USER按按鈕
