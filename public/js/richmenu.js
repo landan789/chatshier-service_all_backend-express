@@ -403,15 +403,13 @@
         }
 
         elementHide($('.content-input'));
-        $(`#${boxInputId} #${contentInputId}`).removeClass('d-none');
-        $(`#${boxInputId} #${contentInputId}`).change(function() {
-            var val = $(this).val();
-            if (val) {
-                let boxId = $('.box.checked').attr('id');
-                $('#' + boxId).attr('ref', val);
-                $('#' + boxId).removeClass('checked');
-                $(this).siblings().val();
-            }
+        let $contentInput = $(`#${boxInputId} #${contentInputId}`);
+        $contentInput.removeClass('d-none');
+
+        $contentInput.off('input').on('input', function() {
+            let val = $(this).val() || '';
+            let boxId = $('.box.checked').attr('id');
+            $('#' + boxId).attr('ref', val);
         });
     }
 
