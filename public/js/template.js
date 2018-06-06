@@ -52,7 +52,9 @@
     return api.apps.findAll(userId).then(function(respJson) {
         var apps = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+        let config = window.chatshier.config;
         $jqDoc.find('button.inner-add').attr('disabled', true);
+        $('.template-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1000)))}MB`);
 
         for (var appId in apps) {
             var app = apps[appId];
