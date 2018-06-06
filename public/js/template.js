@@ -362,7 +362,7 @@
             if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / (1024 * 1000)) + ' MB');
+                $.notify('圖像檔案過大，檔案大小限制為: ' + (Math.floor(config.imageFileMaxSize / (1024 * 1000)) + 1) + ' MB');
                 return;
             }
 
@@ -440,7 +440,6 @@
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 $.notify('新增成功！', { type: 'success' });
             }).catch((ERR) => {
-                debugger;
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 $.notify('新增失敗', { type: 'danger' });
             });
