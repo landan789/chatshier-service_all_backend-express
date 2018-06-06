@@ -1168,7 +1168,8 @@
         return (
             '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
-                    '<span>' + senderName + '</span>' +
+                    imageContentType(message.type) +
+                    '<span class="sender-name">' + senderName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
                     '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
@@ -1176,6 +1177,17 @@
                 '</span>' +
             '</div>'
         );
+    }
+
+    function imageContentType(type) {
+        switch (type) {
+            case 'template':
+                return `<span class="template-btn badge badge-pill badge-dark mr-2">模板訊息</span>`;
+            case 'imagemap':
+                return `<span class="template-btn badge badge-pill badge-dark mr-2">圖文訊息</span>`;
+            default:
+                return '';
+        }
     }
 
     function createChatroom(requireData) {
@@ -1432,7 +1444,6 @@
                 box2 = '<div class="box" id="box2" style="width: 100%; padding-top: 20%;">' + str2 + '</div>';
                 return box1 + box2;
             case 'form2':
-                console.log($('.imagemap-message-content'));
                 str1 = !message.imagemap.actions[0].text ? imagemapLink(message.imagemap.actions[0].linkUri) : imagemapText(message.imagemap.actions[0].text);
                 str2 = !message.imagemap.actions[1].text ? imagemapLink(message.imagemap.actions[1].linkUri) : imagemapText(message.imagemap.actions[1].text);
                 box1 = '<div class="box col-sm" id="box1" style="padding-top: 45%">' + str1 + '</div>';
@@ -1459,7 +1470,6 @@
         switch (template.type) {
             case 'confirm':
                 return (
-                    `<span class="template-btn badge badge-pill badge-dark">格式訊息</span>` +
                     '<div class="template-sm">' +
                         `<div class="d-flex flex-wrap align-items-center template-sm-title">
                             <span>${template.text}</span>
@@ -1478,23 +1488,22 @@
                 );
             case 'buttons':
                 return (
-                    `<span class="template-btn badge badge-pill badge-dark">格式訊息</span>` +
-                    '<div class="template">' +
+                    '<div class="template ml-1">' +
                         '<div class="text-center top-img-container">' +
-                            `<img src="${template.thumbnailImageUrl}" alt="未顯示圖片" />` +
+                            `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
                         '</div>' +
-                        `<div class="d-flex flex-wrap align-items-center template-title">
-                            <span>${template.title}</span>
+                        `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
+                            <span class="template-title">${template.title}</span>
                         </div>` +
-                        `<div class="d-flex flex-wrap align-items-center template-desc">
-                            <span>${template.text}</span>
+                        `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
+                            <span class="template-desc">${template.text}</span>
                         </div>` +
                         '<div class="d-flex flex-column template-buttons">' +
                             (function() {
                                 return template.actions.map((action, i) => (
-                                    `<div class="d-flex flex-column justify-content-center my-auto text-center template-button${i + 1}">
-                                        <span>${action.label}</span>
-                                        <span>(輸出：${getTemplateOutput(action)})</span>
+                                    `<div class="d-flex flex-column justify-content-center my-1 text-center template-button${i + 1}">
+                                        <span class="template-button">${action.label}</span>
+                                        <span class="template-button">(輸出：${getTemplateOutput(action)})</span>
                                     </div>`
                                 )).join('');
                             })() +
@@ -1503,23 +1512,22 @@
                 );
             case 'carousel':
                 return template.columns.map((column) => (
-                    `<span class="template-btn badge badge-pill badge-dark">格式訊息</span>` +
-                    '<div class="template">' +
+                    '<div class="template ml-1">' +
                         '<div class="text-center top-img-container">' +
-                            `<img src="${column.thumbnailImageUrl}" alt="未顯示圖片" />` +
+                            `<img src="${column.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
                         '</div>' +
-                        `<div class="d-flex flex-wrap align-items-center template-title">
-                            <span>${column.title}</span>
+                        `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
+                            <span class="template-title">${column.title}</span>
                         </div>` +
-                        `<div class="d-flex flex-wrap align-items-center template-desc">
-                            <span>${column.text}</span>
+                        `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
+                            <span class="template-desc">${column.text}</span>
                         </div>` +
                         '<div class="d-flex flex-column template-buttons">' +
                             (function() {
                                 return column.actions.map((action, i) => (
-                                    `<div class="d-flex flex-column justify-content-center my-auto text-center template-button${i + 1}">
-                                        <span>${action.label}</span>
-                                        <span>(輸出：${getTemplateOutput(action)})</span>
+                                    `<div class="d-flex flex-column justify-content-center my-1 text-center template-button${i + 1}">
+                                        <span class="template-button">${action.label}</span>
+                                        <span class="template-button">(輸出：${getTemplateOutput(action)})</span>
                                     </div>`
                                 )).join('');
                             })() +
@@ -2239,9 +2247,9 @@
         var file = _this.files[0];
         _this.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
-        var config = window.chatshier.config;
         var kiloByte = 1024;
         var megaByte = kiloByte * 1024;
+        var config = window.chatshier.config;
         if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
             $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / megaByte) + ' MB', { type: 'warning' });
             return;

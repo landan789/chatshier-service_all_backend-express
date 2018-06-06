@@ -21,8 +21,8 @@
         <div class="ml-auto w-100 page-wrapper analyze-wrapper">
             <% include ../views/partials/toolbar.ejs %>
 
-            <div class="container mt-5">
-                <div class="mb-5 chsr card analyze-body">
+            <div class="container my-5">
+                <div class="chsr card analyze-body">
                     <h3 class="page-title">訊息分析</h3>
 
                     <div class="card-body">
@@ -73,7 +73,7 @@
                         </div>
     
                         <div class="chart-container">
-                            <div class="mx-auto chart-body" id="chartBody"></div>
+                            <div class="position-relative mx-auto chart-body" id="chartBody"></div>
                         </div>
                     </div>
                 </div>
@@ -88,7 +88,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment-with-locales.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
-    <script src="lib/js/wordfreq.worker.js"></script>
+    <script src="lib/js/wordfreq.js"></script>
     <script src="lib/js/wordcloud2.js"></script>
     <script src="js/analyze.js"></script>
 </body>

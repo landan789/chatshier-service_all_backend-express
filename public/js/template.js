@@ -52,7 +52,9 @@
     return api.apps.findAll(userId).then(function(respJson) {
         var apps = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+        let config = window.chatshier.config;
         $jqDoc.find('button.inner-add').attr('disabled', true);
+        $('.template-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1024)))}MB`);
 
         for (var appId in apps) {
             var app = apps[appId];
@@ -82,7 +84,7 @@
         }
     });
 
-    function appSourceChanged(ev) {
+    function appSourceChanged() {
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
@@ -358,11 +360,13 @@
             file = input.files[0];
             imageFile[activeIndex] = file;
 
+            var kiloByte = 1024;
+            var megaByte = kiloByte * 1024;
             var config = window.chatshier.config;
             if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / (1024 * 1000)) + ' MB');
+                $.notify('圖像檔案過大，檔案大小限制為: ' + (Math.floor(config.imageFileMaxSize / megaByte)) + ' MB');
                 return;
             }
 
@@ -439,8 +443,7 @@
                 $appDropdown.find('#' + appId).click();
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 $.notify('新增成功！', { type: 'success' });
-            }).catch((ERR) => {
-                debugger;
+            }).catch(() => {
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 $.notify('新增失敗', { type: 'danger' });
             });
@@ -637,14 +640,16 @@
     function elementDisabled(element, message) {
         element.attr('disabled', true).empty().append(message);
     }
+
     function elementEnabled(element, message) {
         element.removeAttr('disabled').empty().text(message);
     }
+
     function elementShow(element) {
         element.removeClass('d-none');
     }
+
     function elementHide(element) {
         element.addClass('d-none');
     }
-
 })();

@@ -1,5 +1,6 @@
 module.exports = (function() {
     require('isomorphic-fetch'); // polyfill fetch method for Dropbox SDK
+    const PassThrough = require('stream').PassThrough;
     const chatshierCfg = require('../config/chatshier');
 
     const Dropbox = require('dropbox').Dropbox;
@@ -38,7 +39,11 @@ module.exports = (function() {
                 from_path: fromPath,
                 to_path: toPath
             };
-            return dbx.filesMoveV2(args);
+            return dbx.filesMoveV2(args).catch((err) => {
+                return this.handleTooMenyRequests(err).then(() => {
+                    return this.filesMoveV2(fromPath, toPath);
+                });
+            });
         }
 
         /**
@@ -73,6 +78,10 @@ module.exports = (function() {
                     }
                     return this.sharingCreateSharedLink(path).then(resolve);
                 }).catch(reject);
+            }).catch((err) => {
+                return this.handleTooMenyRequests(err).then(() => {
+                    return this.filesSaveUrl(path, url);
+                });
             });
         }
 
@@ -86,6 +95,10 @@ module.exports = (function() {
                     return '';
                 }
                 return response.url.replace('www.dropbox', this.sharedLinkPrefix).replace('?dl=0', '');
+            }).catch((err) => {
+                return this.handleTooMenyRequests(err).then(() => {
+                    return this.sharingCreateSharedLink(path);
+                });
             });
         }
 
@@ -93,7 +106,44 @@ module.exports = (function() {
          * @param {string} path
          */
         filesDownload(path) {
-            return dbx.filesDownload({ path: path });
+            return dbx.filesDownload({ path: path }).catch((err) => {
+                return this.handleTooMenyRequests(err).then(() => {
+                    return this.filesDownload(path);
+                });
+            });
+        }
+
+        /**
+         * @param {any} stream
+         * @param {boolean} [shouldDestroyAfter]
+         * @returns {Promise<Buffer>}
+         */
+        streamToBuffer(stream, shouldDestroyAfter) {
+            shouldDestroyAfter = !!shouldDestroyAfter;
+
+            return new Promise((resolve, reject) => {
+                let passThrough = new PassThrough();
+                let bufferArray = [];
+
+                passThrough.on('data', (chunk) => bufferArray.push(chunk));
+                passThrough.once('error', reject);
+                passThrough.once('end', () => {
+                    let buffer = Buffer.concat(bufferArray);
+                    bufferArray.length = 0;
+
+                    passThrough.destroy();
+                    shouldDestroyAfter && stream.destroy();
+                    resolve(buffer);
+                });
+                stream.pipe(passThrough, { end: true });
+            });
+        }
+
+        handleTooMenyRequests(err) {
+            if (429 === err.status) {
+                return new Promise((resolve) => setTimeout(resolve, err.error.error.retry_after));
+            }
+            return Promise.reject(err);
         }
     }
 

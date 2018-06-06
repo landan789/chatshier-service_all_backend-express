@@ -922,9 +922,8 @@
             } else {
                 $composesEditDtInput.val(toDatetimeLocal(new Date(compose.time)));
             }
-
             $composeEditModal.find('.compose-textarea').val(compose.text);
-            $composeEditModal.find('.form-check-input[name="modal-draft"]').attr('checked', !compose.status);
+            $composeEditModal.find('.form-check-input[name="isDraft"]').attr('checked', !compose.status);
 
             conditionTypes = {};
             allFields = {};
@@ -991,7 +990,7 @@
                 return;
             }
 
-            let isDraft = $composeEditModal.find('.form-check-input[name="modal-draft"]').attr('checked');
+            let isDraft = $composeEditModal.find('.form-check-input[name="isDraft"]:checked').length > 0;
             let composesEditDtPickerData = $composesEditDtPicker.data('DateTimePicker');
             let reserveTime = composesEditDtPickerData
                 ? composesEditDtPickerData.date().toDate().getTime()
@@ -1034,9 +1033,9 @@
     })();
     // #endregion
 
-    function appSourceChanged(ev) {
-        nowSelectAppId = $(ev.target).attr('app-id');
-        $appSelector.find('.dropdown-text').text(ev.target.text);
+    function appSourceChanged() {
+        nowSelectAppId = $(this).attr('app-id');
+        $appSelector.find('.dropdown-text').text($(this).text());
         refreshComposes(nowSelectAppId);
     }
 
@@ -1257,7 +1256,6 @@
     }
 
     function composesSearch(ev) {
-        // debugger;
         let searchText = $(this).val().toLocaleLowerCase();
         let target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
         if (0 === target.length) {

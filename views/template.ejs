@@ -16,7 +16,7 @@
         <% include ../views/partials/control_panel.ejs %>
         <div class="ml-auto w-100 page-wrapper">
             <% include ../views/partials/toolbar.ejs %>
-            <div class="container mt-5">
+            <div class="container my-5">
                 <div class="chsr card">
                     <div class="title">
                         <h3 class="pt-3 pb-0 px-5">模板訊息</h3>
@@ -30,8 +30,6 @@
                             <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
                         </div>
                         <div class="search-add mb-2">
-                            <span class="icon"><i class="fa fa-search"></i></span>
-                            <input type="text" class="search-bar align-middle" placeholder="搜尋" aria-hidden="true">
                             <button type="button" class="btn btn-light btn-border insert" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true">
                                 <i class="fas fa-plus"></i>
                             </button>
@@ -113,12 +111,14 @@
                                 <!-- <i class="fa fa-info-circle btn" aria-hidden="true"></i> -->
                             </div>
 
+                            <span class="badge badge-pill badge-danger mb-2 template-image-warning"></span>
+
                             <div class="carousel-inner">
                                 <div class="carousel-item active template-view" rel="carousel buttons" data-slide-to="0">
                                     <div class="rounded-border">
                                         <div class="line-content">
                                             <div class="line-thumbnailImageUrl">
-                                                <input type="file" class="image-ghost" accept="image/*">
+                                                <input type="file" class="image-ghost" accept="image/png,image/jpg,image/jpeg">
                                                 <img alt="請點選以上傳圖片，長寬比請設定為1:1.51" class="image-upload" src="">
                                                 <span class="template-upload-desc">請點選以上傳圖片，長寬比請設定為1:1.51</span>
                                             </div>
@@ -128,7 +128,7 @@
                                             <input class="line-title form-control" type="text" placeholder="標題1" maxlength="40" />
                                         </div>
                                         <div class="line-content">
-                                            <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60" />
+                                            <input class="line-text form-control" type="text" placeholder="說明文字 (字數限制：48)" maxlength="48">
                                         </div>
                                         <div class="divider-line"></div>
                                         <div class="line-content">
@@ -151,7 +151,7 @@
                                     <div class="rounded-border">
                                         <div class="line-content">
                                             <div class="line-thumbnailImageUrl">
-                                                <input type="file" class="image-ghost" accept="image/*">
+                                                <input type="file" class="image-ghost" accept="image/png,image/jpg,image/jpeg">
                                                 <img alt="請點選以上傳圖片，長寬比請設定為1:1.51" class="image-upload" src="">
                                                 <span class="template-upload-desc">請點選以上傳圖片，長寬比請設定為1:1.51</span>
                                             </div>
@@ -161,7 +161,7 @@
                                             <input class="line-title form-control" type="text" placeholder="標題2" maxlength="40" />
                                         </div>
                                         <div class="line-content">
-                                            <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60" />
+                                            <input class="line-text form-control" type="text" placeholder="說明文字 (字數限制：48)" maxlength="48">
                                         </div>
                                         <div class="divider-line"></div>
                                         <div class="line-content">
@@ -185,7 +185,7 @@
                                     <div class="rounded-border">
                                         <div class="line-content">
                                             <div class="line-thumbnailImageUrl">
-                                                <input type="file" class="image-ghost" accept="image/*">
+                                                <input type="file" class="image-ghost" accept="image/png,image/jpg,image/jpeg">
                                                 <img alt="請點選以上傳圖片，長寬比請設定為1:1.51" class="image-upload" src="">
                                                 <span class="template-upload-desc">請點選以上傳圖片，長寬比請設定為1:1.51</span>
                                             </div>
@@ -195,7 +195,7 @@
                                             <input class="line-title form-control" type="text" placeholder="標題3" maxlength="40">
                                         </div>
                                         <div class="line-content">
-                                            <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60">
+                                            <input class="line-text form-control" type="text" placeholder="說明文字 (字數限制：48)" maxlength="48">
                                         </div>
                                         <div class="divider-line"></div>
                                         <div class="line-content">

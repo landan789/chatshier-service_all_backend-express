@@ -173,6 +173,18 @@
     .message-search .total-number {
         color: #b3b3b3; }
 
+
+.message[message-type="template"] .content .template .template-image {
+    width: 100%;
+    height: 100%; }
+.message[message-type="template"] .content .template .template-title {
+    font-weight: bold;
+    font-size: 1rem; }
+.message[message-type="template"] .content .template .template-desc {
+    font-size: .5rem; }
+.message[message-type="template"] .content .template .template-button {
+    font-weight: bold;
+    font-size: 1rem; }
 .message {
     width: 100%;
     padding: 0 10px;
@@ -191,10 +203,9 @@
             color:white;
             background-color: #33ccff !important; }
         .message .content.media {
-            position: relative; }
-        .message .content.media .template-btn {
-            position: absolute; 
-            top: -1.5rem; }
+            position: relative;
+            overflow-x: scroll;
+            height: 27rem; }
         .message .content .text-content {
             line-height: 1.25rem;
             white-space: pre-wrap; }
@@ -251,10 +262,14 @@
             color: red; }
     .message .messager-name {
         margin-bottom: .25rem; }
-        .message .messager-name span {
+        .message .messager-name .sender-name {
             font-size: 1rem;
             padding: .25rem;
             color: #aaa; }
+        .message .messager-name .template-btn {
+            font-size: 1rem;
+            padding: .25rem;
+            color: #fff; }
 
     .message .box {
         position: relative; 
@@ -573,28 +588,25 @@
     border: 0.0625rem solid #efefef;
     border-radius: 1rem;
     width: 18rem;
+    min-width: 18rem;
     height: 25rem; }
     .template .top-img-container {
         position: relative;
         width: 100%;
-        height: 25%; }
+        height: 40%; }
         .template .top-img-container img {
             width: 100%;
             height: 100%;
             border-radius: 1rem 1rem 0 0; }
-    .template .template-title,
-    .template .template-desc {
-        height: 10%;
-        padding: 0 1rem; }
     .template .template-title {
         font-weight: bold;
         background-color: #fff; }
     .template .template-desc {
         color: #8c8c8c;
         background-color: #fff;
-        font-size: .5rem; }
+        font-size: 1rem; }
     .template .template-buttons {
-        height: 55%;
+        height: 44%;
         color: #7caeff;
         background-color: #fff;
         border: 0.0625rem solid #efefef;
@@ -628,3 +640,9 @@
         color: #7caeff;
         background-color: #fff;
         border-radius: 0 0 1rem 1rem; }
+
+@media (min-width: 1700px) {
+    ::-webkit-scrollbar { 
+        display: none; 
+    }
+}
