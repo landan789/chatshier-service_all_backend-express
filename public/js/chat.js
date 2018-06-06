@@ -1432,7 +1432,6 @@
                 box2 = '<div class="box" id="box2" style="width: 100%; padding-top: 20%;">' + str2 + '</div>';
                 return box1 + box2;
             case 'form2':
-                console.log($('.imagemap-message-content'));
                 str1 = !message.imagemap.actions[0].text ? imagemapLink(message.imagemap.actions[0].linkUri) : imagemapText(message.imagemap.actions[0].text);
                 str2 = !message.imagemap.actions[1].text ? imagemapLink(message.imagemap.actions[1].linkUri) : imagemapText(message.imagemap.actions[1].text);
                 box1 = '<div class="box col-sm" id="box1" style="padding-top: 45%">' + str1 + '</div>';
