@@ -3,6 +3,7 @@
     var api = window.restfulAPI;
     var $jqDoc = $(document);
 
+    let appId;
     const ICONS = {
         LINE: 'fab fa-line fa-fw line-color',
         FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
@@ -11,7 +12,6 @@
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
     var nowSelectAppId = '';
-    var appId = '';
     var keyword = '';
     var previewImage = '';
     var file;
@@ -48,6 +48,12 @@
     $(document).on('focus', 'input[type="text"]', function() {
         $(this).select();
     });
+
+    $(document).on('click', '#appSelector .dropdown-menu a', changeAppId);
+
+    function changeAppId(ev){
+        appId = $(this).attr('id');
+    }
 
     return api.apps.findAll(userId).then(function(respJson) {
         var apps = respJson.data;
@@ -254,7 +260,6 @@
 
     function updateTemplate() {
         elementDisabled($('#edit-modal-save'), handleMessages.working);
-        let appId = $('#app-select option:selected').attr('id');
         let altText = $('#template-altText').val();
         let keyword = $('#template-keyword').val();
         let type = $('#template-type').val();
