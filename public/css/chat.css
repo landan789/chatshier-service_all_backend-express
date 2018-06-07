@@ -201,9 +201,6 @@
         .message .content.found {
             color:white;
             background-color: #33ccff !important; }
-        .message .content.media .template-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch; }
         .message .content.media.buttons-format, .message .content.media.carousel-format {
             position: relative;
             overflow-x: scroll;
@@ -641,8 +638,7 @@
         height: 40%;
         padding: 0 .5rem;
         font-weight: bold;
-        position: relative; }
-    .template-sm .template-sm-title span {
+        position: relative;
         overflow: hidden; }
     .template-sm .template-sm-buttons {
         height: 60%;
