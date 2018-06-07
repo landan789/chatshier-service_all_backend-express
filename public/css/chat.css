@@ -174,9 +174,6 @@
         color: #b3b3b3; }
 
 
-.message[message-type="template"] .content .template .template-image {
-    width: 100%;
-    height: 100%; }
 .message[message-type="template"] .content .template .template-title {
     font-weight: bold;
     font-size: 1rem; }
@@ -203,9 +200,10 @@
             color:white;
             background-color: #33ccff !important; }
         .message .content.media {
-            position: relative;
-            overflow-x: scroll;
-            height: 27rem; }
+            position: relative; }
+        .message .content.media .template-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; }
         .message .content .text-content {
             line-height: 1.25rem;
             white-space: pre-wrap; }
@@ -268,7 +266,6 @@
             color: #aaa; }
         .message .messager-name .template-btn {
             font-size: 1rem;
-            padding: .25rem;
             color: #fff; }
 
     .message .box {
@@ -589,7 +586,8 @@
     border-radius: 1rem;
     width: 18rem;
     min-width: 18rem;
-    height: 25rem; }
+    height: 25rem;
+    word-break: break-all; }
     .template .top-img-container {
         position: relative;
         width: 100%;
@@ -625,7 +623,8 @@
     width: 18rem;
     height: 8rem;
     border: 0.0625rem solid #efefef;
-    border-radius: 1rem; }
+    border-radius: 1rem;
+    word-break: break-all; }
     .template-sm .template-sm-title {
         border-radius: 1rem 1rem 0 0;
         background-color: #efefef;

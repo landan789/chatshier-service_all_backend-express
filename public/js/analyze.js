@@ -34,6 +34,7 @@
     var analyzeType = AnalyzeType.TIME;
 
     var $chartBody = $('#chartBody');
+    var $wordCloud = $('#wordCloud');
     var $analyzeSdtPicker = $('#startDatetimePicker');
     var $analyzeEdtPicker = $('#endDatetimePicker');
     var $startDatetimeInput = $analyzeSdtPicker.find('input[name="startDatetime"]');
@@ -219,7 +220,8 @@
 
     function viewMonth(ev) {
         analyzeType = AnalyzeType.MONTH;
-        $chartBody.removeAttr('style');
+        $wordCloud.addClass('d-none');
+        $chartBody.removeAttr('style').removeClass('d-none');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = void 0;
@@ -286,7 +288,8 @@
 
     function viewDay(ev) {
         analyzeType = AnalyzeType.DAY;
-        $chartBody.removeAttr('style');
+        $wordCloud.addClass('d-none');
+        $chartBody.removeAttr('style').removeClass('d-none');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
 
         wordfreq && wordfreq.stop() && wordfreq.empty();
@@ -337,7 +340,8 @@
 
     function viewHour(ev) {
         analyzeType = AnalyzeType.HOUR;
-        $chartBody.removeAttr('style');
+        $wordCloud.addClass('d-none');
+        $chartBody.removeAttr('style').removeClass('d-none');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
 
         wordfreq && wordfreq.stop() && wordfreq.empty();
@@ -386,7 +390,8 @@
 
     function viewTime(ev) {
         analyzeType = AnalyzeType.TIME;
-        $chartBody.removeAttr('style');
+        $wordCloud.addClass('d-none');
+        $chartBody.removeAttr('style').removeClass('d-none');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
 
         wordfreq && wordfreq.stop() && wordfreq.empty();
@@ -415,7 +420,8 @@
 
     function viewWordCloud(ev) {
         analyzeType = AnalyzeType.WORDCLOUR;
-        $chartBody.removeAttr('style');
+        $chartBody.removeAttr('style').addClass('d-none');
+        $wordCloud.removeClass('d-none');
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
 
         wordfreq && wordfreq.stop() && wordfreq.empty();
@@ -434,18 +440,19 @@
             var totalWords = msgData.join(',');
             wordfreq.process(totalWords, resolve);
         }).then((wordList) => {
-            $chartDropdownToggle.removeAttr('disabled');
-            $appDropdownToggle.removeAttr('disabled');
-
             var cloudOptions = {
                 list: wordList,
-                // 文字雲字體基本大小
-                weightFactor: 24,
+                // 字體大小權重設太高，當資料太多時會導致 canvas 繪製效能嚴重延遲
+                weightFactor: 1,
+                rotateRatio: 0,
                 minSize: 8,
                 clearCanvas: true,
                 backgroundColor: '#eafaff'
             };
-            window.WordCloud($chartBody.get(0), cloudOptions);
+            window.WordCloud($wordCloud.get(0), cloudOptions);
+
+            $chartDropdownToggle.removeAttr('disabled');
+            $appDropdownToggle.removeAttr('disabled');
         });
     }
 
