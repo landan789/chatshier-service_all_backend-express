@@ -1580,8 +1580,8 @@
                         //     '</div>' +
                         // '</div>' +
 
-                        '<div class="px-3 py-2 d-flex user-invite">' +
-                            '<div class="w-100 position-relative input-container ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
+                        '<div class="px-3 py-2 user-invite' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? ' d-flex' : ' d-none') + '">' +
+                            '<div class="w-100 position-relative input-container">' +
                                 '<input type="email" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus="false" />' +
                             '</div>' +
                             '<div class="ml-2 permission">' +
@@ -1590,7 +1590,7 @@
                                         '<button class="btn btn-light btn-block btn-border outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
                                             '<span class="permission-text">權限</span>' +
                                         '</button>' +
-                                        '<div class="dropdown-menu dropdown-menu-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
+                                        '<div class="dropdown-menu dropdown-menu-right">' +
                                             '<a class="dropdown-item" role="button">READ</a>' +
                                             '<a class="dropdown-item" role="button">WRITE</a>' +
                                             '<a class="dropdown-item" role="button">ADMIN</a>' +
@@ -1599,7 +1599,7 @@
                                 '</div>' +
                             '</div>' +
                             '<div class="ml-auto actions">' +
-                                '<div class="text-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
+                                '<div class="text-right">' +
                                     '<button class="btn btn-light btn-block btn-border outline add-button">' +
                                         '<span>邀請</span>' +
                                         '<i class="fas fa-user-plus"></i>' +

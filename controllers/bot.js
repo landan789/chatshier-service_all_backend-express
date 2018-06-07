@@ -367,14 +367,19 @@ module.exports = (function() {
                 };
                 return botSvc.getProfile(platformInfo, appId, app);
             }).then((profile) => {
-                let fileName = `${platformUid}_${Date.now()}.jpg`;
-                let filePath = `${storageHlp.tempPath}/${fileName}`;
                 let putConsumer = Object.assign({}, profile);
 
-                return storageHlp.filesSaveUrl(filePath, profile.photo).then((url) => {
-                    putConsumer.photo = url;
-                    let toPath = `/consumers/${platformUid}/photo/${fileName}`;
-                    return storageHlp.filesMoveV2(filePath, toPath);
+                return Promise.resolve().then(() => {
+                    if (profile && profile.photo) {
+                        let fileName = `${platformUid}_${Date.now()}.jpg`;
+                        let filePath = `${storageHlp.tempPath}/${fileName}`;
+                        return storageHlp.filesSaveUrl(filePath, profile.photo).then((url) => {
+                            putConsumer.photo = url;
+                            let toPath = `/consumers/${platformUid}/photo/${fileName}`;
+                            return storageHlp.filesMoveV2(filePath, toPath);
+                        });
+                    }
+                    putConsumer.photo = '';
                 }).then(() => {
                     return consumersMdl.replace(platformUid, putConsumer);
                 });

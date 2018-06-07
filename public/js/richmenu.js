@@ -54,52 +54,85 @@
     $jqDoc.on('click', '.box', contentBarShow);
     $jqDoc.on('click', '.activate-btn', activateRichmenu);
     $jqDoc.on('click', '.deactivate-btn', deactivateRichmenu);
-    $jqDoc.on('click', '#update-btn', appendRichmenu);
     $jqDoc.on('click', '.set-default-btn', setDefaultRichmenu);
 
     $modal.on('input', '.form-input .content-input', contentInputChange);
     $modal.on('change', '.form-input select.content-input', contentInputChange);
 
-    $modal.on('hidden.bs.modal', function() {
-        $appSelector.parent().parent().removeClass('d-none');
+    $modal.on('show.bs.modal', function(ev) {
+        let $relatedBtn = $(ev.relatedTarget);
+        $('#keyword').empty();
         $(`.form-inputs input`).val('');
         imageFile = void 0;
         cleanModal();
-    });
 
-    $modal.on('show.bs.modal', function() {
-        $('#keyword').empty();
-        let appId = $appSelector.find('option:selected').val();
+        if ('add-btn' === $relatedBtn.attr('id')) {
+            $appSelector.val(nowSelectAppId);
+            $appSelector.parents('.form-group').removeClass('d-none');
+            return loadKeywordreplies(nowSelectAppId);
+        }
 
-        return Promise.resolve().then(() => {
-            if (!appsKeywordreplies[appId]) {
-                appsKeywordreplies[appId] = { keywordreplies: {} };
+        $appSelector.parents('.form-group').addClass('d-none');
+        let $richemnuRow = $relatedBtn.parents('tr');
+        let appId = $richemnuRow.attr('rel');
+        let richmenuId = $richemnuRow.attr('id');
+        let src;
 
-                return api.appsKeywordreplies.findAll(appId, userId).then((resJson) => {
-                    let _appsKeywordreplies = resJson.data;
-                    if (!(_appsKeywordreplies && _appsKeywordreplies[appId])) {
-                        return appsKeywordreplies[appId].keywordreplies;
+        elementHide($('#modal-save'));
+        elementShow($('#modal-update-save'));
+        $modal.find('#modal-update-save').off('click').on('click', () => updateRichmenu(appId, richmenuId, src));
+
+        return loadKeywordreplies(appId).then(() => {
+            let richemnu = appsRichmenus[appId] ? appsRichmenus[appId].richmenus[richmenuId] : void 0;
+            if (!richemnu) {
+                return api.appsRichmenus.findOne(appId, richmenuId, userId).then((resJson) => {
+                    let _appsRichmenus = resJson.data;
+                    if (!appsRichmenus[appId]) {
+                        appsRichmenus[appId] = { richmenus: {} };
                     }
-                    Object.assign(appsKeywordreplies[appId].keywordreplies, _appsKeywordreplies[appId].keywordreplies);
-                    return appsKeywordreplies[appId].keywordreplies;
+                    let richmenus = _appsRichmenus[appId].richmenus;
+                    Object.assign(appsRichmenus[appId].richmenus, richmenus);
+                    richemnu = richmenus[richmenuId];
+                    return richemnu;
                 });
             }
-            return appsKeywordreplies[appId].keywordreplies;
-        }).then((keywordreplies) => {
-            if (!keywordreplies) {
-                return;
-            }
-            let keywordreplyStr = '<option disabled value="">-- 請選擇關鍵字 --</option>';
-            for (let keywordreplyId in keywordreplies) {
-                let keyword = keywordreplies[keywordreplyId].keyword;
-                keywordreplyStr += '<option value="' + keyword + '">' + keyword + '</option>';
-            }
+            return richemnu;
+        }).then((richemnu) => {
+            let areas = richemnu.areas;
+            let photoForm = richemnu.form;
+            size = richemnu.size;
+            src = richemnu.src;
 
-            let $keywordsSelectors = $('.form-inputs select#keyword');
-            $keywordsSelectors.each((i) => {
-                $($keywordsSelectors[i]).html(keywordreplyStr).val('');
+            let $richmenuForm = $modal.find('.richmenu-form');
+            $richmenuForm.find('.richmenu-select').val(richemnu.selected + '');
+            $richmenuForm.find('input[name="richmenuName"]').val(richemnu.name);
+            $richmenuForm.find('input[name="chatbarText"]').val(richemnu.chatBarText);
+            $richmenuForm.find('input[value=' + photoForm + ']').prop('checked', true);
+
+            richemnu.src && $('.show-richmenu-form')
+                .css('background', 'url(' + richemnu.src + ') center no-repeat')
+                .css('background-size', '100% 100%');
+
+            photoFormShow();
+
+            let $showRichmenuForm = $richmenuForm.find('.show-richmenu-form');
+            let $boxes = $showRichmenuForm.find('.box');
+
+            $boxes.each(function(i) {
+                let $box = $($boxes[i]);
+                let text = !areas[i].action.text ? areas[i].action.uri : areas[i].action.text;
+
+                $box.addClass('marked');
+                $box.attr('ref', text);
             });
         });
+    });
+
+    $modal.on('hidden.bs.modal', function() {
+        let modalAppId = $appSelector.val();
+        if (nowSelectAppId !== modalAppId) {
+            $appDropdown.find('#' + modalAppId).trigger('click');
+        }
     });
 
     return api.apps.findAll(userId).then(function(resJson) {
@@ -137,6 +170,38 @@
             });
         }
     });
+
+    function loadKeywordreplies(appId) {
+        return Promise.resolve().then(() => {
+            if (!appsKeywordreplies[appId]) {
+                appsKeywordreplies[appId] = { keywordreplies: {} };
+
+                return api.appsKeywordreplies.findAll(appId, userId).then((resJson) => {
+                    let _appsKeywordreplies = resJson.data;
+                    if (!(_appsKeywordreplies && _appsKeywordreplies[appId])) {
+                        return appsKeywordreplies[appId].keywordreplies;
+                    }
+                    Object.assign(appsKeywordreplies[appId].keywordreplies, _appsKeywordreplies[appId].keywordreplies);
+                    return appsKeywordreplies[appId].keywordreplies;
+                });
+            }
+            return appsKeywordreplies[appId].keywordreplies;
+        }).then((keywordreplies) => {
+            if (!keywordreplies) {
+                return;
+            }
+            let keywordreplyStr = '<option disabled value="">-- 請選擇關鍵字 --</option>';
+            for (let keywordreplyId in keywordreplies) {
+                let keyword = keywordreplies[keywordreplyId].keyword;
+                keywordreplyStr += '<option value="' + keyword + '">' + keyword + '</option>';
+            }
+
+            let $keywordsSelectors = $('.form-inputs select#keyword');
+            $keywordsSelectors.each((i) => {
+                $($keywordsSelectors[i]).html(keywordreplyStr).val('');
+            });
+        });
+    }
 
     function appSourceChanged() {
         let $dropdownItem = $(this);
@@ -621,62 +686,6 @@
         }
     }
 
-    function appendRichmenu() {
-        let appId = $(this).parent().parent().attr('rel');
-        let richmenuId = $(this).parent().parent().attr('id');
-        let src;
-        elementHide($('#modal-save'));
-        elementShow($('#modal-update-save'));
-        $modal.find('#modal-update-save').off('click').on('click', () => updateRichmenu(appId, richmenuId, src));
-
-        return Promise.resolve().then(() => {
-            let richemnu = appsRichmenus[appId] ? appsRichmenus[appId].richmenus[richmenuId] : void 0;
-            if (!richemnu) {
-                return api.appsRichmenus.findOne(appId, richmenuId, userId).then((resJson) => {
-                    let _appsRichmenus = resJson.data;
-                    if (!appsRichmenus[appId]) {
-                        appsRichmenus[appId] = { richmenus: {} };
-                    }
-                    let richmenus = _appsRichmenus[appId].richmenus;
-                    Object.assign(appsRichmenus[appId].richmenus, richmenus);
-                    richemnu = richmenus[richmenuId];
-                    return richemnu;
-                });
-            }
-            return richemnu;
-        }).then((richemnu) => {
-            let areas = richemnu.areas;
-            let photoForm = richemnu.form;
-            size = richemnu.size;
-            src = richemnu.src;
-
-            $appSelector.parents('.form-group').addClass('d-none');
-
-            let $richmenuForm = $modal.find('.richmenu-form');
-            $richmenuForm.find('.richmenu-select').val(richemnu.selected + '');
-            $richmenuForm.find('input[name="richmenuName"]').val(richemnu.name);
-            $richmenuForm.find('input[name="chatbarText"]').val(richemnu.chatBarText);
-            $richmenuForm.find('input[value=' + photoForm + ']').prop('checked', true);
-
-            richemnu.src && $('.show-richmenu-form')
-                .css('background', 'url(' + richemnu.src + ') center no-repeat')
-                .css('background-size', '100% 100%');
-
-            photoFormShow();
-
-            let $showRichmenuForm = $richmenuForm.find('.show-richmenu-form');
-            let $boxes = $showRichmenuForm.find('.box');
-
-            $boxes.each(function(i) {
-                let $box = $($boxes[i]);
-                let text = !areas[i].action.text ? areas[i].action.uri : areas[i].action.text;
-
-                $box.addClass('marked');
-                $box.attr('ref', text);
-            });
-        });
-    }
-
     function reloadRichmenus(appId, userId) {
         $('table #richmenu').empty();
         $('table #activated-richmenu').empty();
@@ -943,8 +952,10 @@
     }
 
     function removeRichmenu() {
-        let appId = $(this).parent().parent().attr('rel');
-        let richmenuId = $(this).parent().parent().attr('id');
+        let $removeBtn = $(this);
+        let $richmenuRow = $removeBtn.parents('tr');
+        let appId = $richmenuRow.attr('rel');
+        let richmenuId = $richmenuRow.attr('id');
 
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {

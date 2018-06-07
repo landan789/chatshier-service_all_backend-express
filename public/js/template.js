@@ -11,7 +11,7 @@
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
     var nowSelectAppId = '';
-    var appId = '';
+
     var keyword = '';
     var previewImage = '';
     var file;
@@ -41,12 +41,20 @@
     $(document).on('click', '#image-upload', uploadImageFromButton);
     $(document).on('change', '.image-ghost', uploadImage);
     $(document).on('click', '#modal-save', insertTemplate);
-    $(document).on('click', '#edit-btn', editTemplate);
     $(document).on('click', '#delete-btn', removeTemplate);
     $(document).on('click', '#edit-modal-save', updateTemplate);
-    $(document).on('click', '#show-template-modal', clearModal);
     $(document).on('focus', 'input[type="text"]', function() {
         $(this).select();
+    });
+
+    let $modal = $('#template-modal');
+    $modal.on('show.bs.modal', initTemplateModal);
+
+    $modal.on('hidden.bs.modal', function() {
+        let modalAppId = $appSelector.val();
+        if (nowSelectAppId !== modalAppId) {
+            $appDropdown.find('#' + modalAppId).trigger('click');
+        }
     });
 
     return api.apps.findAll(userId).then(function(respJson) {
@@ -72,7 +80,7 @@
                     app.name +
                 '</a>'
             );
-            $appSelector.append('<option id="' + appId + '">' + app.name + '</option>');
+            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
         }
@@ -162,8 +170,20 @@
         checkCarouselSide();
     }
 
-    function editTemplate() {
+    function initTemplateModal(ev) {
+        let $relatedBtn = $(ev.relatedTarget);
         clearModal();
+
+        if ('show-template-modal' === $relatedBtn.attr('id')) {
+            $appSelector.val(nowSelectAppId);
+            return;
+        }
+
+        let $templateRow = $relatedBtn.parents('tr');
+        let templateId = $templateRow.attr('id');
+        let appId = $templateRow.attr('rel');
+        $appSelector.val(appId);
+
         elementShow($('#show-template-modal'));
         $('.carousel-inner').carousel(0);
         $('.carousel-inner').carousel('pause');
@@ -174,12 +194,9 @@
         };
         carouselImage = [];
         btnImage = '';
-        let modal = $('#template-modal');
-        elementHide(modal.find('.app-select-bar'));
-        elementHide(modal.find('#modal-save'));
-        elementShow(modal.find('#edit-modal-save'));
-        let appId = $(this).parent().parent().attr('rel');
-        let templateId = $(this).parent().parent().attr('id');
+        elementHide($modal.find('.app-select-bar'));
+        elementHide($modal.find('#modal-save'));
+        elementShow($modal.find('#edit-modal-save'));
 
         return api.appsTemplates.findOne(appId, templateId, userId).then(function(resJson) {
             let data = resJson.data;
@@ -254,7 +271,7 @@
 
     function updateTemplate() {
         elementDisabled($('#edit-modal-save'), handleMessages.working);
-        let appId = $('#app-select option:selected').attr('id');
+        let appId = $('#app-select').val();
         let altText = $('#template-altText').val();
         let keyword = $('#template-keyword').val();
         let type = $('#template-type').val();
@@ -262,8 +279,7 @@
 
         if (!altText) {
             elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-            $.notify('電腦版替代文字不可為空', { type: 'warning' });
-            return null;
+            return $.notify('電腦版替代文字不可為空', { type: 'warning' });
         } else {
             let template = null;
             if ('confirm' === type) {
@@ -366,8 +382,7 @@
             if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                $.notify('圖像檔案過大，檔案大小限制為: ' + (Math.floor(config.imageFileMaxSize / megaByte)) + ' MB');
-                return;
+                return $.notify('圖像檔案過大，檔案大小限制為: ' + (Math.floor(config.imageFileMaxSize / megaByte)) + ' MB');
             }
 
             return new Promise(function(resolve, reject) {
@@ -401,9 +416,9 @@
 
     function insertTemplate() {
         elementDisabled($('#modal-save'), handleMessages.working);
-        appId = $('#app-select option:selected').attr('id');
-        keyword = $('#template-keyword').val();
+        let appId = $('#app-select').val();
         let type = $('#template-type').val();
+        keyword = $('#template-keyword').val();
 
         if (!keyword || !type) {
             elementEnabled($('#modal-save'), handleMessages.addFinished);
@@ -592,16 +607,22 @@
     // =====edit template end=====
 
     function removeTemplate() {
-        let appId = $(this).parent().parent().attr('rel');
-        let templateId = $(this).parent().parent().attr('id');
+        let $removeBtn = $(this);
+        let $templateRow = $removeBtn.parents('tr');
+        let appId = $templateRow.attr('rel');
+        let templateId = $templateRow.attr('id');
+
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
                 return;
             }
             return api.appsTemplates.remove(appId, templateId, userId);
         }).then(function(resJson) {
-            $('#' + templateId).remove();
-            $.notify('刪除成功！', { type: 'success' });
+            if (resJson) {
+                $('#' + templateId).remove();
+                return $.notify('刪除成功！', { type: 'success' });
+            }
+            $.notify('取消刪除', { type: 'primary' });
         }).catch((resJson) => {
             if (undefined === resJson.status) {
                 $.notify('失敗', { type: 'danger' });
@@ -619,13 +640,13 @@
             var isOK = false;
             var $dialogModal = $('#dialog_modal');
 
-            $dialogModal.find('.btn-primary').on('click', function() {
+            $dialogModal.find('.btn-primary').off('click').on('click', function() {
                 isOK = true;
                 resolve(isOK);
                 $dialogModal.modal('hide');
             });
 
-            $dialogModal.find('.btn-secondary').on('click', function() {
+            $dialogModal.find('.btn-secondary').off('click').on('click', function() {
                 resolve(isOK);
                 $dialogModal.modal('hide');
             });

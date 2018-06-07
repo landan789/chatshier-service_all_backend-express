@@ -35,18 +35,67 @@
     }
 
     $jqDoc.on('change', '.image-ghost', uploadImage);
-    $jqDoc.on('click', 'input[name ="imagemap-form"]', photoFormShow);
+    $jqDoc.on('click', 'input[name="imagemap-form"]', photoFormShow);
     $jqDoc.on('click', '.box', contentBarShow);
     $jqDoc.on('click', 'input[name="content"]', contentInputShow);
     $jqDoc.on('click', '#insert-btn', insertImagemap);
     $jqDoc.on('click', '#remove-btn', removeImagemap);
-    $jqDoc.on('click', '#turnOn-update-btn', turnOnUpdateModal);
-    $modal.on('show.bs.modal', function() {
+
+    $modal.on('show.bs.modal', function(ev) {
+        let $relatedBtn = $(ev.relatedTarget);
+        cleanModal();
         elementShow($('.form-group'));
-        elementHide($('#update-btn'));
+
+        let $updateBtn = $('#update-btn');
+        let $insertBtn = $('#insert-btn');
+
+        if ('add-btn' === $relatedBtn.attr('id')) {
+            elementHide($updateBtn);
+            elementShow($insertBtn);
+            $appSelector.val(nowSelectAppId);
+            return;
+        }
+
+        let $imagemapRow = $relatedBtn.parents('tr');
+        let appId = $imagemapRow.attr('rel');
+        let imagemapId = $imagemapRow.attr('id');
+
+        $appSelector.val(nowSelectAppId).parents('.form-group').addClass('d-none');
+        elementHide($insertBtn);
+        elementShow($updateBtn);
+
+        $updateBtn.off('click').on('click', () => updateImagemap($updateBtn, appId, imagemapId));
+
+        return api.appsImagemaps.findOne(appId, imagemapId, userId).then((resJson) => {
+            let appsImagemaps = resJson.data;
+            let imagemap = appsImagemaps[imagemapId];
+            size = imagemap.baseSize;
+            currentImageUri = imagemap.baseUri;
+            $('#title').val(imagemap.title);
+            $(`[value="${imagemap.form}"]`).prop('checked', true);
+            $('.show-imagemap-form')
+                .css('background', 'url(' + imagemap.baseUri + ') center no-repeat')
+                .css('background-size', 'cover');
+            photoFormShow();
+            let $boxes = $('.box');
+            $boxes.each(function(i) {
+                let output = !imagemap.actions[i].text ? imagemap.actions[i].linkUri : imagemap.actions[i].text;
+                // $(this).css('background-color', 'rgba(158,158,158, 0.7)');
+                // $(this).text(output);
+                $(this).addClass('marked')
+                    .attr('ref', output);
+                let id = $(this).attr('id');
+                imagemap.actions[i].text ? $(`#${id}-input #text`).val(imagemap.actions[i].text) : $(`#${id}-input #url`).val(imagemap.actions[i].linkUri);
+                imagemap.actions[i].text ? $(`.boxes-inputs #${id}-input [value="text"]`).attr('checked', true) : $(`.boxes-inputs #${id}-input [value="url"]`).attr('checked', true);
+            });
+        });
     });
+
     $modal.on('hidden.bs.modal', function() {
-        cleanmodal();
+        let modalAppId = $appSelector.val();
+        if (nowSelectAppId !== modalAppId) {
+            $appDropdown.find('#' + modalAppId).trigger('click');
+        }
     });
 
     function uploadImage() {
@@ -289,7 +338,7 @@
         });
     }
 
-    function cleanmodal() {
+    function cleanModal() {
         imageFile = '';
         elementEnabled($('#insert-btn'), handleMessages.addFinished);
         elementEnabled($('#update-btn'), handleMessages.editFinished);
@@ -347,9 +396,60 @@
         });
     }
 
+    function updateImagemap($updateBtn, appId, imagemapId) {
+        elementDisabled($updateBtn, handleMessages.working);
+        let title = $('#title').val();
+        let form = $('input[name = imagemap-form]:checked').val();
+
+        if (!title) {
+            $('#update-btn').removeAttr('disabled').empty().append('修改');
+            return $.notify('標題不可為空', { type: 'warning' });
+        }
+
+        let actions = composeActions();
+
+        let putImagemap = {
+            type: 'imagemap',
+            baseUri: currentImageUri,
+            altText: 'imagemap create by chatshier via line',
+            baseSize: {
+                height: 1040,
+                width: 1040
+            },
+            actions,
+            form,
+            title
+        };
+
+        if (!imageFile) {
+            return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap).then(() => {
+                $('#imagemap-modal').modal('hide');
+                loadImagemaps(appId, userId);
+                return $.notify('修改成功', { type: 'success' });
+            }).catch(() => {
+                $('#imagemap-modal').modal('hide');
+                return $.notify('修改失敗', { type: 'danger' });
+            });
+        }
+
+        return api.image.uploadFile(appId, userId, imageFile).then((resJson) => {
+            putImagemap.baseUri = resJson.data.url;
+            return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap);
+        }).then((resJson) => {
+            $('#imagemap-modal').modal('hide');
+            loadImagemaps(appId, userId);
+            return $.notify('修改成功', { type: 'success' });
+        }).catch(() => {
+            $('#imagemap-modal').modal('hide');
+            return $.notify('修改失敗', { type: 'danger' });
+        });
+    }
+
     function removeImagemap() {
-        let appId = $(this).parent().parent().attr('rel');
-        let imagemapId = $(this).parent().parent().attr('id');
+        let $removeBtn = $(this);
+        let $imagemapRow = $removeBtn.parents('tr');
+        let appId = $imagemapRow.attr('rel');
+        let imagemapId = $imagemapRow.attr('id');
 
         return Promise.resolve().then(() => {
             return showDialog('確定要刪除嗎？');
@@ -368,87 +468,6 @@
                 return $.notify(ERR, { type: 'warning' });
             }
             return $.notify('失敗', { type: 'danger' });
-        });
-    }
-
-    function turnOnUpdateModal() {
-        let appId = $(this).parent().parent().attr('rel');
-        let imagemapId = $(this).parent().parent().attr('id');
-
-        $appSelector.parent().parent().addClass('d-none');
-        elementHide($('#insert-btn'));
-        elementShow($('#update-btn'));
-
-        $('#update-btn').off('click').on('click', () => {
-            elementDisabled($('#update-btn'), handleMessages.working);
-            let title = $('#title').val();
-            let form = $('input[name = imagemap-form]:checked').val();
-
-            if (!title) {
-                $('#update-btn').removeAttr('disabled').empty().append('修改');
-                return $.notify('標題不可為空', { type: 'warning' });
-            }
-
-            let actions = composeActions();
-
-            let putImagemap = {
-                type: 'imagemap',
-                baseUri: currentImageUri,
-                altText: 'imagemap create by chatshier via line',
-                baseSize: {
-                    height: 1040,
-                    width: 1040
-                },
-                actions,
-                form,
-                title
-            };
-
-            if (!imageFile) {
-                return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap).then(() => {
-                    $('#imagemap-modal').modal('hide');
-                    loadImagemaps(appId, userId);
-                    return $.notify('修改成功', { type: 'success' });
-                }).catch(() => {
-                    $('#imagemap-modal').modal('hide');
-                    return $.notify('修改失敗', { type: 'danger' });
-                });
-            }
-            return api.image.uploadFile(appId, userId, imageFile).then((resJson) => {
-                putImagemap.baseUri = resJson.data.url;
-                return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap);
-            }).then((resJson) => {
-                $('#imagemap-modal').modal('hide');
-                loadImagemaps(appId, userId);
-                return $.notify('修改成功', { type: 'success' });
-            }).catch(() => {
-                $('#imagemap-modal').modal('hide');
-                return $.notify('修改失敗', { type: 'danger' });
-            });
-        });
-
-        return api.appsImagemaps.findOne(appId, imagemapId, userId).then((resJson) => {
-            let appsImagemaps = resJson.data;
-            let imagemap = appsImagemaps[imagemapId];
-            size = imagemap.baseSize;
-            currentImageUri = imagemap.baseUri;
-            $('#title').val(imagemap.title);
-            $(`[value="${imagemap.form}"]`).prop('checked', true);
-            $('.show-imagemap-form')
-                .css('background', 'url(' + imagemap.baseUri + ') center no-repeat')
-                .css('background-size', 'cover');
-            photoFormShow();
-            let $boxes = $('.box');
-            $boxes.each(function(i) {
-                let output = !imagemap.actions[i].text ? imagemap.actions[i].linkUri : imagemap.actions[i].text;
-                // $(this).css('background-color', 'rgba(158,158,158, 0.7)');
-                // $(this).text(output);
-                $(this).addClass('marked')
-                    .attr('ref', output);
-                let id = $(this).attr('id');
-                imagemap.actions[i].text ? $(`#${id}-input #text`).val(imagemap.actions[i].text) : $(`#${id}-input #url`).val(imagemap.actions[i].linkUri);
-                imagemap.actions[i].text ? $(`.boxes-inputs #${id}-input [value="text"]`).attr('checked', true) : $(`.boxes-inputs #${id}-input [value="url"]`).attr('checked', true);
-            });
         });
     }
 
@@ -545,6 +564,7 @@
                 linkText = linkText + '，' + actionType(imagemap.actions[i]);
             }
         }
+
         var trGrop =
             '<tr id="' + imagemapId + '" rel="' + appId + '">' +
                 '<th>' + imagemap.title + '</th>' +
@@ -614,12 +634,15 @@
     function elementDisabled(element, message) {
         element.attr('disabled', true).empty().append(message);
     }
+
     function elementEnabled(element, message) {
         element.removeAttr('disabled').empty().text(message);
     }
+
     function elementShow(element) {
         element.removeClass('d-none');
     }
+
     function elementHide(element) {
         element.addClass('d-none');
     }
@@ -633,7 +656,7 @@
 
         elementHide($('.content-bar'));
         elementHide($('.content-input'));
-        cleanmodal();
+        cleanModal();
 
         nowSelectAppId = '';
         for (var appId in appsData) {

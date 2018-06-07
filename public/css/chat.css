@@ -174,13 +174,12 @@
         color: #b3b3b3; }
 
 
-.message[message-type="template"] .content .template .template-image {
-    width: 100%;
-    height: 100%; }
 .message[message-type="template"] .content .template .template-title {
     font-weight: bold;
     font-size: 1rem; }
 .message[message-type="template"] .content .template .template-desc {
+    overflow: hidden;
+    height: 3.5rem;
     font-size: .5rem; }
 .message[message-type="template"] .content .template .template-button {
     font-weight: bold;
@@ -202,10 +201,16 @@
         .message .content.found {
             color:white;
             background-color: #33ccff !important; }
-        .message .content.media {
+        .message .content.media.buttons-format, .message .content.media.carousel-format {
             position: relative;
             overflow-x: scroll;
             height: 27rem; }
+        .message .content.media.confirm-format {
+            position: relative;
+            height: 8rem; }
+        .message .content.media.imagemap-format {
+            position: relative;
+            height: 20rem; }
         .message .content .text-content {
             line-height: 1.25rem;
             white-space: pre-wrap; }
@@ -268,7 +273,6 @@
             color: #aaa; }
         .message .messager-name .template-btn {
             font-size: 1rem;
-            padding: .25rem;
             color: #fff; }
 
     .message .box {
@@ -589,11 +593,12 @@
     border-radius: 1rem;
     width: 18rem;
     min-width: 18rem;
-    height: 25rem; }
+    height: 25rem;
+    word-break: break-all; }
     .template .top-img-container {
         position: relative;
         width: 100%;
-        height: 40%; }
+        height: 43%; }
         .template .top-img-container img {
             width: 100%;
             height: 100%;
@@ -625,14 +630,16 @@
     width: 18rem;
     height: 8rem;
     border: 0.0625rem solid #efefef;
-    border-radius: 1rem; }
+    border-radius: 1rem;
+    word-break: break-all; }
     .template-sm .template-sm-title {
         border-radius: 1rem 1rem 0 0;
         background-color: #efefef;
         height: 40%;
         padding: 0 .5rem;
         font-weight: bold;
-        position: relative; }
+        position: relative;
+        overflow: hidden; }
     .template-sm .template-sm-buttons {
         height: 60%;
         padding: 0 .5rem;
@@ -645,4 +652,10 @@
     ::-webkit-scrollbar { 
         display: none; 
     }
+    .message .content.media.carousel-format {
+        position: relative;
+        overflow-x: visible;
+        height: 27rem; }
+    .message .content {
+        max-width: 90%; }
 }

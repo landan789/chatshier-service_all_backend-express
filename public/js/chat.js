@@ -683,6 +683,9 @@
                 senderMsger = messagers[senderMsgerId];
 
                 return Promise.resolve().then(function() {
+                    if (SYSTEM === message.from && 'imagemap' === message.type) {
+                        message.from = CHATSHIER;
+                    }
                     if (SYSTEM === message.from) {
                         return users[userId];
                     }
@@ -1165,26 +1168,39 @@
             (appType !== CHATSHIER && (SYSTEM === message.from || CHATSHIER === message.from || VENDOR === message.from)) ||
             (appType === CHATSHIER && userId === platformUid);
 
+        var contentType = imageContentType(message);
+
         return (
             '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
-                    imageContentType(message.type) +
+                    imageContentBadge(message.type) +
                     '<span class="sender-name">' + senderName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
-                    '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
+                    '<span class="content ' + (isMedia ? 'media' : 'words') + contentType + '">' + srcHtml + '</span>' +
                     '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
                 '</span>' +
             '</div>'
         );
     }
 
-    function imageContentType(type) {
+    function imageContentType(message) {
+        switch (message.type) {
+            case 'template':
+                return ` ${message.template.type}-format`;
+            case 'imagemap':
+                return ' imagemap-format';
+            default:
+                return '';
+        }
+    }
+
+    function imageContentBadge(type) {
         switch (type) {
             case 'template':
-                return `<span class="template-btn badge badge-pill badge-dark mr-2">模板訊息</span>`;
+                return `<span class="mr-2 px-2 py-1 template-btn badge badge-pill badge-dark">模板訊息</span>`;
             case 'imagemap':
-                return `<span class="template-btn badge badge-pill badge-dark mr-2">圖文訊息</span>`;
+                return `<span class="mr-2 px-2 py-1 template-btn badge badge-pill badge-dark">圖文訊息</span>`;
             default:
                 return '';
         }
@@ -1373,7 +1389,6 @@
             case 'imagemap':
                 return (
                     '<div class="imagemap-message-container">' +
-                        `<span class="imagemap-btn badge badge-pill badge-dark">圖文訊息</span>` +
                         `<img class="imagemap-image" src="${message.src || ''}" />` +
                         `<div class="imagemap-message-content row mx-0">${(message.imagemap ? photoFormShow(message) : '')}</div>` +
                     '</div>'
@@ -1467,75 +1482,81 @@
     }
 
     function templateMessageType(template) {
-        switch (template.type) {
-            case 'confirm':
-                return (
-                    '<div class="template-sm">' +
-                        `<div class="d-flex flex-wrap align-items-center template-sm-title">
-                            <span>${template.text}</span>
-                        </div>` +
-                        '<div class="d-flex flex-row justify-content-between template-sm-buttons">' +
-                            (function() {
-                                return template.actions.map((action, i) => (
-                                    `<div class="d-flex flex-column justify-content-center my-auto text-center template-sm-button${i + 1}">
-                                        <span>${action.label}</span>
-                                        <span>(輸出：${getTemplateOutput(action)})</span>
-                                    </div>`
-                                )).join('');
-                            })() +
-                        '</div>' +
-                    '</div>'
-                );
-            case 'buttons':
-                return (
-                    '<div class="template ml-1">' +
-                        '<div class="text-center top-img-container">' +
-                            `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
-                        '</div>' +
-                        `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
-                            <span class="template-title">${template.title}</span>
-                        </div>` +
-                        `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
-                            <span class="template-desc">${template.text}</span>
-                        </div>` +
-                        '<div class="d-flex flex-column template-buttons">' +
-                            (function() {
-                                return template.actions.map((action, i) => (
-                                    `<div class="d-flex flex-column justify-content-center my-1 text-center template-button${i + 1}">
-                                        <span class="template-button">${action.label}</span>
-                                        <span class="template-button">(輸出：${getTemplateOutput(action)})</span>
-                                    </div>`
-                                )).join('');
-                            })() +
-                        '</div>' +
-                    '</div>'
-                );
-            case 'carousel':
-                return template.columns.map((column) => (
-                    '<div class="template ml-1">' +
-                        '<div class="text-center top-img-container">' +
-                            `<img src="${column.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
-                        '</div>' +
-                        `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
-                            <span class="template-title">${column.title}</span>
-                        </div>` +
-                        `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
-                            <span class="template-desc">${column.text}</span>
-                        </div>` +
-                        '<div class="d-flex flex-column template-buttons">' +
-                            (function() {
-                                return column.actions.map((action, i) => (
-                                    `<div class="d-flex flex-column justify-content-center my-1 text-center template-button${i + 1}">
-                                        <span class="template-button">${action.label}</span>
-                                        <span class="template-button">(輸出：${getTemplateOutput(action)})</span>
-                                    </div>`
-                                )).join('');
-                            })() +
-                        '</div>' +
-                    '</div>'
-                )).join('');
-            default:
-        }
+        return (
+            '<div class="d-flex template-container">' +
+                (function() {
+                    switch (template.type) {
+                        case 'confirm':
+                            return (
+                                '<div class="template-sm">' +
+                                    `<div class="d-flex flex-wrap align-items-center template-sm-title">
+                                        <span>${template.text}</span>
+                                    </div>` +
+                                    '<div class="d-flex flex-row justify-content-between template-sm-buttons">' +
+                                        (function() {
+                                            return template.actions.map((action, i) => (
+                                                `<div class="d-flex flex-column justify-content-center my-auto text-center template-sm-button${i + 1}">
+                                                    <span>${action.label}</span>
+                                                    <span>(輸出：${getTemplateOutput(action)})</span>
+                                                </div>`
+                                            )).join('');
+                                        })() +
+                                    '</div>' +
+                                '</div>'
+                            );
+                        case 'buttons':
+                            return (
+                                '<div class="template ml-1">' +
+                                    '<div class="text-center top-img-container">' +
+                                        `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
+                                    '</div>' +
+                                    `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
+                                        <span class="template-title">${template.title}</span>
+                                    </div>` +
+                                    `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
+                                        <span class="template-desc">${template.text}</span>
+                                    </div>` +
+                                    '<div class="d-flex flex-column template-buttons">' +
+                                        (function() {
+                                            return template.actions.map((action, i) => (
+                                                `<div class="d-flex flex-column justify-content-center my-1 text-center template-button${i + 1}">
+                                                    <span class="template-button">${action.label}</span>
+                                                    <span class="template-button">(輸出：${getTemplateOutput(action)})</span>
+                                                </div>`
+                                            )).join('');
+                                        })() +
+                                    '</div>' +
+                                '</div>'
+                            );
+                        case 'carousel':
+                            return template.columns.map((column) => (
+                                '<div class="template ml-1">' +
+                                    '<div class="text-center top-img-container">' +
+                                        `<img src="${column.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
+                                    '</div>' +
+                                    `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
+                                        <span class="template-title">${column.title}</span>
+                                    </div>` +
+                                    `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
+                                        <span class="template-desc">${column.text}</span>
+                                    </div>` +
+                                    '<div class="d-flex flex-column template-buttons">' +
+                                        (function() {
+                                            return column.actions.map((action, i) => (
+                                                `<div class="d-flex flex-column justify-content-center my-1 text-center template-button${i + 1}">
+                                                    <span class="template-button">${action.label}</span>
+                                                    <span class="template-button">(輸出：${getTemplateOutput(action)})</span>
+                                                </div>`
+                                            )).join('');
+                                        })() +
+                                    '</div>' +
+                                '</div>'
+                            )).join('');
+                        default:
+                    }
+                })() +
+            '</div>'
+        );
     }
 
     function getTemplateOutput(action) {
@@ -1577,6 +1598,11 @@
 
         for (var i in messageIds) {
             var message = messages[messageIds[i]];
+
+            if (SYSTEM === message.from && 'imagemap' === message.type) {
+                message.from = CHATSHIER;
+            }
+
             var srcHtml = messageToPanelHtml(message, appType);
             if (!srcHtml) {
                 continue;
@@ -1930,15 +1956,15 @@
 
         return (
             '<div class="px-2 d-flex align-items-center form-group">' +
-                '<label class="px-0 col-3 col-form-label">群組名稱</label>' +
+                '<label class="px-0 col-3 col-form-label">聊天室名稱</label>' +
                 '<div class="pr-0 col-9 d-flex profile-content">' +
                     '<input class="form-control chatroom-name" type="text" value="' + chatroomName + '" placeholder="' + DEFAULT_CHATROOM_NAME + '"/>' +
                     '<button class="ml-2 btn btn-primary btn-update-chatroom">更新</button>' +
                 '</div>' +
             '</div>' +
-            '<div class="px-2 d-flex align-items-center form-group">' +
+            '<div class="px-2 d-flex form-group">' +
                 '<label class="px-0 col-3 col-form-label">' + (CHATSHIER === app.type ? '群組成員' : '客戶成員') + '</label>' +
-                '<div class="pr-0 col-9 d-flex profile-content">' +
+                '<div class="pr-0 col-9 d-flex flex-wrap profile-content">' +
                     (function() {
                         var html = '';
                         if (CHATSHIER === app.type) {
@@ -2271,7 +2297,7 @@
         var src = file;
 
         var fileSize = file.size / kiloByte;
-        if (fileSize >= 1000) {
+        if (fileSize >= kiloByte) {
             fileSize /= kiloByte;
             fileSize = fileSize.toFixed(1) + ' MB';
         } else {
@@ -2305,22 +2331,46 @@
         $messageView.find('.message-panel').append($loadingElem);
         scrollMessagePanelToBottom(appId, chatroomId);
 
-        return new Promise((resolve, reject) => {
-            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                    return;
-                }
-                resolve();
+        return Promise.resolve().then(() => {
+            if ('audio' === messageType) {
+                return new Promise((resolve) => {
+                    var audio = document.createElement('audio');
+                    if (!audio) {
+                        return resolve(0);
+                    }
+
+                    audio.addEventListener('loadedmetadata', function() {
+                        let duration = audio.duration * 1000;
+                        URL.revokeObjectURL(audio.src);
+                        audio.src = audio = void 0;
+                        resolve(duration);
+                    }, false);
+                    audio.src = URL.createObjectURL(file);
+                });
+            }
+            return 0;
+        }).then((duration) => {
+            if (duration) {
+                messageToSend.duration = duration;
+            }
+
+            return new Promise((resolve, reject) => {
+                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
+                    if (err) {
+                        console.error(err);
+                        reject(err);
+                        return;
+                    }
+                    resolve();
+                });
+            }).then(() => {
+                $loadingElem.remove();
+                $loadingElem = void 0;
+            }).catch(() => {
+                $.notify('發送失敗', { type: 'danger' });
+                $loadingElem.remove();
+                $loadingElem = void 0;
             });
-        }).then(() => {
-            $loadingElem.remove();
-            $loadingElem = void 0;
-        }).catch(() => {
-            $.notify('發送失敗', { type: 'danger' });
-            $loadingElem.remove();
-            $loadingElem = void 0;
         });
     }
 
