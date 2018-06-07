@@ -5,7 +5,7 @@
     var userId;
     var nowSelectAppId = '';
     var apps = {};
-    var appsGreetings = { greetings: {} };
+    var appsGreetings = {};
 
     const ICONS = {
         LINE: 'fab fa-line fa-fw line-color',
@@ -83,17 +83,20 @@
 
         return api.appsGreetings.insert(appId, userId, greeting).then(function(resJson) {
             let _appsGreetings = resJson.data;
+            if (!appsGreetings[appId]) {
+                appsGreetings[appId] = { greetings: {} };
+            }
             Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
 
             $appDropdown.find('#' + appId).trigger('click');
             $modal.modal('hide');
             return $.notify('新增成功', { type: 'success' });
-        }).catch((resJson) => {
+        }).catch((err) => {
             $modal.modal('hide');
-            if (undefined === resJson.status) {
+            if (undefined === err.status) {
                 return $.notify('新增失敗', { type: 'danger' });
             }
-            if (NO_PERMISSION_CODE === resJson.code) {
+            if (NO_PERMISSION_CODE === err.code) {
                 return $.notify('無此權限', { type: 'danger' });
             }
             return $.notify('新增失敗', { type: 'danger' });
