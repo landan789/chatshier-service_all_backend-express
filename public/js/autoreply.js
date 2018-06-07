@@ -270,6 +270,13 @@
         $autoreplyAddModal.on('click', '#addSubmitBtn', autoreplyInsert);
         $autoreplyAddModal.on('click', '#periodAddBtn', showPeriodElem);
 
+        $autoreplyAddModal.on('hidden.bs.modal', function() {
+            let modalAppId = $appSelector.val();
+            if (nowSelectAppId !== modalAppId) {
+                $appDropdown.find('#' + modalAppId).trigger('click');
+            }
+        });
+
         function showPeriodElem() {
             periodCmp.generatePeriodSelect();
             periodCmp.setDayActive([0, 1, 2, 3, 4, 5, 6]);
@@ -285,6 +292,8 @@
                 $autoreplyAddEdtInput.val('');
             }
             periodCmp.$periodContainer.empty();
+
+            $appSelector.val(nowSelectAppId);
         }
 
         function autoreplyInsert() {

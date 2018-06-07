@@ -4,8 +4,8 @@
     var rowCount = 0;
     var userId;
     var nowSelectAppId = '';
-    var appsData = {};
-    var findedGreetingIds = {};
+    var apps = {};
+    var appsGreetings = {};
 
     const ICONS = {
         LINE: 'fab fa-line fa-fw line-color',
@@ -26,85 +26,96 @@
         userId = '';
     }
 
-    $(document).on('click', '#add-btn', turnOnAddModal);
     $(document).on('click', '#modal-insert-btn', insertGreeting);
-    $(document).on('click', '#edit-btn', turnOnEdit);
     $(document).on('click', '#modal-update-btn', updateGreeting);
     $(document).on('click', '#delete-btn', removeGretting);
 
-    $modal.on('show.bs.modal', function() {
-        $appSelector.empty();
-        for (var appId in appsData) {
-            var app = appsData[appId];
-            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
+    $modal.on('show.bs.modal', function(ev) {
+        let $relatedBtn = $(ev.relatedTarget);
+        $('#modal-greeting-id').val('');
+        $('#modal-greeting-text').val('');
+
+        if ('add-btn' === $relatedBtn.attr('id')) {
+            $appSelector.val(nowSelectAppId);
+            $('#modal-insert-btn').removeClass('d-none');
+            $('#modal-update-btn').addClass('d-none');
+            return;
         }
+
+        $('#modal-insert-btn').addClass('d-none');
+        $('#modal-update-btn').removeClass('d-none');
+
+        let $greetingRow = $relatedBtn.parents('tr');
+        let appId = $greetingRow.attr('rel');
+        let greetingId = $greetingRow.attr('id');
+        let greetingText = appsGreetings[appId].greetings[greetingId].text;
+        $appSelector.val(appId);
+
+        $(`[name="greeting-app-name"] option[value="${appId}"]`).attr('selected', true);
+        $('#modal-greeting-id').val(greetingId);
+        $('#modal-greeting-text').val(greetingText);
     });
 
     $modal.on('hidden.bs.modal', function() {
-        $('#modal-insert-btn').removeClass('d-none');
-        $('#modal-update-btn').removeClass('d-none');
-        $('#modal-greeting-text').val('');
-        $('#modal-greeting-id').val('');
+        let modalAppId = $appSelector.val();
+        if (nowSelectAppId !== modalAppId) {
+            $appDropdown.find('#' + modalAppId).trigger('click');
+        }
     });
-
-    function turnOnAddModal() {
-        $('#modal-update-btn').addClass('d-none');
-    }
 
     function insertGreeting() {
         if (rowCount >= 5) {
             return $.notify('訊息則數已達上限', { type: 'warning' });
         }
+
         rowCount++;
-        let appId = $appSelector.find('option:selected').val();
+        let appId = $appSelector.val();
         let text = $('#modal-greeting-text').val();
+
         if (!text) {
             return $.notify('文字欄位不可空白', { type: 'warning' });
         }
+
         let greeting = {
             type: 'text',
             text
         };
+
         return api.appsGreetings.insert(appId, userId, greeting).then(function(resJson) {
-            let greeting = resJson.data[appId].greetings;
-            let greetingId = Object.keys(greeting)[0];
-            findedGreetingIds[greetingId] = greetingId;
-            $appDropdown.find('#' + appId).click();
+            let _appsGreetings = resJson.data;
+            if (!appsGreetings[appId]) {
+                appsGreetings[appId] = { greetings: {} };
+            }
+            Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
+
+            $appDropdown.find('#' + appId).trigger('click');
             $modal.modal('hide');
             return $.notify('新增成功', { type: 'success' });
-        }).catch((resJson) => {
+        }).catch((err) => {
             $modal.modal('hide');
-            if (undefined === resJson.status) {
+            if (undefined === err.status) {
                 return $.notify('新增失敗', { type: 'danger' });
             }
-            if (NO_PERMISSION_CODE === resJson.code) {
+            if (NO_PERMISSION_CODE === err.code) {
                 return $.notify('無此權限', { type: 'danger' });
             }
             return $.notify('新增失敗', { type: 'danger' });
         });
     }
 
-    function turnOnEdit() {
-        $('#modal-insert-btn').addClass('d-none');
-        let appId = $(this).parent().parent().attr('rel');
-        let greetingId = $(this).parent().parent().attr('id');
-        let text = $(this).parent().siblings('td:first').text();
-        $(`[name="greeting-app-name"] option[value="${appId}"]`).attr('selected', true);
-        $('#modal-greeting-id').val(greetingId);
-        $('#modal-greeting-text').val(text);
-    }
-
     function updateGreeting() {
-        let appId = $appSelector.find('option:selected').val();
+        let appId = $appSelector.val();
         let greetingId = $('#modal-greeting-id').val();
         let text = $('#modal-greeting-text').val();
         if ('' === text.trim()) {
             return $.notify('請填入文字內容', { type: 'warning' });
         }
+
         let greeting = {
             type: 'text',
             text
         };
+
         return api.appsGreetings.update(appId, greetingId, userId, greeting).then((resJson) => {
             let appsgreetings = resJson.data;
             let modifiedText = appsgreetings[appId].greetings[greetingId].text;
@@ -122,16 +133,20 @@
         });
     }
 
-    function removeGretting() {
-        let appId = $(this).parent().parent().attr('rel');
-        let greetingId = $(this).parent().parent().attr('id');
+    function removeGretting(ev) {
+        let $removeBtn = $(this);
+        let $greetingRow = $removeBtn.parents('tr');
+        let appId = $greetingRow.attr('rel');
+        let greetingId = $greetingRow.attr('id');
+
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
                 return;
             }
-            return api.appsGreetings.remove(appId, greetingId, userId).then(function(resJson) {
+
+            return api.appsGreetings.remove(appId, greetingId, userId).then(function() {
                 $('#' + greetingId).remove();
-                delete findedGreetingIds[greetingId];
+                delete appsGreetings[appId].greetings[greetingId];
                 rowCount--;
                 return $.notify('刪除成功', { type: 'success' });
             }).catch((resJson) => {
@@ -176,15 +191,15 @@
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
-        findedGreetingIds = {};
-        loadGreetings(nowSelectAppId, userId);
+        return loadGreetings(nowSelectAppId, userId);
     }
 
     function loadGreetings(appId, userId) {
         $('#MsgCanvas').empty();
         rowCount = 0;
         return api.appsGreetings.findAll(appId, userId).then(function(resJson) {
-            let appsGreetings = resJson.data;
+            appsGreetings = resJson.data;
+
             if (appsGreetings && appsGreetings[appId]) {
                 let greeting = appsGreetings[appId].greetings;
                 for (let greetingId in greeting) {
@@ -200,25 +215,25 @@
                     );
 
                     rowCount++;
-                    findedGreetingIds[greetingId] = greetingId;
                 }
             }
         });
     }
 
     return api.apps.findAll(userId).then(function(respJson) {
-        appsData = respJson.data;
+        apps = respJson.data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+        $appSelector.empty();
 
         // 必須把訊息資料結構轉換為 chart 使用的陣列結構
         // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
-        for (var appId in appsData) {
-            var app = appsData[appId];
+        for (var appId in apps) {
+            var app = apps[appId];
             if (app.isDeleted ||
                 app.type === api.apps.enums.type.CHATSHIER) {
-                delete appsData[appId];
+                delete apps[appId];
                 continue;
             }
 
@@ -228,6 +243,7 @@
                     app.name +
                 '</a>'
             );
+            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
             if (!nowSelectAppId) {
@@ -237,7 +253,7 @@
 
         if (nowSelectAppId) {
             $('#add-btn').removeAttr('app-id').attr('app-id', nowSelectAppId);
-            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             loadGreetings(nowSelectAppId, userId);
             $(document).find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
