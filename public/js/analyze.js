@@ -439,8 +439,9 @@
 
             var cloudOptions = {
                 list: wordList,
-                // 文字雲字體基本大小
-                weightFactor: 24,
+                // 字體大小權重設太高，當資料太多時會導致 canvas 繪製效能嚴重延遲
+                weightFactor: 1,
+                rotateRatio: 0,
                 minSize: 8,
                 clearCanvas: true,
                 backgroundColor: '#eafaff'

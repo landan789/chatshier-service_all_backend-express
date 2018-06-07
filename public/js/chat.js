@@ -1930,15 +1930,15 @@
 
         return (
             '<div class="px-2 d-flex align-items-center form-group">' +
-                '<label class="px-0 col-3 col-form-label">群組名稱</label>' +
+                '<label class="px-0 col-3 col-form-label">聊天室名稱</label>' +
                 '<div class="pr-0 col-9 d-flex profile-content">' +
                     '<input class="form-control chatroom-name" type="text" value="' + chatroomName + '" placeholder="' + DEFAULT_CHATROOM_NAME + '"/>' +
                     '<button class="ml-2 btn btn-primary btn-update-chatroom">更新</button>' +
                 '</div>' +
             '</div>' +
-            '<div class="px-2 d-flex align-items-center form-group">' +
+            '<div class="px-2 d-flex form-group">' +
                 '<label class="px-0 col-3 col-form-label">' + (CHATSHIER === app.type ? '群組成員' : '客戶成員') + '</label>' +
-                '<div class="pr-0 col-9 d-flex profile-content">' +
+                '<div class="pr-0 col-9 d-flex flex-wrap profile-content">' +
                     (function() {
                         var html = '';
                         if (CHATSHIER === app.type) {
