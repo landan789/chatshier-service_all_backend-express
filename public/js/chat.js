@@ -1598,6 +1598,11 @@
 
         for (var i in messageIds) {
             var message = messages[messageIds[i]];
+
+            if (SYSTEM === message.from && 'imagemap' === message.type) {
+                message.from = CHATSHIER;
+            }
+
             var srcHtml = messageToPanelHtml(message, appType);
             if (!srcHtml) {
                 continue;
