@@ -74,7 +74,7 @@ module.exports = (function() {
             let groupId = postApp.group_id;
 
             /** @type {Chatshier.Models.App} */
-            let apps = {
+            let _apps = {
                 _id: _appId,
                 id1: postApp.id1 || '',
                 id2: postApp.id2 || '',
@@ -89,9 +89,9 @@ module.exports = (function() {
                 updatedTime: Date.now(),
                 createdTime: Date.now()
             };
-            let _apps = new this.AppsModel(apps);
+            let newApp = new this.AppsModel(_apps);
 
-            return _apps.save().then((__apps) => {
+            return newApp.save().then((__apps) => {
                 let query = {
                     '_id': groupId
                 };
@@ -117,7 +117,9 @@ module.exports = (function() {
                 };
                 return this.AppsModel.findOne(query).select(this.project);
             }).then((app) => {
-                apps[app._id] = app;
+                let apps = {
+                    [app._id]: app
+                };
                 ('function' === typeof callback) && callback(apps);
                 return apps;
             }).catch(() => {
