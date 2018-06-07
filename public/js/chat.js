@@ -2292,7 +2292,7 @@
         var src = file;
 
         var fileSize = file.size / kiloByte;
-        if (fileSize >= 1000) {
+        if (fileSize >= kiloByte) {
             fileSize /= kiloByte;
             fileSize = fileSize.toFixed(1) + ' MB';
         } else {
@@ -2326,22 +2326,46 @@
         $messageView.find('.message-panel').append($loadingElem);
         scrollMessagePanelToBottom(appId, chatroomId);
 
-        return new Promise((resolve, reject) => {
-            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                    return;
-                }
-                resolve();
+        return Promise.resolve().then(() => {
+            if ('audio' === messageType) {
+                return new Promise((resolve) => {
+                    var audio = document.createElement('audio');
+                    if (!audio) {
+                        return resolve(0);
+                    }
+
+                    audio.addEventListener('loadedmetadata', function() {
+                        let duration = audio.duration * 1000;
+                        URL.revokeObjectURL(audio.src);
+                        audio.src = audio = void 0;
+                        resolve(duration);
+                    }, false);
+                    audio.src = URL.createObjectURL(file);
+                });
+            }
+            return 0;
+        }).then((duration) => {
+            if (duration) {
+                messageToSend.duration = duration;
+            }
+
+            return new Promise((resolve, reject) => {
+                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
+                    if (err) {
+                        console.error(err);
+                        reject(err);
+                        return;
+                    }
+                    resolve();
+                });
+            }).then(() => {
+                $loadingElem.remove();
+                $loadingElem = void 0;
+            }).catch(() => {
+                $.notify('發送失敗', { type: 'danger' });
+                $loadingElem.remove();
+                $loadingElem = void 0;
             });
-        }).then(() => {
-            $loadingElem.remove();
-            $loadingElem = void 0;
-        }).catch(() => {
-            $.notify('發送失敗', { type: 'danger' });
-            $loadingElem.remove();
-            $loadingElem = void 0;
         });
     }
 
