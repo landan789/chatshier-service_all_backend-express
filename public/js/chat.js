@@ -683,6 +683,9 @@
                 senderMsger = messagers[senderMsgerId];
 
                 return Promise.resolve().then(function() {
+                    if (SYSTEM === message.from && 'imagemap' === message.type) {
+                        message.from = CHATSHIER;
+                    }
                     if (SYSTEM === message.from) {
                         return users[userId];
                     }
