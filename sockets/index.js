@@ -73,7 +73,6 @@ function init(server) {
                     senderMsgId = message.messager_id;
 
                     let fileName = message.fileName || `${message.time}.${media[message.type]}`;
-                    delete message.fileName;
 
                     let originalFilePath = `/.tmp/${fileName}`;
                     let srcBuffer = message.src;
@@ -98,6 +97,8 @@ function init(server) {
                     }).then((recipientUid) => {
                         return botSvc.pushMessage(recipientUid, message, srcBuffer, appId, app);
                     }).then(() => {
+                        delete message.fileName;
+                        delete message.duration;
                         return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
                             if (!appsChatroomsMessages) {
                                 return Promise.reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
