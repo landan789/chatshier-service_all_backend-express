@@ -181,6 +181,8 @@
     font-weight: bold;
     font-size: 1rem; }
 .message[message-type="template"] .content .template .template-desc {
+    overflow: hidden;
+    height: 3.5rem;
     font-size: .5rem; }
 .message[message-type="template"] .content .template .template-button {
     font-weight: bold;
@@ -202,10 +204,19 @@
         .message .content.found {
             color:white;
             background-color: #33ccff !important; }
-        .message .content.media {
+        .message .content.media .template-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; }
+        .message .content.media.buttons-format, .message .content.media.carousel-format {
             position: relative;
             overflow-x: scroll;
             height: 27rem; }
+        .message .content.media.confirm-format {
+            position: relative;
+            height: 8rem; }
+        .message .content.media.imagemap-format {
+            position: relative;
+            height: 20rem; }
         .message .content .text-content {
             line-height: 1.25rem;
             white-space: pre-wrap; }
@@ -593,7 +604,7 @@
     .template .top-img-container {
         position: relative;
         width: 100%;
-        height: 40%; }
+        height: 43%; }
         .template .top-img-container img {
             width: 100%;
             height: 100%;
@@ -633,6 +644,8 @@
         padding: 0 .5rem;
         font-weight: bold;
         position: relative; }
+    .template-sm .template-sm-title span {
+        overflow: hidden; }
     .template-sm .template-sm-buttons {
         height: 60%;
         padding: 0 .5rem;
@@ -645,4 +658,10 @@
     ::-webkit-scrollbar { 
         display: none; 
     }
+    .message .content.media.carousel-format {
+        position: relative;
+        overflow-x: visible;
+        height: 27rem; }
+    .message .content {
+        max-width: 90%; }
 }

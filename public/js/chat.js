@@ -1165,21 +1165,47 @@
             (appType !== CHATSHIER && (SYSTEM === message.from || CHATSHIER === message.from || VENDOR === message.from)) ||
             (appType === CHATSHIER && userId === platformUid);
 
+        var contentType = imageContentType(message);
+        console.log(contentType);
+
         return (
             '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
-                    imageContentType(message.type) +
+                    imageContentBadge(message.type) +
                     '<span class="sender-name">' + senderName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
-                    '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
+                    '<span class="content ' + (isMedia ? 'media' : 'words') + contentType + '">' + srcHtml + '</span>' +
                     '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
                 '</span>' +
             '</div>'
         );
     }
 
-    function imageContentType(type) {
+    function imageContentType(message) {
+        switch (message.type) {
+            case 'template':
+                console.log(message.template.type);
+                return ` ${message.template.type}-format`;
+            case 'imagemap':
+                return ' imagemap-format';
+            default:
+                return '';
+        }
+    }
+
+    function templateMessageType(type) {
+        switch (type) {
+            case 'confirm':
+                console.log(type);
+                return ' confirm';
+            default:
+                console.log(type);
+                return ` ${type}`;
+        }
+    }
+
+    function imageContentBadge(type) {
         switch (type) {
             case 'template':
                 return `<span class="template-btn badge badge-pill badge-dark mr-2">模板訊息</span>`;
