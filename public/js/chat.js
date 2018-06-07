@@ -683,6 +683,9 @@
                 senderMsger = messagers[senderMsgerId];
 
                 return Promise.resolve().then(function() {
+                    if (SYSTEM === message.from && 'imagemap' === message.type) {
+                        message.from = CHATSHIER;
+                    }
                     if (SYSTEM === message.from) {
                         return users[userId];
                     }
@@ -1165,21 +1168,34 @@
             (appType !== CHATSHIER && (SYSTEM === message.from || CHATSHIER === message.from || VENDOR === message.from)) ||
             (appType === CHATSHIER && userId === platformUid);
 
+        var contentType = imageContentType(message);
+
         return (
             '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
-                    imageContentType(message.type) +
+                    imageContentBadge(message.type) +
                     '<span class="sender-name">' + senderName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
-                    '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
+                    '<span class="content ' + (isMedia ? 'media' : 'words') + contentType + '">' + srcHtml + '</span>' +
                     '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
                 '</span>' +
             '</div>'
         );
     }
 
-    function imageContentType(type) {
+    function imageContentType(message) {
+        switch (message.type) {
+            case 'template':
+                return ` ${message.template.type}-format`;
+            case 'imagemap':
+                return ' imagemap-format';
+            default:
+                return '';
+        }
+    }
+
+    function imageContentBadge(type) {
         switch (type) {
             case 'template':
                 return `<span class="mr-2 px-2 py-1 template-btn badge badge-pill badge-dark">模板訊息</span>`;
@@ -1582,6 +1598,11 @@
 
         for (var i in messageIds) {
             var message = messages[messageIds[i]];
+
+            if (SYSTEM === message.from && 'imagemap' === message.type) {
+                message.from = CHATSHIER;
+            }
+
             var srcHtml = messageToPanelHtml(message, appType);
             if (!srcHtml) {
                 continue;
@@ -2276,7 +2297,7 @@
         var src = file;
 
         var fileSize = file.size / kiloByte;
-        if (fileSize >= 1000) {
+        if (fileSize >= kiloByte) {
             fileSize /= kiloByte;
             fileSize = fileSize.toFixed(1) + ' MB';
         } else {
@@ -2310,22 +2331,46 @@
         $messageView.find('.message-panel').append($loadingElem);
         scrollMessagePanelToBottom(appId, chatroomId);
 
-        return new Promise((resolve, reject) => {
-            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                    return;
-                }
-                resolve();
+        return Promise.resolve().then(() => {
+            if ('audio' === messageType) {
+                return new Promise((resolve) => {
+                    var audio = document.createElement('audio');
+                    if (!audio) {
+                        return resolve(0);
+                    }
+
+                    audio.addEventListener('loadedmetadata', function() {
+                        let duration = audio.duration * 1000;
+                        URL.revokeObjectURL(audio.src);
+                        audio.src = audio = void 0;
+                        resolve(duration);
+                    }, false);
+                    audio.src = URL.createObjectURL(file);
+                });
+            }
+            return 0;
+        }).then((duration) => {
+            if (duration) {
+                messageToSend.duration = duration;
+            }
+
+            return new Promise((resolve, reject) => {
+                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
+                    if (err) {
+                        console.error(err);
+                        reject(err);
+                        return;
+                    }
+                    resolve();
+                });
+            }).then(() => {
+                $loadingElem.remove();
+                $loadingElem = void 0;
+            }).catch(() => {
+                $.notify('發送失敗', { type: 'danger' });
+                $loadingElem.remove();
+                $loadingElem = void 0;
             });
-        }).then(() => {
-            $loadingElem.remove();
-            $loadingElem = void 0;
-        }).catch(() => {
-            $.notify('發送失敗', { type: 'danger' });
-            $loadingElem.remove();
-            $loadingElem = void 0;
         });
     }
 

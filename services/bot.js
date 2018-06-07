@@ -880,7 +880,7 @@ module.exports = (function() {
                     }
                     if ('audio' === message.type) {
                         _message.type = message.type;
-                        _message.duration = 240000;
+                        _message.duration = message.duration ? message.duration : 240000;
                         _message.originalContentUrl = message.src;
                     }
                     if ('video' === message.type) {
