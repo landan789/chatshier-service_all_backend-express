@@ -683,6 +683,9 @@
                 senderMsger = messagers[senderMsgerId];
 
                 return Promise.resolve().then(function() {
+                    if (SYSTEM === message.from && 'imagemap' === message.type) {
+                        message.from = CHATSHIER;
+                    }
                     if (SYSTEM === message.from) {
                         return users[userId];
                     }
@@ -1165,21 +1168,34 @@
             (appType !== CHATSHIER && (SYSTEM === message.from || CHATSHIER === message.from || VENDOR === message.from)) ||
             (appType === CHATSHIER && userId === platformUid);
 
+        var contentType = imageContentType(message);
+
         return (
             '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
-                    imageContentType(message.type) +
+                    imageContentBadge(message.type) +
                     '<span class="sender-name">' + senderName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
-                    '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
+                    '<span class="content ' + (isMedia ? 'media' : 'words') + contentType + '">' + srcHtml + '</span>' +
                     '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
                 '</span>' +
             '</div>'
         );
     }
 
-    function imageContentType(type) {
+    function imageContentType(message) {
+        switch (message.type) {
+            case 'template':
+                return ` ${message.template.type}-format`;
+            case 'imagemap':
+                return ' imagemap-format';
+            default:
+                return '';
+        }
+    }
+
+    function imageContentBadge(type) {
         switch (type) {
             case 'template':
                 return `<span class="mr-2 px-2 py-1 template-btn badge badge-pill badge-dark">模板訊息</span>`;
@@ -1582,6 +1598,11 @@
 
         for (var i in messageIds) {
             var message = messages[messageIds[i]];
+
+            if (SYSTEM === message.from && 'imagemap' === message.type) {
+                message.from = CHATSHIER;
+            }
+
             var srcHtml = messageToPanelHtml(message, appType);
             if (!srcHtml) {
                 continue;
