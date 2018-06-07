@@ -11,7 +11,7 @@
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
     var nowSelectAppId = '';
-    var appId = '';
+
     var keyword = '';
     var previewImage = '';
     var file;
@@ -41,12 +41,20 @@
     $(document).on('click', '#image-upload', uploadImageFromButton);
     $(document).on('change', '.image-ghost', uploadImage);
     $(document).on('click', '#modal-save', insertTemplate);
-    $(document).on('click', '#edit-btn', editTemplate);
     $(document).on('click', '#delete-btn', removeTemplate);
     $(document).on('click', '#edit-modal-save', updateTemplate);
-    $(document).on('click', '#show-template-modal', clearModal);
     $(document).on('focus', 'input[type="text"]', function() {
         $(this).select();
+    });
+
+    let $modal = $('#template-modal');
+    $modal.on('show.bs.modal', initTemplateModal);
+
+    $modal.on('hidden.bs.modal', function() {
+        let modalAppId = $appSelector.val();
+        if (nowSelectAppId !== modalAppId) {
+            $appDropdown.find('#' + modalAppId).trigger('click');
+        }
     });
 
     return api.apps.findAll(userId).then(function(respJson) {
@@ -72,7 +80,7 @@
                     app.name +
                 '</a>'
             );
-            $appSelector.append('<option id="' + appId + '">' + app.name + '</option>');
+            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
         }
@@ -162,8 +170,20 @@
         checkCarouselSide();
     }
 
-    function editTemplate() {
+    function initTemplateModal(ev) {
+        let $relatedBtn = $(ev.relatedTarget);
         clearModal();
+
+        if ('show-template-modal' === $relatedBtn.attr('id')) {
+            $appSelector.val(nowSelectAppId);
+            return;
+        }
+
+        let $templateRow = $relatedBtn.parents('tr');
+        let templateId = $templateRow.attr('id');
+        let appId = $templateRow.attr('rel');
+        $appSelector.val(appId);
+
         elementShow($('#show-template-modal'));
         $('.carousel-inner').carousel(0);
         $('.carousel-inner').carousel('pause');
@@ -174,12 +194,9 @@
         };
         carouselImage = [];
         btnImage = '';
-        let modal = $('#template-modal');
-        elementHide(modal.find('.app-select-bar'));
-        elementHide(modal.find('#modal-save'));
-        elementShow(modal.find('#edit-modal-save'));
-        let appId = $(this).parent().parent().attr('rel');
-        let templateId = $(this).parent().parent().attr('id');
+        elementHide($modal.find('.app-select-bar'));
+        elementHide($modal.find('#modal-save'));
+        elementShow($modal.find('#edit-modal-save'));
 
         return api.appsTemplates.findOne(appId, templateId, userId).then(function(resJson) {
             let data = resJson.data;
@@ -254,7 +271,7 @@
 
     function updateTemplate() {
         elementDisabled($('#edit-modal-save'), handleMessages.working);
-        let appId = $('#app-select option:selected').attr('id');
+        let appId = $('#app-select').val();
         let altText = $('#template-altText').val();
         let keyword = $('#template-keyword').val();
         let type = $('#template-type').val();
@@ -399,9 +416,9 @@
 
     function insertTemplate() {
         elementDisabled($('#modal-save'), handleMessages.working);
-        appId = $('#app-select option:selected').attr('id');
-        keyword = $('#template-keyword').val();
+        let appId = $('#app-select').val();
         let type = $('#template-type').val();
+        keyword = $('#template-keyword').val();
 
         if (!keyword || !type) {
             elementEnabled($('#modal-save'), handleMessages.addFinished);
@@ -590,8 +607,11 @@
     // =====edit template end=====
 
     function removeTemplate() {
-        let appId = $(this).parent().parent().attr('rel');
-        let templateId = $(this).parent().parent().attr('id');
+        let $removeBtn = $(this);
+        let $templateRow = $removeBtn.parents('tr');
+        let appId = $templateRow.attr('rel');
+        let templateId = $templateRow.attr('id');
+
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
                 return;

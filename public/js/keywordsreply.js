@@ -2,7 +2,7 @@
 
 (function() {
     var nowSelectAppId = '';
-    var appsData = {};
+    var apps = {};
     var keywordreplies = {};
     var api = window.restfulAPI;
 
@@ -56,23 +56,33 @@
         $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val('');
         $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val('');
         $keywordreplyAddModal.find('input[name="keywordreply-is-draft"]').prop('checked', false);
+
         // 新增 modal 即將顯示事件發生時，將 App 清單更新
         $appSelector.empty();
-        for (var appId in appsData) {
-            var app = appsData[appId];
+        for (var appId in apps) {
+            var app = apps[appId];
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
         }
+        $appSelector.val(nowSelectAppId);
     });
+
+    $keywordreplyAddModal.on('hidden.bs.modal', function() {
+        let modalAppId = $appSelector.val();
+        if (nowSelectAppId !== modalAppId) {
+            $appDropdown.find('#' + modalAppId).trigger('click');
+        }
+    });
+
     $keywordreplyAddModal.find('button.btn-insert-submit').on('click', insertSubmit);
     // ==========
 
     // ==========
     // 設定關鍵字編輯 modal 相關 element 與事件
-    $keywordreplyEditModal.on('show.bs.modal', function(event) {
+    $keywordreplyEditModal.on('show.bs.modal', function(ev) {
         // 編輯 modal 即將顯示事件發生時，將欄位資料更新
-        var targetRow = $(event.relatedTarget).parent().parent();
-        var appId = targetRow.attr('data-title');
-        var keywordreplyId = targetRow.prop('id');
+        var $targetRow = $(ev.relatedTarget).parent().parent();
+        var appId = $targetRow.attr('data-title');
+        var keywordreplyId = $targetRow.prop('id');
         var targetData = keywordreplies[keywordreplyId];
 
         var $editForm = $keywordreplyEditModal.find('.modal-body form');
@@ -121,18 +131,18 @@
     $openTableElem = $('#keywordreply_open_table tbody');
     $draftTableElem = $('#keywordreply_draft_table tbody');
     return api.apps.findAll(userId).then(function(respJson) {
-        appsData = respJson.data;
+        apps = respJson.data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         // 必須把訊息資料結構轉換為 chart 使用的陣列結構
         // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
-        for (var appId in appsData) {
-            var app = appsData[appId];
+        for (var appId in apps) {
+            var app = apps[appId];
             if (app.isDeleted ||
                 app.type === api.apps.enums.type.CHATSHIER) {
-                delete appsData[appId];
+                delete apps[appId];
                 continue;
             }
             $dropdownMenu.append(
@@ -149,7 +159,7 @@
         }
 
         if (nowSelectAppId) {
-            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             loadKeywordsReplies(nowSelectAppId, userId);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
