@@ -1166,7 +1166,6 @@
             (appType === CHATSHIER && userId === platformUid);
 
         var contentType = imageContentType(message);
-        console.log(contentType);
 
         return (
             '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
@@ -1185,23 +1184,11 @@
     function imageContentType(message) {
         switch (message.type) {
             case 'template':
-                console.log(message.template.type);
                 return ` ${message.template.type}-format`;
             case 'imagemap':
                 return ' imagemap-format';
             default:
                 return '';
-        }
-    }
-
-    function templateMessageType(type) {
-        switch (type) {
-            case 'confirm':
-                console.log(type);
-                return ' confirm';
-            default:
-                console.log(type);
-                return ` ${type}`;
         }
     }
 
@@ -1399,7 +1386,6 @@
             case 'imagemap':
                 return (
                     '<div class="imagemap-message-container">' +
-                        `<span class="imagemap-btn badge badge-pill badge-dark">圖文訊息</span>` +
                         `<img class="imagemap-image" src="${message.src || ''}" />` +
                         `<div class="imagemap-message-content row mx-0">${(message.imagemap ? photoFormShow(message) : '')}</div>` +
                     '</div>'
