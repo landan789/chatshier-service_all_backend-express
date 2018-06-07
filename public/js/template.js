@@ -262,8 +262,7 @@
 
         if (!altText) {
             elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-            $.notify('電腦版替代文字不可為空', { type: 'warning' });
-            return null;
+            return $.notify('電腦版替代文字不可為空', { type: 'warning' });
         } else {
             let template = null;
             if ('confirm' === type) {
@@ -366,8 +365,7 @@
             if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
                 elementEnabled($('#modal-save'), handleMessages.addFinished);
                 elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                $.notify('圖像檔案過大，檔案大小限制為: ' + (Math.floor(config.imageFileMaxSize / megaByte)) + ' MB');
-                return;
+                return $.notify('圖像檔案過大，檔案大小限制為: ' + (Math.floor(config.imageFileMaxSize / megaByte)) + ' MB');
             }
 
             return new Promise(function(resolve, reject) {
@@ -600,8 +598,11 @@
             }
             return api.appsTemplates.remove(appId, templateId, userId);
         }).then(function(resJson) {
-            $('#' + templateId).remove();
-            $.notify('刪除成功！', { type: 'success' });
+            if (resJson) {
+                $('#' + templateId).remove();
+                return $.notify('刪除成功！', { type: 'success' });
+            }
+            $.notify('取消刪除', { type: 'primary' });
         }).catch((resJson) => {
             if (undefined === resJson.status) {
                 $.notify('失敗', { type: 'danger' });
@@ -619,13 +620,13 @@
             var isOK = false;
             var $dialogModal = $('#dialog_modal');
 
-            $dialogModal.find('.btn-primary').on('click', function() {
+            $dialogModal.find('.btn-primary').off('click').on('click', function() {
                 isOK = true;
                 resolve(isOK);
                 $dialogModal.modal('hide');
             });
 
-            $dialogModal.find('.btn-secondary').on('click', function() {
+            $dialogModal.find('.btn-secondary').off('click').on('click', function() {
                 resolve(isOK);
                 $dialogModal.modal('hide');
             });
