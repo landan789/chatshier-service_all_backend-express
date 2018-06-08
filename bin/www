@@ -2,8 +2,14 @@
 const CHATSHIER = require('../config/chatshier');
 
 var app = require('../app');
-var http = require('http');
-var server = http.createServer(app);
+var https = require('https');
+var fs = require("fs");
+
+var options = {
+    key: fs.readFileSync('./config/chatshier.com.key'),
+    cert: fs.readFileSync('./config/chatshier.com.crt')
+};
+var server = https.createServer(options, app);
 var socketInit = require('../sockets/index');
 socketInit(server);
 
