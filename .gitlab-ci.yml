@@ -55,7 +55,7 @@ RELEASE:
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_REL_1_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only api-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_REL_2_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only api-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
   
-   - echo "[SUCCEEDED] develop has been deployed."
+   - echo "[SUCCEEDED] release has been deployed."
   only:
     refs:
       - release
@@ -78,7 +78,7 @@ MASTER:
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_1_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only api-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_2_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only api-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
   
-   - echo "[SUCCEEDED] develop has been deployed."
+   - echo "[SUCCEEDED] master has been deployed."
   only:
     refs:
       - master
