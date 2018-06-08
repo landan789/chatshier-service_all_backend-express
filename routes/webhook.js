@@ -214,7 +214,7 @@ router.post('/:webhookid', (req, res, next) => {
                             return appsChatrooms;
                         });
                     }).then((appsChatrooms) => {
-                        if (!(appsChatrooms[appId]) && appsChatrooms[appId]) {
+                        if (!(appsChatrooms && appsChatrooms[appId])) {
                             return;
                         }
 
