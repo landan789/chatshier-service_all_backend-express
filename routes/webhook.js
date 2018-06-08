@@ -439,9 +439,12 @@ router.post('/:webhookid', (req, res, next) => {
         console.log(JSON.stringify(json, null, 4));
         console.trace(json);
         !res.headersSent && res.sendStatus(500);
+        console.log(442);
+
     }).then(() => {
         let idx = webhookProcQueue.indexOf(webhookPromise);
         idx >= 0 && webhookProcQueue.splice(idx, 1);
+        console.log(447);
     });
     webhookProcQueue.push(webhookPromise);
 });
