@@ -202,6 +202,7 @@ router.post('/:webhookid', (req, res, next) => {
 
                         // 根據平台的群組 ID 查找群組聊天室
                         return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId, {}).then((appsChatrooms) => {
+                            // 沒有找到此群組聊天室，則自動建立
                             if (!(appsChatrooms && appsChatrooms[appId])) {
                                 let platformGroupType = webhookInfo.platformGroupType;
                                 let chatroom = {
@@ -213,10 +214,14 @@ router.post('/:webhookid', (req, res, next) => {
                             return appsChatrooms;
                         });
                     }).then((appsChatrooms) => {
+                        if (!(appsChatrooms[appId]) && appsChatrooms[appId]) {
+                            return;
+                        }
+
                         let chatrooms = appsChatrooms[appId].chatrooms;
                         let groupChatroomId = Object.keys(chatrooms).shift() || '';
-                        webhookChatroomId = groupChatroomId;
                         let groupChatroom = chatrooms[groupChatroomId];
+                        webhookChatroomId = groupChatroomId;
 
                         let chatroomId = groupChatroom ? webhookChatroomId : void 0;
                         let platformUid = webhookInfo.platformUid;
