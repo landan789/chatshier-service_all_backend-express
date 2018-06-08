@@ -81,7 +81,8 @@ function init(server) {
                         if ('text' === message.type || 'imagemap' === message.type) {
                             return;
                         }
-                        return storageHlp.filesUpload(originalFilePath, srcBuffer).then((response) => {
+
+                        return storageHlp.filesUpload(originalFilePath, srcBuffer).then(() => {
                             return storageHlp.sharingCreateSharedLink(originalFilePath);
                         }).then((url) => {
                             message.src = url;
@@ -164,7 +165,12 @@ function init(server) {
                 ('function' === typeof callback) && callback();
             }).catch((err) => {
                 console.error(err);
-                ('function' === typeof callback) && callback(err);
+                let json = {
+                    status: 0,
+                    msg: err.MSG,
+                    code: err.CODE
+                };
+                ('function' === typeof callback) && callback(json);
             });
         });
 
@@ -190,7 +196,12 @@ function init(server) {
                 ('function' === typeof callback) && callback();
             }).catch((err) => {
                 console.error(err);
-                ('function' === typeof callback) && callback(err);
+                let json = {
+                    status: 0,
+                    msg: err.MSG,
+                    code: err.CODE
+                };
+                ('function' === typeof callback) && callback(json);
             });
         });
 

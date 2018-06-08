@@ -2449,6 +2449,7 @@
                 form: resJson.data[imagemapId].form,
                 messager_id: messagerSelf._id
             };
+
             /** @type {ChatshierChatSocketBody} */
             var socketBody = {
                 app_id: appId,
@@ -2462,6 +2463,9 @@
             var $loadingElem = generateLoadingJqElem();
             $messageView.find('.message-panel').append($loadingElem);
             scrollMessagePanelToBottom(appId, chatroomId);
+
+            var $imagemapArea = $('.message-input-container .imagemap-area');
+            $imagemapArea.addClass('d-none');
 
             return new Promise(function(resolve, reject) {
                 $submitMessageInput.val('');
