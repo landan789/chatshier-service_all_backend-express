@@ -90,11 +90,11 @@ module.exports = (function() {
 
         putOne(req, res, next) {
             let userId = req.params.userid;
-            let userData = {
-                company: req.body.company,
-                phone: req.body.phone,
-                address: req.body.address
-            };
+            let putUser = {};
+            ('string' === typeof req.body.name) && (putUser.name = req.body.name);
+            ('string' === typeof req.body.company) && (putUser.company = req.body.company);
+            ('string' === typeof req.body.phone) && (putUser.phone = req.body.phone);
+            ('string' === typeof req.body.address) && (putUser.address = req.body.address);
 
             return new Promise((resolve, reject) => {
                 if (!userId) {
@@ -102,7 +102,12 @@ module.exports = (function() {
                     return;
                 }
 
-                usersMdl.update(userId, userData, (users) => {
+                if ('string' === typeof putUser.name && 0 === putUser.name.length) {
+                    reject(API_ERROR.NAME_WAS_EMPTY);
+                    return;
+                }
+
+                usersMdl.update(userId, putUser, (users) => {
                     if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_UPDATE);
                         return;

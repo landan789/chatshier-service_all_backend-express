@@ -232,7 +232,7 @@
         for (var appId in apps) {
             var app = apps[appId];
             if (app.isDeleted ||
-                app.type === api.apps.enums.type.CHATSHIER) {
+                app.type !== api.apps.enums.type.LINE) {
                 delete apps[appId];
                 continue;
             }

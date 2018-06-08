@@ -36,4 +36,4 @@
         cursor: pointer; }
 
 .condition-content .typeahead .dropdown-item {
-    white-space: pre-wrap; }
+    white-space: pre-line; }

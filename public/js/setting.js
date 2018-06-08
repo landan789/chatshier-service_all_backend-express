@@ -12,6 +12,7 @@
     const ACTIVE = '啟用';
     const INACTIVE = '未啟用';
 
+    const NAME_WAS_EMPTY = '1.7';
     const NO_PERMISSION_CODE = '3.16';
     const PASSWORD_WAS_INCORRECT = '2.2';
     const NEW_PASSWORD_WAS_INCONSISTENT = '2.4';
@@ -208,30 +209,38 @@
         }
     });
 
-    $('#userProfileEdit').click(function() {
+    $('#userProfileEdit').on('click', function() {
         let user = users[userId];
-        let company = user.company;
-        let phone = user.phone;
-        let address = user.address;
+        let userName = user.name;
+        let company = user.company || '';
+        let phone = user.phone || '';
+        let address = user.address || '';
+
         let str =
-            '<form id="line-form">' +
+            '<form id="userForm">' +
                 '<div id="type" class="d-none">updateProfile</div>' +
                 '<div class="form-group">' +
-                    '<label class="col-form-label">公司名稱: </label>' +
+                    '<label class="col-form-label">顯示名稱:</label>' +
                     '<div class="input-container">' +
-                        '<input class="form-control" type="text" value="' + company + '" id="company"/>' +
+                        '<input class="form-control" type="text" value="' + userName + '" name="userName" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label">公司名稱:</label>' +
+                    '<div class="input-container">' +
+                        '<input class="form-control" type="text" value="' + company + '" name="userCompany" />' +
                     '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label">手機: </label>' +
                     '<div class="input-container">' +
-                        '<input class="form-control" type="tel" value="' + phone + '" id="phone"/>' +
+                        '<input class="form-control" type="tel" value="' + phone + '" name="userPhone"/>' +
                     '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label">地址: </label>' +
                     '<div class="input-container">' +
-                        '<input class="form-control" type="text" value="' + address + '" id="address"/>' +
+                        '<input class="form-control" type="text" value="' + address + '" name="userAddress"/>' +
                     '</div>' +
                 '</div>' +
             '</form>';
@@ -992,7 +1001,7 @@
 
     function findUserProfile() {
         return api.users.find(userId).then(function(resJson) {
-            var users = resJson.data;
+            users = resJson.data;
             var user = users[userId];
 
             $('#prof-id').text(userId);
@@ -1005,31 +1014,44 @@
         });
     }
 
-    function updateUserProfile(user) {
-        return api.users.update(userId, user).then(function() {
-            $('#prof-company').text(user.company);
-            $('#prof-phonenumber').text(user.phone);
-            $('#prof-address').text(user.address);
-        });
-    }
-
     function profSubmitBasic() {
-        let company = $('#company').val();
-        let phone = $('#phone').val();
-        let address = $('#address').val();
-        let users = {
-            company,
-            phone,
-            address
+        let $userForm = $settingModal.find('#userForm');
+        let userName = $userForm.find('input[name="userName"]').val();
+        let company = $userForm.find('input[name="userCompany"]').val();
+        let phone = $userForm.find('input[name="userPhone"]').val();
+        let address = $userForm.find('input[name="userAddress"]').val();
+
+        let putUser = {
+            name: userName,
+            company: company,
+            phone: phone,
+            address: address
         };
+
         var phoneRule = /^09\d{8}$/;
         if (phone && !phone.match(phoneRule)) {
             $settingModal.modal('hide');
             $.notify('手機格式錯誤，應為09XXXXXXXX', {type: 'danger'});
-        } else {
-            updateUserProfile(users);
-            $settingModal.modal('hide');
+            return;
         }
+
+        return api.users.update(userId, putUser).then(function(resJson) {
+            let _users = resJson.data;
+            Object.assign(users, _users);
+            $settingModal.modal('hide');
+
+            let _user = _users[userId];
+            $('.user-name .card-title').text(_user.name);
+            $('#prof-company').text(_user.company);
+            $('#prof-phonenumber').text(_user.phone);
+            $('#prof-address').text(_user.address);
+        }).catch(function(err) {
+            if (NAME_WAS_EMPTY === err.code) {
+                $.notify('顯示名稱不能設為空', { type: 'danger' });
+                return;
+            }
+            $.notify('更新失敗', { type: 'danger' });
+        });
     }
 
     function createWebhookUrl(baseWebhookUrl, webhookId) {

@@ -465,7 +465,7 @@
     $(document).on('focus', '.message-input-container #submitMessageInput', readClientMsg); // 已讀客戶訊息
     $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
     $(document).on('click', '#imagemap', showImagemapArea);
-    $(document).on('click', '#send-imagemap-btn', sendImagemap);
+    $(document).on('click', '.send-imagemap-btn', sendImagemap);
     $(document).on('mouseover', '.imagemap-message-content', function() { $(this).find('.imagemap-text-space').css('visibility', 'visible'); });
     $(document).on('mouseleave', '.imagemap-message-content', function() { $(this).find('.imagemap-text-space').css('visibility', 'hidden'); });
     $mediaBtns.on('click', triggerFileUpload); // 傳圖，音，影檔功能
@@ -2035,11 +2035,14 @@
         var $navTitle = $('#navTitle');
         var chatroomTitle = document.title.replace(' | Chatshier', ' #' + appName);
 
-        if (LINE === appType) {
-            $('.imagemap-container').removeClass('d-none');
+        let $imagemapArea = $('.message-input-container .imagemap-area');
+        let $imagemapContainer = $('.message-input .imagemap-container');
+        if (LINE !== appType) {
+            $imagemapContainer.addClass('d-none');
         } else {
-            $('.imagemap-container').addClass('d-none');
+            $imagemapContainer.removeClass('d-none');
         }
+        $imagemapArea.empty().addClass('d-none');
 
         if (CHATSHIER !== appType) {
             var messagers = chatroom.messagers;
@@ -2374,34 +2377,43 @@
         });
     }
 
-    function showImagemapArea(ev) {
+    function showImagemapArea() {
         let $imagemapBtn = $(this);
         if ($imagemapBtn.attr('disabled')) {
             return;
         }
 
-        let appId = $imagemapBtn.parents('.message-input-container').siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
-        return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
-            let appsImagemaps = resJson.data;
-            if (!appsImagemaps[appId]) {
-                $imagemapBtn.attr('disabled', true);
-                return;
-            }
-            $imagemapBtn.removeAttr('disabled');
+        let $imagemapArea = $('.message-input-container .imagemap-area');
+        if (!$imagemapArea.hasClass('d-none')) {
+            $imagemapArea.addClass('d-none');
+            return;
+        }
 
-            let imagemaps = appsImagemaps[appId].imagemaps;
-            let imagemapIds = Object.keys(imagemaps).filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
+        if (!$imagemapArea.html()) {
+            let appId = $imagemapBtn.parents('.message-input-container').siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
+            return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
+                let appsImagemaps = resJson.data;
+                if (!appsImagemaps[appId]) {
+                    $imagemapBtn.attr('disabled', true);
+                    return;
+                }
+                $imagemapBtn.removeAttr('disabled');
 
-            let $imagemapArea = $('.imagemap-area');
-            $imagemapArea.html(
-                imagemapIds.map((imagemapId) => {
-                    return `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1 send-imagemap-btn" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
-                }).join('')
-            );
-            $imagemapArea.toggleClass('d-none').siblings().toggleClass('d-none');
-        }).catch(() => {
-            $.notify('載入圖文訊息失敗', { type: 'danger' });
-        });
+                let imagemaps = appsImagemaps[appId].imagemaps;
+                let imagemapIds = Object.keys(imagemaps).filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
+
+                $imagemapArea.html(
+                    imagemapIds.map((imagemapId) => {
+                        return `<button class="m-2 btn btn-secondary btn-sm send-imagemap-btn" id="sendImagemapBtn" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
+                    }).join('')
+                );
+                $imagemapArea.removeClass('d-none');
+            }).catch(() => {
+                $.notify('載入圖文訊息失敗', { type: 'danger' });
+            });
+        } else {
+            $imagemapArea.removeClass('d-none');
+        }
     }
 
     function sendImagemap(ev) {
@@ -2576,16 +2588,8 @@
         }
 
         var messagerSelf = findMessagerSelf(appId, chatroomId);
-
         var chatSelectQuery = '.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
         var $messagePanel = $chatContentPanel.find(chatSelectQuery + ' .message-panel');
-
-        if (messager && messager.platformUid && CHATSHIER !== messager.type) {
-            var platformUid = messager.platformUid;
-            var consumer = consumers[platformUid];
-            var displayName = (messagerSelf.namings && messagerSelf.namings[platformUid]) || consumer.name;
-            $messagePanel.find('.messager-name.text-left span').text(displayName);
-        }
 
         if (chatroomList.indexOf(chatroomId) >= 0) {
             var lastMessageTime = new Date($messagePanel.find('.message:last').attr('message-time')).getTime();
