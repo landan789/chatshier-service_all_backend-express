@@ -175,13 +175,16 @@
 
 
 .message[message-type="template"] .content .template .template-title {
+    overflow: hidden;
     font-weight: bold;
     font-size: 1rem; }
 .message[message-type="template"] .content .template .template-desc {
     overflow: hidden;
+    overflow: hidden;
     height: 3.5rem;
-    font-size: .5rem; }
-.message[message-type="template"] .content .template .template-button {
+    font-size: 1rem; }
+.message[message-type="template"] .content .template .template-button, .message[message-type="template"] .content .template-sm-buttons .template-confirm {
+    overflow: hidden;
     font-weight: bold;
     font-size: 1rem; }
 .message {
@@ -207,7 +210,7 @@
             height: 27rem; }
         .message .content.media.confirm-format {
             position: relative;
-            height: 8rem; }
+            height: 10rem; }
         .message .content.media.imagemap-format {
             position: relative;
             height: 20rem; }
@@ -629,26 +632,26 @@
 /* small template */
 .template-sm {
     position: relative;
-    width: 18rem;
-    height: 8rem;
+    width: 20rem;
+    height: 10rem;
     border: 0.0625rem solid #efefef;
     border-radius: 1rem;
     word-break: break-all; }
     .template-sm .template-sm-title {
         border-radius: 1rem 1rem 0 0;
         background-color: #efefef;
-        height: 40%;
-        padding: 0 .5rem;
+        height: 50%;
         font-weight: bold;
         position: relative;
         overflow: hidden; }
     .template-sm .template-sm-buttons {
-        height: 60%;
+        height: 50%;
         padding: 0 .5rem;
         position: relative;
         color: #7caeff;
         background-color: #fff;
-        border-radius: 0 0 1rem 1rem; }
+        border-radius: 0 0 1rem 1rem;
+        overflow: hidden; }
 
 @media (min-width: 1700px) {
     ::-webkit-scrollbar { 
