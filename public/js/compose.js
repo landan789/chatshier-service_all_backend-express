@@ -1068,7 +1068,7 @@
 
             let $composeRow = $(
                 '<tr class="compose-row" app-id="' + appId + '" compose-id="' + composeId + '">' +
-                    '<td id="text" data-title="' + compose.text.toLowerCase() + '">' + compose.text + '</td>' +
+                    '<td class="text-pre" id="text" data-title="' + compose.text.toLowerCase() + '">' + compose.text + '</td>' +
                     '<td id="time">' + toLocalTimeString(compose.time) + '</td>' +
                     '<td>' +
                         (function generateConditionsCol(conditions) {

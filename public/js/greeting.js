@@ -1,7 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var rowCount = 0;
     var userId;
     var nowSelectAppId = '';
     var apps = {};
@@ -64,42 +63,51 @@
     });
 
     function insertGreeting() {
-        if (rowCount >= 5) {
-            return $.notify('訊息則數已達上限', { type: 'warning' });
-        }
-
-        rowCount++;
         let appId = $appSelector.val();
-        let text = $('#modal-greeting-text').val();
 
-        if (!text) {
-            return $.notify('文字欄位不可空白', { type: 'warning' });
-        }
-
-        let greeting = {
-            type: 'text',
-            text
-        };
-
-        return api.appsGreetings.insert(appId, userId, greeting).then(function(resJson) {
-            let _appsGreetings = resJson.data;
+        return Promise.resolve().then(() => {
             if (!appsGreetings[appId]) {
-                appsGreetings[appId] = { greetings: {} };
-            }
-            Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
+                if (!appsGreetings[appId]) {
+                    appsGreetings[appId] = { greetings: {} };
+                }
 
-            $appDropdown.find('#' + appId).trigger('click');
-            $modal.modal('hide');
-            return $.notify('新增成功', { type: 'success' });
-        }).catch((err) => {
-            $modal.modal('hide');
-            if (undefined === err.status) {
+                return api.appsGreetings.findAll(appId, userId).then((resJson) => {
+                    let _appsGreetings = resJson.data;
+                    Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
+                });
+            }
+        }).then(() => {
+            if (Object.keys(appsGreetings[appId].greetings).length >= 5) {
+                return $.notify('訊息則數已達上限', { type: 'warning' });
+            }
+
+            let text = $('#modal-greeting-text').val();
+            if (!text) {
+                return $.notify('文字欄位不可空白', { type: 'warning' });
+            }
+
+            let greeting = {
+                type: 'text',
+                text: text
+            };
+
+            return api.appsGreetings.insert(appId, userId, greeting).then(function(resJson) {
+                let _appsGreetings = resJson.data;
+                Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
+
+                $appDropdown.find('#' + appId).trigger('click');
+                $modal.modal('hide');
+                return $.notify('新增成功', { type: 'success' });
+            }).catch((err) => {
+                $modal.modal('hide');
+                if (undefined === err.status) {
+                    return $.notify('新增失敗', { type: 'danger' });
+                }
+                if (NO_PERMISSION_CODE === err.code) {
+                    return $.notify('無此權限', { type: 'danger' });
+                }
                 return $.notify('新增失敗', { type: 'danger' });
-            }
-            if (NO_PERMISSION_CODE === err.code) {
-                return $.notify('無此權限', { type: 'danger' });
-            }
-            return $.notify('新增失敗', { type: 'danger' });
+            });
         });
     }
 
@@ -147,7 +155,6 @@
             return api.appsGreetings.remove(appId, greetingId, userId).then(function() {
                 $('#' + greetingId).remove();
                 delete appsGreetings[appId].greetings[greetingId];
-                rowCount--;
                 return $.notify('刪除成功', { type: 'success' });
             }).catch((resJson) => {
                 if (undefined === resJson.status) {
@@ -196,7 +203,7 @@
 
     function loadGreetings(appId, userId) {
         $('#MsgCanvas').empty();
-        rowCount = 0;
+
         return api.appsGreetings.findAll(appId, userId).then(function(resJson) {
             appsGreetings = resJson.data;
 
@@ -213,8 +220,6 @@
                             '</td>' +
                         '</tr>'
                     );
-
-                    rowCount++;
                 }
             }
         });
@@ -232,7 +237,7 @@
         for (var appId in apps) {
             var app = apps[appId];
             if (app.isDeleted ||
-                app.type === api.apps.enums.type.CHATSHIER) {
+                app.type !== api.apps.enums.type.LINE) {
                 delete apps[appId];
                 continue;
             }
@@ -254,8 +259,8 @@
         if (nowSelectAppId) {
             $('#add-btn').removeAttr('app-id').attr('app-id', nowSelectAppId);
             $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
-            loadGreetings(nowSelectAppId, userId);
             $(document).find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            return loadGreetings(nowSelectAppId, userId);
         }
     });
 })();

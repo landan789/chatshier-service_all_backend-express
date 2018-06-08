@@ -465,29 +465,36 @@
     $(document).on('focus', '.message-input-container #submitMessageInput', readClientMsg); // 已讀客戶訊息
     $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
     $(document).on('click', '#imagemap', showImagemapArea);
-    $(document).on('click', '#send-imagemap-btn', sendImagemap);
+    $(document).on('click', '.send-imagemap-btn', sendImagemap);
     $(document).on('mouseover', '.imagemap-message-content', function() { $(this).find('.imagemap-text-space').css('visibility', 'visible'); });
     $(document).on('mouseleave', '.imagemap-message-content', function() { $(this).find('.imagemap-text-space').css('visibility', 'hidden'); });
     $mediaBtns.on('click', triggerFileUpload); // 傳圖，音，影檔功能
     $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
-    $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
-        if (13 === ev.keyCode) {
-            // 按下 enter 後，如果有進行 shift 組合鍵時，在 PC 版本上，預設會自動換行
-            if (!isMobile && ev.shiftKey) {
-                return;
-            }
 
-            // 在行動裝置上按下 enter 鍵是進行換行動作
-            // 在 PC 版本上，按下 enter 是直接發送
-            if (isMobile) {
-                ev.target.value += '\n';
-            } else {
-                $('.message-input-container #submitMessageBtn').click();
-            }
+    $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
+        if (13 === ev.keyCode && ev.ctrlKey) {
+            $('.message-input-container #submitMessageBtn').click();
             ev.preventDefault();
         }
+
+        // if (13 === ev.keyCode) {
+        //     // 按下 enter 後，如果有進行 shift 組合鍵時，在 PC 版本上，預設會自動換行
+        //     if (!isMobile && ev.shiftKey) {
+        //         return;
+        //     }
+
+        //     // 在行動裝置上按下 enter 鍵是進行換行動作
+        //     // 在 PC 版本上，按下 enter 是直接發送
+        //     if (isMobile) {
+        //         ev.target.value += '\n';
+        //     } else {
+        //         $('.message-input-container #submitMessageBtn').click();
+        //     }
+        //     ev.preventDefault();
+        // }
     });
+
     // 偵測 video 變成全螢幕時，把 control panel 及 toobar 進行顯示及隱藏切換
     $chatroomBody.on('fullscreenchange webkitfullscreenchange mozfullscreenchange', '.message video', function(ev) {
         var isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
@@ -653,6 +660,10 @@
             messages.sort(function(a, b) {
                 return new Date(a.time).getTime() - new Date(b.time).getTime();
             });
+
+            if (!appsChatrooms[appId]) {
+                appsChatrooms[appId] = { chatrooms: {} };
+            }
 
             var chatrooms = appsChatrooms[appId].chatrooms;
             var chatroom = chatrooms[chatroomId];
@@ -1490,14 +1501,14 @@
                             return (
                                 '<div class="template-sm">' +
                                     `<div class="d-flex flex-wrap align-items-center template-sm-title">
-                                        <span>${template.text}</span>
+                                        <span class="p-2">${18 >= template.text.length ? template.text : `${template.text.substring(0, 17)}...`}</span>
                                     </div>` +
                                     '<div class="d-flex flex-row justify-content-between template-sm-buttons">' +
                                         (function() {
                                             return template.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-auto text-center template-sm-button${i + 1}">
-                                                    <span>${action.label}</span>
-                                                    <span>(輸出：${getTemplateOutput(action)})</span>
+                                                `<div class="d-flex flex-column justify-content-center my-auto template-sm-button${i + 1}">
+                                                    <span class="template-confirm pl-1">${8 >= action.label.length ? action.label : `${action.label.substring(0, 6)}...`}</span>
+                                                    <span class="template-confirm pl-1">(${4 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 4)}...`})</span>
                                                 </div>`
                                             )).join('');
                                         })() +
@@ -1519,9 +1530,9 @@
                                     '<div class="d-flex flex-column template-buttons">' +
                                         (function() {
                                             return template.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-1 text-center template-button${i + 1}">
-                                                    <span class="template-button">${action.label}</span>
-                                                    <span class="template-button">(輸出：${getTemplateOutput(action)})</span>
+                                                `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
+                                                    <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
+                                                    <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
                                                 </div>`
                                             )).join('');
                                         })() +
@@ -1543,9 +1554,9 @@
                                     '<div class="d-flex flex-column template-buttons">' +
                                         (function() {
                                             return column.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-1 text-center template-button${i + 1}">
-                                                    <span class="template-button">${action.label}</span>
-                                                    <span class="template-button">(輸出：${getTemplateOutput(action)})</span>
+                                                `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
+                                                    <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
+                                                    <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
                                                 </div>`
                                             )).join('');
                                         })() +
@@ -2035,11 +2046,14 @@
         var $navTitle = $('#navTitle');
         var chatroomTitle = document.title.replace(' | Chatshier', ' #' + appName);
 
-        if (LINE === appType) {
-            $('.imagemap-container').removeClass('d-none');
+        let $imagemapArea = $('.message-input-container .imagemap-area');
+        let $imagemapContainer = $('.message-input .imagemap-container');
+        if (LINE !== appType) {
+            $imagemapContainer.addClass('d-none');
         } else {
-            $('.imagemap-container').addClass('d-none');
+            $imagemapContainer.removeClass('d-none');
         }
+        $imagemapArea.empty().addClass('d-none');
 
         if (CHATSHIER !== appType) {
             var messagers = chatroom.messagers;
@@ -2374,34 +2388,43 @@
         });
     }
 
-    function showImagemapArea(ev) {
+    function showImagemapArea() {
         let $imagemapBtn = $(this);
         if ($imagemapBtn.attr('disabled')) {
             return;
         }
 
-        let appId = $imagemapBtn.parents('.message-input-container').siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
-        return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
-            let appsImagemaps = resJson.data;
-            if (!appsImagemaps[appId]) {
-                $imagemapBtn.attr('disabled', true);
-                return;
-            }
-            $imagemapBtn.removeAttr('disabled');
+        let $imagemapArea = $('.message-input-container .imagemap-area');
+        if (!$imagemapArea.hasClass('d-none')) {
+            $imagemapArea.addClass('d-none');
+            return;
+        }
 
-            let imagemaps = appsImagemaps[appId].imagemaps;
-            let imagemapIds = Object.keys(imagemaps).filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
+        if (!$imagemapArea.html()) {
+            let appId = $imagemapBtn.parents('.message-input-container').siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
+            return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
+                let appsImagemaps = resJson.data;
+                if (!appsImagemaps[appId]) {
+                    $imagemapBtn.attr('disabled', true);
+                    return;
+                }
+                $imagemapBtn.removeAttr('disabled');
 
-            let $imagemapArea = $('.imagemap-area');
-            $imagemapArea.html(
-                imagemapIds.map((imagemapId) => {
-                    return `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1 send-imagemap-btn" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
-                }).join('')
-            );
-            $imagemapArea.toggleClass('d-none').siblings().toggleClass('d-none');
-        }).catch(() => {
-            $.notify('載入圖文訊息失敗', { type: 'danger' });
-        });
+                let imagemaps = appsImagemaps[appId].imagemaps;
+                let imagemapIds = Object.keys(imagemaps).filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
+
+                $imagemapArea.html(
+                    imagemapIds.map((imagemapId) => {
+                        return `<button class="m-2 btn btn-secondary btn-sm send-imagemap-btn" id="sendImagemapBtn" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
+                    }).join('')
+                );
+                $imagemapArea.removeClass('d-none');
+            }).catch(() => {
+                $.notify('載入圖文訊息失敗', { type: 'danger' });
+            });
+        } else {
+            $imagemapArea.removeClass('d-none');
+        }
     }
 
     function sendImagemap(ev) {
@@ -2431,6 +2454,7 @@
                 form: resJson.data[imagemapId].form,
                 messager_id: messagerSelf._id
             };
+
             /** @type {ChatshierChatSocketBody} */
             var socketBody = {
                 app_id: appId,
@@ -2444,6 +2468,9 @@
             var $loadingElem = generateLoadingJqElem();
             $messageView.find('.message-panel').append($loadingElem);
             scrollMessagePanelToBottom(appId, chatroomId);
+
+            var $imagemapArea = $('.message-input-container .imagemap-area');
+            $imagemapArea.addClass('d-none');
 
             return new Promise(function(resolve, reject) {
                 $submitMessageInput.val('');
@@ -2576,16 +2603,8 @@
         }
 
         var messagerSelf = findMessagerSelf(appId, chatroomId);
-
         var chatSelectQuery = '.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
         var $messagePanel = $chatContentPanel.find(chatSelectQuery + ' .message-panel');
-
-        if (messager && messager.platformUid && CHATSHIER !== messager.type) {
-            var platformUid = messager.platformUid;
-            var consumer = consumers[platformUid];
-            var displayName = (messagerSelf.namings && messagerSelf.namings[platformUid]) || consumer.name;
-            $messagePanel.find('.messager-name.text-left span').text(displayName);
-        }
 
         if (chatroomList.indexOf(chatroomId) >= 0) {
             var lastMessageTime = new Date($messagePanel.find('.message:last').attr('message-time')).getTime();

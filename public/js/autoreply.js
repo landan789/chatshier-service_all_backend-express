@@ -583,7 +583,7 @@
                         '<td>' + new Date(autoreply.endedTime).toLocaleString() + '</td>'
                     );
                 })() +
-                '<td data-title="' + autoreply.text + '">' + autoreply.text + '</td>' +
+                '<td class="text-pre" data-title="' + autoreply.text + '">' + autoreply.text + '</td>' +
                 '<td>' +
                     '<button type="button" class="mb-1 mr-1 btn btn-border btn-light update" id="edit-btn" data-toggle="modal" data-target="#autoreplyEditModal" aria-hidden="true">' +
                         '<i class="fas fa-edit"></i>' +

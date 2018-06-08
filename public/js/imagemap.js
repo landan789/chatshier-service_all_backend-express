@@ -357,7 +357,6 @@
     }
 
     function insertImagemap() {
-        elementDisabled($(this), handleMessages.working);
         let appId = $appSelector.find('option:selected').val();
         let title = $('#title').val();
         let form = $('input[name = imagemap-form]:checked').val();
@@ -368,7 +367,12 @@
         }
 
         let actions = composeActions();
-        Promise.resolve().then(() => {
+        if (!actions) {
+            return;
+        }
+
+        elementDisabled($(this), handleMessages.working);
+        return Promise.resolve().then(() => {
             return api.image.uploadFile(appId, userId, imageFile);
         }).then((resJson) => {
             let url = resJson.data.url;
@@ -390,14 +394,13 @@
             $('#imagemap-modal').modal('hide');
             $appDropdown.find('#' + appId).click();
             return $.notify('新增成功', { type: 'success' });
-        }).catch((ERR) => {
+        }).catch(() => {
             $('#imagemap-modal').modal('hide');
             return $.notify('新增失敗', { type: 'danger' });
         });
     }
 
     function updateImagemap($updateBtn, appId, imagemapId) {
-        elementDisabled($updateBtn, handleMessages.working);
         let title = $('#title').val();
         let form = $('input[name = imagemap-form]:checked').val();
 
@@ -407,6 +410,9 @@
         }
 
         let actions = composeActions();
+        if (!actions) {
+            return;
+        }
 
         let putImagemap = {
             type: 'imagemap',
@@ -421,6 +427,7 @@
             title
         };
 
+        elementDisabled($updateBtn, handleMessages.working);
         if (!imageFile) {
             return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap).then(() => {
                 $('#imagemap-modal').modal('hide');
@@ -478,7 +485,8 @@
         let imgWidth = size.width;
         let imgHeight = size.height;
         if (!imgWidth || !imgHeight) {
-            return $.notify('請上傳圖片', { type: 'warning' });
+            $.notify('請上傳圖片', { type: 'warning' });
+            return;
         }
 
         // 取得 長 寬 比例尺
@@ -487,13 +495,21 @@
 
         let $boxes = $('.box');
         let actions = [];
-        $boxes.each(function() {
-            let $box = $(this);
+        let hasEmpty = false;
+
+        for (let i = 0; i < $boxes.length; i++) {
+            let $box = $($boxes[i]);
+
             let boxWidth = $box.width();
             let boxHeight = $box.height();
             let x = parseInt($box.data('x'));
             let y = parseInt($box.data('y'));
             let text = $box.attr('ref') || '';
+
+            if (!text) {
+                hasEmpty = true;
+                break;
+            }
 
             // 將 長寬 及 座標 依圖片大小縮放並四捨五入
             let sacledWidth = Math.round(boxWidth * widthRate);
@@ -528,7 +544,13 @@
             }
 
             actions.push(action);
-        });
+        }
+
+        if (hasEmpty) {
+            $.notify('請確實完成選擇版型的回應動作', { type: 'warning' });
+            return;
+        }
+
         return actions;
     }
 

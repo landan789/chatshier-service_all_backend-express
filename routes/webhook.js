@@ -45,6 +45,7 @@ router.get('/:webhookid', function(req, res) {
             console.error('Facebook failed validation. Make sure the validation tokens match.');
             res.sendStatus(500);
         }
+        return;
     }
 
     // Wechat 驗證簽名
@@ -56,7 +57,9 @@ router.get('/:webhookid', function(req, res) {
             console.error('Wechat failed validation.');
             res.sendStatus(500);
         }
+        return;
     }
+    !res.headersSent && res.sendStatus(500);
 });
 
 router.post('/:webhookid', (req, res, next) => {
@@ -199,13 +202,21 @@ router.post('/:webhookid', (req, res, next) => {
 
                         // 根據平台的群組 ID 查找群組聊天室
                         return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId, {}).then((appsChatrooms) => {
+                            // 沒有找到此群組聊天室，則自動建立
                             if (!(appsChatrooms && appsChatrooms[appId])) {
-                                return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
+                                let platformGroupType = webhookInfo.platformGroupType;
+                                let chatroom = {
+                                    platformGroupId: platformGroupId,
+                                    platformGroupType: platformGroupType
+                                };
+                                return appsChatroomsMdl.insert(appId, chatroom);
                             }
+                            return appsChatrooms;
+                        }).then((appsChatrooms) => {
                             let chatrooms = appsChatrooms[appId].chatrooms;
-                            let chatroomId = Object.keys(chatrooms).shift() || '';
-                            webhookChatroomId = chatroomId;
-                            return chatrooms[chatroomId];
+                            let groupChatroomId = Object.keys(chatrooms).shift() || '';
+                            webhookChatroomId = groupChatroomId;
+                            return chatrooms[groupChatroomId];
                         });
                     }).then((groupChatroom) => {
                         let chatroomId = groupChatroom ? webhookChatroomId : void 0;
