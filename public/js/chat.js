@@ -656,10 +656,13 @@
                 return new Date(a.time).getTime() - new Date(b.time).getTime();
             });
 
-            var chatrooms = appsChatrooms[appId].chatrooms;
-            var chatroom = chatrooms[chatroomId];
+            if (!appsChatrooms[appId]) {
+                appsChatrooms[appId] = { chatrooms: {} };
+            }
+
+            var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
             if (!chatroom) {
-                chatroom = chatrooms[chatroomId] = {};
+                chatroom = appsChatrooms[appId].chatrooms[chatroomId] = {};
             }
 
             var messagers = chatroom.messagers;
