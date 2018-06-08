@@ -45,6 +45,7 @@ router.get('/:webhookid', function(req, res) {
             console.error('Facebook failed validation. Make sure the validation tokens match.');
             res.sendStatus(500);
         }
+        return;
     }
 
     // Wechat 驗證簽名
@@ -56,7 +57,9 @@ router.get('/:webhookid', function(req, res) {
             console.error('Wechat failed validation.');
             res.sendStatus(500);
         }
+        return;
     }
+    !res.headersSent && res.sendStatus(500);
 });
 
 router.post('/:webhookid', (req, res, next) => {
