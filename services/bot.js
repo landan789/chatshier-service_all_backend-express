@@ -483,12 +483,7 @@ module.exports = (function() {
 
                             if (['image', 'audio', 'video', 'file'].includes(event.message.type)) {
                                 return bot.getMessageContent(event.message.id).then((contentStream) => {
-                                    return new Promise((resolve, reject) => {
-                                        let bufferArray = [];
-                                        contentStream.on('error', reject);
-                                        contentStream.on('data', (chunk) => bufferArray.push(chunk));
-                                        contentStream.on('end', () => resolve(Buffer.concat(bufferArray)));
-                                    });
+                                    return storageHlp.streamToBuffer(contentStream, true);
                                 }).then((contentBuffer) => {
                                     _message.text = '';
                                     return storageHlp.filesUpload(_message.fromPath, contentBuffer);

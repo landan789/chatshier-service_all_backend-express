@@ -26,7 +26,11 @@ module.exports = (function() {
                 path: path,
                 contents: contents
             };
-            return dbx.filesUpload(args);
+            return dbx.filesUpload(args).catch((err) => {
+                return this.handleTooMenyRequests(err).then(() => {
+                    return this.filesUpload(path, contents);
+                });
+            });
         }
 
         /**
