@@ -190,7 +190,7 @@
                     var trGrop =
                     '<tr id="' + keywordreplyId + '" data-title="' + appId + '">' +
                         '<td data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</td>' +
-                        '<td data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>' +
+                        '<td class="text-pre" data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>' +
                         '<td>' + keywordreply.replyCount + '</td>' +
                         '<td>' +
                             '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
