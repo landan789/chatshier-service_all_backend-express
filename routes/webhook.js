@@ -212,17 +212,13 @@ router.post('/:webhookid', (req, res, next) => {
                                 return appsChatroomsMdl.insert(appId, chatroom);
                             }
                             return appsChatrooms;
+                        }).then((appsChatrooms) => {
+                            let chatrooms = appsChatrooms[appId].chatrooms;
+                            let groupChatroomId = Object.keys(chatrooms).shift() || '';
+                            webhookChatroomId = groupChatroomId;
+                            return chatrooms[groupChatroomId];
                         });
-                    }).then((appsChatrooms) => {
-                        if (!(appsChatrooms && appsChatrooms[appId])) {
-                            return;
-                        }
-
-                        let chatrooms = appsChatrooms[appId].chatrooms;
-                        let groupChatroomId = Object.keys(chatrooms).shift() || '';
-                        let groupChatroom = chatrooms[groupChatroomId];
-                        webhookChatroomId = groupChatroomId;
-
+                    }).then((groupChatroom) => {
                         let chatroomId = groupChatroom ? webhookChatroomId : void 0;
                         let platformUid = webhookInfo.platformUid;
 
