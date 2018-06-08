@@ -660,9 +660,10 @@
                 appsChatrooms[appId] = { chatrooms: {} };
             }
 
-            var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
+            var chatrooms = appsChatrooms[appId].chatrooms;
+            var chatroom = chatrooms[chatroomId];
             if (!chatroom) {
-                chatroom = appsChatrooms[appId].chatrooms[chatroomId] = {};
+                chatroom = chatrooms[chatroomId] = {};
             }
 
             var messagers = chatroom.messagers;
