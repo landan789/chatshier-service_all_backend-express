@@ -84,7 +84,7 @@ tr:nth-child(even) {
 
 .box {
     padding: .25rem;
-    white-space: pre-wrap;
+    white-space: pre-line;
     border: 1px solid #ccc;
     float: left;
     font-size: .5rem; }

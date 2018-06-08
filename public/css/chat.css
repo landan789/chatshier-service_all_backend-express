@@ -213,7 +213,7 @@
             height: 20rem; }
         .message .content .text-content {
             line-height: 1.25rem;
-            white-space: pre-wrap; }
+            white-space: pre-line; }
         .message .content .image-content,
         .message .content .sticker-content,
         .message .content .video-content,
@@ -245,8 +245,6 @@
             top: -1.5rem; 
             left: 0; 
             font-size: 1rem; }
-        .send-imagemap-btn {
-            margin-left: .5rem; }
         .message .content .image-container:hover {
             cursor: pointer; }
             .message .content .image-container.stretch {
@@ -292,7 +290,7 @@
     .message-group.right-side {
         flex-direction: row-reverse; }
         .message-group.right-side .words {
-            text-align: right; }
+            text-align: justify; }
 
 .chatroom-container {
     width: 100%;
@@ -407,6 +405,15 @@
     .message-input-container button[disabled],
     .message-input-container inpu[disabled] {
         opacity: .5; }
+    .message-input-container .imagemap-area {
+        left: 0%;
+        top: -100%;
+        border-top: 1px solid #ced4da;
+        border-bottom: 1px solid #ced4da;
+        background-color: white;
+        transform-origin: bottom center;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch; }
 
 .message-input {
     display: flex;
@@ -427,18 +434,13 @@
             height: 80%;
             border: none;
             resize: none; }
-    .message-input .submit-message-btn, .message-input .imagemap-area {
+    .message-input .submit-message-btn {
         position: relative;
         width: 2rem;
         height: 2rem;
         cursor: pointer;
         color: transparent;
         border: none; }
-        .message-input .imagemap-area {
-            width: 100%;
-            height: 100%;
-            overflow-x: auto;
-            display: inline; }
         .message-input .submit-message-btn::before {
             content: "";
             position: absolute;
@@ -658,4 +660,21 @@
         height: 27rem; }
     .message .content {
         max-width: 90%; }
+}
+
+.ScaleYGrowUp {
+    -webkit-animation-name: ScaleYGrowUp;
+    -webkit-animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+    animation-name: ScaleYGrowUp;
+    animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+@-webkit-keyframes ScaleYGrowUp {
+    from { -webkit-transform: scale3d(1, 0, 1); }
+    to { -webkit-transform: scale3d(1, 1, 1); }
+}
+
+@keyframes ScaleYGrowUp {
+    from { transform: scale3d(1, 0, 1); }
+    to { transform: scale3d(1, 1, 1); }
 }
