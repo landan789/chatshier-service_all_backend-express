@@ -11,6 +11,7 @@ module.exports = (function() {
         /**
          * @param {Chatshier.Models.ComposeCondition[]} conditions
          * @param {string} appId
+         * @returns {Promise<Chatshier.Models.AppsChatrooms>}
          */
         findAvailableMessagers(conditions, appId) {
             let availableMessagers = {};

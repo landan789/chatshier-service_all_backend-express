@@ -246,8 +246,8 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {string} richmenuId
-         * @param {(appsRichmenus: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {(appsRichmenus: Chatshier.Models.AppsRichmenus | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.AppsRichmenus | null>}
          */
         remove(appId, richmenuId, callback) {
             let richmenu = {

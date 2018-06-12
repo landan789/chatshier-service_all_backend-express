@@ -25,7 +25,7 @@ module.exports = (function() {
                     if (!appsTemplates) {
                         return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
                     }
-                    return appsTemplates;
+                    return Promise.resolve(appsTemplates);
                 });
             }).then((appsTemplates) => {
                 let suc = {
@@ -48,10 +48,10 @@ module.exports = (function() {
                 }
                 return appsTemplatesMdl.find(appId, templateId);
             }).then((appsTemplates) => {
-                if (!appsTemplates) {
+                if (!(appsTemplates && appsTemplates[appId])) {
                     return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
                 }
-                return appsTemplates;
+                return Promise.resolve(appsTemplates);
             }).then((appsTemplates) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
@@ -81,7 +81,7 @@ module.exports = (function() {
                     if (!appsTemplates || (appsTemplates && 0 === Object.keys(appsTemplates).length)) {
                         return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
                     }
-                    return appsTemplates;
+                    return Promise.resolve(appsTemplates);
                 });
             }).then((appsTemplates) => {
                 let templateId = Object.keys(appsTemplates[appId].templates)[0];
@@ -175,7 +175,7 @@ module.exports = (function() {
                     if (!(appsTemplates && appsTemplates[appId])) {
                         return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
                     }
-                    return appsTemplates;
+                    return Promise.resolve(appsTemplates);
                 });
             }).then((appsTemplates) => {
                 let suc = {

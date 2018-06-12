@@ -8,12 +8,12 @@ module.exports = (function() {
             this.AppsModel = this.model(APPS, this.AppsSchema);
         }
         /**
-         * 輸入全部的 appId 取得該 App 所有templates的資料
+         * 輸入全部的 appId 取得該 App 所有 templates 的資料
          *
-         * @param {string|string[]} appIds
-         * @param {string|string[]} [templateIds]
-         * @param {(appsTemplates: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {string | string[]} appIds
+         * @param {string | string[]} [templateIds]
+         * @param {(appsTemplates: Chatshier.Models.AppsTemplates | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.AppsTemplates | null>}
          */
         find(appIds, templateIds, callback) {
             let query = {
@@ -79,8 +79,8 @@ module.exports = (function() {
         * 找到 templates未刪除的資料包，不含 apps 結構
         *
         * @param {string|string[]} appIds
-        * @param {(appsTemplates: any) => any} [callback]
-        * @return {Promise<any>}
+        * @param {(appsTemplates: Chatshier.Models.Templates | null) => any} [callback]
+        * @return {Promise<Chatshier.Models.Templates | null>}
         */
         findTemplates(appIds, callback) {
             if ('string' === typeof appIds) {
@@ -131,8 +131,8 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {any} postTemplate
-         * @param {(appsTemplates: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsTemplates: Chatshier.Models.AppsTemplates | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsTemplates | null>}
          */
         insert(appId, postTemplate, callback) {
             let templateId = this.Types.ObjectId();
@@ -154,8 +154,8 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} templateId
          * @param {any} putTemplate
-         * @param {(appsTemplates: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsTemplates: Chatshier.Models.AppsTemplates | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsTemplates | null>}
          */
         update(appId, templateId, putTemplate, callback) {
             let query = {
@@ -181,12 +181,12 @@ module.exports = (function() {
             });
         }
         /**
-         * 輸入指定的 appId 刪除一筆template的資料
+         * 輸入指定的 appId 刪除一筆 template 的資料
          *
          * @param {string|string[]} appIds
          * @param {string} templateId
-         * @param {(appsAutoreplies: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsTemplates: Chatshier.Models.AppsTemplates | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsTemplates | null>}
          */
         remove(appIds, templateId, callback) {
             if (!(appIds instanceof Array)) {

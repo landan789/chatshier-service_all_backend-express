@@ -72,21 +72,7 @@ declare module Chatshier {
                 text?: string,
                 thumbnailImageUrl?: string,
                 title?: string,
-                actions: {
-                    type: 'message' | 'uri' | 'postback' | 'datetimepicker',
-                    label: string,
-                    text?: string,
-                    data?: string,
-                    displayText?: string,
-                    uri?: string,
-
-                    // datetimepicker
-                    // https://developers.line.me/en/docs/messaging-api/reference/#datetime-picker-action
-                    mode?: 'date' | 'time' | 'datetime',
-                    initial?: string,
-                    max?: string,
-                    min?: string
-                }[]
+                actions: TemplateAction[]
             },
             imagemap?: {
                 type: 'imagemap',
@@ -96,18 +82,7 @@ declare module Chatshier {
                     width: number,
                     height: number
                 },
-                actions: {
-                    type: 'message' | 'uri',
-                    label?: string,
-                    linkUri? : string,
-                    text?: string,
-                    area: {
-                        x: number,
-                        y: number,
-                        width: number,
-                        height: number
-                    }
-                }
+                actions: ImagemapAction[]
             }
         }
     }
