@@ -21,8 +21,7 @@
         "import",
         "node",
         "promise",
-        "standard",
-        "chai-friendly"
+        "standard"
     ],
 
     "globals": {
@@ -203,8 +202,6 @@
         "standard/array-bracket-even-spacing": ["error", "either"],
         "standard/computed-property-even-spacing": ["error", "even"],
         "standard/no-callback-literal": ["warn"],
-        "standard/object-curly-even-spacing": ["error", "either"],
-
-        "chai-friendly/no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true, "allowTaggedTemplates": true }]
+        "standard/object-curly-even-spacing": ["error", "either"]
     }
 }
