@@ -226,7 +226,7 @@ module.exports = (function() {
                         if (!appsFields) {
                             return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
                         }
-                        return appsFields;
+                        return Promise.resolve(appsFields);
                     });
                 });
             }).then(() => {

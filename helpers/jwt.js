@@ -85,7 +85,7 @@ module.exports = (function() {
                 // this function is called after passport fails to verify string of jwt or after next() in passport.use called
                 let ERROR = info;
                 if (err || !users) {
-                    var json = {
+                    let json = {
                         status: 0,
                         msg: ERROR.MSG || API_ERROR.USER_WAS_NOT_AUTHORIZED.MSG,
                         code: ERROR.CODE || API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE

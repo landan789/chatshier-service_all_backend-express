@@ -11,8 +11,8 @@ module.exports = (function() {
         /**
          * 根據 使用者ID 取得該使用者
          *
-         * @param {string|string[]} [userIds]
-         * @param {string|string[]} [emails]
+         * @param {string | string[]} [userIds]
+         * @param {string | string[]} [emails]
          * @param {(users: Chatshier.Models.Users | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.Users | null>}
          */

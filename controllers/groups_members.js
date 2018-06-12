@@ -471,11 +471,11 @@ module.exports = (function() {
             }).then((appIds) => {
                 appIds = appIds || [];
 
-                return appsChatroomsMessagersMdl.remove(appIds, null, memberUserId).then((appsChatroomsMessagers) => {
+                return appsChatroomsMessagersMdl.remove(appIds, void 0, memberUserId).then((appsChatroomsMessagers) => {
                     if (!appsChatroomsMessagers) {
                         return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_REMOVE);
                     };
-                    return appsChatroomsMessagers;
+                    return Promise.resolve(appsChatroomsMessagers);
                 }).then(() => {
                     return groupsMembers;
                 });

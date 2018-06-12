@@ -23,64 +23,69 @@ module.exports = (function() {
             let queryEmail = req.query.email;
             let useFuzzy = !!req.query.fuzzy;
 
-            return Promise.resolve().then(() => {
-                return new Promise((resolve, reject) => {
+            // searchUser 回傳的型態為陣列與 model 回傳的型態不同
+            // 代碼可能不安全，因此將之分開處理
+            if (useFuzzy) {
+                return Promise.resolve().then(() => {
                     if (!userId) {
-                        reject(API_ERROR.USERID_WAS_EMPTY);
-                        return;
+                        return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
                     }
 
-                    usersMdl.find(userId, void 0, (users) => {
-                        if (!(users && users[userId])) {
-                            reject(API_ERROR.USER_FAILED_TO_FIND);
-                            return;
+                    // 沒有輸入搜尋的關鍵字樣本，回傳空陣列
+                    if (!queryEmail) {
+                        return Promise.resolve([]);
+                    }
+
+                    return fuseHlp.searchUser(queryEmail).then((usersArray) => {
+                        // 如果搜尋結果超過 5 筆，只需回傳 5 筆
+                        if (usersArray.length > 5) {
+                            usersArray = usersArray.slice(0, 5);
                         }
-                        resolve(users[userId]);
+                        return Promise.resolve(usersArray);
                     });
+                }).then((users) => {
+                    let suc = {
+                        msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                        data: users
+                    };
+                    return this.successJson(req, res, suc);
+                }).catch((err) => {
+                    return this.errorJson(req, res, err);
+                });
+            }
+
+            return Promise.resolve().then(() => {
+                if (!userId) {
+                    return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+                }
+
+                return usersMdl.find(userId).then((users) => {
+                    if (!(users && users[userId])) {
+                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                    }
+                    return Promise.resolve(users[userId]);
                 });
             }).then((user) => {
                 let groupIds = user.group_ids || [];
 
-                if (useFuzzy) {
-                    // 沒有輸入搜尋的關鍵字樣本，回傳空陣列
-                    if (!queryEmail) {
-                        return [];
-                    }
-
-                    return fuseHlp.searchUser(queryEmail).then((result) => {
-                        // 如果搜尋結果超過5筆，只需回傳5筆
-                        if (result.length > 5) {
-                            return result.slice(0, 5);
-                        }
-                        return result;
-                    });
-                }
-
                 return groupsMdl.findUserIds(groupIds, true).then((userIds) => {
                     if (!userIds) {
                         return Promise.reject(API_ERROR.GROUP_MEMBER_USER_FAILED_TO_FIND);
-                    };
+                    }
                     (userIds.indexOf(userId) < 0) && userIds.push(userId);
 
-                    return new Promise((resolve, reject) => {
-                        // 有 query email 就不搜尋使用者下的所有群組的的所有成員 USERIDs
-                        if (queryEmail) {
-                            userIds = null;
+                    // 有 query email 就不搜尋使用者下的所有群組的的所有成員 USERIDs
+                    return usersMdl.find(queryEmail ? void 0 : userIds, queryEmail).then((users) => {
+                        if (!users) {
+                            return Promise.reject(API_ERROR.AUTHENTICATION_USER_FAILED_TO_FIND);
                         }
-
-                        usersMdl.find(userIds, queryEmail, (users) => {
-                            if (!users) {
-                                reject(API_ERROR.AUTHENTICATION_USER_FAILED_TO_FIND);
-                                return;
-                            };
-                            resolve(users);
-                        });
+                        return Promise.resolve(users);
                     });
                 });
-            }).then((data) => {
-                var suc = {
+            }).then((users) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: users
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
