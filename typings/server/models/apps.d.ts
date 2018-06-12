@@ -6,8 +6,8 @@ declare module Chatshier {
 
         interface App {
             _id: any,
-            createdTime: Date | Number,
-            updatedTime: Date | Number,
+            createdTime: Date | number,
+            updatedTime: Date | number,
             group_id: string,
             id1: string,
             id2: string,

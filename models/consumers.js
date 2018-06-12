@@ -22,7 +22,7 @@ module.exports = (function() {
          *
          * @param {string|string[]} [platformUids]
          * @param {(consumers: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @returns {Promise<Chatshier.Models.Consumers | null>}
          */
         find(platformUids, callback) {
             if (platformUids && !(platformUids instanceof Array)) {

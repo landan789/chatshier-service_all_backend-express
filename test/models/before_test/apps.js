@@ -71,7 +71,7 @@ class AppsBeforeTest {
                 group_id: this._groupId
             };
 
-            return appsMdl.insert(this._userId, testApp).then((apps) => {
+            return appsMdl.insert(testApp).then((apps) => {
                 expect(apps).to.not.be.null;
                 expect(apps).to.be.an('object');
                 let appIds = Object.keys(apps);

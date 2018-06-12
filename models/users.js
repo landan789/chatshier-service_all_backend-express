@@ -11,9 +11,10 @@ module.exports = (function() {
         /**
          * 根據 使用者ID 取得該使用者
          *
-         * @param {string|string[]|null} [userIds]
-         * @param {string|string[]|null} [emails]
-         * @param {(data: any) => any} [callback]
+         * @param {string|string[]} [userIds]
+         * @param {string|string[]} [emails]
+         * @param {(users: Chatshier.Models.Users | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Users | null>}
          */
         find(userIds, emails, callback) {
             if (userIds && !(userIds instanceof Array)) {
@@ -57,8 +58,8 @@ module.exports = (function() {
 
         /**
          * @param {string} userId
-         * @param {(calendarIds: string[]|null) => any} [callback]
-         * @returns {Promise<string[]|null>}
+         * @param {(calendarIds: string[] | null) => any} [callback]
+         * @returns {Promise<string[] | null>}
          */
         findCalendarId(userId, callback) {
             let query = {
@@ -78,10 +79,16 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {any} user
+         * @param {(users: Chatshier.Models.Users | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Users | null>}
+         */
         insert(user, callback) {
             let users;
             let query = {};
             let _query = {};
+
             let _user = new this.Model();
             _user._id = user._id || '';
             _user.email = user.email || '';
@@ -127,6 +134,12 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} userId
+         * @param {any} putUser
+         * @param {(users: Chatshier.Models.Users | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Users | null>}
+         */
         update(userId, putUser, callback) {
             putUser = putUser || {};
             putUser.updatedTime = Date.now();

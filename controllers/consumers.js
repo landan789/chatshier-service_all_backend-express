@@ -37,7 +37,7 @@ module.exports = (function() {
                     if (!consumers) {
                         return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
                     }
-                    return consumers;
+                    return Promise.resolve(consumers);
                 });
             }).then((data) => {
                 let suc = {
@@ -58,7 +58,7 @@ module.exports = (function() {
                     if (!consumers) {
                         return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
                     }
-                    return consumers;
+                    return Promise.resolve(consumers);
                 });
             }).then((data) => {
                 let suc = {

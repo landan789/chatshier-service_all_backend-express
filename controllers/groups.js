@@ -36,7 +36,7 @@ module.exports = (function() {
                 };
 
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
@@ -83,7 +83,7 @@ module.exports = (function() {
                     if (!users) {
                         return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    return users[userId];
+                    return Promise.resolve(users[userId]);
                 });
             }).then((user) => {
                 return groupsMdl.insert(userId, postGroup).then((groups) => {
@@ -111,7 +111,7 @@ module.exports = (function() {
                             type: 'CHATSHIER',
                             group_id: groupId
                         };
-                        return appsMdl.insert(userId, postApp);
+                        return appsMdl.insert(postApp);
                     }).then((apps) => {
                         if (!apps || (apps && 0 === Object.keys(apps).length)) {
                             return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
@@ -175,7 +175,7 @@ module.exports = (function() {
                 };
 
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;

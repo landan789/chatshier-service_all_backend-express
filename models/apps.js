@@ -36,8 +36,8 @@ module.exports = (function() {
          * @param {string|string[]} [appIds]
          * @param {string} [webhookId]
          * @param {any} [query]
-         * @param {(apps: Chatshier.Models.Apps|null) => any} [callback]
-         * @returns {Promise<Chatshier.Models.Apps|null>}
+         * @param {(apps: Chatshier.Models.Apps | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Apps | null>}
          */
         find(appIds, webhookId, query, callback) {
             if (appIds && !(appIds instanceof Array)) {
@@ -68,7 +68,12 @@ module.exports = (function() {
             });
         }
 
-        insert(userId, postApp, callback) {
+        /**
+         * @param {any} postApp
+         * @param {(apps: Chatshier.Models.Apps | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Apps | null>}
+         */
+        insert(postApp, callback) {
             let _appId = this.Types.ObjectId();
             let webhookId = this.Types.ObjectId().toHexString();
             let groupId = postApp.group_id;
@@ -128,6 +133,12 @@ module.exports = (function() {
             });
         };
 
+        /**
+         * @param {string} appId
+         * @param {any} putApp
+         * @param {(apps: Chatshier.Models.Apps | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Apps | null>}
+         */
         update(appId, putApp, callback) {
             putApp = putApp || {};
             putApp.updatedTime = Date.now();
@@ -156,6 +167,11 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} appId
+         * @param {(apps: Chatshier.Models.Apps | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Apps | null>}
+         */
         remove(appId, callback) {
             let query = {
                 '_id': this.Types.ObjectId(appId)

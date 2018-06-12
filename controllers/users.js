@@ -30,7 +30,7 @@ module.exports = (function() {
                         return;
                     }
 
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!(users && users[userId])) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;

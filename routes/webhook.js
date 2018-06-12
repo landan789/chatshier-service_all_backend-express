@@ -166,6 +166,10 @@ router.post('/:webhookid', (req, res, next) => {
                         }
 
                         return consumersMdl.find(platformUid).then((consumers) => {
+                            if (!(consumers && consumers[platformUid])) {
+                                return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                            }
+
                             let consumer = consumers[platformUid];
                             let shouldUpload = (
                                 profile.photo.startsWith('http://') &&
@@ -439,12 +443,9 @@ router.post('/:webhookid', (req, res, next) => {
         console.log(JSON.stringify(json, null, 4));
         console.trace(json);
         !res.headersSent && res.sendStatus(500);
-        console.log(442);
-
     }).then(() => {
         let idx = webhookProcQueue.indexOf(webhookPromise);
         idx >= 0 && webhookProcQueue.splice(idx, 1);
-        console.log(447);
     });
     webhookProcQueue.push(webhookPromise);
 });
