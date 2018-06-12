@@ -9,13 +9,13 @@ module.exports = (function() {
         }
 
         /**
-         * @param {any|string[]} calendarIds
-         * @param {any|string[]} eventIds
-         * @param {(calendarsEvents: any|null) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {string | string[]} calendarIds
+         * @param {string | string[]} eventIds
+         * @param {(calendars: Chatshier.Models.Calendars | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Calendars | null>}
          */
         find(calendarIds, eventIds, callback) {
-            if (calendarIds && !(calendarIds instanceof Array)) {
+            if (!(calendarIds instanceof Array)) {
                 calendarIds = [calendarIds];
             }
 
@@ -28,7 +28,7 @@ module.exports = (function() {
             };
 
             if (eventIds) {
-                if (eventIds && !(eventIds instanceof Array)) {
+                if (!(eventIds instanceof Array)) {
                     eventIds = [eventIds];
                 }
 
@@ -71,10 +71,10 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string|string[]} calendarIds
+         * @param {string | string[]} calendarIds
          * @param {any} postEvent
-         * @param {(calendar: string|null) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(calendars: Chatshier.Models.Calendars | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Calendars | null>}
          */
         insert(calendarIds, postEvent, callback) {
             let eventId = this.Types.ObjectId();
@@ -130,8 +130,8 @@ module.exports = (function() {
         /**
          * @param {string} calendarId
          * @param {any} putEvent
-         * @param {(calendar: string|null) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(calendars: Chatshier.Models.Calendars | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Calendars | null>}
          */
         update(calendarId, eventId, putEvent, callback) {
             putEvent = putEvent || {};
@@ -172,8 +172,8 @@ module.exports = (function() {
         /**
          * @param {string} calendarId
          * @param {string} eventId
-         * @param {(calendarEvents: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(calendars: Chatshier.Models.Calendars | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Calendars | null>}
          */
         remove(calendarId, eventId, callback) {
             let query = {

@@ -21,18 +21,18 @@ module.exports = (function() {
             let userId = req.params.userid;
             let eventId = undefined === req.params.eventid ? null : req.params.eventid;
 
-            return userMdl.findCalendarId(userId).then((calendarId) => {
-                if (!calendarId) {
+            return userMdl.findCalendarId(userId).then((calendarIds) => {
+                if (!calendarIds) {
                     return {};
                 }
 
                 return new Promise((resolve, reject) => {
-                    calendarsEventsMdl.find(calendarId, eventId, (calendarsEvents) => {
-                        if (!calendarsEvents) {
+                    calendarsEventsMdl.find(calendarIds, eventId, (calendars) => {
+                        if (!calendars) {
                             reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_FIND);
                             return;
                         }
-                        resolve(calendarsEvents);
+                        resolve(calendars);
                     });
                 });
             }).then((calendarsEvents) => {

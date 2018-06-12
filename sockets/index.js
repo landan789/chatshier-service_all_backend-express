@@ -336,7 +336,7 @@ function init(server) {
                     if (!(users && users[userId])) {
                         return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    return users[userId];
+                    return Promise.resolve(users[userId]);
                 });
             }).then((user) => {
                 socketBody.user = user;

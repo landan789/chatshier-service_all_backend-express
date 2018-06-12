@@ -344,6 +344,10 @@ module.exports = (function() {
                                             }
 
                                             return consumersMdl.find(groupMemberId).then((consumers) => {
+                                                if (!consumers) {
+                                                    return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                                                }
+
                                                 let consumer = consumers[groupMemberId];
                                                 let shouldUpload = (
                                                     groupMemberProfile.photo.startsWith('http://') &&

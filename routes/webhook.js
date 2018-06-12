@@ -166,7 +166,7 @@ router.post('/:webhookid', (req, res, next) => {
                         }
 
                         return consumersMdl.find(platformUid).then((consumers) => {
-                            if (!(consumers && consumers[platformUid])) {
+                            if (!consumers) {
                                 return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
                             }
 

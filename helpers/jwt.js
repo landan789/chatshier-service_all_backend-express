@@ -60,7 +60,7 @@ module.exports = (function() {
                             reject(API_ERROR.USER_WAS_NOT_PERMITTED);
                             return;
                         }
-                        usersMdl.find(userId, null, (users) => {
+                        usersMdl.find(userId, void 0, (users) => {
                             if (!users) {
                                 reject(API_ERROR.USER_FAILED_TO_FIND);
                                 return;
