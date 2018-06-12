@@ -208,7 +208,7 @@ module.exports = (function() {
                     if (!groups || (groups && 0 === Object.keys(groups).length)) {
                         return Promise.reject(API_ERROR.GROUP_DID_NOT_EXIST);
                     }
-                    return groups[req.body.group_id];
+                    return Promise.resolve(groups[req.body.group_id]);
                 });
             }).then((group) => {
                 let members = group.members;
@@ -359,7 +359,7 @@ module.exports = (function() {
                 let groupId = app.group_id;
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(groupId, req.params.userid, (groups) => {
-                        if (null === groups || undefined === groups || '' === groups) {
+                        if (!(groups && groups[groupId])) {
                             reject(API_ERROR.GROUP_FAILED_TO_FIND);
                             return;
                         };
@@ -447,7 +447,7 @@ module.exports = (function() {
                     if (!groups) {
                         return Promise.reject(API_ERROR.GROUP_FAILED_TO_FIND);
                     }
-                    return groups;
+                    return Promise.resolve(groups);
                 });
             }).then((groups) => {
                 let group = Object.values(groups)[0];

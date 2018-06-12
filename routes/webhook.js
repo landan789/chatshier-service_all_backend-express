@@ -163,7 +163,7 @@ router.post('/:webhookid', (req, res, next) => {
 
                     return botSvc.getProfile(webhookInfo, appId, app).then((profile) => {
                         if (!platformUid) {
-                            return;
+                            return Promise.resolve(null);
                         }
 
                         return consumersMdl.find(platformUid).then((consumers) => {
@@ -295,7 +295,7 @@ router.post('/:webhookid', (req, res, next) => {
                                     let messagerId = Object.keys(messagers).shift() || '';
                                     let _messager = messagers[messagerId];
                                     platformMessager = _messager;
-                                    return _messager;
+                                    return Promise.resolve(_messager);
                                 });
                             });
                         });

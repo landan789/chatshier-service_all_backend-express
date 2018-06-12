@@ -252,8 +252,8 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} chatroomId
          * @param {any} [chatroom]
-         * @param {(appsChatrooms: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsChatrooms: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         update(appId, chatroomId, chatroom, callback) {
             chatroom = chatroom || {};

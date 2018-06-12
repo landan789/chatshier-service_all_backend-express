@@ -146,7 +146,7 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {string} inputText
-         * @returns {Promise<any>}
+         * @returns {Promise<Chatshier.Models.Keywordreplies>}
          */
         searchKeywordreplies(appId, inputText) {
             let fuseOptions = this.fuseOptionBuilder({
@@ -190,7 +190,7 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {string} inputText
-         * @returns {Promise<any>}
+         * @returns {Promise<Chatshier.Models.Templates>}
          */
         searchTemplates(appId, inputText) {
             let fuseOptions = this.fuseOptionBuilder({

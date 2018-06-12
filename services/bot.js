@@ -240,7 +240,7 @@ module.exports = (function() {
 
                                 // 只有 richmenu ID 與預設的 richmenu ID 不同時才需要重新 link LINE 用戶
                                 let richmenu = Object.values(appsRichmenus[appId].richmenus).shift();
-                                if (richmenu.platformMenuId && _platformMenuId !== richmenu.platformMenuId) {
+                                if (richmenu && richmenu.platformMenuId && _platformMenuId !== richmenu.platformMenuId) {
                                     return this.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId, app).catch(() => void 0);
                                 }
                             });

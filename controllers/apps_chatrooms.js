@@ -55,7 +55,7 @@ module.exports = (function() {
                     if (!appsChatrooms || (appsChatrooms && 0 === Object.keys(appsChatrooms).length)) {
                         return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
                     }
-                    return appsChatrooms;
+                    return Promise.resolve(appsChatrooms);
                 });
             }).then((data) => {
                 let suc = {
