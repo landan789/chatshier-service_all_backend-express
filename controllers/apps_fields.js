@@ -24,7 +24,7 @@ module.exports = (function() {
                     if (!appsFields) {
                         return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_FIND);
                     }
-                    return appsFields;
+                    return Promise.resolve(appsFields);
                 });
             }).then((appsFields) => {
                 let suc = {
@@ -55,7 +55,7 @@ module.exports = (function() {
                     if (!(appsFields && appsFields[appId])) {
                         return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_INSERT);
                     }
-                    return appsFields;
+                    return Promise.resolve(appsFields);
                 });
             }).then((appsFields) => {
                 let suc = {
@@ -91,7 +91,7 @@ module.exports = (function() {
                     if (!(appsFields && appsFields[appId])) {
                         return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_UPDATE);
                     }
-                    return appsFields;
+                    return Promise.resolve(appsFields);
                 });
             }).then((appsFields) => {
                 let suc = {
@@ -114,7 +114,7 @@ module.exports = (function() {
                     if (!(appsFields && appsFields[appId])) {
                         return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_REMOVE);
                     }
-                    return appsFields;
+                    return Promise.resolve(appsFields);
                 });
             }).then((appsFields) => {
                 let suc = {

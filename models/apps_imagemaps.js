@@ -9,12 +9,10 @@ module.exports = (function() {
         }
 
         /**
-         * 輸入 指定 appId 的陣列清單，取得該 App 所有圖文選單的資料
-         *
-         * @param {string|string[]} appIds
-         * @param {any|string} [imagemapId]
-         * @param {(appsImagemaps: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {string | string[]} appIds
+         * @param {string} [imagemapId]
+         * @param {(appsImagemaps: Chatshier.Models.AppsImagemaps | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsImagemaps | null>}
          */
         find(appIds, imagemapId, callback) {
             if (!(appIds instanceof Array)) {
@@ -68,9 +66,9 @@ module.exports = (function() {
         /**
          * 找到 圖文訊息未刪除的資料包，不含 apps 結構
          *
-         * @param {string|string[]} appIds
-         * @param {(appsImagemaps: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {string | string[]} appIds
+         * @param {(appsImagemaps: Chatshier.Models.Imagemaps | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Imagemaps | null>}
          */
         findImagemaps(appIds, callback) {
             if (!(appIds instanceof Array)) {
@@ -122,12 +120,10 @@ module.exports = (function() {
         }
 
         /**
-         * 輸入 指定 appId 的陣列清單，新增一筆圖文選單的資料
-         *
          * @param {string} appId
          * @param {any} postImagemap
-         * @param {(appsImagemaps: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {(appsImagemaps: Chatshier.Models.AppsImagemaps | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.AppsImagemaps | null>}
          */
         insert(appId, postImagemap, callback) {
             let imagemapId = this.Types.ObjectId();
@@ -152,8 +148,8 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} imagemapId
          * @param {any} putImagemap
-         * @param {(appsImagemaps: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {(appsImagemaps: Chatshier.Models.AppsImagemaps | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsImagemaps | null>}
          */
         update(appId, imagemapId, putImagemap, callback) {
             putImagemap._id = imagemapId;
@@ -182,19 +178,19 @@ module.exports = (function() {
 
         /**
          *
-         * @param {*} appIds
+         * @param {string} appId
          * @param {string} imagemapId
-         * @param {*} [callback]
+         * @param {(appsImagemaps: Chatshier.Models.AppsImagemaps | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsImagemaps | null>}
          */
-        remove(appIds, imagemapId, callback) {
+        remove(appId, imagemapId, callback) {
             let query = {
-                '_id': appIds,
+                '_id': appId,
                 'imagemaps._id': imagemapId
             };
 
             let operate = {
                 $set: {
-                    'imagemaps.$._id': imagemapId,
                     'imagemaps.$.isDeleted': true,
                     'imagemaps.$.updatedTime': Date.now()
                 }

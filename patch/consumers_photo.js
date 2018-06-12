@@ -3,6 +3,7 @@ const storageHlp = require('../helpers/storage');
 const mongoose = require('mongoose');
 const request = require('request');
 
+/** @returns {Promise<boolean>} */
 let checkingPhotoIsAlive = (photoUrl) => {
     return new Promise((resolve) => {
         let options = {
@@ -21,6 +22,10 @@ let checkingPhotoIsAlive = (photoUrl) => {
 
 console.log('[START] start checking photo of consumers');
 consumersMdl.find().then((consumers) => {
+    if (!consumers) {
+        return Promise.resolve();
+    }
+
     let platformUids = Object.keys(consumers);
     let nextConsumer = (i) => {
         if (i >= platformUids.length) {
@@ -31,7 +36,7 @@ consumersMdl.find().then((consumers) => {
             let platformUid = platformUids[i];
             let consumer = consumers[platformUid];
             if (!(consumer && 'string' === typeof consumer.photo)) {
-                return Promise.resolve();
+                return Promise.resolve(null);
             }
 
             let shouldUpload = consumer.photo.startsWith('http://');
@@ -50,7 +55,7 @@ consumersMdl.find().then((consumers) => {
                     if (!isAlive) {
                         console.log('[INFO] photo url was dead, save photo to \'\'');
                         console.log('');
-                        return;
+                        return Promise.resolve(null);
                     }
 
                     return storageHlp.filesSaveUrl(photoPath, consumer.photo).catch((err) => {
@@ -67,7 +72,7 @@ consumersMdl.find().then((consumers) => {
                     return consumersMdl.replace(platformUid, putConsumer);
                 });
             }
-            return Promise.resolve();
+            return Promise.resolve(null);
         }).then(() => {
             return nextConsumer(i + 1);
         });

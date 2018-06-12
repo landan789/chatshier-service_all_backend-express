@@ -36,7 +36,7 @@ module.exports = (function() {
                     if (!(users && users[userId])) {
                         return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    return users[userId];
+                    return Promise.resolve(users[userId]);
                 });
             }).then((user) => {
                 return groupsMdl.findAppIds(user.group_ids, userId).then((appIds) => {
@@ -67,7 +67,7 @@ module.exports = (function() {
                         if (!(groups && groups[groupId])) {
                             return Promise.reject(API_ERROR.GROUP_FAILED_TO_FIND);
                         }
-                        return groups[groupId];
+                        return Promise.resolve(groups[groupId]);
                     });
                 }).then((group) => {
                     let members = group.members;

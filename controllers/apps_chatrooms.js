@@ -25,12 +25,12 @@ module.exports = (function() {
                     if (!appsChatrooms) {
                         return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
                     }
-                    return appsChatrooms;
+                    return Promise.resolve(appsChatrooms);
                 });
-            }).then((data) => {
+            }).then((appsChatrooms) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: appsChatrooms
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -55,7 +55,7 @@ module.exports = (function() {
                     if (!appsChatrooms || (appsChatrooms && 0 === Object.keys(appsChatrooms).length)) {
                         return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
                     }
-                    return appsChatrooms;
+                    return Promise.resolve(appsChatrooms);
                 });
             }).then((data) => {
                 let suc = {

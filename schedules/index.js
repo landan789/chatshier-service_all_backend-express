@@ -65,14 +65,13 @@ let jobProcess = () => {
                     let messages = [message];
 
                     return composeHlp.findAvailableMessagers(conditions, appId).then((appsChatroomsMessagers) => {
-                        let _app = appsChatroomsMessagers[appId];
-                        if (!_app) {
+                        if (!appsChatroomsMessagers[appId]) {
                             return Promise.resolve([]);
                         }
 
                         let chatroomIds = Object.keys(appsChatroomsMessagers[appId].chatrooms);
                         return Promise.all(chatroomIds.map((chatroomId) => {
-                            let chatroom = _app.chatrooms[chatroomId];
+                            let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
                             let messagers = chatroom.messagers;
                             let messagerIds = Object.keys(chatroom.messagers);
                             let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
@@ -80,7 +79,7 @@ let jobProcess = () => {
                             if (0 === recipientUids.length) {
                                 return Promise.resolve();
                             }
-                            return botSvc.multicast(recipientUids, messages, appId, _app);
+                            return botSvc.multicast(recipientUids, messages, appId, app);
                         })).then(() => {
                             return Promise.all(chatroomIds.map((chatroomId) => {
                                 return Promise.all(messages.map((message) => {
@@ -92,10 +91,10 @@ let jobProcess = () => {
 
                                         let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
                                         let messageId = Object.keys(messagesInDB).shift() || '';
-                                        return messagesInDB[messageId];
+                                        return Promise.resolve(messagesInDB[messageId]);
                                     });
                                 })).then((messages) => {
-                                    let chatroom = _app.chatrooms[chatroomId];
+                                    let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
                                     let messagers = chatroom.messagers;
                                     let messagerIds = Object.keys(messagers);
                                     let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
@@ -103,11 +102,11 @@ let jobProcess = () => {
                                     /** @type {ChatshierChatSocketBody} */
                                     let socketBody = {
                                         app_id: appId,
-                                        type: _app.type,
+                                        type: app.type,
                                         chatroom_id: chatroomId,
                                         chatroom: chatroom,
                                         senderUid: '',
-                                        recipientUid: recipientUids.shift(),
+                                        recipientUid: recipientUids.shift() || '',
                                         messages: messages
                                     };
 

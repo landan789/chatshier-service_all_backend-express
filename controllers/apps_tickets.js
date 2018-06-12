@@ -24,7 +24,7 @@ module.exports = (function() {
                     if (!appsTickets) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                     }
-                    return appsTickets;
+                    return Promise.resolve(appsTickets);
                 });
             }).then((appsTickets) => {
                 let suc = {
@@ -46,7 +46,7 @@ module.exports = (function() {
                     if (!(appsTickets && appsTickets[appId])) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                     }
-                    return appsTickets;
+                    return Promise.resolve(appsTickets);
                 });
             }).then((appsTickets) => {
                 let suc = {
@@ -75,7 +75,7 @@ module.exports = (function() {
                     if (!(appsTickets && appsTickets[appId])) {
                         return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_INSERT);
                     }
-                    return appsTickets;
+                    return Promise.resolve(appsTickets);
                 });
             }).then((data) => {
                 let suc = {
@@ -120,7 +120,7 @@ module.exports = (function() {
                     if (!(appsTickets && appsTickets[appId])) {
                         return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_UPDATE);
                     }
-                    return appsTickets;
+                    return Promise.resolve(appsTickets);
                 });
             }).then((appsTickets) => {
                 let suc = {
@@ -158,7 +158,7 @@ module.exports = (function() {
                     if (!(appsTickets && appsTickets[appId])) {
                         return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_REMOVE);
                     }
-                    return appsTickets;
+                    return Promise.resolve(appsTickets);
                 });
             }).then((appsTickets) => {
                 let json = {

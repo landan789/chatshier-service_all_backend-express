@@ -21,6 +21,10 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsChatroomsMessagersMdl.find(appIds);
             }).then((appsChatroomsMessagers) => {
+                if (!appsChatroomsMessagers) {
+                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                }
+
                 let platformUids = [];
                 for (let appId in appsChatroomsMessagers) {
                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -37,7 +41,7 @@ module.exports = (function() {
                     if (!consumers) {
                         return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
                     }
-                    return consumers;
+                    return Promise.resolve(consumers);
                 });
             }).then((data) => {
                 let suc = {
@@ -58,7 +62,7 @@ module.exports = (function() {
                     if (!consumers) {
                         return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
                     }
-                    return consumers;
+                    return Promise.resolve(consumers);
                 });
             }).then((data) => {
                 let suc = {
@@ -93,12 +97,12 @@ module.exports = (function() {
                     if (!consumers) {
                         return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
                     }
-                    return consumers;
+                    return Promise.resolve(consumers);
                 });
-            }).then((data) => {
+            }).then((consumers) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: consumers
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {

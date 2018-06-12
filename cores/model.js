@@ -224,7 +224,9 @@ module.exports = (function() {
 
     const CalendarsSchema = new mongoose.Schema({
         'events': [EventsSchema],
-        'isDeleted': {type: Boolean, default: false}
+        'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()}
     });
 
     const MembersSchema = new mongoose.Schema({

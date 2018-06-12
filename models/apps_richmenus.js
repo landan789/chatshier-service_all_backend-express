@@ -11,10 +11,10 @@ module.exports = (function() {
         /**
          * 輸入 指定 appId 的陣列清單，取得該 App 所有圖文選單的資料
          *
-         * @param {string|string[]} appIds
-         * @param {any|string} [richmenuId]
-         * @param {(appsRichmenus: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {string | string[]} appIds
+         * @param {string} [richmenuId]
+         * @param {(appsRichmenus: Chatshier.Models.AppsRichmenus | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.AppsRichmenus | null>}
          */
         find(appIds, richmenuId, callback) {
             if (!(appIds instanceof Array)) {
@@ -70,9 +70,9 @@ module.exports = (function() {
         /**
          * 找到 圖文選單未刪除的資料包，不含 apps 結構
          *
-         * @param {string|string[]} appIds
-         * @param {(appsRichmenus: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {string | string[]} appIds
+         * @param {(appsRichmenus: Chatshier.Models.Richmenus | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.Richmenus | null>}
          */
         findRichmenus(appIds, callback) {
             if (!(appIds instanceof Array)) {
@@ -127,9 +127,9 @@ module.exports = (function() {
          * 查找啟用的 richmenu
          *
          * @param {string|string[]} appIds
-         * @param {boolean} [isDefault]
-         * @param {(appsRichmenus: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {boolean} [isDefault=false]
+         * @param {(appsRichmenus: Chatshier.Models.AppsRichmenus | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.AppsRichmenus | null>}
          */
         findActivated(appIds, isDefault, callback) {
             if (!(appIds instanceof Array)) {
@@ -188,8 +188,8 @@ module.exports = (function() {
          *
          * @param {string} appId
          * @param {any} postRichmenu
-         * @param {(appsRichmenus: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {(appsRichmenus: Chatshier.Models.AppsRichmenus | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.AppsRichmenus | null>}
          */
         insert(appId, postRichmenu, callback) {
             let richmenuId = this.Types.ObjectId();
@@ -215,8 +215,8 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} richmenuId
          * @param {any} putRichmenu
-         * @param {(appsRichmenus: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {(appsRichmenus: Chatshier.Models.AppsRichmenus | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.AppsRichmenus | null>}
          */
         update(appId, richmenuId, putRichmenu, callback) {
             putRichmenu._id = richmenuId;
@@ -246,8 +246,8 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {string} richmenuId
-         * @param {(appsRichmenus: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {(appsRichmenus: Chatshier.Models.AppsRichmenus | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.AppsRichmenus | null>}
          */
         remove(appId, richmenuId, callback) {
             let richmenu = {

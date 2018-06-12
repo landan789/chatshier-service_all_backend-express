@@ -24,7 +24,7 @@ module.exports = (function() {
                     if (!appsComposes) {
                         return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                     }
-                    return appsComposes;
+                    return Promise.resolve(appsComposes);
                 });
             }).then((appsComposes) => {
                 let suc = {
@@ -46,7 +46,7 @@ module.exports = (function() {
                     if (!(appsComposes && appsComposes[appId])) {
                         return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                     }
-                    return appsComposes;
+                    return Promise.resolve(appsComposes);
                 });
             }).then((appsComposes) => {
                 let suc = {
@@ -82,7 +82,7 @@ module.exports = (function() {
                         if (!appsComposes || (appsComposes && 0 === Object.keys(appsComposes).length)) {
                             return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                         }
-                        return appsComposes;
+                        return Promise.resolve(appsComposes);
                     });
                 });
             }).then((appsComposes) => {
@@ -121,7 +121,7 @@ module.exports = (function() {
                     if (!_appsComposes) {
                         return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_UPDATE);
                     }
-                    return _appsComposes;
+                    return Promise.resolve(_appsComposes);
                 });
             }).then((data) => {
                 let suc = {
@@ -158,7 +158,7 @@ module.exports = (function() {
                     if (!appsCompose) {
                         return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_REMOVE);
                     }
-                    return appsCompose;
+                    return Promise.resolve(appsCompose);
                 });
             }).then((appsCompose) => {
                 let suc = {

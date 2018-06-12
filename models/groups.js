@@ -18,9 +18,10 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string[]|string} groupIds
-         * @param {string|null} userId
-         * @param {(groups: any) => any} [callback]
+         * @param {string | string[]} groupIds
+         * @param {string} [userId]
+         * @param {(groups: Chatshier.Models.Groups | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Groups | null>}
          */
         find(groupIds, userId, callback) {
             // polymorphism from groupid | groupid[]
@@ -78,6 +79,12 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string | string[]} groupIds
+         * @param {string} userId
+         * @param {(groups: string[] | null) => any} [callback]
+         * @returns {Promise<string[] | null>}
+         */
         findAppIds(groupIds, userId, callback) {
             // polymorphism to both groupid[] and groupid
             if (!(groupIds instanceof Array)) {
@@ -123,9 +130,10 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string|string[]} groupIds
-         * @param {boolean} [includeAny]
-         * @param {(userIds: string[]|null) => any} [callback]
+         * @param {string | string[]} groupIds
+         * @param {boolean} [includeAny=false]
+         * @param {(userIds: string[] | null) => any} [callback]
+         * @returns {Promise<string[] | null>}
          */
         findUserIds(groupIds, includeAny, callback) {
             includeAny = !!includeAny;
@@ -174,7 +182,8 @@ module.exports = (function() {
         /**
          * @param {string} userId
          * @param {any} postGroup
-         * @param {(groups: any) => any} [callback]
+         * @param {(groups: Chatshier.Models.Groups | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Groups | null>}
          */
         insert(userId, postGroup, callback) {
             let group = new this.Model();
@@ -204,7 +213,8 @@ module.exports = (function() {
         /**
          * @param {string} groupId
          * @param {any} putGroup
-         * @param {(groups: any) => any} [callback]
+         * @param {(groups: Chatshier.Models.Groups | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Groups | null>}
          */
         update(groupId, putGroup, callback) {
             putGroup = putGroup || {};
@@ -223,7 +233,7 @@ module.exports = (function() {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 }
-                return this.find(groupId, null);
+                return this.find(groupId);
             }).then((groups) => {
                 ('function' === typeof callback) && callback(groups);
                 return groups;

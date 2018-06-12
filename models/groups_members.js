@@ -14,11 +14,18 @@ module.exports = (function() {
             this.GroupsModel = this.model(GROUPS, this.GroupsSchema);
         }
 
+        /**
+         * @param {string | string[]} groupIds
+         * @param {string} [memberId]
+         * @param {(groupsMember: Chatshier.Models.GroupsMembers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.GroupsMembers>}
+         */
         find(groupIds, memberId, callback) {
             // polymorphism from groupid | groupid[]
             if (!(groupIds instanceof Array)) {
                 groupIds = [groupIds];
-            };
+            }
+
             let aggregations = [
                 {
                     $unwind: '$members'
@@ -62,11 +69,11 @@ module.exports = (function() {
          * 根據 groupId 找到 members
          *
          * @param {string} groupId
-         * @param {string|string[]|null} memberIds
-         * @param {boolean|null} isDeleted
-         * @param {boolean|null} status
-         * @param {(chatroomId: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {string | string[]} [memberIds]
+         * @param {boolean} [isDeleted]
+         * @param {boolean} [status]
+         * @param {(members: Chatshier.Models.Members | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Members | null>}
          */
         findMembers(groupId, memberIds, isDeleted = false, status = true, callback) {
             if (memberIds && !(memberIds instanceof Array)) {
@@ -127,6 +134,12 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} groupId
+         * @param {any} postMember
+         * @param {(groupMembers: Chatshier.Models.GroupsMembers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.GroupsMembers | null>}
+         */
         insert(groupId, postMember, callback) {
             let userId = postMember.user_id;
             let memberId = this.Types.ObjectId();
@@ -170,6 +183,13 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} groupId
+         * @param {string} memberId
+         * @param {any} putMember
+         * @param {(groupMembers: Chatshier.Models.GroupsMembers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.GroupsMembers | null>}
+         */
         update(groupId, memberId, putMember, callback) {
             putMember = putMember || {};
             putMember.updatedTime = Date.now();
@@ -206,6 +226,12 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} groupId
+         * @param {string} memberId
+         * @param {(groupMembers: Chatshier.Models.GroupsMembers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.GroupsMembers | null>}
+         */
         remove(groupId, memberId, callback) {
             let query = {
                 '_id': this.Types.ObjectId(groupId),

@@ -11,6 +11,7 @@ module.exports = (function() {
         }
 
         insert(type, body) {
+            /* eslint-disable no-multi-spaces */
             return this.client.index({
                 index: CHATSHIER.ELASTICSEARCH.INDEX, // DATABASE
                 type: type,                           // TABLE
