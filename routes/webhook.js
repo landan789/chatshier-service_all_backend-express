@@ -68,6 +68,7 @@ router.post('/:webhookid', (req, res, next) => {
     let webhookPromise = Promise.all(webhookProcQueue).then(() => {
         let apps;
         let logWebhookId;
+
         return Promise.resolve().then(() => {
             // 由於 Facebook 使用單一 app 來訂閱所有的粉絲專頁
             // 因此所有的 webhook 入口都會一致是 /webhook/facebook
@@ -201,7 +202,7 @@ router.post('/:webhookid', (req, res, next) => {
                     return Promise.resolve().then(() => {
                         let platformGroupId = webhookInfo.platformGroupId;
                         if (!platformGroupId) {
-                            return;
+                            return Promise.resolve(null);
                         }
 
                         // 根據平台的群組 ID 查找群組聊天室
@@ -213,7 +214,12 @@ router.post('/:webhookid', (req, res, next) => {
                                     platformGroupId: platformGroupId,
                                     platformGroupType: platformGroupType
                                 };
-                                return appsChatroomsMdl.insert(appId, chatroom);
+                                return appsChatroomsMdl.insert(appId, chatroom).then((_appsChatrooms) => {
+                                    if (!(_appsChatrooms && _appsChatrooms[appId])) {
+                                        return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                                    }
+                                    return Promise.resolve(_appsChatrooms);
+                                });
                             }
                             return appsChatrooms;
                         }).then((appsChatrooms) => {
@@ -262,11 +268,16 @@ router.post('/:webhookid', (req, res, next) => {
                                     // 如果是非平台群組聊天室(單一 consumer)的話
                                     // 首次聊天室自動為其建立聊天室
                                     return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
+                                        if (!(appsChatrooms && appsChatrooms[appId])) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                                        }
                                         let chatrooms = appsChatrooms[appId].chatrooms;
                                         let chatroomId = Object.keys(chatrooms).shift() || '';
                                         webhookChatroomId = chatroomId;
+                                        return Promise.resolve(appsChatrooms);
                                     });
                                 }
+                                return Promise.resolve(null);
                             }).then(() => {
                                 // 自動建立聊天室後，將此訊息發送者加入
                                 let messager = {

@@ -89,11 +89,15 @@ function init(server) {
                         });
                     }).then(() => {
                         return appsChatroomsMdl.find(appId, chatroomId).then((appsChatrooms) => {
+                            if (!(appsChatrooms && appsChatrooms[appId])) {
+                                return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
+                            }
+
                             let chatroom = appsChatrooms[appId].chatrooms[chatroomId];
                             if (chatroom.platformGroupId) {
-                                return chatroom.platformGroupId;
+                                return Promise.resolve(chatroom.platformGroupId);
                             }
-                            return socketBody.recipientUid;
+                            return Promise.resolve(socketBody.recipientUid);
                         });
                     }).then((recipientUid) => {
                         return botSvc.pushMessage(recipientUid, message, srcBuffer, appId, app);
@@ -101,10 +105,10 @@ function init(server) {
                         delete message.fileName;
                         delete message.duration;
                         return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
-                            if (!appsChatroomsMessages) {
+                            if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
                                 return Promise.reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
                             }
-                            return appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
+                            return Promise.resolve(appsChatroomsMessages[appId].chatrooms[chatroomId].messages);
                         });
                     }).then((messagesInDB) => {
                         let messageId = Object.keys(messagesInDB).shift() || '';
@@ -135,6 +139,10 @@ function init(server) {
             }).then(() => {
                 // 更新發送者的聊天狀態
                 return appsChatroomsMessagersMdl.find(appId, chatroomId, senderMsgId).then((appsChatroomsMessagers) => {
+                    if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    }
+
                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                     let messagers = chatrooms[chatroomId].messagers;
                     let senderMsger = messagers[senderMsgId];
@@ -155,6 +163,10 @@ function init(server) {
                     return appsChatroomsMessagersMdl.update(appId, chatroomId, senderMsgId, _messager);
                 });
             }).then((appsChatroomsMessagers) => {
+                if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                }
+
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                 let chatroom = chatrooms[chatroomId];
 
@@ -207,9 +219,13 @@ function init(server) {
 
         // 推播全部人
         socket.on(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, (data, callback) => {
+            /** @type {string[]} */
             let appIds = data.appIds || [];
+            /** @type {any[]} */
             let composes = data.composes || [];
+            /** @type {any[]} */
             let conditions = data.conditions || [];
+
             let messages = composes.map((compose) => {
                 let message = {
                     from: SYSTEM,
@@ -244,13 +260,13 @@ function init(server) {
                         return Promise.all(chatroomIds.map((chatroomId) => {
                             return Promise.all(messages.map((message) => {
                                 return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
-                                    if (!appsChatroomsMessages) {
+                                    if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
                                         return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
                                     };
 
                                     let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
                                     let messageId = Object.keys(messagesInDB).shift() || '';
-                                    return messagesInDB[messageId];
+                                    return Promise.resolve(messagesInDB[messageId]);
                                 });
                             })).then((messages) => {
                                 let chatroom = app.chatrooms[chatroomId];
@@ -328,7 +344,7 @@ function init(server) {
                 if (!(groups && groups[groupId])) {
                     return Promise.reject(API_ERROR.GROUP_FAILED_TO_FIND);
                 }
-                return groups[groupId];
+                return Promise.resolve(groups[groupId]);
             }).then((group) => {
                 socketBody.group = group;
 

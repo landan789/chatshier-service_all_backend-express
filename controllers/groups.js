@@ -48,7 +48,7 @@ module.exports = (function() {
                 let groupIds = user.group_ids || [];
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(groupIds, req.params.userid, (groups) => {
-                        if (null === groups || undefined === groups || '' === groups) {
+                        if (!groups) {
                             reject(API_ERROR.GROUP_FAILED_TO_FIND);
                             return;
                         }
@@ -90,7 +90,7 @@ module.exports = (function() {
                     if (!groups) {
                         return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
                     }
-                    return groups;
+                    return Promise.resolve(groups);
                 }).then((groups) => {
                     // group 成功新增之後，將 user 的 group_ids 更新
                     let groupId = Object.keys(groups).shift() || '';
@@ -192,7 +192,7 @@ module.exports = (function() {
 
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(groupId, req.params.userid, (groups) => {
-                        if (null === groups || undefined === groups || '' === groups) {
+                        if (!groups) {
                             reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                             return;
                         }
@@ -216,7 +216,7 @@ module.exports = (function() {
 
                 return new Promise((resolve, reject) => {
                     groupsMdl.update(groupId, putGroup, (groups) => {
-                        if (null === groups || undefined === groups || '' === groups) {
+                        if (!groups) {
                             reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
                             return;
                         }

@@ -308,7 +308,12 @@ module.exports = (function() {
                                         platformGroupId: platformGroupId,
                                         platformGroupType: platformGroupType
                                     };
-                                    return appsChatroomsMdl.insert(appId, chatroom);
+                                    return appsChatroomsMdl.insert(appId, chatroom).then((_appsChatrooms) => {
+                                        if (!(_appsChatrooms && _appsChatrooms[appId])) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
+                                        }
+                                        return Promise.resolve(_appsChatrooms);
+                                    });
                                 }
                                 return appsChatrooms;
                             }).then((appsChatrooms) => {
@@ -324,7 +329,7 @@ module.exports = (function() {
                                             return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
                                         }
                                         chatroom = _appsChatrooms[appId].chatrooms[chatroomId];
-                                        return chatroom;
+                                        return Promise.resolve(chatroom);
                                     });
                                 }
                                 return chatroom;
@@ -386,7 +391,7 @@ module.exports = (function() {
                         } else if (isLeave) {
                             return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId).then((appsChatrooms) => {
                                 if (!(appsChatrooms && appsChatrooms[appId])) {
-                                    return;
+                                    return Promise.resolve(appsChatrooms);
                                 }
 
                                 let chatrooms = appsChatrooms[appId].chatrooms;
@@ -1282,7 +1287,7 @@ module.exports = (function() {
                         lineBot = _lineBot;
                         return appsChatroomsMdl.find(appId, chatroomId);
                     }).then((appsChatrooms) => {
-                        if (!appsChatrooms && (appsChatrooms && 1 !== Object.keys(appsChatrooms).length)) {
+                        if (!(appsChatrooms && appsChatrooms[appId])) {
                             return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
                         }
 

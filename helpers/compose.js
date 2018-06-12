@@ -9,13 +9,14 @@ module.exports = (function() {
 
     class ComposeHelper {
         /**
-         * @param {Array<any>} conditions
+         * @param {Chatshier.Models.ComposeCondition[]} conditions
          * @param {string} appId
          */
         findAvailableMessagers(conditions, appId) {
             let availableMessagers = {};
             let app;
 
+            /** @type {{ [type: string]: Chatshier.Models.ComposeCondition[] }} */
             let conditionsSets = conditions.reduce((output, condition) => {
                 let type = condition.type;
                 output[type] = output[type] || [];
@@ -24,7 +25,7 @@ module.exports = (function() {
             }, {});
 
             return appsMdl.find(appId).then((apps) => {
-                if (!apps || (apps && 1 !== Object.keys(apps).length)) {
+                if (!(apps && apps[appId])) {
                     return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                 }
                 app = apps[appId];
@@ -90,7 +91,7 @@ module.exports = (function() {
                                         isAccept = isAccept || hasContainTag;
                                     }
                                 } else if ('CUSTOM_FIELD' === condition.type) {
-                                    let fieldId = condition.field_id;
+                                    let fieldId = condition.field_id || '';
                                     let customField = messager.custom_fields[fieldId];
 
                                     if (!customField) {

@@ -6,6 +6,8 @@ declare module Chatshier {
 
         interface Calendar {
             _id: any,
+            createdTime: Date | number,
+            updatedTime: Date | number,
             isDeleted: boolean,
             events: CalendarEvents
         }

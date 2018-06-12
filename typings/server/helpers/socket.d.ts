@@ -11,11 +11,11 @@ interface ChatshierChatSocketBody {
 
 interface ChatshierMessage {
     _id?: string,
-    from: 'LINE' | 'FACEBOOK' | 'CHATSHIER' | 'SYSTEM',
+    from: 'SYSTEM' | 'LINE' | 'FACEBOOK' | 'CHATSHIER'  | "WECHAT",
     messager_id: string,
     src: any,
     text: string,
-    time: number,
+    time: Date | number,
     type: string,
     fileName?: string,
     duration?: number

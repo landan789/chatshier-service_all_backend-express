@@ -72,8 +72,8 @@ module.exports = (function() {
          * @param {string | string[]} [memberIds]
          * @param {boolean} [isDeleted]
          * @param {boolean} [status]
-         * @param {(members: Chatshier.Models.GroupMembers | null) => any} [callback]
-         * @returns {Promise<Chatshier.Models.GroupMembers | null>}
+         * @param {(members: Chatshier.Models.Members | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Members | null>}
          */
         findMembers(groupId, memberIds, isDeleted = false, status = true, callback) {
             if (memberIds && !(memberIds instanceof Array)) {

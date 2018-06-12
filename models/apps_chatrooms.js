@@ -15,10 +15,10 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string|string[]} appIds
-         * @param {any|null} [chatroomIds]
-         * @param {(appsChatrooms: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {string | string[]} appIds
+         * @param {string | string[]} [chatroomIds]
+         * @param {(appsChatrooms: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         find(appIds, chatroomIds, callback) {
             if (!(appIds instanceof Array)) {
@@ -98,11 +98,11 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string|string[]} appIds
-         * @param {string|string[]} platformGroupIds
+         * @param {string | string[]} appIds
+         * @param {string | string[]} platformGroupIds
          * @param {any} [query]
-         * @param {(appsChatrooms: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsChatrooms: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         findByPlatformGroupId(appIds, platformGroupIds, query, callback) {
             if (!(appIds instanceof Array)) {
@@ -178,8 +178,8 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {any} [chatroom]
-         * @param {(appsChatrooms: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsChatrooms: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         insert(appId, chatroom, callback) {
             let chatroomId = this.Types.ObjectId();
@@ -328,8 +328,8 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {string} chatroomId
-         * @param {(appsChatrooms: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsChatrooms: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         remove(appId, chatroomId, callback) {
             let chatroom = {

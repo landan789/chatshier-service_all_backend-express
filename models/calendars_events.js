@@ -90,6 +90,7 @@ module.exports = (function() {
                     // 首次插入資料時不會有 calendarId
                     // 因此須自行新增一個 calendarId
                     let calendar = new this.CalendarsModel();
+                    calendar.createdTime = calendar.updatedTime = Date.now();
                     calendar.events.push(postEvent);
                     return calendar.save().then((insertedCalendar) => {
                         let calendarId = insertedCalendar._id;

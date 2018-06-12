@@ -1,4 +1,7 @@
 module.exports = (function() {
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
+
     const appsTemplatesMdl = require('../models/apps_templates');
     const appsGreetingsMdl = require('../models/apps_greetings');
     const appsAutorepliesMdl = require('../models/apps_autoreplies');
@@ -56,6 +59,10 @@ module.exports = (function() {
                 }
 
                 return appsAutorepliesMdl.findAutoreplies(appId).then((_autoreplies) => {
+                    if (!_autoreplies) {
+                        return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                    }
+
                     let timeNow = Date.now();
                     let autoreplies = {};
 
