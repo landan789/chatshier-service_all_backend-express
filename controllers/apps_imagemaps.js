@@ -59,7 +59,8 @@ module.exports = (function() {
                     if (!appsImagemaps[imagemapId]) {
                         return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
                     }
-                    return appsImagemaps;
+
+                    return Promise.resolve(appsImagemaps);
                 });
             }).then((appsImagemaps) => {
                 let suc = {
@@ -98,7 +99,7 @@ module.exports = (function() {
                     if (!_appsImagemaps) {
                         return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_INSERT);
                     }
-                    return _appsImagemaps;
+                    return Promise.resolve(_appsImagemaps);
                 });
             }).then((_appsImagemaps) => {
                 appsImagemaps = _appsImagemaps;
@@ -159,14 +160,15 @@ module.exports = (function() {
                     if (!imagemaps[imagemapId]) {
                         return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
                     }
-                    return imagemaps;
+
+                    return Promise.resolve(imagemaps);
                 });
             }).then(() => {
                 return appsImagemapsMdl.update(appId, imagemapId, putImagemap).then((appsImagemaps) => {
                     if (!(appsImagemaps && appsImagemaps[appId])) {
                         return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_UPDATE);
                     }
-                    return appsImagemaps;
+                    return Promise.resolve(appsImagemaps);
                 });
             }).then((appsImagemaps) => {
                 let suc = {

@@ -8,12 +8,14 @@ module.exports = (function() {
             this.AppsModel = this.model(APPS, this.AppsSchema);
         };
 
+        /**
+         * @param {string | string[]} appIds
+         * @param {string | string[]} [keywordreplyIds]
+         * @param {(appsKeywordreplies: Chatshier.Models.AppsKeywordreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsKeywordreplies | null>}
+         */
         find(appIds, keywordreplyIds, callback) {
-            if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
-                keywordreplyIds = [keywordreplyIds];
-            }
-
-            if (appIds && !(appIds instanceof Array)) {
+            if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
@@ -26,6 +28,10 @@ module.exports = (function() {
             };
 
             if (keywordreplyIds) {
+                if (!(keywordreplyIds instanceof Array)) {
+                    keywordreplyIds = [keywordreplyIds];
+                }
+
                 query['keywordreplies._id'] = {
                     $in: keywordreplyIds.map((keywordreplyId) => this.Types.ObjectId(keywordreplyId))
                 };
@@ -64,6 +70,12 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} appId
+         * @param {any} [postKeywordreply]
+         * @param {(appsKeywordreplies: Chatshier.Models.AppsKeywordreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsKeywordreplies | null>}
+         */
         insert(appId, postKeywordreply, callback) {
             let keywordreplyId = this.Types.ObjectId();
             postKeywordreply._id = keywordreplyId;
@@ -83,6 +95,12 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} appId
+         * @param {string} keywordreplyId
+         * @param {(appsKeywordreplies: Chatshier.Models.AppsKeywordreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsKeywordreplies | null>}
+         */
         update(appId, keywordreplyId, putKeywordreply, callback) {
             putKeywordreply._id = keywordreplyId;
             putKeywordreply.updatedTime = Date.now();
@@ -108,8 +126,14 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} appId
+         * @param {string | string[]} keywordreplyIds
+         * @param {(appsKeywordreplies: Chatshier.Models.AppsKeywordreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsKeywordreplies | null>}
+         */
         increaseReplyCount(appId, keywordreplyIds, callback) {
-            if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
+            if (!(keywordreplyIds instanceof Array)) {
                 keywordreplyIds = [keywordreplyIds];
             }
 
@@ -138,6 +162,12 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} appId
+         * @param {string} keywordreplyId
+         * @param {(appsKeywordreplies: Chatshier.Models.AppsKeywordreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsKeywordreplies | null>}
+         */
         remove(appId, keywordreplyId, callback) {
             let query = {
                 '_id': appId,

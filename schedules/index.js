@@ -92,7 +92,7 @@ let jobProcess = () => {
 
                                         let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
                                         let messageId = Object.keys(messagesInDB).shift() || '';
-                                        return messagesInDB[messageId];
+                                        return Promise.resolve(messagesInDB[messageId]);
                                     });
                                 })).then((messages) => {
                                     let chatroom = _app.chatrooms[chatroomId];

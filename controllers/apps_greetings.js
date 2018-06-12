@@ -24,7 +24,7 @@ module.exports = (function() {
                     if (!appsGreetings) {
                         return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
                     }
-                    return appsGreetings;
+                    return Promise.resolve(appsGreetings);
                 });
             }).then((appsGreetings) => {
                 let suc = {
@@ -50,7 +50,7 @@ module.exports = (function() {
                     if (!(appsGreetings && appsGreetings[appId])) {
                         return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
                     }
-                    return appsGreetings;
+                    return Promise.resolve(appsGreetings);
                 });
             }).then((appGreeting) => {
                 let suc = {
@@ -77,7 +77,7 @@ module.exports = (function() {
                     if (!(appsGreetings && appsGreetings[appId])) {
                         return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_INSERT);
                     }
-                    return appsGreetings;
+                    return Promise.resolve(appsGreetings);
                 });
             }).then((appsGreetings) => {
                 let suc = {
@@ -110,7 +110,7 @@ module.exports = (function() {
                     if (!(appsGreetings && appsGreetings[appId])) {
                         return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_INSERT);
                     }
-                    return appsGreetings;
+                    return Promise.resolve(appsGreetings);
                 });
             }).then((appsGreetings) => {
                 let suc = {
@@ -136,7 +136,7 @@ module.exports = (function() {
                     if (!(appsGreetings && appsGreetings[appId])) {
                         return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_REMOVE);
                     }
-                    return appsGreetings;
+                    return Promise.resolve(appsGreetings);
                 });
             }).then((appsGreetings) => {
                 let suc = {

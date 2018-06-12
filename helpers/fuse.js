@@ -164,7 +164,7 @@ module.exports = (function() {
                 }
 
                 return appsKeywordrepliesMdl.find(appId).then((appsKeywordreplies) => {
-                    if (!appsKeywordreplies || (appsKeywordreplies && 0 === Object.keys(appsKeywordreplies).length)) {
+                    if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
                         return {};
                     }
 
@@ -208,7 +208,7 @@ module.exports = (function() {
                 }
 
                 return appsTemplatesMdl.find(appId).then((appsTemplates) => {
-                    if (!appsTemplates || (appsTemplates && 0 === Object.keys(appsTemplates).length)) {
+                    if (!(appsTemplates && appsTemplates[appId])) {
                         return {};
                     }
 

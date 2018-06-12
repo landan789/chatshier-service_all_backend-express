@@ -386,14 +386,14 @@ router.post('/:webhookid', (req, res, next) => {
                     });
                 }).then(() => {
                     if (!(totalMessages.length > 0 && webhookChatroomId)) {
-                        return;
+                        return Promise.resolve(null);
                     }
 
                     return appsChatroomsMessagesMdl.insert(appId, webhookChatroomId, totalMessages).then((appsChatroomsMessages) => {
                         if (!appsChatroomsMessages) {
                             return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
-                        };
-                        return appsChatroomsMessages[appId].chatrooms[webhookChatroomId].messages;
+                        }
+                        return Promise.resolve(appsChatroomsMessages[appId].chatrooms[webhookChatroomId].messages);
                     });
                 }).then((messages) => {
                     if (!messages) {
@@ -416,6 +416,10 @@ router.post('/:webhookid', (req, res, next) => {
                     // 抓出聊天室 messagers 最新的狀態傳給 socket
                     // 讓前端能夠更新目前 messager 的聊天狀態
                     return appsChatroomsMessagersMdl.find(appId, webhookChatroomId).then((appsChatroomsMessagers) => {
+                        if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                        }
+
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let chatroom = chatrooms[webhookChatroomId];
 
