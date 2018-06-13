@@ -354,9 +354,13 @@ module.exports = (function() {
                                                 }
 
                                                 let consumer = consumers[groupMemberId];
+                                                if (!consumer || (consumer && !consumer.photoOriginal)) {
+                                                    return consumersMdl.replace(platformUid, groupMemberProfile);
+                                                }
+
                                                 let shouldUpload = (
-                                                    groupMemberProfile.photo.startsWith('http://') &&
-                                                    (!consumer || (consumer && groupMemberProfile.photo !== consumer.photoOriginal))
+                                                    consumer.photo.startsWith('http://') ||
+                                                    (groupMemberProfile.photo.startsWith('http://') && groupMemberProfile.photo !== consumer.photoOriginal)
                                                 );
 
                                                 if (shouldUpload) {
