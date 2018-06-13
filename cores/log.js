@@ -4,13 +4,12 @@ module.exports = (function() {
     const SUCCED = 'SUCCED';
     const FAIL = 'FAIL';
 
-    let elasticsearch = require('elasticsearch');
     let winston = require('winston');
 
     let logger = winston.createLogger({
         format: winston.format.combine(
-            winston.format.json(),
-            winston.format.timestamp()
+            winston.format.timestamp(),
+            winston.format.json()
         )
     });
 
@@ -25,7 +24,6 @@ module.exports = (function() {
             json.level = 'info';
             json.status = START;
             json.message = message;
-            json.type = type;
             return this.logger.log(json);
         }
 
@@ -34,7 +32,6 @@ module.exports = (function() {
             json.level = 'info';
             json.status = SUCCED;
             json.message = message;
-            json.type = type;
             return this.logger.log(json);
         }
 
@@ -43,7 +40,6 @@ module.exports = (function() {
             json.level = 'info';
             json.status = FAIL;
             json.message = message;
-            json.type = type;
             return this.logger.log(json);
         }
     };
