@@ -27,7 +27,7 @@ module.exports = {
         INDEX: 'log' // INDEX of ELASTICSEARCH is simalir to DATABASE of MONGODB
     },
     LOG: {
-        PATH: '/.log'
+        PATH: '.log'
     },
     LINE: {
         PREVIEW_IMAGE_URL: 'https://service.chatshier.com/image/logo-no-transparent.png'
