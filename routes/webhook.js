@@ -169,9 +169,13 @@ router.post('/:webhookid', (req, res, next) => {
                             }
 
                             let consumer = consumers[platformUid];
+                            if (!consumer || (consumer && !consumer.photoOriginal)) {
+                                return consumersMdl.replace(platformUid, profile);
+                            }
+
                             let shouldUpload = (
-                                profile.photo.startsWith('http://') &&
-                                (!consumer || (consumer && profile.photo !== consumer.photoOriginal))
+                                consumer.photo.startsWith('http://') ||
+                                (profile.photo.startsWith('http://') && profile.photo !== consumer.photoOriginal)
                             );
 
                             if (shouldUpload) {
