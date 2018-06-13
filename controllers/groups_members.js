@@ -41,7 +41,7 @@ module.exports = (function() {
                 };
 
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
@@ -57,8 +57,8 @@ module.exports = (function() {
                 }
 
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.find(groupIds, null, (groupsMembers) => {
-                        if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
+                    groupsMembersMdl.find(groupIds, void 0, (groupsMembers) => {
+                        if (!groupsMembers) {
                             reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                             return;
                         }
@@ -96,7 +96,7 @@ module.exports = (function() {
                         return reject(API_ERROR.GROUPID_WAS_EMPTY);
                     };
 
-                    usersMdl.find(postMember.user_id, null, (users) => {
+                    usersMdl.find(postMember.user_id, void 0, (users) => {
                         if (!(users && users[postMember.user_id])) {
                             // 不存在的 user 無法加入 群組
                             return reject(API_ERROR.USER_FAILED_TO_FIND);
@@ -107,7 +107,7 @@ module.exports = (function() {
                 });
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!(users && users[userId])) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
@@ -121,14 +121,11 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                 }
 
-                return new Promise((resolve, reject) => {
-                    groupsMembersMdl.findMembers(groupId, null, null, null, (members) => {
-                        if (!members || (members && 0 === Object.keys(members).length)) {
-                            reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(members);
-                    });
+                return groupsMembersMdl.findMembers(groupId).then((members) => {
+                    if (!members || (members && 0 === Object.keys(members).length)) {
+                        return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
+                    }
+                    return Promise.resolve(members);
                 });
             }).then((members) => {
                 // 該群組下的所有使用者 IDs
@@ -185,7 +182,7 @@ module.exports = (function() {
                             if (!(users && users[req.body.userid])) {
                                 return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
                             }
-                            return users;
+                            return Promise.resolve(users);
                         }).then(() => {
                             return groupsMembers;
                         });
@@ -196,7 +193,7 @@ module.exports = (function() {
                     if (!(groupsMembers && groupsMembers[groupId])) {
                         return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
                     }
-                    return groupsMembers;
+                    return Promise.resolve(groupsMembers);
                 });
             }).then((groupsMembers) => {
                 let suc = {
@@ -249,7 +246,7 @@ module.exports = (function() {
 
                 return new Promise((resolve, reject) => {
                     let userId = req.params.userid;
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
@@ -264,14 +261,11 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                 }
 
-                return new Promise((resolve, reject) => {
-                    groupsMembersMdl.findMembers(groupId, null, false, null, (members) => {
-                        if (!members || (members && 0 === Object.keys(members).length)) {
-                            reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(members);
-                    });
+                return groupsMembersMdl.findMembers(groupId, void 0, false).then((members) => {
+                    if (!members || (members && 0 === Object.keys(members).length)) {
+                        return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
+                    }
+                    return Promise.resolve(members);
                 });
             }).then((members) => {
                 // 該群組下的所有使用者 IDs
@@ -397,7 +391,7 @@ module.exports = (function() {
                         return reject(API_ERROR.MEMBERID_WAS_EMPTY);
                     };
 
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
@@ -412,7 +406,7 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                 }
 
-                return groupsMembersMdl.findMembers(groupId, null);
+                return groupsMembersMdl.findMembers(groupId);
             }).then((members) => {
                 if (!members || (members && 0 === Object.keys(members).length)) {
                     return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
@@ -451,7 +445,7 @@ module.exports = (function() {
                 deletedMember = groupsMembers[groupId].members[memberId];
                 memberUserId = deletedMember.user_id;
 
-                return usersMdl.find(memberUserId, null);
+                return usersMdl.find(memberUserId, void 0);
             }).then((users) => {
                 // 群組成員 user 資料中的 groups 也須一併移除 group
                 if (!users) {
@@ -477,11 +471,11 @@ module.exports = (function() {
             }).then((appIds) => {
                 appIds = appIds || [];
 
-                return appsChatroomsMessagersMdl.remove(appIds, null, memberUserId).then((appsChatroomsMessagers) => {
+                return appsChatroomsMessagersMdl.remove(appIds, void 0, memberUserId).then((appsChatroomsMessagers) => {
                     if (!appsChatroomsMessagers) {
                         return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_REMOVE);
                     };
-                    return appsChatroomsMessagers;
+                    return Promise.resolve(appsChatroomsMessagers);
                 }).then(() => {
                     return groupsMembers;
                 });

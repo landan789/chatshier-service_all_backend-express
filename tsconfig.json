@@ -23,10 +23,13 @@
     "include": [
         "typings/server/**/*.d.ts",
         "controllers/**/*",
+        "cores/**/*",
         "helpers/**/*",
         "models/**/*",
+        "patch/**/*",
         "routes/**/*",
         "schedules/**/*",
+        "services/**/*",
         "sockets/**/*"
     ]
 }

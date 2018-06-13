@@ -1,5 +1,7 @@
 module.exports = (function() {
-    const appsTemplatesMdl = require('../models/apps_templates');
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
+
     const appsGreetingsMdl = require('../models/apps_greetings');
     const appsAutorepliesMdl = require('../models/apps_autoreplies');
     const fuseHlp = require('../helpers/fuse');
@@ -19,7 +21,7 @@ module.exports = (function() {
         getRepliedMessages(messages, webhookInfo, appId, app) {
             let eventType = webhookInfo.eventType;
 
-            let grettingsPromise = Promise.resolve().then(() => {
+            let greetingsPromise = Promise.resolve().then(() => {
                 if (LINE === app.type &&
                     (botSvc.LINE_EVENT_TYPES.FOLLOW === eventType ||
                     botSvc.LINE_EVENT_TYPES.JOIN === eventType)) {
@@ -56,6 +58,10 @@ module.exports = (function() {
                 }
 
                 return appsAutorepliesMdl.findAutoreplies(appId).then((_autoreplies) => {
+                    if (!_autoreplies) {
+                        return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                    }
+
                     let timeNow = Date.now();
                     let autoreplies = {};
 
@@ -126,7 +132,7 @@ module.exports = (function() {
             });
 
             return Promise.all([
-                grettingsPromise,
+                greetingsPromise,
                 keywordrepliesPromise,
                 autorepliesPromise,
                 templatesPromise
@@ -134,29 +140,33 @@ module.exports = (function() {
                 let repliedMessages = [];
                 let _message = { from: SYSTEM };
 
-                Object.keys(greetings).forEach((grettingId) => {
-                    let gretting = greetings[grettingId];
-                    let message = Object.assign({}, gretting, _message);
+                greetings = greetings || {};
+                for (let greetingId in greetings) {
+                    let greeting = greetings[greetingId];
+                    let message = Object.assign({}, greeting, _message);
                     repliedMessages.push(message);
-                });
+                }
 
-                Object.keys(keywordreplies).forEach((keywordreplyId) => {
+                keywordreplies = keywordreplies || {};
+                for (let keywordreplyId in keywordreplies) {
                     let keywordreply = keywordreplies[keywordreplyId];
                     let message = Object.assign({}, keywordreply, _message);
                     repliedMessages.push(message);
-                });
+                }
 
-                Object.keys(autoreplies).forEach((autoreplyId) => {
+                autoreplies = autoreplies || {};
+                for (let autoreplyId in autoreplies) {
                     let autoreply = autoreplies[autoreplyId];
                     let message = Object.assign({}, autoreply, _message);
                     repliedMessages.push(message);
-                });
+                }
 
-                Object.keys(templates).forEach((templateId) => {
+                templates = templates || {};
+                for (let templateId in templates) {
                     let template = templates[templateId];
                     let message = Object.assign({}, template, _message);
                     repliedMessages.push(message);
-                });
+                }
 
                 return repliedMessages;
             });

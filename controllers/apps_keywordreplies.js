@@ -24,7 +24,7 @@ module.exports = (function() {
                     if (!appsKeywordreplies) {
                         return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                     }
-                    return appsKeywordreplies;
+                    return Promise.resolve(appsKeywordreplies);
                 });
             }).then((appsKeywordreplies) => {
                 let suc = {
@@ -46,7 +46,7 @@ module.exports = (function() {
                     if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
                         return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                     }
-                    return appsKeywordreplies;
+                    return Promise.resolve(appsKeywordreplies);
                 });
             }).then((appsKeywordreplies) => {
                 let suc = {
@@ -74,7 +74,7 @@ module.exports = (function() {
                     if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
                         return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_INSERT);
                     }
-                    return appsKeywordreplies;
+                    return Promise.resolve(appsKeywordreplies);
                 });
             }).then((appsKeywordreplies) => {
                 let suc = {
@@ -103,7 +103,7 @@ module.exports = (function() {
                     if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
                         return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
                     }
-                    return appsKeywordreplies;
+                    return Promise.resolve(appsKeywordreplies);
                 });
             }).then((appsKeywordreplies) => {
                 let suc = {
@@ -125,7 +125,7 @@ module.exports = (function() {
                     if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
                         return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_REMOVE);
                     }
-                    return appsKeywordreplies;
+                    return Promise.resolve(appsKeywordreplies);
                 });
             }).then((appsKeywordreplies) => {
                 let suc = {

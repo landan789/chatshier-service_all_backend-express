@@ -20,9 +20,10 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string|string[]} appIds
-         * @param {any|null} [ticketId]
-         * @param {(appTickets: any) => any} [callback]
+         * @param {string | string[]} appIds
+         * @param {string} [ticketId]
+         * @param {(appTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsTickets | null>}
          */
         find(appIds, ticketId, callback) {
             if (!(appIds instanceof Array)) {
@@ -73,7 +74,8 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {any} ticket
-         * @param {(appTickets: any) => any} [callback]
+         * @param {(appTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsTickets | null>}
          */
         insert(appId, ticket, callback) {
             ticket = ticket || {};
@@ -107,7 +109,8 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} ticketId
          * @param {any} ticket
-         * @param {(appTickets: any) => any} [callback]
+         * @param {(appTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsTickets | null>}
          */
         update(appId, ticketId, ticket, callback) {
             ticket = ticket || {};
@@ -135,9 +138,10 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string|string[]} appIds
+         * @param {string | string[]} appIds
          * @param {string} ticketId
-         * @param {(appTickets: any) => any} [callback]
+         * @param {(appTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsTickets | null>}
          */
         remove(appIds, ticketId, callback) {
             if (!(appIds instanceof Array)) {

@@ -240,7 +240,7 @@ module.exports = (function() {
 
                                 // 只有 richmenu ID 與預設的 richmenu ID 不同時才需要重新 link LINE 用戶
                                 let richmenu = Object.values(appsRichmenus[appId].richmenus).shift();
-                                if (richmenu.platformMenuId && _platformMenuId !== richmenu.platformMenuId) {
+                                if (richmenu && richmenu.platformMenuId && _platformMenuId !== richmenu.platformMenuId) {
                                     return this.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId, app).catch(() => void 0);
                                 }
                             });
@@ -308,7 +308,12 @@ module.exports = (function() {
                                         platformGroupId: platformGroupId,
                                         platformGroupType: platformGroupType
                                     };
-                                    return appsChatroomsMdl.insert(appId, chatroom);
+                                    return appsChatroomsMdl.insert(appId, chatroom).then((_appsChatrooms) => {
+                                        if (!(_appsChatrooms && _appsChatrooms[appId])) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
+                                        }
+                                        return Promise.resolve(_appsChatrooms);
+                                    });
                                 }
                                 return appsChatrooms;
                             }).then((appsChatrooms) => {
@@ -324,7 +329,7 @@ module.exports = (function() {
                                             return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
                                         }
                                         chatroom = _appsChatrooms[appId].chatrooms[chatroomId];
-                                        return chatroom;
+                                        return Promise.resolve(chatroom);
                                     });
                                 }
                                 return chatroom;
@@ -344,6 +349,10 @@ module.exports = (function() {
                                             }
 
                                             return consumersMdl.find(groupMemberId).then((consumers) => {
+                                                if (!consumers) {
+                                                    return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                                                }
+
                                                 let consumer = consumers[groupMemberId];
                                                 let shouldUpload = (
                                                     groupMemberProfile.photo.startsWith('http://') &&
@@ -382,7 +391,7 @@ module.exports = (function() {
                         } else if (isLeave) {
                             return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId).then((appsChatrooms) => {
                                 if (!(appsChatrooms && appsChatrooms[appId])) {
-                                    return;
+                                    return Promise.resolve(appsChatrooms);
                                 }
 
                                 let chatrooms = appsChatrooms[appId].chatrooms;
@@ -1278,7 +1287,7 @@ module.exports = (function() {
                         lineBot = _lineBot;
                         return appsChatroomsMdl.find(appId, chatroomId);
                     }).then((appsChatrooms) => {
-                        if (!appsChatrooms && (appsChatrooms && 1 !== Object.keys(appsChatrooms).length)) {
+                        if (!(appsChatrooms && appsChatrooms[appId])) {
                             return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
                         }
 

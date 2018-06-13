@@ -89,11 +89,15 @@ function init(server) {
                         });
                     }).then(() => {
                         return appsChatroomsMdl.find(appId, chatroomId).then((appsChatrooms) => {
+                            if (!(appsChatrooms && appsChatrooms[appId])) {
+                                return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
+                            }
+
                             let chatroom = appsChatrooms[appId].chatrooms[chatroomId];
                             if (chatroom.platformGroupId) {
-                                return chatroom.platformGroupId;
+                                return Promise.resolve(chatroom.platformGroupId);
                             }
-                            return socketBody.recipientUid;
+                            return Promise.resolve(socketBody.recipientUid);
                         });
                     }).then((recipientUid) => {
                         return botSvc.pushMessage(recipientUid, message, srcBuffer, appId, app);
@@ -101,10 +105,10 @@ function init(server) {
                         delete message.fileName;
                         delete message.duration;
                         return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
-                            if (!appsChatroomsMessages) {
+                            if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
                                 return Promise.reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
                             }
-                            return appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
+                            return Promise.resolve(appsChatroomsMessages[appId].chatrooms[chatroomId].messages);
                         });
                     }).then((messagesInDB) => {
                         let messageId = Object.keys(messagesInDB).shift() || '';
@@ -135,6 +139,10 @@ function init(server) {
             }).then(() => {
                 // 更新發送者的聊天狀態
                 return appsChatroomsMessagersMdl.find(appId, chatroomId, senderMsgId).then((appsChatroomsMessagers) => {
+                    if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    }
+
                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                     let messagers = chatrooms[chatroomId].messagers;
                     let senderMsger = messagers[senderMsgId];
@@ -155,6 +163,10 @@ function init(server) {
                     return appsChatroomsMessagersMdl.update(appId, chatroomId, senderMsgId, _messager);
                 });
             }).then((appsChatroomsMessagers) => {
+                if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                }
+
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                 let chatroom = chatrooms[chatroomId];
 
@@ -207,9 +219,13 @@ function init(server) {
 
         // 推播全部人
         socket.on(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, (data, callback) => {
+            /** @type {string[]} */
             let appIds = data.appIds || [];
+            /** @type {any[]} */
             let composes = data.composes || [];
+            /** @type {any[]} */
             let conditions = data.conditions || [];
+
             let messages = composes.map((compose) => {
                 let message = {
                     from: SYSTEM,
@@ -223,67 +239,73 @@ function init(server) {
             });
 
             return Promise.all(appIds.map((appId) => {
-                return composeHlp.findAvailableMessagers(conditions, appId).then((appsChatroomsMessagers) => {
-                    let app = appsChatroomsMessagers[appId];
-                    if (!app) {
-                        return Promise.resolve([]);
+                return appsMdl.find(appId).then((apps) => {
+                    if (!(apps && apps[appId])) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                     }
-
-                    let chatroomIds = Object.keys(app.chatrooms);
-                    return Promise.all(chatroomIds.map((chatroomId) => {
-                        let chatroom = app.chatrooms[chatroomId];
-                        let messagers = chatroom.messagers;
-                        let messagerIds = Object.keys(chatroom.messagers);
-                        let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
-
-                        if (0 === recipientUids.length) {
-                            return Promise.resolve();
+                    return Promise.resolve(apps[appId]);
+                }).then((app) => {
+                    return composeHlp.findAvailableMessagers(conditions, appId).then((appsChatroomsMessagers) => {
+                        if (!appsChatroomsMessagers[appId]) {
+                            return Promise.resolve([]);
                         }
-                        return botSvc.multicast(recipientUids, messages, appId, app);
-                    })).then(() => {
+
+                        let chatroomIds = Object.keys(appsChatroomsMessagers[appId].chatrooms);
                         return Promise.all(chatroomIds.map((chatroomId) => {
-                            return Promise.all(messages.map((message) => {
-                                return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
-                                    if (!appsChatroomsMessages) {
-                                        return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
-                                    };
+                            let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                            let messagers = chatroom.messagers;
+                            let messagerIds = Object.keys(chatroom.messagers);
+                            let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
 
-                                    let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
-                                    let messageId = Object.keys(messagesInDB).shift() || '';
-                                    return messagesInDB[messageId];
-                                });
-                            })).then((messages) => {
-                                let chatroom = app.chatrooms[chatroomId];
-                                let messagers = chatroom.messagers;
-                                let messagerIds = Object.keys(messagers);
-                                let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
+                            if (0 === recipientUids.length) {
+                                return Promise.resolve();
+                            }
+                            return botSvc.multicast(recipientUids, messages, appId, app);
+                        })).then(() => {
+                            return Promise.all(chatroomIds.map((chatroomId) => {
+                                return Promise.all(messages.map((message) => {
+                                    return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
+                                        if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                                        };
 
-                                /** @type {ChatshierChatSocketBody} */
-                                let socketBody = {
-                                    app_id: appId,
-                                    type: app.type,
-                                    chatroom_id: chatroomId,
-                                    chatroom: chatroom,
-                                    senderUid: '',
-                                    recipientUid: recipientUids.shift(),
-                                    messages: messages
-                                };
-
-                                return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
-                                    if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
-                                    }
-
+                                        let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
+                                        let messageId = Object.keys(messagesInDB).shift() || '';
+                                        return Promise.resolve(messagesInDB[messageId]);
+                                    });
+                                })).then((messages) => {
                                     let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
                                     let messagers = chatroom.messagers;
-                                    let recipientUserIds = Object.keys(messagers).map((messagerId) => {
-                                        return messagers[messagerId].platformUid;
+                                    let messagerIds = Object.keys(messagers);
+                                    let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
+
+                                    /** @type {ChatshierChatSocketBody} */
+                                    let socketBody = {
+                                        app_id: appId,
+                                        type: app.type,
+                                        chatroom_id: chatroomId,
+                                        chatroom: chatroom,
+                                        senderUid: '',
+                                        recipientUid: recipientUids.shift() || '',
+                                        messages: messages
+                                    };
+
+                                    return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
+                                        if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                        }
+
+                                        let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                                        let messagers = chatroom.messagers;
+                                        let recipientUserIds = Object.keys(messagers).map((messagerId) => {
+                                            return messagers[messagerId].platformUid;
+                                        });
+                                        // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
+                                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
                                     });
-                                    // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
-                                    return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
                                 });
-                            });
-                        }));
+                            }));
+                        });
                     });
                 });
             })).then(() => {
@@ -328,7 +350,7 @@ function init(server) {
                 if (!(groups && groups[groupId])) {
                     return Promise.reject(API_ERROR.GROUP_FAILED_TO_FIND);
                 }
-                return groups[groupId];
+                return Promise.resolve(groups[groupId]);
             }).then((group) => {
                 socketBody.group = group;
 
@@ -336,7 +358,7 @@ function init(server) {
                     if (!(users && users[userId])) {
                         return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    return users[userId];
+                    return Promise.resolve(users[userId]);
                 });
             }).then((user) => {
                 socketBody.user = user;

@@ -59,9 +59,9 @@ module.exports = (function() {
                 return Promise.resolve();
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(null, req.body.email, (_users) => {
+                    usersMdl.find(void 0, req.body.email, (_users) => {
                         // If the user email deoes not exist then REST API can not sign up
-                        if (0 === Object.keys(_users).length) {
+                        if (!_users || (_users && 0 === Object.keys(_users).length)) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
                         };
@@ -147,9 +147,9 @@ module.exports = (function() {
                 return Promise.resolve();
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(null, req.body.email, (users) => {
+                    usersMdl.find(void 0, req.body.email, (users) => {
                         // If the user email exists then REST API can not insert any user
-                        if (0 < Object.keys(users).length) {
+                        if (users && 0 < Object.keys(users).length) {
                             reject(API_ERROR.USER_EMAIL_HAD_BEEN_SIGNED_UP);
                             return;
                         };
@@ -208,7 +208,7 @@ module.exports = (function() {
                     type: 'CHATSHIER',
                     group_id: groupId
                 };
-                return appsMdl.insert(userId, postApp);
+                return appsMdl.insert(postApp);
             }).then((apps) => {
                 if (!apps || (apps && 0 === Object.keys(apps).length)) {
                     return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
@@ -226,7 +226,7 @@ module.exports = (function() {
                         if (!appsFields) {
                             return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
                         }
-                        return appsFields;
+                        return Promise.resolve(appsFields);
                     });
                 });
             }).then(() => {
@@ -261,7 +261,7 @@ module.exports = (function() {
                 return Promise.resolve();
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(req.params.userid, null, (_users) => {
+                    usersMdl.find(req.params.userid, void 0, (_users) => {
                         // If the user exists then REST API can not insert any user
                         users = _users;
                         if (!users) {
@@ -313,7 +313,7 @@ module.exports = (function() {
                 if (!resJson.success) {
                     return Promise.reject(API_ERROR.PASSWORD_FAILED_TO_RESET);
                 }
-                return usersMdl.find(null, email);
+                return usersMdl.find(void 0, email);
             }).then((users) => {
                 if (!users || (users && 1 !== Object.keys(users).length)) {
                     return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
@@ -368,13 +368,13 @@ module.exports = (function() {
                         password: ciperHlp.encode(newPassword)
                     };
                     return usersMdl.update(userId, postUser).then((users) => {
-                        if (!users || (users && 0 === Object.keys(users).length)) {
+                        if (!(users && users[userId])) {
                             return Promise.reject(API_ERROR.USER_FAILED_TO_UPDATE);
                         }
                         // user password must never reponse to client
                         users[userId].password = void 0;
                         token = jwtHlp.sign(userId);
-                        return users;
+                        return Promise.resolve(users);
                     });
                 });
             }).then((users) => {
@@ -423,7 +423,7 @@ module.exports = (function() {
                         // user password must never reponse to client
                         users[userId].password = void 0;
                         token = jwtHlp.sign(userId);
-                        return users;
+                        return Promise.resolve(users);
                     });
                 });
             }).then((users) => {

@@ -68,6 +68,7 @@ router.post('/:webhookid', (req, res, next) => {
     let webhookPromise = Promise.all(webhookProcQueue).then(() => {
         let apps;
         let logWebhookId;
+
         return Promise.resolve().then(() => {
             // 由於 Facebook 使用單一 app 來訂閱所有的粉絲專頁
             // 因此所有的 webhook 入口都會一致是 /webhook/facebook
@@ -159,10 +160,14 @@ router.post('/:webhookid', (req, res, next) => {
 
                     return botSvc.getProfile(webhookInfo, appId, app).then((profile) => {
                         if (!platformUid) {
-                            return;
+                            return Promise.resolve(null);
                         }
 
                         return consumersMdl.find(platformUid).then((consumers) => {
+                            if (!consumers) {
+                                return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                            }
+
                             let consumer = consumers[platformUid];
                             let shouldUpload = (
                                 profile.photo.startsWith('http://') &&
@@ -194,7 +199,7 @@ router.post('/:webhookid', (req, res, next) => {
                     return Promise.resolve().then(() => {
                         let platformGroupId = webhookInfo.platformGroupId;
                         if (!platformGroupId) {
-                            return;
+                            return Promise.resolve(null);
                         }
 
                         // 根據平台的群組 ID 查找群組聊天室
@@ -206,7 +211,12 @@ router.post('/:webhookid', (req, res, next) => {
                                     platformGroupId: platformGroupId,
                                     platformGroupType: platformGroupType
                                 };
-                                return appsChatroomsMdl.insert(appId, chatroom);
+                                return appsChatroomsMdl.insert(appId, chatroom).then((_appsChatrooms) => {
+                                    if (!(_appsChatrooms && _appsChatrooms[appId])) {
+                                        return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                                    }
+                                    return Promise.resolve(_appsChatrooms);
+                                });
                             }
                             return appsChatrooms;
                         }).then((appsChatrooms) => {
@@ -255,11 +265,16 @@ router.post('/:webhookid', (req, res, next) => {
                                     // 如果是非平台群組聊天室(單一 consumer)的話
                                     // 首次聊天室自動為其建立聊天室
                                     return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
+                                        if (!(appsChatrooms && appsChatrooms[appId])) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                                        }
                                         let chatrooms = appsChatrooms[appId].chatrooms;
                                         let chatroomId = Object.keys(chatrooms).shift() || '';
                                         webhookChatroomId = chatroomId;
+                                        return Promise.resolve(appsChatrooms);
                                     });
                                 }
+                                return Promise.resolve(null);
                             }).then(() => {
                                 // 自動建立聊天室後，將此訊息發送者加入
                                 let messager = {
@@ -277,7 +292,7 @@ router.post('/:webhookid', (req, res, next) => {
                                     let messagerId = Object.keys(messagers).shift() || '';
                                     let _messager = messagers[messagerId];
                                     platformMessager = _messager;
-                                    return _messager;
+                                    return Promise.resolve(_messager);
                                 });
                             });
                         });
@@ -368,14 +383,14 @@ router.post('/:webhookid', (req, res, next) => {
                     });
                 }).then(() => {
                     if (!(totalMessages.length > 0 && webhookChatroomId)) {
-                        return;
+                        return Promise.resolve(null);
                     }
 
                     return appsChatroomsMessagesMdl.insert(appId, webhookChatroomId, totalMessages).then((appsChatroomsMessages) => {
                         if (!appsChatroomsMessages) {
                             return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
-                        };
-                        return appsChatroomsMessages[appId].chatrooms[webhookChatroomId].messages;
+                        }
+                        return Promise.resolve(appsChatroomsMessages[appId].chatrooms[webhookChatroomId].messages);
                     });
                 }).then((messages) => {
                     if (!messages) {
@@ -398,6 +413,10 @@ router.post('/:webhookid', (req, res, next) => {
                     // 抓出聊天室 messagers 最新的狀態傳給 socket
                     // 讓前端能夠更新目前 messager 的聊天狀態
                     return appsChatroomsMessagersMdl.find(appId, webhookChatroomId).then((appsChatroomsMessagers) => {
+                        if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                        }
+
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let chatroom = chatrooms[webhookChatroomId];
 

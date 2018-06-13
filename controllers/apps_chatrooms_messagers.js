@@ -25,7 +25,7 @@ module.exports = (function() {
                     if (!appsChatroomsMessagers) {
                         return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                     }
-                    return appsChatroomsMessagers;
+                    return Promise.resolve(appsChatroomsMessagers);
                 });
             }).then((appsChatroomsMessagers) => {
                 let suc = {
@@ -67,7 +67,7 @@ module.exports = (function() {
                 if (!appsChatroomsMessagers) {
                     return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                 }
-                return appsChatroomsMessagers;
+                return Promise.resolve(appsChatroomsMessagers);
             }).then((data) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,

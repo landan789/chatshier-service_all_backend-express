@@ -26,7 +26,7 @@ module.exports = (function() {
                     if (!appsRichmenus) {
                         return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                     }
-                    return appsRichmenus;
+                    return Promise.resolve(appsRichmenus);
                 });
             }).then((appsRichmenus) => {
                 let suc = {
@@ -61,14 +61,14 @@ module.exports = (function() {
                     if (!richmenus[richmenuId]) {
                         return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
                     }
-                    return richmenus;
+                    return Promise.resolve(richmenus);
                 });
             }).then(() => {
                 return appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
                         return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                     }
-                    return appsRichmenus;
+                    return Promise.resolve(appsRichmenus);
                 });
             }).then((appsRichmenus) => {
                 let suc = {
@@ -161,7 +161,7 @@ module.exports = (function() {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
                         return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
                     }
-                    return appsRichmenus;
+                    return Promise.resolve(appsRichmenus);
                 });
             }).then((appsRichmenus) => {
                 if (!postRichmenu.src) {
@@ -297,7 +297,7 @@ module.exports = (function() {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
                         return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
                     }
-                    return appsRichmenus;
+                    return Promise.resolve(appsRichmenus);
                 });
             }).then((appsRichmenus) => {
                 let suc = {
@@ -349,7 +349,7 @@ module.exports = (function() {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
                         return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_REMOVE);
                     }
-                    return appsRichmenus;
+                    return Promise.resolve(appsRichmenus);
                 });
             }).then((appsRichmenus) => {
                 let suc = {

@@ -1251,12 +1251,13 @@
                     }
                 };
 
+                var fieldText = (transJson[field.text] ? transJson[field.text] : (field.text || ''));
                 var $fieldContent = $(
                     '<div class="card m-2 p-2 col-12 col-lg-6 field-content" id="' + fieldId + '">' +
                         '<div class="form-group row field-item field-name mb-1">' +
                             '<label class="col-3 col-form-label">名稱:</label>' +
                             '<div class="col-9 d-flex align-items-center">' +
-                                '<input class="form-control" type="text" placeholder="' + (transJson[field.text] ? transJson[field.text] : (field.text || '')) + '" />' +
+                                '<input class="form-control" type="text" placeholder="' + fieldText + '" value="' + fieldText + '" />' +
                             '</div>' +
                         '</div>' +
                         '<div class="form-group row field-item field-type my-1">' +

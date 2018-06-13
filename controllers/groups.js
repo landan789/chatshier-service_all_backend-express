@@ -36,7 +36,7 @@ module.exports = (function() {
                 };
 
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
@@ -48,7 +48,7 @@ module.exports = (function() {
                 let groupIds = user.group_ids || [];
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(groupIds, req.params.userid, (groups) => {
-                        if (null === groups || undefined === groups || '' === groups) {
+                        if (!groups) {
                             reject(API_ERROR.GROUP_FAILED_TO_FIND);
                             return;
                         }
@@ -83,14 +83,14 @@ module.exports = (function() {
                     if (!users) {
                         return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    return users[userId];
+                    return Promise.resolve(users[userId]);
                 });
             }).then((user) => {
                 return groupsMdl.insert(userId, postGroup).then((groups) => {
                     if (!groups) {
                         return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
                     }
-                    return groups;
+                    return Promise.resolve(groups);
                 }).then((groups) => {
                     // group 成功新增之後，將 user 的 group_ids 更新
                     let groupId = Object.keys(groups).shift() || '';
@@ -111,7 +111,7 @@ module.exports = (function() {
                             type: 'CHATSHIER',
                             group_id: groupId
                         };
-                        return appsMdl.insert(userId, postApp);
+                        return appsMdl.insert(postApp);
                     }).then((apps) => {
                         if (!apps || (apps && 0 === Object.keys(apps).length)) {
                             return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
@@ -129,7 +129,7 @@ module.exports = (function() {
                                 if (!appsFields) {
                                     return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
                                 }
-                                return appsFields;
+                                return Promise.resolve(appsFields);
                             });
                         });
                     }).then(() => {
@@ -175,7 +175,7 @@ module.exports = (function() {
                 };
 
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
@@ -192,7 +192,7 @@ module.exports = (function() {
 
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(groupId, req.params.userid, (groups) => {
-                        if (null === groups || undefined === groups || '' === groups) {
+                        if (!groups) {
                             reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                             return;
                         }
@@ -216,7 +216,7 @@ module.exports = (function() {
 
                 return new Promise((resolve, reject) => {
                     groupsMdl.update(groupId, putGroup, (groups) => {
-                        if (null === groups || undefined === groups || '' === groups) {
+                        if (!groups) {
                             reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
                             return;
                         }

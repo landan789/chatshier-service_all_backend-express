@@ -24,13 +24,12 @@ module.exports = (function() {
                     if (!appsAutoreplies) {
                         return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                     }
-                    return appsAutoreplies;
+                    return Promise.resolve(appsAutoreplies);
                 });
-            }).then((data) => {
-                let apps = data;
+            }).then((appsAutoreplies) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: apps
+                    data: appsAutoreplies
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -47,7 +46,7 @@ module.exports = (function() {
                     if (!(appsAutoreplies && appsAutoreplies[appId])) {
                         return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                     }
-                    return appsAutoreplies;
+                    return Promise.resolve(appsAutoreplies);
                 });
             }).then((appsAutoreplies) => {
                 let suc = {
@@ -76,7 +75,7 @@ module.exports = (function() {
                     if (!appsAutoreplies) {
                         return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_INSERT);
                     }
-                    return appsAutoreplies;
+                    return Promise.resolve(appsAutoreplies);
                 });
             }).then((appsAutoreplies) => {
                 let suc = {
@@ -127,7 +126,7 @@ module.exports = (function() {
                         if (!(appsAutoreplies && appsAutoreplies[appId])) {
                             return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_UPDATE);
                         }
-                        return appsAutoreplies;
+                        return Promise.resolve(appsAutoreplies);
                     });
                 });
             }).then((appsAutoreplies) => {
@@ -154,6 +153,7 @@ module.exports = (function() {
                 if (!autoreplies) {
                     return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                 }
+
                 // 判斷 appId 中是否有目前 autoreplyId
                 if (!autoreplies[autoreplyId]) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
@@ -163,7 +163,7 @@ module.exports = (function() {
                     if (!appsAutoreplies) {
                         return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_REMOVE);
                     }
-                    return appsAutoreplies;
+                    return Promise.resolve(appsAutoreplies);
                 });
             }).then((appsAutoreplies) => {
                 let suc = {

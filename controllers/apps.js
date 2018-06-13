@@ -38,7 +38,7 @@ module.exports = (function() {
                         reject(API_ERROR.USERID_WAS_EMPTY);
                         return;
                     };
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
@@ -91,7 +91,7 @@ module.exports = (function() {
                 });
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
@@ -196,7 +196,7 @@ module.exports = (function() {
                     if (!users) {
                         return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    return users[userId];
+                    return Promise.resolve(users[userId]);
                 });
             }).then((user) => {
                 let groupIds = user.group_ids || [];
@@ -208,7 +208,7 @@ module.exports = (function() {
                     if (!groups || (groups && 0 === Object.keys(groups).length)) {
                         return Promise.reject(API_ERROR.GROUP_DID_NOT_EXIST);
                     }
-                    return groups[req.body.group_id];
+                    return Promise.resolve(groups[req.body.group_id]);
                 });
             }).then((group) => {
                 let members = group.members;
@@ -257,7 +257,7 @@ module.exports = (function() {
 
                     //     return appsMdl.find(null, null, query).then((apps) => {
                     //         if (!apps || (apps && 0 === Object.keys(apps).length)) {
-                    //             return appsMdl.insert(req.params.userid, postApp);
+                    //             return appsMdl.insert(postApp);
                     //         }
 
                     //         postApp.isDeleted = isNew = false;
@@ -271,17 +271,17 @@ module.exports = (function() {
                     //         return Promise.reject(API_ERROR.FACEBOOK_PAGE_FAILED_TO_SUBSCRIBE_APP);
                     //     });
                     // }
-                    return appsMdl.insert(req.params.userid, postApp);
+                    return appsMdl.insert(postApp);
                 }).then((_apps) => {
                     if (!_apps) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
                     }
                     apps = _apps;
-                    return apps;
+                    return Promise.resolve(apps);
                 });
             }).then((apps) => {
                 if (!isNew) {
-                    return apps;
+                    return Promise.resolve(apps);
                 }
 
                 let appId = Object.keys(apps).shift() || '';
@@ -289,7 +289,7 @@ module.exports = (function() {
                     if (!appsFields) {
                         return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_INSERT);
                     }
-                    return Promise.resolve();
+                    return Promise.resolve(apps);
                 });
             }).then(() => {
                 let suc = {
@@ -339,7 +339,7 @@ module.exports = (function() {
             }).then(() => {
                 return new Promise((resolve, reject) => {
                     let userId = req.params.userid;
-                    usersMdl.find(userId, null, (users) => {
+                    usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
@@ -359,7 +359,7 @@ module.exports = (function() {
                 let groupId = app.group_id;
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(groupId, req.params.userid, (groups) => {
-                        if (null === groups || undefined === groups || '' === groups) {
+                        if (!(groups && groups[groupId])) {
                             reject(API_ERROR.GROUP_FAILED_TO_FIND);
                             return;
                         };
@@ -396,7 +396,7 @@ module.exports = (function() {
             }).then(() => {
                 return new Promise((resolve, reject) => {
                     appsMdl.update(req.params.appid, putApp, (apps) => {
-                        if (null === apps || undefined === apps || '' === apps) {
+                        if (!(apps && apps[req.params.appid])) {
                             reject(API_ERROR.APP_FAILED_TO_UPDATE);
                             return;
                         };
@@ -428,10 +428,10 @@ module.exports = (function() {
                 }
 
                 return usersMdl.find(userId).then((users) => {
-                    if (!users) {
+                    if (!(users && users[userId])) {
                         return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    return users[userId];
+                    return Promise.resolve(users[userId]);
                 });
             }).then((user) => {
                 return appsMdl.find(appId).then((apps) => {
@@ -447,7 +447,7 @@ module.exports = (function() {
                     if (!groups) {
                         return Promise.reject(API_ERROR.GROUP_FAILED_TO_FIND);
                     }
-                    return groups;
+                    return Promise.resolve(groups);
                 });
             }).then((groups) => {
                 let group = Object.values(groups)[0];
@@ -477,7 +477,7 @@ module.exports = (function() {
                     if (!(apps && apps[appId])) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_REMOVE);
                     }
-                    return apps;
+                    return Promise.resolve(apps);
                 });
             // }).then((apps) => {
             //     let app = apps[appId];

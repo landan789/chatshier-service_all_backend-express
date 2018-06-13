@@ -21,8 +21,8 @@ module.exports = (function() {
          * 查找時必須使用各平台的 platformUid 而不是 consumerId
          *
          * @param {string|string[]} [platformUids]
-         * @param {(consumers: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(consumers: Chatshier.Models.Consumers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Consumers | null>}
          */
         find(platformUids, callback) {
             if (platformUids && !(platformUids instanceof Array)) {
@@ -53,8 +53,8 @@ module.exports = (function() {
         /**
          * @param {string} platformUid
          * @param {any} consumer
-         * @param {(consumers: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(consumers: Chatshier.Models.Consumers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Consumers | null>}
          */
         replace(platformUid, consumer, callback) {
             consumer = consumer || {};
@@ -91,8 +91,8 @@ module.exports = (function() {
 
         /**
          * @param {string} platformUid
-         * @param {(consumers: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(consumers: Chatshier.Models.Consumers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Consumers | null>}
          */
         remove(platformUid, callback) {
             let consumer = {
