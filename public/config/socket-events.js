@@ -1,3 +1,5 @@
+/// <reference path='../../typings/client/index.d.ts' />
+
 window.SOCKET_EVENTS = {
     EMIT_MESSAGE_TO_SERVER: 'EMIT_MESSAGE_TO_SERVER',
     EMIT_MESSAGE_TO_CLIENT: 'EMIT_MESSAGE_TO_CLIENT',

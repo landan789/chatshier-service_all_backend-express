@@ -132,30 +132,30 @@ interface AppsFieldsAPI {
 }
 
 interface AppsTicketsAPI {
-    findAll: (appId: string, userId: string) => Promise<any>;
-    insert: (appId: string, userId: string, newTicketData: any) => Promise<any>;
-    update: (appId: string, ticketId: string, userId: string, modifiedTicketData: any) => Promise<any>;
-    remove: (appId: string, ticketId: string, userId: string) => Promise<any>;
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTickets }>;
+    insert: (appId: string, userId: string, postTicket: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTickets }>;
+    update: (appId: string, ticketId: string, userId: string, putTicket: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTickets }>;
+    remove: (appId: string, ticketId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTickets }>;
 }
 
 interface CalendarsEventsAPI {
-    findAll: (userId: string) => Promise<any>;
-    insert: (userId: string, calendarData: any) => Promise<any>;
-    update: (calendarId: string, eventId: string, userId: string, calendarData: any) => Promise<any>;
-    remove: (calendarId: string, eventId: string, userId: string) => Promise<any>;
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Calendars }>;
+    insert: (userId: string, postCalendar: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Calendars }>;
+    update: (calendarId: string, eventId: string, userId: string, putCalendar: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Calendars }>;
+    remove: (calendarId: string, eventId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Calendars }>;
 }
 
 interface ConsumersAPI {
-    findAll: (userId: string) => Promise<any>;
-    findOne: (platformUid: string, userId: string) => Promise<any>;
-    update: (platformUid: string, userId: string, consumer: any) => Promise<any>;
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Consumers }>;
+    findOne: (platformUid: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Consumers }>;
+    update: (platformUid: string, userId: string, putConsumer: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Consumers }>;
 }
 
 interface GroupsMembersAPI {
-    findAll: (groupId: string, userId: string) => Promise<any>;
-    insert: (groupId: string, userId: string, groupMemberData: any) => Promise<any>;
-    update: (groupId: string, memberId: string, userId: string, groupMemberData: any) => Promise<any>;
-    remove: (groupId: string, memberId: string, userId: string) => Promise<any>;
+    findAll: (groupId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
+    insert: (groupId: string, userId: string, postGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
+    update: (groupId: string, memberId: string, userId: string, putGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
+    remove: (groupId: string, memberId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
     TYPES: {
         OWNER: 'OWNER',
         ADMIN: 'ADMIN',
@@ -165,14 +165,14 @@ interface GroupsMembersAPI {
 }
 
 interface GroupsAPI {
-    findAll: (userId: string) => Promise<any>;
-    insert: (userId: string, group: any) => Promise<any>;
-    update: (groupId: string, userId: string, group: any) => Promise<any>;
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
+    insert: (userId: string, group: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
+    update: (groupId: string, userId: string, putGroup: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
 }
 
 interface UsersAPI {
-    find: (userId: string, email?: string, useFuzzy = false) => Promise<any>;
-    update: (userId: string, userData: any) => Promise<any>;
+    find: (userId: string, email?: string, useFuzzy?: boolean) => Promise<{ status: number, msg: string, data: Chatshier.Models.Users | Chatshier.Models.User[] }>;
+    update: (userId: string, putUser: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Users }>;
 }
 
 interface UserChangePassword {

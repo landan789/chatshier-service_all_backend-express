@@ -1,3 +1,5 @@
+/// <reference path='../../typings/client/index.d.ts' />
+
 window.chatshier = {
     config: {
         // https://developers.line.me/en/docs/messaging-api/reference/#upload-rich-menu-image

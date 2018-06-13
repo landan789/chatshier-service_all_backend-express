@@ -1,3 +1,5 @@
+/// <reference path='../../../typings/client/index.d.ts' />
+
 window.googleCalendarHelper = (function() {
     var GOOGLE_CLIENT_NOT_SIGNEDIN = 'GOOGLE_CLIENT_NOT_SIGNEDIN';
     var mapRes = function(res) {

@@ -3,6 +3,7 @@
 (function() {
     const SOCKET_NAMESPACE = '/chatshier';
     const SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    const SOCKET_EVENTS = window.SOCKET_EVENTS;
     const socket = io(SOCKET_SERVER_URL);
 
     const LINE = 'LINE';
@@ -745,7 +746,7 @@
     }
 
     function generateAppItem(appId, app) {
-        var baseWebhookUrl = urlConfig.webhookUrl;
+        var baseWebhookUrl = window.urlConfig.webhookUrl;
         var itemHtml = '';
 
         switch (app.type) {

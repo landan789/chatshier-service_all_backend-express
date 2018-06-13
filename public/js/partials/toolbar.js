@@ -1,3 +1,5 @@
+/// <reference path='../../../typings/client/index.d.ts' />
+
 (function() {
     // var BREAKPOINT_SM = 576;
     // var BREAKPOINT_MD = 768;

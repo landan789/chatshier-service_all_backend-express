@@ -1,9 +1,16 @@
-/// <reference path='../../../typings/client/config.d.ts' />
+/// <reference path='../../../typings/client/index.d.ts' />
 
 window.restfulAPI = (function() {
     var jwt = window.localStorage.getItem('jwt');
     var reqHeaders = new Headers();
     reqHeaders.set('Content-Type', 'application/json');
+
+    // ======================
+    // urlConfig undefined error handle
+    !window.urlConfig && (window.urlConfig = {});
+    !window.urlConfig.apiUrl && (window.urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
+    // ======================
+    var urlConfig = window.urlConfig;
 
     var apiDatabaseUrl = urlConfig.apiUrl + '/api/database/';
     var apiSignUrl = urlConfig.apiUrl + '/api/sign/';
@@ -33,12 +40,6 @@ window.restfulAPI = (function() {
         signOut: apiSignUrl + 'signout/',
         changePassword: apiSignUrl + 'change-password/'
     });
-
-    // ======================
-    // urlConfig undefined error handle
-    !window.urlConfig && (window.urlConfig = {});
-    !window.urlConfig.apiUrl && (window.urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
-    // ======================
 
     /**
      * 設定 API 驗證身份所需的 JSON Web Token

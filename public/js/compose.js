@@ -1,16 +1,17 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    let api = window.restfulAPI;
-    let SOCKET_NAMESPACE = '/chatshier';
-    let SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
-    let socket = io(SOCKET_SERVER_URL);
+    const SOCKET_NAMESPACE = '/chatshier';
+    const SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    const SOCKET_EVENTS = window.SOCKET_EVENTS;
+    const socket = io(SOCKET_SERVER_URL);
 
     const ICONS = {
         LINE: 'fab fa-line fa-fw line-color',
         FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
     };
 
+    let api = window.restfulAPI;
     let apps = {};
     let appsChatrooms = {};
     let appsFields = {};

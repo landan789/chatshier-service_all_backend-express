@@ -1,3 +1,5 @@
+/// <reference path='../../../typings/client/index.d.ts' />
+
 (function() {
     var PUT_ANINATE_DRATION = 300;
     var BREAKPOINT_SM = 576;

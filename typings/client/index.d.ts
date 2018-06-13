@@ -2,13 +2,13 @@
 /// <reference path='./config.d.ts' />
 /// <reference path='./helpers.d.ts' />
 
-/// <reference path='../server/interfaces/socket.d.ts' />
+/// <reference path='../server/helpers/socket.d.ts' />
 /// <reference path='../server/models/apps_autoreplies.d.ts' />
 /// <reference path='../server/models/apps_chatrooms.d.ts' />
 /// <reference path='../server/models/apps_composes.d.ts' />
 /// <reference path='../server/models/apps_fields.d.ts' />
 /// <reference path='../server/models/apps_greetings.d.ts' />
-/// <reference path='../server/models/apps_imagemap.d.ts' />
+/// <reference path='../server/models/apps_imagemaps.d.ts' />
 /// <reference path='../server/models/apps_keywordreplies.d.ts' />
 /// <reference path='../server/models/apps_richmenus.d.ts' />
 /// <reference path='../server/models/apps_templates.d.ts' />

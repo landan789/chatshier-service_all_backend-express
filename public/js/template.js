@@ -1,4 +1,5 @@
 /// <reference path='../../typings/client/index.d.ts' />
+
 (function() {
     var api = window.restfulAPI;
     var $jqDoc = $(document);

@@ -1,3 +1,5 @@
+/// <reference path='../../../typings/client/index.d.ts' />
+
 window.facebookHelper = (function() {
     var initPromise = null;
     var fbAuth = null;

@@ -27,6 +27,7 @@
     var DEFAULT_CHATROOM_NAME = '群組聊天室';
     var SOCKET_NAMESPACE = '/chatshier';
     var SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    var SOCKET_EVENTS = window.SOCKET_EVENTS;
 
     // var BREAKPOINT_SM = 576;
     // var BREAKPOINT_MD = 768;
