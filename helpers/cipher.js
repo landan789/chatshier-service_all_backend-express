@@ -15,6 +15,13 @@ module.exports = (function() {
             hmac.write(password);
             return hmac.digest('hex');
         }
+
+        /**
+         * @param {number} [len=20]
+         */
+        generateRandomHex(len = 20) {
+            return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
+        }
     }
     return new CipherHelper();
 })();

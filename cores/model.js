@@ -20,9 +20,10 @@ module.exports = (function() {
     // endregion
 
     // region DB Schema
-    const RootsSchema = new mongoose.Schema();
+    const Schema = mongoose.Schema;
+    const RootsSchema = new Schema();
 
-    const AutorepliesSchema = new mongoose.Schema({
+    const AutorepliesSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'endedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
@@ -39,7 +40,7 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()}
     });
 
-    const ChatroomsSchema = new mongoose.Schema({
+    const ChatroomsSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
@@ -79,7 +80,7 @@ module.exports = (function() {
         }]
     }, { minimize: false });
 
-    const KeywordrepliesSchema = new mongoose.Schema({
+    const KeywordrepliesSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'keyword': {type: String, default: ''},
@@ -90,7 +91,7 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()}
     });
 
-    const ComposesSchema = new mongoose.Schema({
+    const ComposesSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'text': {type: String, default: ''},
@@ -106,7 +107,7 @@ module.exports = (function() {
         'time': {type: Date, default: Date.now() - 60000} // 立刻群發後讓訊息變成歷史訊息
     }, { minimize: false });
 
-    const GreetingsSchema = new mongoose.Schema({
+    const GreetingsSchema = new Schema({
         'isDeleted': {type: Boolean, default: false},
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
@@ -114,7 +115,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()}
     });
 
-    const TemplatesSchema = new mongoose.Schema({
+    const TemplatesSchema = new Schema({
         'isDeleted': {type: Boolean, default: false},
         'keyword': {type: String, default: ''},
         'altText': {type: String, default: ''},
@@ -124,7 +125,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()}
     });
 
-    const RichmenusSchema = new mongoose.Schema({
+    const RichmenusSchema = new Schema({
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
@@ -143,7 +144,7 @@ module.exports = (function() {
         }]
     }, { minimize: false });
 
-    const ImagemapsSchema = new mongoose.Schema({
+    const ImagemapsSchema = new Schema({
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
@@ -161,7 +162,7 @@ module.exports = (function() {
         }]
     }, { minimize: false });
 
-    const FieldsSchema = new mongoose.Schema({
+    const FieldsSchema = new Schema({
         'text': {type: String, default: ''},
         'alias': {type: String, default: ''},
         'type': {type: String, default: 'CUSTOM'},
@@ -173,7 +174,7 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false}
     });
 
-    const TicketsSchema = new mongoose.Schema({
+    const TicketsSchema = new Schema({
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()},
         'description': {type: String, default: ''},
@@ -185,7 +186,7 @@ module.exports = (function() {
         'status': {type: Number, default: 0} // TODO 三個 型態建議用字串大寫
     });
 
-    const AppsSchema = new mongoose.Schema({
+    const AppsSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'group_id': {type: String, default: ''},
@@ -211,7 +212,7 @@ module.exports = (function() {
         'imagemaps': [ImagemapsSchema]
     });
 
-    const EventsSchema = new mongoose.Schema({
+    const EventsSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'description': {type: String, default: ''},
@@ -222,14 +223,14 @@ module.exports = (function() {
         'title': {type: String, default: ''}
     });
 
-    const CalendarsSchema = new mongoose.Schema({
+    const CalendarsSchema = new Schema({
         'events': [EventsSchema],
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()}
     });
 
-    const MembersSchema = new mongoose.Schema({
+    const MembersSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
@@ -238,7 +239,7 @@ module.exports = (function() {
         'user_id': {type: String, default: ''}
     });
 
-    const GroupsSchema = new mongoose.Schema({
+    const GroupsSchema = new Schema({
         'app_ids': {type: [{type: String}], default: []},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
@@ -247,7 +248,7 @@ module.exports = (function() {
         'name': {type: String, default: ''}
     });
 
-    const UsersSchema = new mongoose.Schema({
+    const UsersSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'address': {type: String, default: ''},
@@ -261,7 +262,7 @@ module.exports = (function() {
         'group_ids': {type: [{type: String}], default: []}
     });
 
-    const ConsumersSchema = new mongoose.Schema({
+    const ConsumersSchema = new Schema({
         'type': {type: String, default: ''},
         'platformUid': {type: String, default: ''},
         'updatedTime': {type: Date, default: Date.now()},
@@ -272,9 +273,48 @@ module.exports = (function() {
         'photoOriginal': {type: String, default: ''}
     });
 
+    const CommoditiesSchema = new Schema({
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'isDeleted': {type: Boolean, default: false},
+        'name': {type: String, default: ''},
+        'description': {type: String, default: ''},
+        'manufacturer': {type: String, default: ''},
+        'price': {type: Number, default: 1},
+        'image': {type: String, default: ''},
+        'discount': {type: Number, default: 1.0},
+        'app_ids': {type: [{type: String}], default: []}
+    });
+
+    const CategoriesSchema = new Schema({
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'isDeleted': {type: Boolean, default: false},
+        'title': {type: String, default: ''},
+        'subTitle': {type: String, default: ''},
+        'commodities': [CommoditiesSchema],
+        'group_id': {type: String, default: ''}
+    });
+
+    const OrdersSchema = new Schema({
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'isDeleted': {type: Boolean, default: false},
+        'commodity_ids': {type: [{type: String}], default: []},
+        'prices': [{
+            'price': {type: Number, default: 1},
+            'discount': {type: Number, default: 1.0}
+        }],
+        'isCheckout': {type: Boolean, default: false},
+        'consumerUid': {type: String, default: ''}
+    });
+
     // endregion
 
     class ModelCore {
+        static CategoriesSchema = CategoriesSchema;
+        static OrdersSchema = OrdersSchema;
+
         constructor () {
             this.Types = mongoose.Types;
             this.AutorepliesSchema = AutorepliesSchema;

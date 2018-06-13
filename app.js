@@ -12,6 +12,7 @@ let apiDatabase = require('./routes/api_database');
 let apiSign = require('./routes/api_sign');
 let apiBot = require('./routes/api_bot');
 let webhook = require('./routes/webhook');
+let ecpay = require('./routes/ecpay');
 let apiImage = require('./routes/api_image');
 
 const CHATSHIER = require('./config/chatshier');
@@ -26,6 +27,7 @@ app.use(cors(CHATSHIER['CORS']));
 app.use(cookieParser());
 
 app.use('/webhook', webhook);
+app.use('/ecpay', ecpay);
 
 // API JWT 權限驗證
 app.use('/api/*/users/:userid', jwtHlp.authenticate);
