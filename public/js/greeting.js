@@ -237,7 +237,7 @@
         for (var appId in apps) {
             var app = apps[appId];
             if (app.isDeleted ||
-                app.type !== api.apps.enums.type.LINE) {
+                app.type !== api.apps.TYPES.LINE) {
                 delete apps[appId];
                 continue;
             }

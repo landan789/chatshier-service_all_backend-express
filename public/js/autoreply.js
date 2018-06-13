@@ -1,6 +1,7 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    /** @type {Chatshier.Models.AppsAutoreplies} */
     var appsAutoreplies = {};
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
@@ -503,7 +504,7 @@
         for (var appId in apps) {
             var app = apps[appId];
             if (app.isDeleted ||
-                app.type === api.apps.enums.type.CHATSHIER) {
+                app.type === api.apps.TYPES.CHATSHIER) {
                 delete apps[appId];
                 continue;
             }

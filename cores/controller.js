@@ -92,9 +92,9 @@ module.exports = (function() {
             let json = {
                 status: 1,
                 msg: suc.MSG || '',
-                data: suc.data || {},
-                jwt: suc.jwt || ''
+                data: suc.data || {}
             };
+            suc.jwt && (json.jwt = suc.jwt);
             return res && res.status(200).json(json);
         }
 

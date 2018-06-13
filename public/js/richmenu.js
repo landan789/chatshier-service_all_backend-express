@@ -147,7 +147,7 @@
 
             // 目前只有 LINE 支援此功能
             if (app.isDeleted ||
-                app.type !== api.apps.enums.type.LINE) {
+                app.type !== api.apps.TYPES.LINE) {
                 delete apps[appId];
                 continue;
             }
@@ -719,7 +719,7 @@
 
     function syncRichmenus(appId) {
         let app = apps[appId];
-        if (app.type !== api.apps.enums.type.LINE) {
+        if (app.type !== api.apps.TYPES.LINE) {
             return Promise.resolve();
         }
 

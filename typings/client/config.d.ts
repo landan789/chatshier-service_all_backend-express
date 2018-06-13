@@ -1,11 +1,25 @@
 interface Window {
-    config: {
-        apiKey: string,
-        authDomain: string,
-        databaseURL: string,
-        projectId: string,
-        storageBucket: string,
-        messagingSenderId: string
+    chatshier: {
+        config: {
+            richmenuImageFileMaxSize: number,
+            imageFileMaxSize: number,
+            videoFileMaxSize: number,
+            audioFileMaxSize: number
+        },
+        facebook: {
+            appId: string,
+            cookie: boolean,
+            xfbml: boolean,
+            version: string
+        },
+        GOOGLE: {
+            CALENDAR: {
+                API_KEY: string,
+                CLIENT_ID: string,
+                DISCOVERY_DOCS: string[],
+                SCOPES: string
+            }
+        }
     },
     urlConfig: {
         wwwUrl: string,
@@ -15,12 +29,6 @@ interface Window {
         privacy: string,
         webhookUrl: string,
         apiUrl: string
-    },
-    chatshierConfig: {
-        richmenuImageFileMaxSize: number,
-        imageFileMaxSize: number,
-        videoFileMaxSize: number,
-        audioFileMaxSize: number
     }
 }
 

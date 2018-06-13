@@ -1114,7 +1114,8 @@
     // #region 客戶分類條件 Tab 代碼區塊
     (function() {
         var NEW_TAG_ID_PREFIX = 'temp_field_id';
-        var fieldEnums = api.appsFields.enums;
+        var FIELD_TYPES = api.appsFields.TYPES;
+        var SETS_TYPES = api.appsFields.SETS_TYPES;
 
         var fieldPanelCtrl = (function() {
             var instance = new FieldPanelCtrl();
@@ -1165,8 +1166,8 @@
                     var tempFieldId = NEW_TAG_ID_PREFIX + Date.now();
                     _this.addFieldItem(appId, tempFieldId, {
                         text: '新客戶分類條件',
-                        type: fieldEnums.type.CUSTOM,
-                        setsType: fieldEnums.setsType.MULTI_SELECT
+                        type: FIELD_TYPES.CUSTOM,
+                        setsType: SETS_TYPES.MULTI_SELECT
                     });
 
                     var $tempField = $('#' + tempFieldId);
@@ -1189,14 +1190,14 @@
                         };
 
                         switch (data.setsType) {
-                            case fieldEnums.setsType.MULTI_SELECT:
-                            case fieldEnums.setsType.SELECT:
+                            case SETS_TYPES.MULTI_SELECT:
+                            case SETS_TYPES.SELECT:
                                 // 單選的資料將 textarea 中的文字依照換行符號切割成陣列
                                 data.sets = $row.find('.field-sets .sets-item').val().split('\n');
                                 break;
-                            case fieldEnums.setsType.CHECKBOX:
-                            case fieldEnums.setsType.NUMBER:
-                            case fieldEnums.setsType.TEXT:
+                            case SETS_TYPES.CHECKBOX:
+                            case SETS_TYPES.NUMBER:
+                            case SETS_TYPES.TEXT:
                             default:
                                 data.sets = [];
                                 break;
@@ -1227,8 +1228,8 @@
 
                 var generateSetsHtml = function(setsType, setsData) {
                     switch (setsType) {
-                        case fieldEnums.setsType.SELECT:
-                        case fieldEnums.setsType.MULTI_SELECT:
+                        case SETS_TYPES.SELECT:
+                        case SETS_TYPES.MULTI_SELECT:
                             return (
                                 '<textarea class= "sets-item form-control" rows="3" columns="10" style="resize: vertical" placeholder="以換行區隔資料">' +
                                     (function(sets) {
@@ -1240,10 +1241,10 @@
                                     })(setsData).join('\n') +
                                 '</textarea>'
                             );
-                        case fieldEnums.setsType.CHECKBOX:
-                        case fieldEnums.setsType.TEXT:
-                        case fieldEnums.setsType.DATE:
-                        case fieldEnums.setsType.NUMBER:
+                        case SETS_TYPES.CHECKBOX:
+                        case SETS_TYPES.TEXT:
+                        case SETS_TYPES.DATE:
+                        case SETS_TYPES.NUMBER:
                         default:
                             return (
                                 '<input type="text" class="sets-item form-control" value="無設定" disabled />'
@@ -1264,10 +1265,10 @@
                             '<label class="col-3 col-form-label">類型:</label>' +
                             '<div class="col-9 d-flex align-items-center">' +
                                 '<select class="form-control" value="' + field.setsType + '">' +
-                                    '<option value="' + fieldEnums.setsType.MULTI_SELECT + '">多選項</option>' +
-                                    '<option value="' + fieldEnums.setsType.SELECT + '">單一選項</option>' +
-                                    '<option value="' + fieldEnums.setsType.CHECKBOX + '">勾選</option>' +
-                                    '<option value="' + fieldEnums.setsType.NUMBER + '">數字</option>' +
+                                    '<option value="' + SETS_TYPES.MULTI_SELECT + '">多選項</option>' +
+                                    '<option value="' + SETS_TYPES.SELECT + '">單一選項</option>' +
+                                    '<option value="' + SETS_TYPES.CHECKBOX + '">勾選</option>' +
+                                    '<option value="' + SETS_TYPES.NUMBER + '">數字</option>' +
                                 '</select>' +
                             '</div>' +
                         '</div>' +
@@ -1278,7 +1279,7 @@
                             '</div>' +
                         '</div>' +
                         '<div class="field-item field-delete mt-auto mb-1 py-2 w-100 text-right">' +
-                            '<button type="button" class="btn btn-danger btn-sm btn-danger field-delete-btn' + (fieldEnums.type.SYSTEM === field.type ? ' d-none' : '') + '">' +
+                            '<button type="button" class="btn btn-danger btn-sm btn-danger field-delete-btn' + (FIELD_TYPES.SYSTEM === field.type ? ' d-none' : '') + '">' +
                                 '<i class="fas fa-times fa-fw"></i>' +
                                 '<span>刪除</span>' +
                             '</button>' +
@@ -1290,7 +1291,7 @@
                 var $fieldTypeSelect = $fieldContent.find('.field-type select');
                 $fieldTypeSelect.find('option[value="' + field.setsType + '"]').prop('selected', true);
 
-                if (field.type !== fieldEnums.type.CUSTOM) {
+                if (field.type !== FIELD_TYPES.CUSTOM) {
                     $fieldTypeSelect.prop('disabled', true);
                     $fieldContent.find('.field-name input').prop('disabled', true);
                     $fieldContent.find('.field-sets .sets-item').prop('disabled', true);
@@ -1378,7 +1379,6 @@
                     firstAppId = firstAppId || appId;
 
                     // 將客戶分類條件資料依照設定的 order 進行排序，根據順序擺放到 UI 上
-                    var FIELD_TYPES = api.appsFields.enums.type;
                     var fieldIds = Object.keys(fields);
                     fieldIds.sort(function(a, b) {
                         let fieldsA = appsFields[appId].fields[a];
@@ -1420,7 +1420,7 @@
                         for (var key in destField) {
                             // 因為有翻譯文字的關係
                             // 非自定義客戶分類條件的名稱與系統性別的設定不檢查
-                            if (('text' === key && fieldEnums.type.CUSTOM !== srcField.type) ||
+                            if (('text' === key && FIELD_TYPES.CUSTOM !== srcField.type) ||
                                 ('sets' === key && 'gender' === srcField.alias)) {
                                 continue;
                             }
@@ -1452,7 +1452,7 @@
                         // 需對照 UI 上目前每個客戶分類條件的順序，更新至對應的客戶分類條件
                         if (!!fieldOnUI && fieldHasChanged(fieldOrg, fieldOnUI)) {
                             // 只允許自定義的欄位可進行資料變更動作
-                            if (fieldOrg.type === fieldEnums.type.CUSTOM) {
+                            if (fieldOrg.type === FIELD_TYPES.CUSTOM) {
                                 fieldOrg.text = fieldOnUI.text;
                                 fieldOrg.setsType = fieldOnUI.setsType;
                                 fieldOrg.sets = fieldOnUI.sets;
@@ -1480,7 +1480,7 @@
                             var fieldOnUI = args.uiFields[fieldId];
                             var newField = {
                                 text: fieldOnUI.text,
-                                type: fieldEnums.type.CUSTOM,
+                                type: FIELD_TYPES.CUSTOM,
                                 sets: fieldOnUI.sets,
                                 setsType: fieldOnUI.setsType,
                                 order: fieldOnUI.order
@@ -1521,7 +1521,7 @@
     // #region 內部群組代碼區塊
     (function() {
         var api = window.restfulAPI;
-        var memberTypes = api.groupsMembers.enums.type;
+        var MEMBER_TYPES = api.groupsMembers.TYPES;
         var searchCache = {};
         var keyinWaitTimer = null;
 
@@ -1567,7 +1567,7 @@
                         '</a>' +
                     '</div>' +
                     '<div id="' + groupId + '" class="chsr-group card-collapse collapse">' +
-                        '<div class="px-3 py-2 ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
+                        '<div class="px-3 py-2 ' + (MEMBER_TYPES.OWNER === member.type || MEMBER_TYPES.ADMIN === member.type ? '' : 'd-none') + '">' +
                             '<label for="group_name" class="col-form-label">群組名稱: </label>' +
                             '<div class="input-container">' +
                                 '<div class="input-group group-name" id="group_name">' +
@@ -1603,7 +1603,7 @@
                         //     '</div>' +
                         // '</div>' +
 
-                        '<div class="px-3 py-2 user-invite' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? ' d-flex' : ' d-none') + '">' +
+                        '<div class="px-3 py-2 user-invite' + (MEMBER_TYPES.OWNER === member.type || MEMBER_TYPES.ADMIN === member.type ? ' d-flex' : ' d-none') + '">' +
                             '<div class="w-100 position-relative input-container">' +
                                 '<input type="email" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus="false" />' +
                             '</div>' +
@@ -1646,10 +1646,10 @@
                 // 群組成員可以自行離開群組
                 // 群組擁有者不能離開群組
                 var canDelete =
-                    (memberTypes.OWNER === memberSelf.type ||
-                    memberTypes.ADMIN === memberSelf.type ||
+                    (MEMBER_TYPES.OWNER === memberSelf.type ||
+                    MEMBER_TYPES.ADMIN === memberSelf.type ||
                     member.user_id === userId) &&
-                    memberTypes.OWNER !== member.type;
+                    MEMBER_TYPES.OWNER !== member.type;
 
                 var html =
                     '<div class="col-12 m-2 card justify-content-around group-member" member-id="' + memberId + '">' +
@@ -1661,16 +1661,16 @@
                         '</div>' +
                         '<div class="d-flex flex-nowrap align-items-center permission-group">' +
                             '<div class="mr-3 text-left">權限:</div>' +
-                            '<div class="permission-item text-center' + (memberTypes.READ === member.type ? ' btn-primary' : '') + '">' +
+                            '<div class="permission-item text-center' + (MEMBER_TYPES.READ === member.type ? ' btn-primary' : '') + '">' +
                                 '<span class="permission-text cursor-pointer">R</span>' +
                             '</div>' +
-                            '<div class="permission-item text-center' + (memberTypes.WRITE === member.type ? ' btn-primary' : '') + '">' +
+                            '<div class="permission-item text-center' + (MEMBER_TYPES.WRITE === member.type ? ' btn-primary' : '') + '">' +
                                 '<span class="permission-text cursor-pointer">W</span>' +
                             '</div>' +
-                            '<div class="permission-item text-center' + (memberTypes.ADMIN === member.type ? ' btn-primary' : '') + '">' +
+                            '<div class="permission-item text-center' + (MEMBER_TYPES.ADMIN === member.type ? ' btn-primary' : '') + '">' +
                                 '<span class="permission-text cursor-pointer">A</span>' +
                             '</div>' +
-                            '<div class="permission-item text-center' + (memberTypes.OWNER === member.type ? ' btn-primary' : '') + '">' +
+                            '<div class="permission-item text-center' + (MEMBER_TYPES.OWNER === member.type ? ' btn-primary' : '') + '">' +
                                 '<span class="permission-text cursor-pointer">O</span>' +
                             '</div>' +
                         '</div>' +
@@ -1802,7 +1802,7 @@
                     if (!memberEmail) {
                         $.notify('請輸入目標成員的 Email', { type: 'warning' });
                         return;
-                    } else if (!memberTypes[permission]) {
+                    } else if (!MEMBER_TYPES[permission]) {
                         $.notify('請選擇目標成員的權限', { type: 'warning' });
                         return;
                     }
@@ -1813,7 +1813,7 @@
                     return api.users.find(userId, memberEmail).then(function(resJson) {
                         var memberUserId = Object.keys(resJson.data).shift();
                         var postMemberData = {
-                            type: memberTypes[permission],
+                            type: MEMBER_TYPES[permission],
                             userid: memberUserId
                         };
 
@@ -1958,19 +1958,19 @@
                     var $permissionItem = $(this);
                     var $permissionText = $permissionItem.find('.permission-text');
                     var wantPermission = {
-                        'R': memberTypes.READ,
-                        'W': memberTypes.WRITE,
-                        'A': memberTypes.ADMIN,
-                        'O': memberTypes.OWNER
+                        'R': MEMBER_TYPES.READ,
+                        'W': MEMBER_TYPES.WRITE,
+                        'A': MEMBER_TYPES.ADMIN,
+                        'O': MEMBER_TYPES.OWNER
                     }[$permissionText.text()];
 
                     if (wantPermission === groups[groupId].members[memberId].type) {
                         // 想變更的權限與目前的權限一樣，無需執行更新
                         return;
-                    } else if (memberTypes.OWNER === groups[groupId].members[memberId].type) {
+                    } else if (MEMBER_TYPES.OWNER === groups[groupId].members[memberId].type) {
                         $.notify('群組擁有者無法變更權限', { type: 'warning' });
                         return;
-                    } else if (wantPermission === memberTypes.OWNER) {
+                    } else if (wantPermission === MEMBER_TYPES.OWNER) {
                         $.notify('權限無法變更為群組擁有者', { type: 'warning' });
                         return;
                     }
@@ -2006,7 +2006,7 @@
                     let member = groups[groupId].members[memberId];
                     let memberUserId = member.user_id;
 
-                    if (memberTypes.OWNER === member.type) {
+                    if (MEMBER_TYPES.OWNER === member.type) {
                         $.notify('群組擁有者無法刪除', { type: 'warning' });
                         return;
                     } else if (!confirm('確定刪除此成員嗎？')) {

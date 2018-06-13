@@ -1796,8 +1796,8 @@
                     var fields = appsFields[appId].fields;
                     var fieldIds = Object.keys(fields);
 
-                    var SETS_TYPES = api.appsFields.enums.setsType;
-                    var FIELD_TYPES = api.appsFields.enums.type;
+                    var SETS_TYPES = api.appsFields.SETS_TYPES;
+                    var FIELD_TYPES = api.appsFields.TYPES;
                     fieldIds.sort(function(a, b) {
                         let fieldsA = appsFields[appId].fields[a];
                         let fieldsB = appsFields[appId].fields[b];
@@ -1822,7 +1822,7 @@
                         }
 
                         var fieldValue;
-                        if (field.type === api.appsFields.enums.type.CUSTOM) {
+                        if (field.type === api.appsFields.TYPES.CUSTOM) {
                             fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
                         } else {
                             fieldValue = undefined !== messager[field.alias] ? messager[field.alias] : '';
@@ -2782,7 +2782,7 @@
 
         var $fieldRows = $profileGroup.find('.fields-form .user-info');
         var fields = appsFields[appId].fields;
-        var setsTypeEnums = api.appsFields.enums.setsType;
+        var setsTypeEnums = api.appsFields.SETS_TYPES;
 
         var putMessager = {};
         $fieldRows.each(function() {

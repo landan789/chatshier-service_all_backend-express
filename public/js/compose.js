@@ -307,7 +307,7 @@
              * @param {any} field
              */
             fieldSetsToConditionInput(field) {
-                let SETS_TYPES = api.appsFields.enums.setsType;
+                let SETS_TYPES = api.appsFields.SETS_TYPES;
 
                 switch (field.setsType) {
                     case SETS_TYPES.CHECKBOX:
@@ -535,7 +535,7 @@
                                         } else {
                                             let field = this._allFields[fieldId];
                                             let customFieldValue = customField.value;
-                                            let SETS_TYPES = api.appsFields.enums.setsType;
+                                            let SETS_TYPES = api.appsFields.SETS_TYPES;
 
                                             switch (field.setsType) {
                                                 case SETS_TYPES.SELECT:
@@ -667,7 +667,7 @@
 
                     for (let fieldId in _fields) {
                         let field = _fields[fieldId];
-                        if (api.appsFields.enums.type.CUSTOM !== field.type) {
+                        if (api.appsFields.TYPES !== field.type) {
                             continue;
                         }
 
@@ -935,7 +935,7 @@
 
                     for (let fieldId in _fields) {
                         let field = _fields[fieldId];
-                        if (api.appsFields.enums.type.CUSTOM !== field.type) {
+                        if (api.appsFields.TYPES.CUSTOM !== field.type) {
                             continue;
                         }
 
@@ -1202,7 +1202,7 @@
      * @param {any} field
      */
     function fieldSetsToConditionInput(field) {
-        let SETS_TYPES = api.appsFields.enums.setsType;
+        let SETS_TYPES = api.appsFields.SETS_TYPES;
 
         switch (field.setsType) {
             case SETS_TYPES.CHECKBOX:

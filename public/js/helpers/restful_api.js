@@ -130,13 +130,11 @@ window.restfulAPI = (function() {
             this.urlPrefix = apiUrlTable.apps;
         }
 
-        AppAPI.prototype.enums = Object.freeze({
-            type: {
-                SYSTEM: 'SYSTEM',
-                CHATSHIER: 'CHATSHIER',
-                LINE: 'LINE',
-                FACEBOOK: 'FACEBOOK'
-            }
+        AppAPI.prototype.TYPES = Object.freeze({
+            SYSTEM: 'SYSTEM',
+            CHATSHIER: 'CHATSHIER',
+            LINE: 'LINE',
+            FACEBOOK: 'FACEBOOK'
         });
 
         /**
@@ -603,20 +601,19 @@ window.restfulAPI = (function() {
             this.urlPrefix = apiUrlTable.appsFields;
         }
 
-        AppsFieldsAPI.prototype.enums = Object.freeze({
-            type: {
-                SYSTEM: 'SYSTEM',
-                DEFAULT: 'DEFAULT',
-                CUSTOM: 'CUSTOM'
-            },
-            setsType: {
-                TEXT: 'TEXT',
-                NUMBER: 'NUMBER',
-                DATE: 'DATE',
-                SELECT: 'SELECT',
-                MULTI_SELECT: 'MULTI_SELECT',
-                CHECKBOX: 'CHECKBOX'
-            }
+        AppsFieldsAPI.prototype.TYPES = Object.freeze({
+            SYSTEM: 'SYSTEM',
+            DEFAULT: 'DEFAULT',
+            CUSTOM: 'CUSTOM'
+        });
+
+        AppsFieldsAPI.prototype.SETS_TYPES = Object.freeze({
+            TEXT: 'TEXT',
+            NUMBER: 'NUMBER',
+            DATE: 'DATE',
+            SELECT: 'SELECT',
+            MULTI_SELECT: 'MULTI_SELECT',
+            CHECKBOX: 'CHECKBOX'
         });
 
         /**
@@ -862,13 +859,11 @@ window.restfulAPI = (function() {
             this.urlPrefix = apiUrlTable.groupsMembers;
         };
 
-        GroupsMembersAPI.prototype.enums = Object.freeze({
-            type: {
-                OWNER: 'OWNER',
-                ADMIN: 'ADMIN',
-                WRITE: 'WRITE',
-                READ: 'READ'
-            }
+        GroupsMembersAPI.prototype.TYPES = Object.freeze({
+            OWNER: 'OWNER',
+            ADMIN: 'ADMIN',
+            WRITE: 'WRITE',
+            READ: 'READ'
         });
 
         GroupsMembersAPI.prototype.findAll = function(userId) {

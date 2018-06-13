@@ -69,7 +69,7 @@
 
             // 目前只有 LINE 支援此功能
             if (app.isDeleted ||
-                app.type !== api.apps.enums.type.LINE) {
+                app.type !== api.apps.TYPES.LINE) {
                 delete apps[appId];
                 continue;
             }
