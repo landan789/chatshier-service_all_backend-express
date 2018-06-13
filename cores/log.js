@@ -9,8 +9,8 @@ module.exports = (function() {
 
     let logger = winston.createLogger({
         format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json()
+            winston.format.json(),
+            winston.format.timestamp()
         )
     });
 
@@ -20,27 +20,30 @@ module.exports = (function() {
             this.winston = winston;
         }
 
-        start(message) {
+        start(message, type) {
             let json = {};
             json.level = 'info';
             json.status = START;
             json.message = message;
+            json.type = type;
             return this.logger.log(json);
         }
 
-        succed(message) {
+        succed(message, type) {
             let json = {};
             json.level = 'info';
             json.status = SUCCED;
             json.message = message;
+            json.type = type;
             return this.logger.log(json);
         }
 
-        fail(message) {
+        fail(message, type) {
             let json = {};
             json.level = 'info';
             json.status = FAIL;
             json.message = message;
+            json.type = type;
             return this.logger.log(json);
         }
     };
