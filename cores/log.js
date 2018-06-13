@@ -1,31 +1,50 @@
 module.exports = (function() {
     const CHATSHIER = require('../config/chatshier');
+    const START = 'START';
+    const SUCCED = 'SUCCED';
+    const FAIL = 'FAIL';
+
     let elasticsearch = require('elasticsearch');
+    let winston = require('winston');
+
+    let logger = winston.createLogger({
+        format: winston.format.combine(
+            winston.format.json(),
+            winston.format.timestamp()
+        )
+    });
 
     class LogCore {
         constructor () {
-            this.client = new elasticsearch.Client({
-                host: CHATSHIER.ELASTICSEARCH.HOST + ':' + CHATSHIER.ELASTICSEARCH.PORT,
-                log: 'trace'
-            });
+            this.logger = logger;
+            this.winston = winston;
         }
 
-        insert(type, body) {
-            /* eslint-disable no-multi-spaces */
-            return this.client.index({
-                index: CHATSHIER.ELASTICSEARCH.INDEX, // DATABASE
-                type: type,                           // TABLE
-                body: body                            // ROW
-            });
+        start(message, type) {
+            let json = {};
+            json.level = 'info';
+            json.status = START;
+            json.message = message;
+            json.type = type;
+            return this.logger.log(json);
         }
 
-        update(type, id, body) {
-            return this.client.update({
-                index: CHATSHIER.ELASTICSEARCH.INDEX, // DATABASE
-                type: type,                           // TABLE
-                id: id,
-                body: body                            // ROW
-            });
+        succed(message, type) {
+            let json = {};
+            json.level = 'info';
+            json.status = SUCCED;
+            json.message = message;
+            json.type = type;
+            return this.logger.log(json);
+        }
+
+        fail(message, type) {
+            let json = {};
+            json.level = 'info';
+            json.status = FAIL;
+            json.message = message;
+            json.type = type;
+            return this.logger.log(json);
         }
     };
 

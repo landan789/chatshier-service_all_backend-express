@@ -26,6 +26,9 @@ module.exports = {
         PASSWORD: '0be44b96e3decd6a6b30cdb30c126089',
         INDEX: 'log' // INDEX of ELASTICSEARCH is simalir to DATABASE of MONGODB
     },
+    LOG: {
+        PATH: '/.log'
+    },
     LINE: {
         PREVIEW_IMAGE_URL: 'https://service.chatshier.com/image/logo-no-transparent.png'
     },
