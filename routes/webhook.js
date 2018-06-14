@@ -130,13 +130,10 @@ router.post('/:webhookid', (req, res, next) => {
         }).then(() => {
             let webhook = {
                 url: req.hostname + req.originalUrl,
-                body: req.body,
-                createdTime: Date.now(),
-                status: false
+                body: req.body
             };
-            return webhooksLog.insert(webhook);
-        }).then((webhook) => {
-            logWebhookId = webhook._id;
+            webhooksLog.start(webhook);
+        }).then(() => {
             return Promise.all(Object.keys(apps).map((appId) => {
                 let app = apps[appId];
 
@@ -172,9 +169,13 @@ router.post('/:webhookid', (req, res, next) => {
                             }
 
                             let consumer = consumers[platformUid];
+                            if (!consumer || (consumer && !consumer.photoOriginal)) {
+                                return consumersMdl.replace(platformUid, profile);
+                            }
+
                             let shouldUpload = (
-                                profile.photo.startsWith('http://') &&
-                                (!consumer || (consumer && profile.photo !== consumer.photoOriginal))
+                                consumer.photo.startsWith('http://') ||
+                                (profile.photo.startsWith('http://') && profile.photo !== consumer.photoOriginal)
                             );
 
                             if (shouldUpload) {
@@ -447,7 +448,13 @@ router.post('/:webhookid', (req, res, next) => {
             }));
         });
     }).then(() => {
+        let webhook = {
+            url: req.hostname + req.originalUrl,
+            body: req.body
+        };
+        webhooksLog.succed(webhook);
         return !res.headersSent && res.status(200).send('');
+
     }).catch((ERROR) => {
         let json = {
             status: 0,
@@ -457,7 +464,13 @@ router.post('/:webhookid', (req, res, next) => {
         console.error(ERROR);
         console.log(JSON.stringify(json, null, 4));
         console.trace(json);
+        let webhook = {
+            url: req.hostname + req.originalUrl,
+            body: req.body
+        };
+        webhooksLog.fail(webhook);
         !res.headersSent && res.sendStatus(500);
+
     }).then(() => {
         let idx = webhookProcQueue.indexOf(webhookPromise);
         idx >= 0 && webhookProcQueue.splice(idx, 1);
