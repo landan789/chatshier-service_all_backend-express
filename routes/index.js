@@ -59,4 +59,8 @@ router.get('/imagemap', function(req, res, next) {
     res.render('imagemap', { title: '圖文訊息' + titlePostfix });
 });
 
+router.get('/consumer_form', function(req, res, next) {
+    res.render('consumer_form', { title: '顧客資料' + titlePostfix });
+});
+
 module.exports = router;

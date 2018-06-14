@@ -120,6 +120,7 @@ module.exports = (function() {
             let token = jsonwebtoken.sign(payload, CHATSHIER.JWT.SECRET);
             return token;
         }
-    };
+    }
+
     return new JwtHelper();
 })();

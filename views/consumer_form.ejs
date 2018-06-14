@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <% include ../views/partials/meta_tags.ejs %>
+    <% include ../views/partials/favicon.ejs %>
+    <title><%= title %></title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.9/css/all.css" integrity="sha384-5SOiIsAziJl6AWe0HWRKTXlfcSHKmYV4RBF18PPJ173Kzn7jzMyFuTtk8JA7QQG1" crossorigin="anonymous" />
+    <style>
+        .data-container {
+            max-width: 30rem; }
+    </style>
+</head>
+
+<body>
+    <form class="flex-column align-items-center user-form d-none" id="userForm">
+        <input type="hidden" name="chatroomId" />
+        <input type="hidden" name="platformUid" />
+        
+        <div class="w-100 mt-3 data-container">
+            <div class="form-group">
+                <label class="col-4 col-sm-12 font-weight-bold control-label" for="consumerName">
+                    <span class="text-danger">*</span>
+                    <span>姓名:</span>
+                </label>
+                <div class="col-8 col-sm-12">
+                    <input class="form-control"
+                        type="text" 
+                        id="consumerName"
+                        name="consumerName"
+                        placeholder="請填寫真實姓名"
+                        minlength="1"
+                        maxlength="50"
+                        required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-4 col-sm-12 control-label" for="consumerEmail">
+                    <span class="font-weight-bold">Email:</span>
+                </label>
+                <div class="col-8 col-sm-12">
+                    <input class="form-control"
+                        type="email"
+                        id="consumerEmail"
+                        name="consumerEmail"
+                        placeholder="Email"
+                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-4 col-sm-12 font-weight-bold control-label" for="consumerPhone">
+                    <span class="text-danger">*</span>
+                    <span>手機:</span>
+                </label>
+                <div class="col-8 col-sm-12">
+                    <input class="form-control"
+                        type="tel"
+                        id="consumerPhone"
+                        name="consumerPhone"
+                        placeholder="手機"
+                        pattern="^0\d{9,}$"
+                        minlength="10"
+                        maxlength="10"
+                        required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-4 col-sm-12 control-label" for="consumerAddress">
+                    <span class="font-weight-bold">地址:</span>
+                </label>
+                <div class="col-8 col-sm-12">
+                    <div class="tw-zipcode" id="twZipcode"></div>
+                    <input class="form-control"
+                        type="text"
+                        id="consumerAddress"
+                        name="consumerAddress"
+                        placeholder="地址" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-4 col-sm-12 font-weight-bold control-label">
+                    <span class="text-danger">*</span>
+                    <span>生日:</span>
+                </label>
+                <div class="col-8 col-sm-12">09/15</div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-4 col-sm-12 control-label" for="gender">
+                    <span class="font-weight-bold">性別:</span>
+                </label>
+
+                <div class="col-8 col-sm-12">
+                    <label for="genderMale">
+                        <input type="radio"
+                            name="consumerGender"
+                            id="genderMale"
+                            value="MALE" />
+                        <span class="mx-2">男</span>
+                    </label>
+
+                    <label for="genderFemale">
+                        <input type="radio"
+                            name="consumerGender"
+                            id="genderFemale"
+                            value="FEMALE" />
+                        <span class="mx-2">女</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group col-sm-12 text-center">
+            <button type="button" class="btn btn-warning">
+                <i class="fas fa-times fa-fw"></i>
+                <span>下次再填</span>
+            </button>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check fa-fw"></i>
+                <span>送出</span>
+            </button>
+        </div>
+    </form>
+
+    <script src="https://cdn.jsdelivr.net/mobile-detect.js/latest/mobile-detect.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+    <script src="config/url-config.js"></script>
+
+    <script type="text/javascript">
+        !window.urlConfig && (window.urlConfig = {});
+        !window.urlConfig.apiUrl && (window.urlConfig.apiUrl = window.location.origin);
+        var urlParams = (function getUrlParams() {
+            var pl = /\+/g;
+            var search = /([^&=]+)=?([^&]*)/g;
+            var query = window.location.search.substring(1);
+
+            function decode(s) {
+                return decodeURIComponent(s.replace(pl, ' '));
+            }
+
+            var match;
+            var urlParams = {};
+            while (match = search.exec(query)) {
+                urlParams[decode(match[1])] = decode(match[2]);
+            }
+            return urlParams;
+        })();
+        console.log(urlParams);
+
+        function initialize(cb) {
+            $.ajax({
+                url: window.urlConfig.apiUrl + '/api/database/apps-fields/',
+                cache: false,
+                dataType: 'json',
+                type: 'GET',
+                success: function(response) {
+                    cb && cb(void 0, response);
+                },
+                error: function(err) {
+                    cb && cb(err);
+                }
+            })
+        }
+
+        function closeForm() {
+            $('#userForm').remove();
+            window.location.assign('line://oaMessage/');
+        }
+
+        if (!(urlParams.aid && urlParams.t)) {
+            window.alert('此表單已無法填寫！請關閉頁面，重新操作填寫流程');
+            closeForm();
+        } else {
+            $(document).ready(function() {
+                var $userForm = $('#userForm');
+                initialize(function(err, response) {
+                    if (err) {
+                        return closeForm();
+                    }
+                    $userForm.removeClass('d-none').addClass('d-flex');
+                });
+
+                $userForm.submit(function(ev) {
+                    ev.preventDefault();
+                    console.log(ev);
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>
