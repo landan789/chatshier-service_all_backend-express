@@ -72,11 +72,6 @@
             $('#member-list').append(str);
             $(`#all-member-list #${product}`).append(str2);
             $('#insert-member-name').val('');
-            var timetable = new Timetable();
-            timetable.setScope(9, 3);
-            timetable.addLocations([name]);
-            var renderer = new Timetable.Renderer(timetable);
-            renderer.draw(`.timetable-${name}`);
         }
     }
 
@@ -127,7 +122,60 @@
                     </h5>
                 </div>
                 <div id="${name}" class="p-3 collapse" aria-labelledby="time" data-parent="#accordion">
-                    <div class="timetable-${name}"></div>
+                    <div class ="day-view-container">
+                        <div class="timings">
+                            <div> <span> 12:00 </span>AM </div>
+                            <div> 12:30 </div>
+                            <div> <span> 1:00 </span>AM </div>
+                            <div> 1:30 </div>
+                            <div> <span> 2:00 </span>AM </div>
+                            <div> 2:30 </div>
+                            <div> <span> 3:00 </span>AM </div>
+                            <div> 3:30 </div>
+                            <div> <span> 4:00 </span>AM </div>
+                            <div> 4:30 </div>
+                            <div> <span> 5:00 </span>AM </div>
+                            <div> 5:30 </div>
+                            <div> <span> 6:00 </span>AM </div>
+                            <div> 6:30 </div>
+                            <div> <span> 7:00 </span>AM </div>
+                            <div> 7:30 </div>
+                            <div> <span> 8:00 </span>AM </div>
+                            <div> 8:30 </div>
+                            <div> <span> 9:00 </span>AM </div>
+                            <div> 9:30 </div>
+                            <div> <span> 10:00 </span>AM </div>
+                            <div> 10:30 </div>
+                            <div> <span> 11:00 </span>AM </div>
+                            <div> 11:30 </div>
+                            <div> <span> 12:00 </span>PM </div>
+                            <div> 12:30 </div>
+                            <div> <span> 1:00 </span>PM </div>
+                            <div> 1:30 </div>
+                            <div> <span> 2:00 </span>PM </div>
+                            <div> 2:30 </div>
+                            <div> <span> 3:00 </span>PM </div>
+                            <div> 3:30 </div>
+                            <div> <span> 4:00 </span>PM </div>
+                            <div> 4:30 </div>
+                            <div> <span> 5:00 </span>PM </div>
+                            <div> 5:30 </div>
+                            <div> <span> 6:00 </span>PM </div>
+                            <div> 6:30 </div>
+                            <div> <span> 7:00 </span>PM </div>
+                            <div> 7:30 </div>
+                            <div> <span> 8:00 </span>PM </div>
+                            <div> 8:30 </div>
+                            <div> <span> 9:00 </span>PM </div>
+                            <div> 9:30 </div>
+                            <div> <span> 10:00 </span>PM </div>
+                            <div> 10:30 </div>
+                            <div> <span> 11:00 </span>PM </div>
+                            <div> 11:30 </div>
+                        </div>
+                        <div class="days" id="events">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>`;
