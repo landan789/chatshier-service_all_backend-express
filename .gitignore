@@ -2,7 +2,7 @@
 
 # dependencies
 /node_modules
-/.log
+/.log/*
 
 # production
 /config/firebase-adminsdk.json
