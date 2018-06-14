@@ -19,7 +19,7 @@ module.exports = (function() {
             this.winston = winston;
         }
 
-        start(message, type) {
+        start(message) {
             let json = {};
             json.level = 'info';
             json.status = START;
@@ -27,7 +27,7 @@ module.exports = (function() {
             return this.logger.log(json);
         }
 
-        succed(message, type) {
+        succed(message) {
             let json = {};
             json.level = 'info';
             json.status = SUCCED;
@@ -35,7 +35,7 @@ module.exports = (function() {
             return this.logger.log(json);
         }
 
-        fail(message, type) {
+        fail(message) {
             let json = {};
             json.level = 'info';
             json.status = FAIL;

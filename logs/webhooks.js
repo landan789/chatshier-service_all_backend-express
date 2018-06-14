@@ -12,18 +12,17 @@ module.exports = (function() {
             this.logger.clear();
             this.logger.add(console);
             this.logger.add(file);
-            this.type = WEBHOOKS;
         }
         start(message) {
-            return super.start(message, this.type);
+            return super.start(message);
         }
 
         succed(message) {
-            return super.succed(message, this.type);
+            return super.succed(message);
         }
 
         fail(message) {
-            return super.fail(message, this.type);
+            return super.fail(message);
         }
     }
 
