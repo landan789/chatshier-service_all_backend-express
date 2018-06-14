@@ -19,12 +19,8 @@ module.exports = {
         USERNAME: 'chsr',
         PASSWORD: '0be44b96e3decd6a6b30cdb30c126089'
     },
-    ELASTICSEARCH: {
-        HOST: '127.0.0.1',
-        PORT: 9200,
-        USERNAME: 'chsr',
-        PASSWORD: '0be44b96e3decd6a6b30cdb30c126089',
-        INDEX: 'log' // INDEX of ELASTICSEARCH is simalir to DATABASE of MONGODB
+    LOG: {
+        PATH: '.log'
     },
     LINE: {
         PREVIEW_IMAGE_URL: 'https://service.chatshier.com/image/logo-no-transparent.png'

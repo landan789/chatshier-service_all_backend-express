@@ -1,31 +1,46 @@
 module.exports = (function() {
     const CHATSHIER = require('../config/chatshier');
-    let elasticsearch = require('elasticsearch');
+    const START = 'START';
+    const SUCCED = 'SUCCED';
+    const FAIL = 'FAIL';
+
+    let winston = require('winston');
+
+    let logger = winston.createLogger({
+        format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.json()
+        )
+    });
 
     class LogCore {
         constructor () {
-            this.client = new elasticsearch.Client({
-                host: CHATSHIER.ELASTICSEARCH.HOST + ':' + CHATSHIER.ELASTICSEARCH.PORT,
-                log: 'trace'
-            });
+            this.logger = logger;
+            this.winston = winston;
         }
 
-        insert(type, body) {
-            /* eslint-disable no-multi-spaces */
-            return this.client.index({
-                index: CHATSHIER.ELASTICSEARCH.INDEX, // DATABASE
-                type: type,                           // TABLE
-                body: body                            // ROW
-            });
+        start(message) {
+            let json = {};
+            json.level = 'info';
+            json.status = START;
+            json.message = message;
+            return this.logger.log(json);
         }
 
-        update(type, id, body) {
-            return this.client.update({
-                index: CHATSHIER.ELASTICSEARCH.INDEX, // DATABASE
-                type: type,                           // TABLE
-                id: id,
-                body: body                            // ROW
-            });
+        succed(message) {
+            let json = {};
+            json.level = 'info';
+            json.status = SUCCED;
+            json.message = message;
+            return this.logger.log(json);
+        }
+
+        fail(message) {
+            let json = {};
+            json.level = 'info';
+            json.status = FAIL;
+            json.message = message;
+            return this.logger.log(json);
         }
     };
 
