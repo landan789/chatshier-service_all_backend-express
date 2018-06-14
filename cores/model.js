@@ -116,7 +116,6 @@ module.exports = (function() {
 
     const TemplatesSchema = new mongoose.Schema({
         'isDeleted': {type: Boolean, default: false},
-        'keyword': {type: String, default: ''},
         'altText': {type: String, default: ''},
         'type': {type: String, default: 'template'},
         'template': {type: Object, default: {}},

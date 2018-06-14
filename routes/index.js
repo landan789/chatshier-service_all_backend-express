@@ -50,7 +50,7 @@ router.get('/analyze', function(req, res, next) {
     res.render('analyze', { title: '訊息分析' + titlePostfix });
 });
 router.get('/template', function(req, res, next) {
-    res.render('template', { title: '自訂 Line Template' + titlePostfix });
+    res.render('template', { title: '模板訊息' + titlePostfix });
 });
 router.get('/richmenu', function(req, res, next) {
     res.render('richmenu', { title: '圖文選單' + titlePostfix });

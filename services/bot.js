@@ -814,7 +814,7 @@ module.exports = (function() {
         /**
          * @param {string} platformUid
          * @param {string} replyToken
-         * @param {any[]|any} messages
+         * @param {any} messages
          * @param {string} appId
          * @param {any} app
          */
@@ -832,9 +832,16 @@ module.exports = (function() {
             }).then((bot) => {
                 switch (app.type) {
                     case LINE:
-                        return bot.replyMessage(replyToken, messages).then(() => {
-                            // 一同將 webhook 打過來的 http request 回覆 200 狀態
-                            return !res.headersSent && res.status(200).send('');
+                        return Promise.all(messages.map((message) => {
+                            if ('template' === message.type) {
+                                // TODO
+                            }
+                            return Promise.resolve(message);
+                        })).then((_messages) => {
+                            return bot.replyMessage(replyToken, _messages).then(() => {
+                                // 一同將 webhook 打過來的 http request 回覆 200 狀態
+                                return !res.headersSent && res.status(200).send('');
+                            });
                         });
                     case FACEBOOK:
                         return Promise.all(messages.map((message) => {
