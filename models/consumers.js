@@ -13,6 +13,7 @@ module.exports = (function() {
                 createdTime: true,
                 name: true,
                 photo: true,
+                photoOriginal: true,
                 type: true
             };
         }
