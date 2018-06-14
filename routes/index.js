@@ -59,4 +59,8 @@ router.get('/imagemap', function(req, res, next) {
     res.render('imagemap', { title: '圖文訊息' + titlePostfix });
 });
 
+router.get('/appointment', function(req, res, next) {
+    res.render('appointment', { title: '預約系統' + titlePostfix });
+});
+
 module.exports = router;
