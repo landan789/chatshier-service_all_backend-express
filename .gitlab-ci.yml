@@ -28,8 +28,11 @@ DEVELOP:
    
    - echo "[STEP 2] start to npm install on all servers."
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${DEV_HOST} -p 22 "cd ${API_DIR} && npm prune && npm install" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
-  
-   - echo "[STEP 3] restart each node via pm2 on all servers."
+
+   - echo "[STEP 3] reset config on all servers."
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${DEV_HOST} -p 22 "cd ${LINUX_DIR} && git stash && git checkout -f master && git fetch -p && git pull -f && sh sh/api-chatshier_2.sh dev" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+
+   - echo "[STEP 4] restart each node via pm2 on all servers."
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${DEV_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
   
    - echo "[SUCCEEDED] develop has been deployed."
@@ -50,7 +53,12 @@ RELEASE:
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_REL_1_HOST} -p 22 "cd ${API_DIR} && npm prune && npm install" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_REL_2_HOST} -p 22 "cd ${API_DIR} && npm prune && npm install" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
   
-   - echo "[STEP 3] restart each node via pm2 on all servers."
+   - echo "[STEP 3] reset config on all servers."
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_REL_1_HOST} -p 22 "cd ${LINUX_DIR} && git stash && git checkout -f master && git fetch -p && git pull -f && sh sh/api-chatshier_2.sh rel" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_REL_1_HOST} -p 22 "cd ${LINUX_DIR} && git stash && git checkout -f master && git fetch -p && git pull -f && sh sh/api-chatshier_2.sh rel" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_REL_2_HOST} -p 22 "cd ${LINUX_DIR} && git stash && git checkout -f master && git fetch -p && git pull -f && sh sh/api-chatshier_2.sh rel" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+
+   - echo "[STEP 4] restart each node via pm2 on all servers."
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_REL_1_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only schedule-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_REL_1_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only api-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_REL_2_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only api-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
@@ -72,7 +80,12 @@ MASTER:
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_1_HOST} -p 22 "cd ${API_DIR} && npm prune && npm install" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_1_HOST} -p 22 "cd ${API_DIR} && npm prune && npm install" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_2_HOST} -p 22 "cd ${API_DIR} && npm prune && npm install" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
-  
+
+   - echo "[STEP 3] reset config on all servers."
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_1_HOST} -p 22 "cd ${LINUX_DIR} && git stash && git checkout -f master && git fetch -p && git pull -f && sh sh/api-chatshier_2.sh mas" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_1_HOST} -p 22 "cd ${LINUX_DIR} && git stash && git checkout -f master && git fetch -p && git pull -f && sh sh/api-chatshier_2.sh mas" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_2_HOST} -p 22 "cd ${LINUX_DIR} && git stash && git checkout -f master && git fetch -p && git pull -f && sh sh/api-chatshier_2.sh mas" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+
    - echo "[STEP 3] restart each node via pm2 on all servers."
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_1_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only schedule-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_1_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only api-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
