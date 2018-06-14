@@ -376,6 +376,8 @@ module.exports = (function() {
                                                         return consumersMdl.replace(groupMemberId, putConsumer);
                                                     });
                                                 }
+
+                                                delete groupMemberProfile.photo;
                                                 return consumersMdl.replace(platformUid, groupMemberProfile);
                                             });
                                         }).then(() => {

@@ -194,6 +194,8 @@ router.post('/:webhookid', (req, res, next) => {
                                     return consumersMdl.replace(platformUid, putConsumer);
                                 });
                             }
+
+                            delete profile.photo;
                             return consumersMdl.replace(platformUid, profile);
                         });
                     });
