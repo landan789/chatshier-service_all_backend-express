@@ -1,20 +1,30 @@
 module.exports = (function() {
-    const LogCore = require('../cores/log');
     const WEBHOOKS = 'webhooks';
+    const CHATSHIER = require('../config/chatshier');
+
+    let LogCore = require('../cores/log');
 
     class WebhooksLog extends LogCore {
         constructor() {
             super();
-            this.type = WEBHOOKS;
+            let file = new this.winston.transports.File({ filename: CHATSHIER.LOG.PATH + '/' + WEBHOOKS + '.log' });
+            let console = new this.winston.transports.Console();
+            this.logger.clear();
+            this.logger.add(console);
+            this.logger.add(file);
+        }
+        start(message) {
+            return super.start(message);
         }
 
-        insert(body) {
-            return super.insert(this.type, body);
+        succed(message) {
+            return super.succed(message);
         }
 
-        update(id, body) {
-            return super.update(this.type, id, body);
+        fail(message) {
+            return super.fail(message);
         }
     }
+
     return new WebhooksLog();
 })();
