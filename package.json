@@ -1,9 +1,12 @@
 {
-    "name": "service.chatshier",
-    "version": "1.3.1",
+    "name": "api-chatshier",
+    "version": "1.3.2",
     "private": true,
     "scripts": {
-        "start": "node ./bin/www",
+        "all": "pm2 start pm2.json",
+        "api": "pm2 start pm2.json --only api-chatshier",
+        "schedule": "pm2 start pm2.json --only schdule-chatshier",
+        "debug": "supervisor -- --inspect=0.0.0.0:9229 ./bin/www",
         "eslint": "node_modules/.bin/eslint --config ./.eslintrc bin controllers cores helpers models routes schedules services sockets public/config public/js"
     },
     "engines": {
