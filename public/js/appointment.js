@@ -18,6 +18,29 @@
         FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
     };
 
+    const datetimePickerInitOpts = {
+        sideBySide: true,
+        locale: 'zh-tw',
+        defaultDate: Date.now(),
+        icons: {
+            time: 'far fa-clock',
+            date: 'far fa-calendar-alt',
+            up: 'fas fa-chevron-up',
+            down: 'fas fa-chevron-down',
+            previous: 'fas fa-chevron-left',
+            next: 'fas fa-chevron-right',
+            today: 'fas fa-sun',
+            clear: 'far fa-trash-alt',
+            close: 'fas fa-times'
+        }
+    };
+
+    const timePickerInitOpts = {
+        format: 'YYYY-MM-DD',
+        locale: datetimePickerInitOpts.locale,
+        icons: datetimePickerInitOpts.icons
+    };
+
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
         userId = payload.uid;
@@ -29,8 +52,8 @@
     $jqDoc.on('keyup', '#insert-product-name', insertProduct);
     $jqDoc.on('click', '#renew', refreshModal);
     $jqDoc.on('click', '#delete-member-btn', deleteMember);
+    $jqDoc.on('click', '#delete-product-btn', deleteProduct);
     $productSelector.change(determineNewProduct);
-
     $modal.on('hidden.bs.modal', refreshModal);
 
     function determineNewProduct() {
@@ -54,9 +77,20 @@
         var code = event.keyCode || event.which;
         if (13 === code) {
             // 1. api insert product
-            let product = $(this).val();
-            // api implementing
-            // 2. remove d-none class of member-add
+            let productName = $(this).val();
+            let productFormat =
+            `<div productName="${productName}">
+                <h5>產品：${productName} <i class="fas fa-trash-alt text-danger float-right cursor-pointer my-2 mx-1" id="delete-product-btn" name="${productName}"></i></h5>
+                <hr/>
+                <div id="${productName}"></div>
+            </div>`;
+            let productDropdown =
+            `<option value="${productName}">${productName}</option>`;
+            // 2. api implementing
+            // 3. add product to product list
+            $(`#all-product-list`).append(productFormat);
+            $(`#product-select`).append(productDropdown);
+            // 4. remove d-none class of member-add
             $('.member-add').removeClass('d-none');
         }
     }
@@ -70,18 +104,26 @@
             let str = showModalMember(member); // requires member id for deletion to work
             let str2 = showMember(member);
             $('#member-list').append(str);
-            $(`#all-member-list #${product}`).append(str2);
+            $(`#all-product-list #${product}`).append(str2);
             $('#insert-member-name').val('');
         }
     }
 
+    function deleteProduct() {
+        let name = $(this).attr('name');
+        $(this).parents(`[productName="${name}"]`).remove();
+        $(`option[value="${name}"]`).remove();
+    }
+
     function deleteMember() {
         // 1. api deletion
-        $(this).parent('.list-group-item').remove();
+        $(this).parents('.list-group-item').remove();
+        let memberName = $(this).attr('name');
+        $(`[memberName="${memberName}"]`).remove();
     }
 
     function refreshModal() {
-        $modal.find('[value="NEW"]').attr('selected', true);
+        $modal.find('[value="NEW"]').attr('selected', true).siblings().removeAttr('selected');
         $modal.find('#insert-product-name').val('');
         $modal.find('.member-add').addClass('d-none');
         $modal.find('#insert-member-name').val('');
@@ -95,7 +137,7 @@
                     <input class="form-control form-control-sm" type="text" value="${name}" />
                 </div>
                 <div class="col-4">
-                    <i class="fas fa-trash-alt text-danger float-right cursor-pointer my-2 mx-1" id="delete-member-btn"></i>
+                    <i class="fas fa-trash-alt text-danger float-right cursor-pointer my-2 mx-1" id="delete-member-btn" name="${name}"></i>
                     <i class="fas fa-pencil-alt float-right cursor-pointer my-2 mx-1"></i>
                 </div>
             </div>
@@ -103,7 +145,12 @@
     }
 
     function showMember(name) {
-        return `<div class="pb-3">
+        $jqDoc.on('click', '.input-group-prepend', () => {
+            $(`.form-control[name="${name}-date-input"]`).focus();
+            $(`#${name}-date-input`).datetimepicker(timePickerInitOpts);
+        });
+        let currentDate = new Date();
+        return `<div class="pb-3" memberName="${name}">
             <h5><b>姓名</b>：${name}</h5>
             <div id="accordion">
                 <div class="card">
@@ -116,7 +163,14 @@
                                 </button>
                             </div>
                             <div class="col-10">
-                                <input class="form-control" type="date" value="2011-08-19" id="example-date-input">
+                                <div class="input-group date" id="${name}-date-input">
+                                    <span class="input-group-addon input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="far fa-calendar-alt"></i>
+                                        </span>
+                                    </span>
+                                    <input type="text" class="form-control" value="${toDatetimeLocal(currentDate)}" name="${name}-date-input" placeholder="請選擇日期" />
+                                </div>
                             </div>
                         </div>
                     </h5>
@@ -179,6 +233,18 @@
                 </div>
             </div>
         </div>`;
+    }
+
+    function toDatetimeLocal(date) {
+        var YYYY = date.getFullYear();
+        var MM = ten(date.getMonth() + 1);
+        var DD = ten(date.getDate());
+
+        function ten(i) {
+            return (i < 10 ? '0' : '') + i;
+        }
+
+        return YYYY + '-' + MM + '-' + DD;
     }
 
     return api.apps.findAll(userId).then(function(respJson) {

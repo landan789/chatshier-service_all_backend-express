@@ -1,0 +1,56 @@
+{
+  "apps": {
+    "products": [
+      {
+        "_id" : "a01",
+        "createdTime": 1234,
+        "updatedTime": 5678,
+        "isDeleted": false,
+        "name": "product1",
+        "members": [
+          {
+            "_id": "m101",
+            "createdTime": 1234,
+            "updatedTime": 5678,
+            "isDeleted": false,
+            "name": "member1",
+            "appointmentId": "a1231"
+          },
+          {
+            "_id": "m102",
+            "createdTime": 1234,
+            "updatedTime": 5678,
+            "isDeleted": false,
+            "name": "member2",
+            "appointmentId": "a1232"
+          }
+        ]
+      },
+      {
+        "_id" : "a02",
+        "createdTime": 1234,
+        "updatedTime": 5678,
+        "isDeleted": false,
+        "name": "product2",
+        "members": [
+          {
+            "_id": "m201",
+            "createdTime": 1234,
+            "updatedTime": 5678,
+            "isDeleted": false,
+            "name": "member1",
+            "appointmentId": "a1233"
+          },
+          {
+            "_id": "m202",
+            "createdTime": 1234,
+            "updatedTime": 5678,
+            "isDeleted": false,
+            "name": "member2",
+            "appointmentId": "a1234"
+          }
+        ]
+      }
+    ]
+  }
+}
