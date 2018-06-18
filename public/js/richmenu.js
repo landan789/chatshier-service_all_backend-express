@@ -41,6 +41,20 @@
         FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
     };
 
+    const ACTION_TYPES = Object.freeze({
+        TEXT: 'text',
+        URI: 'uri',
+        TEMPLATE: 'template',
+        RICHMENU: 'richmenu',
+        CONSUMER_FORM: 'consumerForm'
+    });
+
+    const POSTBACK_DATA_TYPES = Object.freeze({
+        CHANGE_RICHMENU: 'CHANGE_RICHMENU',
+        SEND_TEMPLATE: 'SEND_TEMPLATE',
+        SEND_CONSUMER_FORM: 'SEND_CONSUMER_FORM'
+    });
+
     elementHide($('.action-input'));
     elementHide($('.content-input'));
     $jqDoc.on('click', '#remove-btn', removeRichmenu);
@@ -57,8 +71,8 @@
         $modal.on('click', 'input[name="richmenu-form"]', photoFormShow);
         $modal.on('click', '.uri-input .dropdown-item', onUriPrefixChange);
         $modal.on('input', '.action-content .content-input', onActionDataChange);
-        $modal.on('change', '.action-input .action-select', onActionTypeChange);
-        $modal.on('change', '.action-input .keyword-select', onKeywordSelect)
+        $modal.on('click', '.action-input .action-item ', onActionTypeChange);
+        $modal.on('change', '.action-input .keyword-select', onKeywordSelect);
 
         var $richmenuForm = $modal.find('.richmenu-form');
         var $actionInputs = $modal.find('.action-inputs');
@@ -123,10 +137,40 @@
 
                 $boxes.each(function(i) {
                     let $box = $($boxes[i]);
-                    let text = !areas[i].action.text ? areas[i].action.uri : areas[i].action.text;
+                    let action = areas[i].action;
+                    let actionType = '';
+                    let actionData = action.data || '';
+
+                    switch (action.type) {
+                        case 'postback':
+                            if (actionData.indexOf('{') < 0) {
+                                break;
+                            }
+
+                            let actionJson = JSON.parse(actionData);
+                            if (POSTBACK_DATA_TYPES.CHANGE_RICHMENU === actionJson.action) {
+                                actionType = ACTION_TYPES.RICHMENU;
+                                actionData = actionJson.richemnuId;
+                            } else if (POSTBACK_DATA_TYPES.SEND_TEMPLATE === actionJson.action) {
+                                actionType = ACTION_TYPES.TEMPLATE;
+                                actionData = actionJson.templateId;
+                            } else if (POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM === actionJson.action) {
+                                actionType = ACTION_TYPES.CONSUMER_FORM;
+                            }
+                            break;
+                        case 'uri':
+                            actionType = ACTION_TYPES.URI;
+                            actionData = action.uri;
+                            break;
+                        default:
+                            actionType = ACTION_TYPES.TEXT;
+                            actionData = action.text;
+                            break;
+                    }
 
                     $box.addClass('marked');
-                    $box.attr('action-data', text);
+                    $box.attr('action-type', actionType);
+                    $box.attr('action-data', actionData);
                 });
             });
         });
@@ -216,15 +260,27 @@
             return (
                 '<div class="px-1 flex-wrap action-input" id="' + boxId + '-input">' +
                     '<div class="w-100 form-group">' +
-                        '<label class="col-form-label font-weight-bold">執行動作:</label>' +
-                        '<select class="form-control action-select" value="">' +
-                            '<option value="">未設定</option>' +
-                            '<option value="text">發出固定文字訊息</option>' +
-                            '<option value="uri">前往指定連結</option>' +
-                            '<option value="template">顯示指定模板</option>' +
-                            '<option value="richmenu">切換已啟用的圖文選單</option>' +
-                            '<option value="userForm">要求填寫個人資料</option>' +
-                        '</select>' +
+                        '<label class="col-form-label font-weight-bold">設定執行動作:</label>' +
+                        '<div class="w-100 btn-group action-select" role="group" action-type="">' +
+                            '<button type="button" class="btn btn-info action-item" action-type="" data-toggle="tooltip" data-placement="top" title="不設定">' +
+                                '<i class="fas fa-times fa-2x"></i>' +
+                            '</button>' +
+                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.TEXT + '" data-toggle="tooltip" data-placement="top" title="發出固定文字訊息">' +
+                                '<i class="fas fa-text-height fa-2x"></i>' +
+                            '</button>' +
+                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.URI + '" data-toggle="tooltip" data-placement="top" title="前往指定連結">' +
+                                '<i class="fas fa-link fa-2x"></i>' +
+                            '</button>' +
+                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.TEMPLATE + '" data-toggle="tooltip" data-placement="top" title="顯示指定模板">' +
+                                '<i class="fas fa-clipboard-list fa-2x"></i>' +
+                            '</button>' +
+                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.RICHMENU + '" data-toggle="tooltip" data-placement="top" title="切換已啟用的圖文選單">' +
+                                '<i class="fas fa-exchange-alt fa-2x"></i>' +
+                            '</button>' +
+                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.CONSUMER_FORM + '" data-toggle="tooltip" data-placement="top" title="要求填寫個人資料">' +
+                                '<i class="fas fa-id-badge fa-2x"></i>' +
+                            '</button>' +
+                        '</div>' +
                     '</div>' +
                     '<div class="position-relative w-100 form-group action-content"></div>' +
                 '</div>'
@@ -236,22 +292,35 @@
             let $actionInput = $contentInput.parents('.action-input');
             let boxId = $actionInput.attr('id').replace('-input', '');
             let $box = $('.show-richmenu-form #' + boxId);
-            $box.attr('action-data', $contentInput.val() || '');
+
+            let actionType = $box.attr('action-type');
+            let actionData = $contentInput.val() || '';
+
+            if (ACTION_TYPES.URI === actionType) {
+                let uriPrefix = $actionInput.find('.uri-prefix').text();
+                actionData = uriPrefix + actionData;
+            }
+            $box.attr('action-data', actionData);
         }
 
         function onActionTypeChange(ev) {
-            let appId = $appSelector.val();
-            let actionType = ev.target.value;
-            let $actionInput = $(ev.target).parents('.action-input');
-            let $actionContent = $actionInput.find('.action-content');
+            let $actionItem = $(ev.target);
+            $actionItem = $actionItem.hasClass('action-item') ? $actionItem : $actionItem.parents('.action-item');
+
+            let actionType = $actionItem.attr('action-type');
+            let $actionSelect = $actionItem.parents('.action-select');
+            let $actionInput = $actionSelect.parents('.action-input');
 
             let boxId = $actionInput.attr('id').replace('-input', '');
             let $box = $('.show-richmenu-form #' + boxId);
             $box.attr('action-type', actionType);
+            $actionItem.parents('.action-select').attr('action-type', actionType);
+            $actionItem.addClass('active').siblings().removeClass('active');
 
             return Promise.resolve().then(() => {
+                let appId = $appSelector.val();
                 switch (actionType) {
-                    case 'text':
+                    case ACTION_TYPES.TEXT:
                         return Promise.resolve().then(() => {
                             if (!appsKeywordreplies[appId]) {
                                 return api.appsKeywordreplies.findAll(appId, userId).then((resJson) => {
@@ -282,7 +351,7 @@
                                 '</select>'
                             );
                         });
-                    case 'uri':
+                    case ACTION_TYPES.URI:
                         return (
                             '<div class="input-group uri-input">' +
                                 '<div class="input-group-prepend">' +
@@ -298,7 +367,7 @@
                                 '<input class="form-control content-input action-data" type="url" />' +
                             '</div>'
                         );
-                    case 'template':
+                    case ACTION_TYPES.TEMPLATE:
                         return Promise.resolve().then(() => {
                             if (!appsTemplates[appId]) {
                                 return api.appsTemplates.findAll(appId, userId).then((resJson) => {
@@ -327,7 +396,7 @@
                                 '</select>'
                             );
                         });
-                    case 'richmenu':
+                    case ACTION_TYPES.RICHMENU:
                         return Promise.resolve().then(() => {
                             if (!appsRichmenus[appId]) {
                                 return api.appsRichmenus.findAll(appId, userId).then((resJson) => {
@@ -361,8 +430,8 @@
                         break;
                 }
             }).then((html) => {
+                let $actionContent = $actionInput.find('.action-content');
                 $actionContent.html(html || '');
-                window.emojiPicker && window.emojiPicker.discover();
             });
         }
 
@@ -370,7 +439,16 @@
             let $uriDropdownItem = $(ev.target);
             let $uriInput = $uriDropdownItem.parents('.uri-input');
             let $uriPrefix = $uriInput.find('.uri-prefix');
-            $uriPrefix.text($uriDropdownItem.text());
+            let uriPrefix = $uriDropdownItem.text();
+            $uriPrefix.text(uriPrefix);
+
+            let $actionData = $uriInput.find('.action-data');
+            let $actionInput = $uriInput.parents('.action-input');
+            let boxId = $actionInput.attr('id').replace('-input', '');
+            let $box = $('.show-richmenu-form #' + boxId);
+
+            let actionData = uriPrefix + $actionData.val();
+            $box.attr('action-data', actionData);
         }
 
         function onKeywordSelect(ev) {
@@ -394,14 +472,29 @@
             $actionInput.removeClass('d-none').siblings().addClass('d-none');
 
             let $actionSelect = $actionInput.find('.action-select');
-            $actionSelect.val(actionType);
+            $actionSelect.attr('action-type', actionType);
 
-            return onActionTypeChange({ target: $actionSelect.get(0) }).then(() => {
+            let $actionItem = $actionSelect.find('.action-item[action-type="' + actionType + '"]');
+            return onActionTypeChange({ target: $actionItem.get(0) }).then(() => {
                 let $actionData = $actionInput.find('.action-data');
-                let elemTagName = $actionData.prop('localName');
-                if ('input' === elemTagName ||
-                    'select' === elemTagName ||
-                    'textarea' === elemTagName) {
+
+                if (ACTION_TYPES.URI === actionType) {
+                    let dataSplits = actionData.split(':');
+                    let uriPrefix = dataSplits.shift() || '';
+                    uriPrefix && (uriPrefix += ':');
+                    actionData = dataSplits.pop() || '';
+
+                    if (0 === uriPrefix.indexOf('http')) {
+                        uriPrefix = uriPrefix + '//';
+                        actionData = actionData.substring(2);
+                    }
+                    $actionInput.find('.uri-prefix').text(uriPrefix);
+                }
+
+                let elemLocalName = $actionData.prop('localName');
+                if ('input' === elemLocalName ||
+                    'select' === elemLocalName ||
+                    'textarea' === elemLocalName) {
                     $actionData.val(actionData);
                 } else {
                     $actionData.text(actionData);
@@ -572,6 +665,7 @@
                 default:
                     break;
             }
+            $actionInputs.find('[data-toggle="tooltip"]').tooltip();
         }
 
         function getActionBoxAreas() {
@@ -599,12 +693,6 @@
                 let actionType = $box.attr('action-type');
                 let actionData = $box.attr('action-data');
 
-                if ('uri' === actionType) {
-                    let boxId = $box.attr('id');
-                    let uriPrefix = $actionInputs.find('.action-input#' + boxId + '-input .uri-prefix').text();
-                    actionData = uriPrefix + actionData;
-                }
-
                 let boxWidth = $box.width();
                 let boxHeight = $box.height();
                 let x = parseInt($box.data('x'));
@@ -629,40 +717,40 @@
         function getRichmenuAction(actionType, actionData) {
             let richmenuAction = {};
             switch (actionType) {
-                case 'text':
+                case ACTION_TYPES.TEXT:
                     richmenuAction.type = 'message';
                     richmenuAction.text = actionData;
                     break;
-                case 'uri':
+                case ACTION_TYPES.URI:
                     richmenuAction.type = 'uri';
                     richmenuAction.uri = actionData;
                     break;
-                case 'richmenu':
+                case ACTION_TYPES.RICHMENU:
                     let richmenuData = {
-                        action: 'CHANGE_RICHMENU',
+                        action: POSTBACK_DATA_TYPES.CHANGE_RICHMENU,
                         richemnuId: actionData
                     };
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(richmenuData);
                     break;
-                case 'template':
+                case ACTION_TYPES.TEMPLATE:
                     let templateData = {
-                        action: 'SEND_TEMPLATE',
+                        action: POSTBACK_DATA_TYPES.SEND_TEMPLATE,
                         templateId: actionData
                     };
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(templateData);
                     break;
-                case 'userForm':
+                case ACTION_TYPES.CONSUMER_FORM:
                     let userFormData = {
-                        action: 'SEND_CONSUMER_FORM'
+                        action: POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM
                     };
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(userFormData);
                     break;
                 default:
                     richmenuAction.type = 'postback';
-                    richmenuAction.data = '';
+                    richmenuAction.data = 'none';
                     break;
             }
             return richmenuAction;
@@ -720,8 +808,8 @@
             let selected = 'true' === $('.richmenu-select').val();
             let chatBarText = $('input[name="chatbarText"]').val();
             let form = $('input[name="richmenu-form"]:checked').val();
-            let areas = getActionBoxAreas();
 
+            let areas = getActionBoxAreas();
             if (!areas) {
                 return;
             }
@@ -920,6 +1008,14 @@
     function getRichmenuActionType(action) {
         switch (action.type) {
             case 'postback':
+                let actionData = action.data || '';
+                if (actionData.indexOf(POSTBACK_DATA_TYPES.CHANGE_RICHMENU) >= 0) {
+                    return '切換圖文選單';
+                } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_TEMPLATE) >= 0) {
+                    return '發送模板';
+                } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM) >= 0) {
+                    return '要求填寫個人資料';
+                }
                 return '未設定';
             case 'uri':
                 return action.uri;
