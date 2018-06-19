@@ -56,7 +56,7 @@ module.exports = (function() {
                 copyright: 'Copyright© 2018 - 錢掌櫃 Chatshier'
             };
 
-            return email.render('../emails/reset_password.ejs', params).then((emailHtml) => {
+            return email.render('../templates/reset_email_password.ejs', params).then((emailHtml) => {
                 /** @type {any} */
                 let emailOpts = {
                     message: {
