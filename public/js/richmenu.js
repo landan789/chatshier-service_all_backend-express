@@ -90,9 +90,9 @@
             }
 
             $appSelector.parents('.form-group').addClass('d-none');
-            let $richemnuRow = $relatedBtn.parents('tr');
-            let appId = $richemnuRow.attr('rel');
-            let richmenuId = $richemnuRow.attr('id');
+            let $richmenuRow = $relatedBtn.parents('tr');
+            let appId = $richmenuRow.attr('rel');
+            let richmenuId = $richmenuRow.attr('id');
             let src;
             $appSelector.val(appId);
 
@@ -101,8 +101,8 @@
             $modal.find('#modal-update-save').off('click').on('click', () => updateRichmenu(appId, richmenuId, src));
 
             return Promise.resolve().then(() => {
-                let richemnu = appsRichmenus[appId] ? appsRichmenus[appId].richmenus[richmenuId] : void 0;
-                if (!richemnu) {
+                let richmenu = appsRichmenus[appId] ? appsRichmenus[appId].richmenus[richmenuId] : void 0;
+                if (!richmenu) {
                     return api.appsRichmenus.findOne(appId, richmenuId, userId).then((resJson) => {
                         let _appsRichmenus = resJson.data;
                         if (!appsRichmenus[appId]) {
@@ -110,24 +110,24 @@
                         }
                         let richmenus = _appsRichmenus[appId].richmenus;
                         Object.assign(appsRichmenus[appId].richmenus, richmenus);
-                        richemnu = richmenus[richmenuId];
-                        return richemnu;
+                        richmenu = richmenus[richmenuId];
+                        return richmenu;
                     });
                 }
-                return richemnu;
-            }).then((richemnu) => {
-                let areas = richemnu.areas;
-                let photoForm = richemnu.form;
-                size = richemnu.size;
-                src = richemnu.src;
+                return richmenu;
+            }).then((richmenu) => {
+                let areas = richmenu.areas;
+                let photoForm = richmenu.form;
+                size = richmenu.size;
+                src = richmenu.src;
 
-                $richmenuForm.find('.richmenu-select').val(richemnu.selected + '');
-                $richmenuForm.find('input[name="richmenuName"]').val(richemnu.name);
-                $richmenuForm.find('input[name="chatbarText"]').val(richemnu.chatBarText);
+                $richmenuForm.find('.richmenu-select').val(richmenu.selected + '');
+                $richmenuForm.find('input[name="richmenuName"]').val(richmenu.name);
+                $richmenuForm.find('input[name="chatbarText"]').val(richmenu.chatBarText);
                 $richmenuForm.find('input[value=' + photoForm + ']').prop('checked', true);
 
-                richemnu.src && $('.show-richmenu-form')
-                    .css('background', 'url(' + richemnu.src + ') center no-repeat')
+                richmenu.src && $('.show-richmenu-form')
+                    .css('background', 'url(' + richmenu.src + ') center no-repeat')
                     .css('background-size', '100% 100%');
 
                 photoFormShow();
@@ -150,7 +150,7 @@
                             let actionJson = JSON.parse(actionData);
                             if (POSTBACK_DATA_TYPES.CHANGE_RICHMENU === actionJson.action) {
                                 actionType = ACTION_TYPES.RICHMENU;
-                                actionData = actionJson.richemnuId;
+                                actionData = actionJson.richmenuId;
                             } else if (POSTBACK_DATA_TYPES.SEND_TEMPLATE === actionJson.action) {
                                 actionType = ACTION_TYPES.TEMPLATE;
                                 actionData = actionJson.templateId;
@@ -418,9 +418,9 @@
                                 '<select class="form-control content-input action-data" value="">' +
                                     '<option value="" disabled selected>-- 請選擇目標圖文選單 --</option>' +
                                     (function() {
-                                        let richemnuIds = Object.keys(richmenus).filter((richemnuId) => richmenus[richemnuId].isActivated);
-                                        return richemnuIds.map((richemnuId) => {
-                                            return '<option value="' + richemnuId + '">' + richmenus[richemnuId].chatBarText + '</option>';
+                                        let richmenuIds = Object.keys(richmenus).filter((richmenuId) => richmenus[richmenuId].isActivated);
+                                        return richmenuIds.map((richmenuId) => {
+                                            return '<option value="' + richmenuId + '">' + richmenus[richmenuId].chatBarText + '</option>';
                                         }).join('');
                                     })() +
                                 '</select>'
@@ -728,7 +728,7 @@
                 case ACTION_TYPES.RICHMENU:
                     let richmenuData = {
                         action: POSTBACK_DATA_TYPES.CHANGE_RICHMENU,
-                        richemnuId: actionData
+                        richmenuId: actionData
                     };
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(richmenuData);
@@ -743,7 +743,13 @@
                     break;
                 case ACTION_TYPES.CONSUMER_FORM:
                     let userFormData = {
-                        action: POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM
+                        action: POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM,
+                        context: {
+                            altText: '填寫基本資料模板訊息',
+                            templateTitle: '填寫基本資料',
+                            templateText: '開啟以下連結進行填寫動作',
+                            buttonText: '按此開啟'
+                        }
                     };
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(userFormData);

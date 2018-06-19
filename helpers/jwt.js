@@ -49,24 +49,21 @@ module.exports = (function() {
                 let info;
 
                 return Promise.resolve().then(() => {
-                    return new Promise((resolve, reject) => {
-                        let userId = payload.uid;
+                    let userId = payload.uid;
 
-                        if (payload.exp < Date.now()) {
-                            reject(API_ERROR.JWT_HAD_EXPIRED);
-                            return;
+                    if (payload.exp < Date.now()) {
+                        return Promise.reject(API_ERROR.JWT_HAD_EXPIRED);
+                    }
+
+                    if (payload.uid !== req.params.userid) {
+                        return Promise.reject(API_ERROR.USER_WAS_NOT_PERMITTED);
+                    }
+
+                    return usersMdl.find(userId).then((users) => {
+                        if (!(users && users[userId])) {
+                            return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                         }
-                        if (payload.uid !== req.params.userid) {
-                            reject(API_ERROR.USER_WAS_NOT_PERMITTED);
-                            return;
-                        }
-                        usersMdl.find(userId, void 0, (users) => {
-                            if (!users) {
-                                reject(API_ERROR.USER_FAILED_TO_FIND);
-                                return;
-                            };
-                            resolve(users);
-                        });
+                        return Promise.resolve(users);
                     });
                 }).then((_users) => {
                     err = null;

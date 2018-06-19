@@ -14,9 +14,11 @@ module.exports = (function() {
     const appsChatroomsMdl = require('../models/apps_chatrooms');
     const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     const appsRichmenusMdl = require('../models/apps_richmenus');
+    const appsTemplatesMdl = require('../models/apps_templates');
     const consumersMdl = require('../models/consumers');
     const storageHlp = require('../helpers/storage');
     const socketHlp = require('../helpers/socket');
+    const jwtHlp = require('../helpers/jwt');
     const wechatSvc = require('./wechat');
 
     // app type defined
@@ -214,21 +216,20 @@ module.exports = (function() {
 
         /**
          * @param {Webhook.Chatshier.Information} webhookInfo
+         * @param {any} req
          * @param {string} appId
          * @param {Chatshier.Models.App} app
          * @returns {Promise<boolean>}
          */
-        resolveSpecificEvent(webhookInfo, appId, app) {
-            let isContinue = true;
+        resolveSpecificEvent(webhookInfo, req, appId, app) {
+            let shouldContinue = true;
             let platformUid = webhookInfo.platformUid;
 
             return Promise.resolve().then(() => {
                 if (LINE === app.type) {
-                    let isFollow = webhookInfo.eventType === this.LINE_EVENT_TYPES.FOLLOW;
-                    let isUnfollow = webhookInfo.eventType === this.LINE_EVENT_TYPES.UNFOLLOW;
-
                     // LINE 用戶加 LINE@ 好友時，檢查有無啟用的 richmenu
                     // 將預設的 richmenu link 至 LINE 用戶
+                    let isFollow = webhookInfo.eventType === this.LINE_EVENT_TYPES.FOLLOW;
                     if (isFollow) {
                         return appsRichmenusMdl.findActivated(appId, true).then((appsRichmenus) => {
                             return this.getRichMenuIdOfUser(platformUid, appId, app).then((_platformMenuId) => {
@@ -245,11 +246,12 @@ module.exports = (function() {
                                 }
                             });
                         // LINE 用戶加 LINE@ 好友時，還是要繼續 webhook 的訊息回覆處理，因此不要回傳 false flag
-                        }).then(() => (isContinue = true));
+                        }).then(() => (shouldContinue = true));
                     }
 
                     // 如果 LINE 用戶封鎖 LINE@ 時，將聊天室中的 messager 的 isUnfollow 設為 true
                     // 來表示用戶已取消關注 LINE@, 此時無法傳送任何訊息給 LINE 用戶
+                    let isUnfollow = webhookInfo.eventType === this.LINE_EVENT_TYPES.UNFOLLOW;
                     if (isUnfollow) {
                         return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, webhookInfo.platformUid).then((appsChatroomsMessagers) => {
                             if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
@@ -286,7 +288,7 @@ module.exports = (function() {
                                     return socketHlp.emitToAll(_recipientUserIds, SOCKET_EVENTS.CONSUMER_UNFOLLOW, socketBody);
                                 });
                             }));
-                        }).then(() => (isContinue = false));
+                        }).then(() => (shouldContinue = false));
                     }
 
                     if (webhookInfo.platformGroupId) {
@@ -391,7 +393,7 @@ module.exports = (function() {
                                         });
                                     }));
                                 });
-                            }).then(() => (isContinue = false));
+                            }).then(() => (shouldContinue = false));
                         // 如果 LINE@ 被踢出群組或經由 API 自行離開時，會接收到 leave 事件
                         // 此時將 LINE@ 的群組聊天室刪除
                         } else if (isLeave) {
@@ -404,20 +406,108 @@ module.exports = (function() {
                                 let chatroomId = Object.keys(chatrooms).shift() || '';
                                 webhookChatroomId = chatroomId;
                                 return appsChatroomsMdl.remove(appId, chatroomId);
-                            }).then(() => (isContinue = false));
+                            }).then(() => (shouldContinue = false));
                         }
+                    }
+
+                    let isPostback = webhookInfo.eventType === this.LINE_EVENT_TYPES.POSTBACK;
+                    if (isPostback) {
+                        /** @type {Webhook.Line.Event[]} */
+                        let events = req.body.events;
+                        return Promise.all(events.map((event) => {
+                            let postback = event.postback;
+                            let canParseData = 'string' === typeof postback.data && postback.data.startsWith('{');
+                            if (!canParseData) {
+                                return Promise.resolve();
+                            }
+
+                            /** @type {Webhook.Chatshier.PostbackData} */
+                            let dataJson = JSON.parse(postback.data);
+                            let replyToken = event.replyToken;
+
+                            switch (dataJson.action) {
+                                case 'CHANGE_RICHMENU':
+                                    return this.create(appId, app).then((bot) => {
+                                        let richmenuId = dataJson.richmenuId || '';
+                                        return appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
+                                            let unableMessage = [{
+                                                type: 'text',
+                                                text: 'Unable to switch rich menu'
+                                            }];
+
+                                            if (!(appsRichmenus && appsRichmenus[appId])) {
+                                                return bot.replyMessage(replyToken, unableMessage);
+                                            }
+
+                                            let richmenu = appsRichmenus[appId].richmenus[richmenuId];
+                                            if (!(richmenu && richmenu.isActivated)) {
+                                                return bot.replyMessage(replyToken, unableMessage);
+                                            }
+
+                                            return this.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId, app);
+                                        });
+                                    });
+                                case 'SEND_TEMPLATE':
+                                    return this.create(appId, app).then((bot) => {
+                                        let templateId = dataJson.templateId || '';
+                                        return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
+                                            if (!(appsTemplates && appsTemplates[appId])) {
+                                                return Promise.resolve();
+                                            }
+
+                                            let template = appsTemplates[appId].templates[templateId];
+                                            let templateMessage = {
+                                                type: template.type,
+                                                altText: template.altText,
+                                                template: template.template
+                                            };
+                                            return bot.replyMessage(replyToken, [templateMessage]);
+                                        });
+                                    });
+                                case 'SEND_CONSUMER_FORM':
+                                    return this.create(appId, app).then((bot) => {
+                                        let serverAddr = 'https://' + req.hostname;
+                                        let platformUid = webhookInfo.platformUid;
+                                        let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+                                        let url = serverAddr + '/consumer_form?aid=' + appId + '&t=' + token;
+
+                                        let formMessage = {
+                                            type: 'template',
+                                            altText: dataJson.context ? dataJson.context.altText : 'Template created by Chatshier',
+                                            template: {
+                                                type: 'buttons',
+                                                title: dataJson.context ? dataJson.context.templateTitle : 'Fill your profile',
+                                                text: dataJson.context ? dataJson.context.templateText : 'Open this link for continue',
+                                                actions: [
+                                                    {
+                                                        type: 'uri',
+                                                        label: dataJson.context ? dataJson.context.buttonText : 'Click here',
+                                                        uri: url
+                                                    }
+                                                ]
+                                            }
+                                        };
+                                        return bot.replyMessage(replyToken, [formMessage]);
+                                    });
+                                default:
+                                    return Promise.resolve();
+                            }
+                        })).then(() => {
+                            shouldContinue = false;
+                            return shouldContinue;
+                        });
                     }
                 } else if (FACEBOOK === app.type) {
                     // Facebook 如果使用 "粉絲專頁收件夾" 或 "專頁小助手" 回覆時
                     // 如果有開啟 message_echoes 時，會收到 webhook 事件
                     if (webhookInfo.isEcho && webhookInfo.platfromAppId) {
                         // 如果是由我們自己的 Facebook app 發送的不需處理 echo
-                        isContinue = false;
+                        shouldContinue = false;
                     }
-                    return isContinue;
+                    return shouldContinue;
                 }
-                return isContinue;
-            }).then(() => isContinue);
+                return shouldContinue;
+            }).then(() => shouldContinue);
         }
 
         /**
@@ -426,7 +516,7 @@ module.exports = (function() {
          * @param {string} messagerId - 這裡是代表 Chatshier chatroom 裡的 messager_id
          * @param {string} appId
          * @param {Chatshier.Models.App} app
-         * @return {Promise<any>}
+         * @return {Promise<any[]>}
          */
         getReceivedMessages(req, res, messagerId, appId, app) {
             let body = req.body;
@@ -456,7 +546,7 @@ module.exports = (function() {
                             }
 
                             // 非 message 的 webhook event 不抓取訊息資料
-                            if (!('message' === event.type && event.message)) {
+                            if (!(LINE_EVENT_TYPES.MESSAGE === event.type && event.message)) {
                                 return;
                             }
 
