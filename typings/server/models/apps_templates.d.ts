@@ -15,7 +15,6 @@ declare module Chatshier {
             createdTime: Date | number,
             updatedTime: Date | number,
             isDeleted: boolean,
-            keyword: string,
             altText: string,
             type: 'template',
             template: {

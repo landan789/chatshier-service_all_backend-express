@@ -51,92 +51,10 @@ module.exports = (function() {
                 return keywordreplies;
             });
 
-            let autorepliesPromise = Promise.resolve().then(() => {
-                if (LINE === app.type &&
-                    botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
-                    return Promise.resolve({});
-                }
-
-                return appsAutorepliesMdl.findAutoreplies(appId).then((_autoreplies) => {
-                    if (!_autoreplies) {
-                        return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
-                    }
-
-                    let timeNow = Date.now();
-                    let autoreplies = {};
-
-                    for (let autoreplyId in _autoreplies) {
-                        let autoreply = _autoreplies[autoreplyId];
-                        let endedTime = new Date(autoreply.endedTime).getTime();
-                        let startedTime = new Date(autoreply.startedTime).getTime();
-
-                        if (startedTime <= timeNow && timeNow <= endedTime) {
-                            if (autoreply.periods && autoreply.periods.length > 0) {
-                                let timezoneOffset = autoreply.timezoneOffset ? autoreply.timezoneOffset : 0;
-                                let localeNow = timeNow - (timezoneOffset * 60 * 1000);
-                                let localeDate = new Date(localeNow);
-                                let localeDay = localeDate.getDay();
-
-                                let timeStrToTime = (timeStr) => {
-                                    let datetime = new Date(localeNow);
-                                    let timeStrSplits = timeStr.split(':');
-                                    datetime.setHours(
-                                        parseInt(timeStrSplits[0], 10),
-                                        parseInt(timeStrSplits[1], 10),
-                                        0, 0
-                                    );
-                                    return datetime.getTime();
-                                };
-
-                                for (let i in autoreply.periods) {
-                                    let period = autoreply.periods[i];
-                                    if (period.days.indexOf(localeDay) >= 0) {
-                                        let startedTime = timeStrToTime(period.startedTime);
-                                        let endedTime = timeStrToTime(period.endedTime);
-                                        (startedTime > endedTime) && (endedTime += 24 * 60 * 60 * 1000);
-                                        if (startedTime <= localeNow && localeNow <= endedTime) {
-                                            autoreplies[autoreplyId] = autoreply;
-                                            break;
-                                        }
-                                    }
-                                }
-                            } else {
-                                autoreplies[autoreplyId] = autoreply;
-                            }
-                        }
-                    }
-
-                    return autoreplies;
-                });
-            });
-
-            let templates = {};
-            let templatesPromise = Promise.all(messages.map((message) => {
-                if (LINE === app.type &&
-                    botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
-                    return Promise.resolve();
-                }
-
-                // templates 使用模糊比對，不直接對 DB 查找
-                let text = message.text;
-                if (!text) {
-                    return Promise.resolve();
-                }
-
-                return fuseHlp.searchTemplates(appId, text).then((_templates) => {
-                    templates = Object.assign(templates, _templates);
-                    return _templates;
-                });
-            })).then(() => {
-                return templates;
-            });
-
             return Promise.all([
                 greetingsPromise,
-                keywordrepliesPromise,
-                autorepliesPromise,
-                templatesPromise
-            ]).then(([greetings, keywordreplies, autoreplies, templates]) => {
+                keywordrepliesPromise
+            ]).then(([ greetings, keywordreplies ]) => {
                 let repliedMessages = [];
                 let _message = { from: SYSTEM };
 
@@ -154,20 +72,71 @@ module.exports = (function() {
                     repliedMessages.push(message);
                 }
 
-                autoreplies = autoreplies || {};
-                for (let autoreplyId in autoreplies) {
-                    let autoreply = autoreplies[autoreplyId];
-                    let message = Object.assign({}, autoreply, _message);
-                    repliedMessages.push(message);
-                }
+                // 沒有加好友回覆與關鍵字回覆訊息，才進行自動回覆的查找
+                if (0 === repliedMessages.length) {
+                    return Promise.resolve().then(() => {
+                        if (LINE === app.type &&
+                            botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
+                            return Promise.resolve({});
+                        }
 
-                templates = templates || {};
-                for (let templateId in templates) {
-                    let template = templates[templateId];
-                    let message = Object.assign({}, template, _message);
-                    repliedMessages.push(message);
-                }
+                        return appsAutorepliesMdl.findAutoreplies(appId).then((_autoreplies) => {
+                            if (!_autoreplies) {
+                                return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                            }
 
+                            let timeNow = Date.now();
+                            let autoreplies = {};
+
+                            for (let autoreplyId in _autoreplies) {
+                                let autoreply = _autoreplies[autoreplyId];
+                                let endedTime = new Date(autoreply.endedTime).getTime();
+                                let startedTime = new Date(autoreply.startedTime).getTime();
+
+                                if (startedTime <= timeNow && timeNow <= endedTime) {
+                                    if (autoreply.periods && autoreply.periods.length > 0) {
+                                        let timezoneOffset = autoreply.timezoneOffset ? autoreply.timezoneOffset : 0;
+                                        let localeNow = timeNow - (timezoneOffset * 60 * 1000);
+                                        let localeDate = new Date(localeNow);
+                                        let localeDay = localeDate.getDay();
+
+                                        let timeStrToTime = (timeStr) => {
+                                            let datetime = new Date(localeNow);
+                                            let timeStrSplits = timeStr.split(':');
+                                            datetime.setHours(
+                                                parseInt(timeStrSplits[0], 10),
+                                                parseInt(timeStrSplits[1], 10),
+                                                0, 0
+                                            );
+                                            return datetime.getTime();
+                                        };
+
+                                        for (let i in autoreply.periods) {
+                                            let period = autoreply.periods[i];
+                                            if (period.days.indexOf(localeDay) >= 0) {
+                                                let startedTime = timeStrToTime(period.startedTime);
+                                                let endedTime = timeStrToTime(period.endedTime);
+                                                (startedTime > endedTime) && (endedTime += 24 * 60 * 60 * 1000);
+                                                if (startedTime <= localeNow && localeNow <= endedTime) {
+                                                    autoreplies[autoreplyId] = autoreply;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        autoreplies[autoreplyId] = autoreply;
+                                    }
+                                }
+                            }
+
+                            return autoreplies;
+                        });
+                    }).then((autoreplies) => {
+                        return repliedMessages.concat(
+                            Object.keys(autoreplies).map((autoreplyId) => Object.assign({}, autoreplies[autoreplyId], _message))
+                        );
+                    });
+                }
                 return repliedMessages;
             });
         };
