@@ -1,8 +1,0 @@
-{
-  "appointments": [
-    {"_id": "a1231", "clientName": "appointment01", "createdTime": 9512, "updatedTime": 10654, "isDeleted": false, "reservedStartTime": 99000, "reservedEndTime": 99990},
-    {"_id": "a1232", "clientName": "appointment02", "createdTime": 9512, "updatedTime": 10654, "isDeleted": false, "reservedStartTime": 99000, "reservedEndTime": 99990},
-    {"_id": "a1233", "clientName": "appointment03", "createdTime": 9512, "updatedTime": 10654, "isDeleted": false, "reservedStartTime": 99000, "reservedEndTime": 99990},
-    {"_id": "a1234", "clientName": "appointment04", "createdTime": 9512, "updatedTime": 10654, "isDeleted": false, "reservedStartTime": 99000, "reservedEndTime": 99990}
-  ]
-}
