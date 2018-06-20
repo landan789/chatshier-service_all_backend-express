@@ -35,7 +35,10 @@ module.exports = {
     },
     GOOGLE: {
         // https://www.google.com/recaptcha/admin
-        recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x'
+        recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x',
+        // https://console.firebase.google.com/u/0/project/{project-name}/settings/general/
+        firebaseWebAPIKey: 'AIzaSyCLwCVXOou7l5L-fpzj7OK-eRF5zWfnmtU',
+        FDLdomain: 'chatshier.page.link'
     },
     JWT: {
         EXPIRES: EXPIRES,
