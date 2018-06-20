@@ -66,7 +66,6 @@ module.exports = (function() {
         postOne(req, res) {
             let appId = req.params.appid;
             let postTemplate = {
-                keyword: req.body.keyword || '',
                 type: req.body.type || '',
                 altText: req.body.altText || '',
                 template: req.body.template || ''
@@ -128,7 +127,6 @@ module.exports = (function() {
 
             let putTemplateData = {
                 type: req.body.type || '',
-                keyword: req.body.keyword || '',
                 altText: req.body.altText || '',
                 template: req.body.template || ''
             };

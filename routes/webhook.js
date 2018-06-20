@@ -153,8 +153,8 @@ router.post('/:webhookid', (req, res, next) => {
                 let platformUid = webhookInfo.platformUid;
                 let platformMessager;
 
-                return botSvc.resolveSpecificEvent(webhookInfo, appId, app).then((isContinue) => {
-                    if (!isContinue) {
+                return botSvc.resolveSpecificEvent(webhookInfo, req, appId, app).then((shouldContinue) => {
+                    if (!shouldContinue) {
                         return Promise.reject(SKIP_PROCESS_APP);
                     }
 
@@ -191,6 +191,8 @@ router.post('/:webhookid', (req, res, next) => {
                                     return consumersMdl.replace(platformUid, putConsumer);
                                 });
                             }
+
+                            delete profile.photo;
                             return consumersMdl.replace(platformUid, profile);
                         });
                     });
@@ -454,7 +456,6 @@ router.post('/:webhookid', (req, res, next) => {
         };
         webhooksLog.succed(webhook);
         return !res.headersSent && res.status(200).send('');
-
     }).catch((ERROR) => {
         let json = {
             status: 0,
@@ -470,7 +471,6 @@ router.post('/:webhookid', (req, res, next) => {
         };
         webhooksLog.fail(webhook);
         !res.headersSent && res.sendStatus(500);
-
     }).then(() => {
         let idx = webhookProcQueue.indexOf(webhookPromise);
         idx >= 0 && webhookProcQueue.splice(idx, 1);
