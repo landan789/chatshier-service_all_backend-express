@@ -469,7 +469,7 @@ module.exports = (function() {
                                         let serverAddr = 'https://' + req.hostname;
                                         let platformUid = webhookInfo.platformUid;
                                         let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                                        let url = serverAddr + '/consumer_form?aid=' + appId + '&t=' + token;
+                                        let url = serverAddr + '/consumer-form?aid=' + appId + '&t=' + token;
 
                                         let formMessage = {
                                             type: 'template',
