@@ -172,7 +172,7 @@ module.exports = (function() {
                     link: url
                 },
                 suffix: {
-                    option: 'SHORT' // SHORT or UNGUESSABLE
+                    option: 'UNGUESSABLE' // SHORT or UNGUESSABLE
                 }
             };
 
