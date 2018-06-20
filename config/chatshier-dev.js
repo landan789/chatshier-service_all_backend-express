@@ -34,11 +34,12 @@ module.exports = {
         apiVersion: 'v3.0'
     },
     GOOGLE: {
+        serverAPIKey: 'AIzaSyDvAQBzctZSnaUeJWZlbeng7JFjV4lEmL4',
         // https://www.google.com/recaptcha/admin
         recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x',
-        // https://console.firebase.google.com/u/0/project/{project-name}/settings/general/
-        firebaseWebAPIKey: 'AIzaSyCLwCVXOou7l5L-fpzj7OK-eRF5zWfnmtU',
-        FDLdomain: 'chatshier.page.link'
+        // owner: 9thflr.RD@gmail.com
+        // https://console.firebase.google.com/u/0/project/chatshier-d4dfd/settings/general/
+        FDLdomain: 'chatshier9450.page.link'
     },
     JWT: {
         EXPIRES: EXPIRES,

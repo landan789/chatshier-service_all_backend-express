@@ -161,9 +161,10 @@ module.exports = (function() {
          * @returns {Promise<{ shortLink: string, previewLink: string }>}
          */
         FDLcreate(url) {
-            let apiEndpoint = 'https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=' + chatshierCfg.GOOGLE.firebaseWebAPIKey;
+            let apiEndpoint = 'https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=' + chatshierCfg.GOOGLE.serverAPIKey;
             let reqHeaders = new Headers({
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'referer': 'https://service.chatshier.com'
             });
 
             let args = {
