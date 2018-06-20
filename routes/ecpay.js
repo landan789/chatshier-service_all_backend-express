@@ -29,13 +29,13 @@ const retrieveServerAddr = (req) => {
  * @param {Date} datetime
  */
 const datetimeToTradeDate = (datetime) => {
-    let fixZero = (i) => (i < 10 ? '0' : '') + i;
+    let leadZero = (i) => (i < 10 ? '0' : '') + i;
     let YYYY = datetime.getFullYear();
-    let MM = fixZero(datetime.getMonth() + 1);
-    let DD = fixZero(datetime.getDate());
-    let hh = fixZero(datetime.getHours());
-    let mm = fixZero(datetime.getMinutes());
-    let ss = fixZero(datetime.getSeconds());
+    let MM = leadZero(datetime.getMonth() + 1);
+    let DD = leadZero(datetime.getDate());
+    let hh = leadZero(datetime.getHours());
+    let mm = leadZero(datetime.getMinutes());
+    let ss = leadZero(datetime.getSeconds());
     return YYYY + '/' + MM + '/' + DD + ' ' + hh + ':' + mm + ':' + ss;
 };
 

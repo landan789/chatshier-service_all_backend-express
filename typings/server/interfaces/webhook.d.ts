@@ -1,6 +1,7 @@
 declare module Webhook {
     namespace Chatshier {
         interface Information {
+            serverAddress: string,
             eventType?: string,
             isEcho?: boolean,
             platfromAppId?: string,

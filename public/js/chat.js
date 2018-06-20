@@ -1519,16 +1519,23 @@
                         case 'buttons':
                             return (
                                 '<div class="template ml-1">' +
-                                    '<div class="text-center top-img-container">' +
-                                        `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
-                                    '</div>' +
-                                    `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
+                                    (function() {
+                                        if (template.thumbnailImageUrl) {
+                                            return (
+                                                '<div class="text-center top-img-container">' +
+                                                    `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
+                                                '</div>'
+                                            );
+                                        }
+                                        return '';
+                                    })() +
+                                    `<div class="template-title py-2 px-3">
                                         <span class="template-title">${template.title}</span>
                                     </div>` +
-                                    `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
+                                    `<div class="template-desc py-2 px-3">
                                         <span class="template-desc">${template.text}</span>
                                     </div>` +
-                                    '<div class="d-flex flex-column template-buttons">' +
+                                    '<div class="d-flex flex-column py-2 template-buttons">' +
                                         (function() {
                                             return template.actions.map((action, i) => (
                                                 `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
@@ -1546,13 +1553,13 @@
                                     '<div class="text-center top-img-container">' +
                                         `<img src="${column.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
                                     '</div>' +
-                                    `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
+                                    `<div class="template-title py-2 px-3">
                                         <span class="template-title">${column.title}</span>
                                     </div>` +
-                                    `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
+                                    `<div class="template-desc py-2 px-3">
                                         <span class="template-desc">${column.text}</span>
                                     </div>` +
-                                    '<div class="d-flex flex-column template-buttons">' +
+                                    '<div class="d-flex flex-column py-2 template-buttons">' +
                                         (function() {
                                             return column.actions.map((action, i) => (
                                                 `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
@@ -2783,7 +2790,7 @@
 
         var $fieldRows = $profileGroup.find('.fields-form .user-info');
         var fields = appsFields[appId].fields;
-        var setsTypeEnums = api.appsFields.SETS_TYPES;
+        var SETS_TYPES = api.appsFields.SETS_TYPES;
 
         var putMessager = {};
         $fieldRows.each(function() {
@@ -2794,18 +2801,18 @@
             var value = '';
             var $fieldValue = $fieldRow.find('.field-value');
             switch (field.setsType) {
-                case setsTypeEnums.NUMBER:
+                case SETS_TYPES.NUMBER:
                     value = parseInt($fieldValue.val(), 10);
                     value = !isNaN(value) ? value : '';
                     break;
-                case setsTypeEnums.DATE:
+                case SETS_TYPES.DATE:
                     value = $fieldValue.val();
                     value = value ? new Date(value).getTime() : 0;
                     break;
-                case setsTypeEnums.CHECKBOX:
+                case SETS_TYPES.CHECKBOX:
                     value = $fieldValue.prop('checked');
                     break;
-                case setsTypeEnums.MULTI_SELECT:
+                case SETS_TYPES.MULTI_SELECT:
                     var $checkboxes = $fieldValue.find('input[type="checkbox"]:checked');
                     var selectVals = [];
                     $checkboxes.each(function() {
@@ -2813,8 +2820,8 @@
                     });
                     value = selectVals;
                     break;
-                case setsTypeEnums.TEXT:
-                case setsTypeEnums.SELECT:
+                case SETS_TYPES.TEXT:
+                case SETS_TYPES.SELECT:
                 default:
                     value = $fieldValue.val();
                     break;

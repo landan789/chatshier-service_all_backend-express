@@ -4,7 +4,10 @@ module.exports = (function() {
 
     const appsGreetingsMdl = require('../models/apps_greetings');
     const appsAutorepliesMdl = require('../models/apps_autoreplies');
+    const appsRichmenusMdl = require('../models/apps_richmenus');
+    const appsTemplatesMdl = require('../models/apps_templates');
     const fuseHlp = require('../helpers/fuse');
+    const jwtHlp = require('../helpers/jwt');
     const botSvc = require('../services/bot');
 
     const LINE = 'LINE';
@@ -14,12 +17,104 @@ module.exports = (function() {
     class ChatshierHelp {
         /**
          * 根據 HTTP request body 與 app.type 決定要回傳甚麼訊息
-         * @param {any} messages
+         * @param {any[]} messages
          * @param {Webhook.Chatshier.Information} webhookInfo
-         * @param {any} app
+         * @param {string} appId
+         * @param {Chatshier.Models.App} app
+         * @returns {Promise<any[]>}
          */
         getRepliedMessages(messages, webhookInfo, appId, app) {
             let eventType = webhookInfo.eventType;
+            let repliedMessages = [];
+
+            // 針對 LINE 的 postback 訊息，有些需要回應有些只是動作，需做不同的處理
+            if (LINE === app.type && eventType === botSvc.LINE_EVENT_TYPES.POSTBACK) {
+                let promises = [];
+                while (messages.length > 0) {
+                    let message = messages.shift();
+                    let postback = message.postback;
+                    let canParseData = 'string' === typeof postback.data && postback.data.startsWith('{') && postback.data.endsWith('}');
+                    if (!canParseData) {
+                        continue;
+                    }
+
+                    /** @type {Webhook.Chatshier.PostbackData} */
+                    let dataJson = JSON.parse(postback.data);
+
+                    switch (dataJson.action) {
+                        case 'CHANGE_RICHMENU':
+                            let richmenuId = dataJson.richmenuId || '';
+                            let richmenuPromise = appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
+                                let unableMessage = [{
+                                    type: 'text',
+                                    text: 'Unable to switch rich menu'
+                                }];
+
+                                if (!(appsRichmenus && appsRichmenus[appId])) {
+                                    repliedMessages.push(unableMessage);
+                                    return;
+                                }
+
+                                // 如果此 richmenu 沒有啟用或者找不到，需回應無法切換
+                                let richmenu = appsRichmenus[appId].richmenus[richmenuId];
+                                if (!(richmenu && richmenu.isActivated)) {
+                                    repliedMessages.push(unableMessage);
+                                    return;
+                                }
+
+                                let platformUid = webhookInfo.platformUid;
+                                return botSvc.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId, app);
+                            });
+                            promises.push(richmenuPromise);
+                            break;
+                        case 'SEND_TEMPLATE':
+                            let templateId = dataJson.templateId || '';
+                            let templatePromise = appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
+                                if (!(appsTemplates && appsTemplates[appId])) {
+                                    return Promise.resolve();
+                                }
+
+                                let template = appsTemplates[appId].templates[templateId];
+                                let templateMessage = {
+                                    type: template.type,
+                                    altText: template.altText,
+                                    template: template.template
+                                };
+                                repliedMessages.push(templateMessage);
+                            });
+                            promises.push(templatePromise);
+                            break;
+                        case 'SEND_CONSUMER_FORM':
+                            let serverAddr = webhookInfo.serverAddress;
+                            let platformUid = webhookInfo.platformUid;
+                            let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+                            let url = serverAddr + '/consumer_form?aid=' + appId + '&t=' + token;
+
+                            let formMessage = {
+                                type: 'template',
+                                altText: dataJson.context ? dataJson.context.altText : 'Template created by Chatshier',
+                                template: {
+                                    type: 'buttons',
+                                    title: dataJson.context ? dataJson.context.templateTitle : 'Fill your profile',
+                                    text: dataJson.context ? dataJson.context.templateText : 'Open this link for continue',
+                                    actions: [
+                                        {
+                                            type: 'uri',
+                                            label: dataJson.context ? dataJson.context.buttonText : 'Click here',
+                                            uri: url
+                                        }
+                                    ]
+                                }
+                            };
+                            repliedMessages.push(formMessage);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                return Promise.all(promises).then(() => repliedMessages);
+            }
 
             let greetingsPromise = Promise.resolve().then(() => {
                 if (LINE === app.type &&
@@ -34,12 +129,12 @@ module.exports = (function() {
             let keywordrepliesPromise = Promise.all(messages.map((message) => {
                 if (LINE === app.type &&
                     botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
-                    return Promise.resolve();
+                    return Promise.resolve(null);
                 }
 
                 let text = message.text;
                 if (!text) {
-                    return Promise.resolve();
+                    return Promise.resolve(null);
                 }
 
                 // 關鍵字回復使用模糊比對，不直接對 DB 查找
@@ -55,7 +150,6 @@ module.exports = (function() {
                 greetingsPromise,
                 keywordrepliesPromise
             ]).then(([ greetings, keywordreplies ]) => {
-                let repliedMessages = [];
                 let _message = { from: SYSTEM };
 
                 greetings = greetings || {};
@@ -139,7 +233,7 @@ module.exports = (function() {
                 }
                 return repliedMessages;
             });
-        };
+        }
 
         getKeywordreplies(messages, appId, app) {
             let keywordreplies = {};
@@ -161,7 +255,7 @@ module.exports = (function() {
                 });
                 return Promise.resolve(_keywordreplies);
             });
-        };
+        }
     }
 
     return new ChatshierHelp();

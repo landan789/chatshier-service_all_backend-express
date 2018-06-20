@@ -276,29 +276,6 @@ module.exports = (function() {
         'photoOriginal': {type: String, default: ''}
     });
 
-    const CommoditiesSchema = new Schema({
-        'createdTime': {type: Date, default: Date.now()},
-        'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false},
-        'name': {type: String, default: ''},
-        'description': {type: String, default: ''},
-        'manufacturer': {type: String, default: ''},
-        'price': {type: Number, default: 1},
-        'image': {type: String, default: ''},
-        'discount': {type: Number, default: 1.0},
-        'app_ids': {type: [{type: String}], default: []}
-    });
-
-    const CategoriesSchema = new Schema({
-        'createdTime': {type: Date, default: Date.now()},
-        'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false},
-        'title': {type: String, default: ''},
-        'subTitle': {type: String, default: ''},
-        'commodities': [CommoditiesSchema],
-        'group_id': {type: String, default: ''}
-    });
-
     const OrdersSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
@@ -315,9 +292,6 @@ module.exports = (function() {
     // endregion
 
     class ModelCore {
-        static CategoriesSchema = CategoriesSchema;
-        static OrdersSchema = OrdersSchema;
-
         constructor () {
             this.Types = mongoose.Types;
             this.AutorepliesSchema = AutorepliesSchema;
@@ -358,6 +332,8 @@ module.exports = (function() {
             }, {});
         }
     };
+
+    ModelCore.OrdersSchema = OrdersSchema;
 
     return ModelCore;
 })();

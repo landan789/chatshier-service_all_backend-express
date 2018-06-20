@@ -14,11 +14,9 @@ module.exports = (function() {
     const appsChatroomsMdl = require('../models/apps_chatrooms');
     const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     const appsRichmenusMdl = require('../models/apps_richmenus');
-    const appsTemplatesMdl = require('../models/apps_templates');
     const consumersMdl = require('../models/consumers');
     const storageHlp = require('../helpers/storage');
     const socketHlp = require('../helpers/socket');
-    const jwtHlp = require('../helpers/jwt');
     const wechatSvc = require('./wechat');
 
     // app type defined
@@ -169,6 +167,7 @@ module.exports = (function() {
 
             /** @type {Webhook.Chatshier.Information} */
             let webhookInfo = {
+                serverAddress: 'https://' + req.hostname,
                 platformUid: ''
             };
 
@@ -341,6 +340,7 @@ module.exports = (function() {
                                     return Promise.all(groupMemberIds.map((groupMemberId) => {
                                         /** @type {Webhook.Chatshier.Information} */
                                         let _webhookInfo = {
+                                            serverAddress: 'https://' + req.hostname,
                                             platformUid: groupMemberId,
                                             platformGroupId: platformGroupId,
                                             platformGroupType: platformGroupType
@@ -409,94 +409,6 @@ module.exports = (function() {
                             }).then(() => (shouldContinue = false));
                         }
                     }
-
-                    let isPostback = webhookInfo.eventType === this.LINE_EVENT_TYPES.POSTBACK;
-                    if (isPostback) {
-                        /** @type {Webhook.Line.Event[]} */
-                        let events = req.body.events;
-                        return Promise.all(events.map((event) => {
-                            let postback = event.postback;
-                            let canParseData = 'string' === typeof postback.data && postback.data.startsWith('{');
-                            if (!canParseData) {
-                                return Promise.resolve();
-                            }
-
-                            /** @type {Webhook.Chatshier.PostbackData} */
-                            let dataJson = JSON.parse(postback.data);
-                            let replyToken = event.replyToken;
-
-                            switch (dataJson.action) {
-                                case 'CHANGE_RICHMENU':
-                                    return this.create(appId, app).then((bot) => {
-                                        let richmenuId = dataJson.richmenuId || '';
-                                        return appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
-                                            let unableMessage = [{
-                                                type: 'text',
-                                                text: 'Unable to switch rich menu'
-                                            }];
-
-                                            if (!(appsRichmenus && appsRichmenus[appId])) {
-                                                return bot.replyMessage(replyToken, unableMessage);
-                                            }
-
-                                            let richmenu = appsRichmenus[appId].richmenus[richmenuId];
-                                            if (!(richmenu && richmenu.isActivated)) {
-                                                return bot.replyMessage(replyToken, unableMessage);
-                                            }
-
-                                            return this.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId, app);
-                                        });
-                                    });
-                                case 'SEND_TEMPLATE':
-                                    return this.create(appId, app).then((bot) => {
-                                        let templateId = dataJson.templateId || '';
-                                        return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
-                                            if (!(appsTemplates && appsTemplates[appId])) {
-                                                return Promise.resolve();
-                                            }
-
-                                            let template = appsTemplates[appId].templates[templateId];
-                                            let templateMessage = {
-                                                type: template.type,
-                                                altText: template.altText,
-                                                template: template.template
-                                            };
-                                            return bot.replyMessage(replyToken, [templateMessage]);
-                                        });
-                                    });
-                                case 'SEND_CONSUMER_FORM':
-                                    return this.create(appId, app).then((bot) => {
-                                        let serverAddr = 'https://' + req.hostname;
-                                        let platformUid = webhookInfo.platformUid;
-                                        let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                                        let url = serverAddr + '/consumer_form?aid=' + appId + '&t=' + token;
-
-                                        let formMessage = {
-                                            type: 'template',
-                                            altText: dataJson.context ? dataJson.context.altText : 'Template created by Chatshier',
-                                            template: {
-                                                type: 'buttons',
-                                                title: dataJson.context ? dataJson.context.templateTitle : 'Fill your profile',
-                                                text: dataJson.context ? dataJson.context.templateText : 'Open this link for continue',
-                                                actions: [
-                                                    {
-                                                        type: 'uri',
-                                                        label: dataJson.context ? dataJson.context.buttonText : 'Click here',
-                                                        uri: url
-                                                    }
-                                                ]
-                                            }
-                                        };
-                                        return bot.replyMessage(replyToken, [formMessage]);
-                                    });
-                                default:
-                                    return Promise.resolve();
-                            }
-                        })).then(() => {
-                            shouldContinue = false;
-                            return shouldContinue;
-                        });
-                    }
                 } else if (FACEBOOK === app.type) {
                     // Facebook 如果使用 "粉絲專頁收件夾" 或 "專頁小助手" 回覆時
                     // 如果有開啟 message_echoes 時，會收到 webhook 事件
@@ -542,6 +454,11 @@ module.exports = (function() {
                         return Promise.all(events.map((event) => {
                             // LINE 系統 webhook 測試不理會
                             if (LINE_WEBHOOK_VERIFY_UID === event.source.userId) {
+                                return;
+                            }
+
+                            if (LINE_EVENT_TYPES.POSTBACK === event.type) {
+                                messages.push({ postback: event.postback });
                                 return;
                             }
 
@@ -599,6 +516,7 @@ module.exports = (function() {
                                     messages.push(_message);
                                 });
                             }
+
                             messages.push(_message);
                         })).then(() => {
                             return messages;
@@ -971,6 +889,13 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} recipientUid
+         * @param {any} message
+         * @param {Buffer} srcBuffer
+         * @param {string} appId
+         * @param {Chatshier.Models.App} app
+         */
         pushMessage(recipientUid, message, srcBuffer, appId, app) {
             let bot = this.bots[appId];
             switch (app.type) {
@@ -1105,7 +1030,7 @@ module.exports = (function() {
          * @param {string[]} recipientUids
          * @param {any[]} messages
          * @param {string} appId
-         * @param {any} app
+         * @param {Chatshier.Models.App} app
          */
         multicast(recipientUids, messages, appId, app) {
             let _multicast;
@@ -1200,7 +1125,7 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {Chatshier.Models.App} [app]
-         * @returns {Promise<Array>}
+         * @returns {Promise<any[]>}
          */
         getRichmenuList(appId, app) {
             return this._protectApps(appId, app).then((_app) => {
