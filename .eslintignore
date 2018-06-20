@@ -1,0 +1,3 @@
+node_modules/
+public/lib/**/*.js
+third_party/**/*.js

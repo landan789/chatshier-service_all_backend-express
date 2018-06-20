@@ -41,30 +41,34 @@ module.exports = (function() {
 
     const ChatroomsSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
-        'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'name': {type: String, default: ''},
         'platformGroupId': {type: String, default: ''},
         'platformGroupType': {type: String, default: ''},
+        'updatedTime': {type: Date, default: Date.now()},
         'messagers': [{
-            'createdTime': {type: Date, default: Date.now()},
-            'updatedTime': {type: Date, default: Date.now()},
-            'type': {type: String, default: 'CHATSHIER'},
-            'namings': {type: Object, default: {}},
             'age': {type: Number, default: 0},
+            'assigned_ids': {type: [{type: String}], default: []},
+            'address': {type: String, default: ''},
+            'county': {type: String, default: ''},
+            'chatCount': {type: Number, default: 0},
+            'birthday': {type: String, default: '1970-01-01'},
+            'createdTime': {type: Date, default: Date.now()},
             'custom_fields': {type: Object, default: {}},
+            'district': {type: String, default: ''},
             'email': {type: String, default: ''},
             'gender': {type: String, default: ''},
+            'isDeleted': {type: Boolean, default: false},
+            'isUnfollow': {type: Boolean, default: false},
+            'lastTime': {type: Date, default: Date.now()},
+            'namings': {type: Object, default: {}},
             'phone': {type: String, default: ''},
             'platformUid': {type: String, default: ''},
-            'isDeleted': {type: Boolean, default: false},
-            'lastTime': {type: Date, default: Date.now()},
-            'chatCount': {type: Number, default: 0},
-            'unRead': {type: Number, default: 0},
             'remark': {type: String, default: ''},
-            'assigned_ids': {type: [{type: String}], default: []},
             'tags': {type: [{type: String}], default: []},
-            'isUnfollow': {type: Boolean, default: false}
+            'type': {type: String, default: 'CHATSHIER'},
+            'unRead': {type: Number, default: 0},
+            'updatedTime': {type: Date, default: Date.now()}
         }],
         'messages': [{
             'from': {type: String, default: 'SYSTEM'},
@@ -116,7 +120,6 @@ module.exports = (function() {
 
     const TemplatesSchema = new mongoose.Schema({
         'isDeleted': {type: Boolean, default: false},
-        'keyword': {type: String, default: ''},
         'altText': {type: String, default: ''},
         'type': {type: String, default: 'template'},
         'template': {type: Object, default: {}},

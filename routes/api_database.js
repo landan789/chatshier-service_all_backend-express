@@ -13,6 +13,7 @@ const appsRichmenusCtl = require('../controllers/apps_richmenus');
 const appsFieldsCtl = require('../controllers/apps_fields');
 const appsGreetingsCtl = require('../controllers/apps_greetings');
 const consumersCtl = require('../controllers/consumers');
+const consumersFormCtl = require('../controllers/consumers_form');
 const usersCtl = require('../controllers/users');
 const groupsCtl = require('../controllers/groups');
 const groupsMembersCtl = require('../controllers/groups_members');
@@ -160,5 +161,8 @@ router.get('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.get
 router.post('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.postOne);
 router.put('/groups-members/groups/:groupid/members/:memberid/users/:userid', groupsMembersCtl.putOne);
 router.delete('/groups-members/groups/:groupid/members/:memberid/users/:userid', groupsMembersCtl.deleteOne);
+
+router.get('/consumers-form/apps/:appid/consumers/:platformuid', consumersFormCtl.getAllRequiredData);
+router.put('/consumers-form/apps/:appid/consumers/:platformuid', consumersFormCtl.putOne);
 
 module.exports = router;
