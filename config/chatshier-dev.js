@@ -23,7 +23,8 @@ module.exports = {
         PATH: '.log'
     },
     LINE: {
-        PREVIEW_IMAGE_URL: 'https://service.chatshier.com/image/logo-no-transparent.png'
+        PREVIEW_IMAGE_URL: 'https://service.chatshier.com/image/logo-no-transparent.png',
+        DOWNLOAD_IMAGE_URL: 'https://service.chatshier.com/image/download.jpg'
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps

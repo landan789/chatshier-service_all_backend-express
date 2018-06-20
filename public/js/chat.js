@@ -1395,7 +1395,7 @@
                 // var fileName = message.src.split('/').pop();
                 return (
                     '<i class="fas fa-file fa-fw file-icon"></i>' +
-                    '<span class="text-content">' + message.text + '<a href="' + message.src + '" download="' + message.src + '" target="_blank">' + message.src + '</a></span>'
+                    '<span class="text-content">' + message.text + '\n<a href="' + message.src + '" download="' + message.src + '" target="_blank">' + message.src + '</a></span>'
                 );
             case 'imagemap':
                 return (
@@ -2319,7 +2319,7 @@
         }
 
         // 傳送檔案時，帶上檔案大小當成文字訊息
-        var fileText = 'file' === messageType ? '小幫手傳送檔案給你:\n檔案大小: ' + fileSize + '\n' : '';
+        var fileText = 'file' === messageType ? '小幫手傳送檔案給你\n檔案名稱: ' + file.name + '\n檔案大小: ' + fileSize : '';
 
         /** @type {ChatshierMessage} */
         var messageToSend = {
