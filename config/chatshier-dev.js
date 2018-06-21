@@ -23,7 +23,8 @@ module.exports = {
         PATH: '.log'
     },
     LINE: {
-        PREVIEW_IMAGE_URL: 'https://service.chatshier.com/image/logo-no-transparent.png'
+        PREVIEW_IMAGE_URL: 'https://service.chatshier.com/image/logo-no-transparent.png',
+        DOWNLOAD_IMAGE_URL: 'https://service.chatshier.com/image/download.jpg'
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
@@ -33,8 +34,12 @@ module.exports = {
         apiVersion: 'v3.0'
     },
     GOOGLE: {
+        serverAPIKey: 'AIzaSyDvAQBzctZSnaUeJWZlbeng7JFjV4lEmL4',
         // https://www.google.com/recaptcha/admin
-        recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x'
+        recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x',
+        // owner: 9thflr.RD@gmail.com
+        // https://console.firebase.google.com/u/0/project/chatshier-d4dfd/settings/general/
+        FDLdomain: 'chatshier9450.page.link'
     },
     JWT: {
         EXPIRES: EXPIRES,

@@ -900,57 +900,103 @@ module.exports = (function() {
             let bot = this.bots[appId];
             switch (app.type) {
                 case LINE:
-                    let _message = {};
+                    let messages = [];
                     if ('text' === message.type) {
-                        _message.type = message.type;
-                        _message.text = message.text;
-                    }
-                    if ('image' === message.type) {
-                        _message.type = message.type;
-                        _message.previewImageUrl = message.src;
-                        _message.originalContentUrl = message.src;
-                    }
-                    if ('audio' === message.type) {
-                        _message.type = message.type;
-                        _message.duration = message.duration ? message.duration : 240000;
-                        _message.originalContentUrl = message.src;
-                    }
-                    if ('video' === message.type) {
-                        _message.type = message.type;
-                        _message.previewImageUrl = chatshierCfg.LINE.PREVIEW_IMAGE_URL;
-                        _message.originalContentUrl = message.src;
-                    }
-                    if ('sticker' === message.type) {
-                        _message.type = message.type;
-                        _message.stickerId = message.text.substr(message.text.lastIndexOf(' '));
-                        _message.packageId = message.text.substr(message.text.indexOf(' '));
-                    }
-                    if ('file' === message.type) {
-                        _message.type = 'text';
-                        _message.text = message.text + message.src;
-                    }
-                    if ('imagemap' === message.type) {
-                        _message.type = message.type;
-                        _message.baseUrl = message.baseUri;
-                        _message.altText = message.altText;
-                        _message.baseSize = message.baseSize;
-                        _message.actions = message.actions;
+                        messages.push({
+                            type: message.type,
+                            text: message.text
+                        });
                     }
 
-                    return bot.pushMessage(recipientUid, _message);
+                    if ('image' === message.type) {
+                        messages.push({
+                            type: message.type,
+                            previewImageUrl: message.src,
+                            originalContentUrl: message.src
+                        });
+                    }
+
+                    if ('audio' === message.type) {
+                        messages.push({
+                            type: message.type,
+                            duration: message.duration ? message.duration : 240000,
+                            originalContentUrl: message.src
+                        });
+                    }
+
+                    if ('video' === message.type) {
+                        messages.push({
+                            type: message.type,
+                            previewImageUrl: chatshierCfg.LINE.PREVIEW_IMAGE_URL,
+                            originalContentUrl: message.src
+                        });
+                    }
+
+                    if ('sticker' === message.type) {
+                        let stickerStr = message.text;
+                        messages.push({
+                            type: message.type,
+                            stickerId: stickerStr.substr(stickerStr.lastIndexOf(' ')),
+                            packageId: stickerStr.substr(stickerStr.indexOf(' '))
+                        });
+                    }
+
+                    if ('file' === message.type) {
+                        let textSplits = message.text.split('\n');
+                        let fileTitle = textSplits.shift();
+
+                        messages.push({
+                            type: 'text',
+                            text: message.text
+                        }, {
+                            type: 'imagemap',
+                            baseUrl: chatshierCfg.LINE.DOWNLOAD_IMAGE_URL,
+                            altText: fileTitle,
+                            baseSize: {
+                                height: 1040,
+                                width: 1040
+                            },
+                            actions: [{
+                                type: 'uri',
+                                linkUri: message.src,
+                                area: {
+                                    x: 0,
+                                    y: 0,
+                                    width: 1040,
+                                    height: 1040
+                                }
+                            }]
+                        });
+                    }
+
+                    if ('imagemap' === message.type) {
+                        messages.push({
+                            type: message.type,
+                            baseUrl: message.baseUri,
+                            altText: message.altText,
+                            baseSize: message.baseSize,
+                            actions: message.actions
+                        });
+                    }
+
+                    return bot.pushMessage(recipientUid, messages);
                 case FACEBOOK:
                     if ('text' === message.type) {
                         return bot.sendTextMessage(recipientUid, message.text);
                     }
+
                     if ('image' === message.type) {
                         return bot.sendImageMessage(recipientUid, message.src, true);
                     }
+
                     if ('audio' === message.type) {
                         return bot.sendAudioMessage(recipientUid, message.src, true);
                     }
+
                     if ('video' === message.type) {
                         return bot.sendVideoMessage(recipientUid, message.src, true);
                     }
+
                     if ('file' === message.type) {
                         return bot.sendFileMessage(recipientUid, message.src, true);
                     }
