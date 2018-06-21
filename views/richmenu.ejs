@@ -5,6 +5,7 @@
     <% include ../views/partials/meta_tags.ejs %>
     <% include ../views/partials/favicon.ejs %>
     <title><%= title %></title>
+
     <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="css/table.css" />
     <link rel="stylesheet" href="css/richmenu.css" />
@@ -193,55 +194,7 @@
                         </div>
                         
                         <!-- 內容 -->
-                        <section class="boxes-inputs"></section>
-
-                        <section class="form-inputs">
-                            <div class="form-input d-none" id="box1-input">
-                                <select id="keyword" class="form-control content-input"></select>
-                                <textarea id="text" class="form-control content-input"></textarea>
-                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
-                            </div>
-                            <div class="form-input d-none" id="box2-input">
-                                <select id="keyword" class="form-control content-input"></select>
-                                <textarea id="text" class="form-control content-input"></textarea>
-                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
-                            </div>
-                            <div class="form-input d-none" id="box3-input">
-                                <select id="keyword" class="form-control content-input"></select>
-                                <textarea id="text" class="form-control content-input"></textarea>
-                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
-                            </div>
-                            <div class="form-input d-none" id="box4-input">
-                                <select id="keyword" class="form-control content-input"></select>
-                                <textarea id="text" class="form-control content-input"></textarea>
-                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
-                            </div>
-                            <div class="form-input d-none" id="box5-input">
-                                <select id="keyword" class="form-control content-input"></select>
-                                <textarea id="text" class="form-control content-input"></textarea>
-                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
-                            </div>
-                            <div class="form-input d-none" id="box6-input">
-                                <select id="keyword" class="form-control content-input"></select>
-                                <textarea id="text" class="form-control content-input"></textarea>
-                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
-                            </div>
-                            <div class="form-input d-none" id="box7-input">
-                                <select id="keyword" class="form-control content-input"></select>
-                                <textarea id="text" class="form-control content-input"></textarea>
-                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
-                            </div>
-                            <div class="form-input d-none" id="box8-input">
-                                <select id="keyword" class="form-control content-input"></select>
-                                <textarea id="text" class="form-control content-input"></textarea>
-                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
-                            </div>
-                            <div class="form-input d-none" id="box9-input">
-                                <select id="keyword" class="form-control content-input"></select>
-                                <textarea id="text" class="form-control content-input"></textarea>
-                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
-                            </div>
-                        </section>
+                        <section class="action-inputs"></section>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -267,7 +220,10 @@
             </div>
         </div>
     </div>
+
     <% include ../views/partials/require_js.ejs %>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="js/richmenu.js"></script>
     <script>
         if (575 < $(window).width()) {
             $('.row.col-12 .form-group.col-4:nth-child(1)').addClass('pr-4 pl-0');
@@ -277,8 +233,6 @@
             $('.row.col-12 .form-group.col-4:nth-child(3)').addClass('pr-0 pl-5');
         }
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-    <script src="js/richmenu.js"></script>
 </body>
 
 </html>

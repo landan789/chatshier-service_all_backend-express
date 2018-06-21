@@ -9,58 +9,72 @@ let reactReadyPaths = [
     '/reset-password',
     '/change-password'
 ];
-router.get(reactReadyPaths, function(req, res) {
+router.get(reactReadyPaths, (req, res, next) => {
     res.render('react');
 });
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', (req, res, next) => {
     res.redirect('/chat');
 });
-router.get('/chat', function(req, res, next) {
+router.get('/chat', (req, res, next) => {
     res.render('chat', { title: '聊天室' + titlePostfix });
 });
-router.get('/setting', function(req, res, next) {
-    res.render('setting', { title: '設定' + titlePostfix });
-});
-router.get('/autoreply', function(req, res, next) {
+
+router.get('/autoreply', (req, res, next) => {
     res.render('autoreply', { title: '自動回覆' + titlePostfix });
 });
-router.get('/keywordsreply', function(req, res, next) {
+
+router.get('/keywordsreply', (req, res, next) => {
     res.render('keywordsreply', { title: '關鍵字回覆' + titlePostfix });
 });
-router.get('/greeting', function(req, res, next) {
+
+router.get('/greeting', (req, res, next) => {
     res.render('greeting', { title: '加好友回覆' + titlePostfix });
 });
-router.get('/compose', function(req, res, next) {
+
+router.get('/compose', (req, res, next) => {
     res.render('compose', { title: '群發' + titlePostfix });
 });
-router.get('/calendar', function(req, res, next) {
+
+router.get('/calendar', (req, res, next) => {
     res.render('calendar', { title: '行事曆' + titlePostfix });
 });
-router.get('/ticket', function(req, res, next) {
+
+router.get('/ticket', (req, res, next) => {
     res.render('ticket', { title: '待辦事項' + titlePostfix });
 });
-// authentication
-router.get('/signout', function(req, res, next) {
-    res.render('signout', { title: '登出' + titlePostfix });
-});
 
-router.get('/analyze', function(req, res, next) {
+router.get('/analyze', (req, res, next) => {
     res.render('analyze', { title: '訊息分析' + titlePostfix });
 });
-router.get('/template', function(req, res, next) {
-    res.render('template', { title: '自訂 Line Template' + titlePostfix });
+
+router.get('/template', (req, res, next) => {
+    res.render('template', { title: '模板訊息' + titlePostfix });
 });
-router.get('/richmenu', function(req, res, next) {
+
+router.get('/richmenu', (req, res, next) => {
     res.render('richmenu', { title: '圖文選單' + titlePostfix });
 });
-router.get('/imagemap', function(req, res, next) {
+
+router.get('/imagemap', (req, res, next) => {
     res.render('imagemap', { title: '圖文訊息' + titlePostfix });
 });
 
 router.get('/appointment', function(req, res, next) {
     res.render('appointment', { title: '預約系統' + titlePostfix });
+});
+
+router.get('/signout', (req, res, next) => {
+    res.render('signout', { title: '登出' + titlePostfix });
+});
+
+router.get('/setting', (req, res, next) => {
+    res.render('setting', { title: '設定' + titlePostfix });
+});
+
+router.get('/consumer_form', (req, res, next) => {
+    res.render('consumer_form', { title: '顧客資料' + titlePostfix });
 });
 
 module.exports = router;

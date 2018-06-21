@@ -91,10 +91,10 @@ module.exports = (function() {
         successJson(req, res, suc) {
             let json = {
                 status: 1,
-                msg: suc.MSG || '',
-                data: suc.data || {},
-                jwt: suc.jwt || ''
+                msg: suc.MSG || ''
             };
+            suc.data && (json.data = suc.data);
+            suc.jwt && (json.jwt = suc.jwt);
             return res && res.status(200).json(json);
         }
 
