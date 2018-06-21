@@ -10,6 +10,7 @@
 /// <reference path='../server/models/apps_greetings.d.ts' />
 /// <reference path='../server/models/apps_imagemaps.d.ts' />
 /// <reference path='../server/models/apps_keywordreplies.d.ts' />
+/// <reference path='../server/models/apps_payments.d.ts' />
 /// <reference path='../server/models/apps_richmenus.d.ts' />
 /// <reference path='../server/models/apps_templates.d.ts' />
 /// <reference path='../server/models/apps_tickets.d.ts' />

@@ -189,6 +189,15 @@ module.exports = (function() {
         'status': {type: Number, default: 0} // TODO 三個 型態建議用字串大寫
     });
 
+    const PaymentsSchema = new Schema({
+        'updatedTime': {type: Date, default: Date.now()},
+        'createdTime': {type: Date, default: Date.now()},
+        'isDeleted': {type: Boolean, default: false},
+        'type': {type: String, default: ''},
+        'hashKey': {type: String, default: ''},
+        'hashIV': {type: String, default: ''}
+    });
+
     const AppsSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
@@ -203,6 +212,7 @@ module.exports = (function() {
         'webhook_id': {type: String, default: ''},
         'isDeleted': {type: Boolean, default: false},
 
+        'payments': [PaymentsSchema],
         'autoreplies': [AutorepliesSchema],
         'chatrooms': [ChatroomsSchema],
         'keywordreplies': [KeywordrepliesSchema],

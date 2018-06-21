@@ -25,6 +25,7 @@ window.restfulAPI = (function() {
         appsGreetings: apiDatabaseUrl + 'apps-greetings/',
         appsKeywordreplies: apiDatabaseUrl + 'apps-keywordreplies/',
         appsTemplates: apiDatabaseUrl + 'apps-templates/',
+        appsPayments: apiDatabaseUrl + 'apps-payments/',
         appsRichmenus: apiDatabaseUrl + 'apps-richmenus/',
         appsImagemaps: apiDatabaseUrl + 'apps-imagemaps/',
         appsFields: apiDatabaseUrl + 'apps-fields/',
@@ -1142,6 +1143,87 @@ window.restfulAPI = (function() {
         return AppsTemplatesAPI;
     })();
 
+    var AppsPaymentsAPI = (function() {
+        function AppsPaymentsAPI() {
+            this.urlPrefix = apiUrlTable.appsPayments;
+        }
+
+        /**
+         * @param {string} [appId='']
+         * @param {string} userId
+         */
+        AppsPaymentsAPI.prototype.findAll = function(appId, userId) {
+            var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} paymentId
+         * @param {string} userId
+         */
+        AppsPaymentsAPI.prototype.findOne = function(appId, paymentId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/payments/' + paymentId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} userId
+         * @param {any} postPayment
+         */
+        AppsPaymentsAPI.prototype.insert = function(appId, userId, postPayment) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(postPayment)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} paymentId
+         * @param {string} userId
+         * @param {any} putPayment
+         */
+        AppsPaymentsAPI.prototype.update = function(appId, paymentId, userId, putPayment) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/payments/' + paymentId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(putPayment)
+            };
+
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} paymentId
+         * @param {string} userId
+         */
+        AppsPaymentsAPI.prototype.remove = function(appId, paymentId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/payments/' + paymentId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return AppsPaymentsAPI;
+    })();
+
     var AppsRichmenusAPI = (function() {
         function AppsRichmenusAPI() {
             this.urlPrefix = apiUrlTable.appsRichmenus;
@@ -1591,6 +1673,7 @@ window.restfulAPI = (function() {
         appsComposes: new AppsComposesAPI(),
         appsGreetings: new AppsGreetingsAPI(),
         appsKeywordreplies: new AppsKeywordrepliesAPI(),
+        appsPayments: new AppsPaymentsAPI(),
         appsRichmenus: new AppsRichmenusAPI(),
         appsImagemaps: new AppsImagemapsAPI(),
         appsFields: new AppsFieldsAPI(),

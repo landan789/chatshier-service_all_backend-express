@@ -103,6 +103,14 @@ interface AppsTemplatesAPI {
     remove: (appId: string, templateId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTemplates }>;
 }
 
+interface AppsPaymentsAPI {
+    findAll: (appId?: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
+    findOne: (appId: string, paymentId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
+    insert: (appId: string, userId: string, postPayment: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
+    update: (appId: string, paymentId: string, userId: string, putPayment: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
+    remove: (appId: string, paymentId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
+}
+
 interface AppsRichmenusAPI {
     findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsRichmenus }>;
     findOne: (appId: string, richmenuId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsRichmenus }>;
