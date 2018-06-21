@@ -9,6 +9,7 @@ interface Window {
         appsGreetings: AppsGreetingsAPI,
         appsKeywordreplies: AppsKeywordrepliesAPI,
         appsTemplates: AppsTemplatesAPI,
+        appsPayments: AppsPaymentsAPI,
         appsRichmenus: AppsRichmenusAPI,
         appsFields: AppsFieldsAPI,
         appsTickets: AppsTicketsAPI,

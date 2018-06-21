@@ -42,13 +42,20 @@
         userId = '';
     }
 
-    var chatroomList = [];
-    var apps = {}; // 此變數用來裝所有的 app 資料
-    var appsChatrooms = {};
-    var appsFields = {};
     var appsAgents = {};
+    var chatroomList = [];
+
+    /** @type {Chatshier.Models.Apps} */
+    var apps = {};
+    /** @type {Chatshier.Models.AppsChatrooms} */
+    var appsChatrooms = {};
+    /** @type {Chatshier.Models.AppsFields} */
+    var appsFields = {};
+    /** @type {Chatshier.Models.Consumers} */
     var consumers = {};
+    /** @type {Chatshier.Models.Groups} */
     var groups = {};
+    /** @type {Chatshier.Models.Users} */
     var users = {};
 
     // selectors

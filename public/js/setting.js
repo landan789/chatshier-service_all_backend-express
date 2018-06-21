@@ -18,9 +18,13 @@
     const PASSWORD_WAS_INCORRECT = '2.2';
     const NEW_PASSWORD_WAS_INCONSISTENT = '2.4';
 
+    /** @type {Chatshier.Models.Apps} */
     var apps = {};
+    /** @type {Chatshier.Models.AppsFields} */
     var appsFields = {};
+    /** @type {Chatshier.Models.Groups} */
     var groups = {};
+    /** @type {Chatshier.Models.Users} */
     var users = {};
 
     var api = window.restfulAPI;
@@ -249,6 +253,115 @@
         $settingModal.find('.modal-body').append(str);
     });
 
+    // payment modal 處理
+    (function() {
+        var $paymentModal = $('#paymentModal');
+        var $paymentSelect = $paymentModal.find('#paymentSelect');
+        var $paymentItemsContainer = $paymentModal.find('#paymentItemsContainer');
+
+        /** @type {Chatshier.Models.AppsPayments} */
+        var appsPayments = {};
+        /** @type {string} */
+        var selectAppId;
+        /** @type {string} */
+        var paymentId;
+
+        $paymentModal.on('show.bs.modal', loadAppPayment);
+        $paymentModal.on('click', '#paymentModalSubmitBtn', insertPayment);
+        $paymentSelect.on('change', onChangePayment);
+
+        function loadAppPayment(ev) {
+            var $targetBtn = $(ev.relatedTarget);
+            var appId = $targetBtn.attr('app-id');
+            selectAppId = appId;
+            paymentId = void 0;
+
+            $paymentSelect.val('');
+            $paymentItemsContainer.empty();
+
+            return Promise.resolve().then(function() {
+                if (!appsPayments[appId]) {
+                    return api.appsPayments.findAll(appId, userId).then(function(resJson) {
+                        var _appsPayments = resJson.data;
+                        if (!_appsPayments[appId]) {
+                            return {};
+                        }
+                        appsPayments[appId] = { payments: {} };
+                        Object.assign(appsPayments[appId].payments, _appsPayments[appId].payments);
+                        return appsPayments[appId].payments;
+                    });
+                }
+                return appsPayments[appId].payments;
+            }).then(function(payments) {
+                paymentId = Object.keys(payments).shift();
+                if (!paymentId) {
+                    return;
+                }
+
+                var payment = payments[paymentId];
+                $paymentSelect.val(payment.type);
+                onChangePayment();
+
+                $paymentItemsContainer.find('[name="paymentHashKey"]').val(payment.hashKey);
+                $paymentItemsContainer.find('[name="paymentHashIV"]').val(payment.hashIV);
+            });
+        }
+
+        function onChangePayment() {
+            var paymentType = $paymentSelect.val();
+
+            switch (paymentType) {
+                case 'ECPay':
+                case 'Spgateway':
+                    $paymentItemsContainer.html(
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">Hash Key:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" name="paymentHashKey" placeholder="在此貼上 Hash Key" />' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">Hash IV:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" name="paymentHashIV" placeholder="在此貼上 Hash IV" />' +
+                            '</div>' +
+                        '</div>'
+                    );
+                    break;
+                default:
+                    $paymentItemsContainer.empty();
+                    break;
+            }
+        }
+
+        function insertPayment() {
+            /** @type {Chatshier.Models.Payment} */
+            var newPayment = {
+                type: $paymentSelect.val(),
+                hashKey: $paymentItemsContainer.find('[name="paymentHashKey"]').val() || '',
+                hashIV: $paymentItemsContainer.find('[name="paymentHashIV"]').val() || ''
+            };
+
+            return Promise.resolve().then(function() {
+                if (paymentId) {
+                    return api.appsPayments.update(selectAppId, paymentId, userId, newPayment);
+                }
+                return api.appsPayments.insert(selectAppId, userId, newPayment);
+            }).then(function(resJson) {
+                var _appsPayments = resJson.data;
+                if (!appsPayments[selectAppId]) {
+                    appsPayments[selectAppId] = { payments: {} };
+                }
+                Object.assign(appsPayments[selectAppId].payments, _appsPayments[selectAppId].payments);
+
+                $.notify('設定成功', { type: 'success' });
+                $paymentModal.modal('hide');
+            }).catch(function() {
+                $.notify('發生錯誤，設定失敗', { type: 'danger' });
+            });
+        }
+    })();
+
     Promise.all([
         findAllGroups(),
         findUserProfile()
@@ -256,6 +369,7 @@
         // 列出所有設定的APPs
         return findAllApps();
     }).then(function() {
+        $('.app-container .card-collapse').first().collapse('show');
         return new Promise(function(resolve) {
             socket.emit(SOCKET_EVENTS.USER_REGISTRATION, userId, resolve);
         });
@@ -786,6 +900,13 @@
                     '<div class="app-webhook-id" app-type="' + app.type + '" data-toggle="tooltip" data-placement="top" title="點擊複製至剪貼簿">' +
                         createWebhookUrl(baseWebhookUrl, app.webhook_id) +
                     '</div>' +
+
+                    '<div class="mt-3">' +
+                        '<button type="button" class="mr-1 btn btn-border set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
+                            '<i class="mr-1 text-warning fas fa-money-check-alt fa-fw"></i>' +
+                            '<span>設定金流服務</span>' +
+                        '</button>' +
+                    '</div>' +
                 '</div>' +
             '</div>'
         );
@@ -965,11 +1086,8 @@
     }
 
     function createWebhookUrl(baseWebhookUrl, webhookId) {
-        let webhookUrl;
-        baseWebhookUrl = baseWebhookUrl.replace(/^https?:\/\//, '');
-        baseWebhookUrl = baseWebhookUrl.replace(/\/+$/, '');
-        webhookUrl = 'https://' + baseWebhookUrl + '/' + webhookId;
-        return webhookUrl;
+        let webhookUrl = baseWebhookUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+        return 'https://' + webhookUrl + '/' + webhookId;
     }
 
     function copyWebhookToClipboard(ev) {
@@ -979,7 +1097,7 @@
         // 由於 LINE Develop 的 webhook 設定會自動加上 https://
         // 因此自動去除 https:// 前輟
         if (LINE === appType) {
-            text = text.replace('https://', '');
+            text = text.replace(/^https?:\/\//, '');
         }
 
         var textarea = document.createElement('textarea');
