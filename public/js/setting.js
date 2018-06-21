@@ -77,6 +77,7 @@
     // ACTIONS
     $(document).on('click', '.edit-app-btn', editOneApp);
     $(document).on('click', '.remove-app-btn', removeOneApp);
+    $(document).on('click', '.app-webhook-id', copyWebhookToClipboard);
 
     $(document).on('click', '#changePasswordBtn', function(ev) {
         var $changePasswordCollapse = $('#changePasswordCollapse');
@@ -414,6 +415,7 @@
                             groups[groupId].app_ids.push(appId);
                             generateAppItem(appId, apps[appId]);
                         }
+                        $('[data-toggle="tooltip"]').tooltip();
                         responses.push(resJson);
                         return nextRequest(i + 1);
                     });
@@ -607,6 +609,7 @@
             }
             $('.chsr.nav-pills .nav-link:first-child').tab('show');
             $('.app-add-btn').removeAttr('disabled');
+            $('[data-toggle="tooltip"]').tooltip();
         });
     }
 
@@ -630,6 +633,7 @@
                 apps[appId] = _apps[appId];
                 generateAppItem(appId, _apps[appId]);
             }
+            $('[data-toggle="tooltip"]').tooltip();
         }).catch((resJson) => {
             $appAddModal.modal('hide');
             if (NO_PERMISSION_CODE === resJson.code) {
@@ -645,14 +649,9 @@
         return api.apps.update(appId, userId, appData).then(function(resJson) {
             var _apps = resJson.data;
             apps[appId] = _apps[appId];
-            var app = apps[appId];
 
-            $('tr[app-id="' + appId + '"] td[name="appName"]').html(app.name);
-            $('tr[app-id="' + appId + '"] td[name="appId1"]').html(app.id1);
-            $('tr[app-id="' + appId + '"] td[name="appId2"]').html(app.id2);
-            $('tr[app-id="' + appId + '"] td[name="appSecret"]').html(app.secret);
-            $('tr[app-id="' + appId + '"] td[name="appToken1"]').html(app.token1);
-            $('tr[app-id="' + appId + '"] td[name="appToken2"]').html(app.token2);
+            var app = apps[appId];
+            $('.apps-body .card[app-id="' + appId + '"] .app-name').text(app.name);
 
             $settingModal.modal('hide');
             $.notify('更新成功!', { type: 'success' });
@@ -678,7 +677,7 @@
 
             return api.apps.remove(appId, userId).then(function() {
                 delete apps[appId];
-                $('tr[app-id="' + appId + '"]').remove();
+                $('.apps-body .card[app-id="' + appId + '"]').remove();
 
                 $.notify('刪除成功!', { type: 'success' });
             }).catch((resJson) => {
@@ -730,16 +729,12 @@
                     (group.name || '') +
                 '</a>' +
             '</div>' +
-            '<div id="' + groupId + '-group" class="card-collapse collapse">' +
-                '<div class="app-table-space">' +
-                    '<button type="button" class="btn btn-light btn-border mt-2 mb-3 app-add-btn" group-id="' + groupId + '" data-toggle="modal" data-target="#appAddModal">' +
-                        '<i class="fas fa-plus fa-fw"></i>' +
-                        '<span>新增聊天機器人</span>' +
-                    '</button>' +
-                    '<table class="table chsr-group chsr-table">' +
-                        '<tbody class="group-body" group-id="' + groupId + '"></tbody>' +
-                    '</table>' +
-                '</div>' +
+            '<div id="' + groupId + '-group" class="px-3 py-2 card-collapse collapse">' +
+                '<button type="button" class="btn btn-light btn-border mt-2 mb-3 app-add-btn" group-id="' + groupId + '" data-toggle="modal" data-target="#appAddModal">' +
+                    '<i class="fas fa-plus fa-fw"></i>' +
+                    '<span>新增聊天機器人</span>' +
+                '</button>' +
+                '<div class="apps-body card-columns" group-id="' + groupId + '"></div>' +
             '</div>'
         );
         $('#apps .app-container').append(groupStr);
@@ -747,140 +742,54 @@
 
     function generateAppItem(appId, app) {
         var baseWebhookUrl = window.urlConfig.webhookUrl;
-        var itemHtml = '';
+        var itemHtml = (
+            '<div class="card text-dark" app-id="' + appId + '">' +
+                '<div class="card-body">' +
+                    (function() {
+                        switch (app.type) {
+                            case LINE:
+                                return (
+                                    '<div class="d-flex align-items-center">' +
+                                        '<i class="fab fa-line fa-fw fa-2x line-color"></i>' +
+                                        '<span class="font-weight-bold app-name">' + app.name + '</span>' +
+                                    '</div>'
+                                );
+                            case FACEBOOK:
+                                return (
+                                    '<div class="d-flex align-items-center">' +
+                                        '<i class="fab fa-facebook-messenger fa-fw fa-2x fb-messsenger-color"></i>' +
+                                        '<span class="font-weight-bold app-name">' + app.name + '</span>' +
+                                    '</div>'
+                                );
+                            case WECHAT:
+                                return (
+                                    '<div class="d-flex align-items-center">' +
+                                        '<i class="fab fa-weixin fa-fw fa-2x wechat-color"></i>' +
+                                        '<span class="font-weight-bold app-name">' + app.name + '</span>' +
+                                    '</div>'
+                                );
+                            default:
+                                return '';
+                        }
+                    })() +
 
-        switch (app.type) {
-            case LINE:
-                itemHtml = (
-                    '<tr class="active" app-id="' + appId + '">' +
-                        '<th class="align-middle">LINE</th>' +
-                        '<th class="text-right">' +
-                            '<div id="group1" class="line">' +
-                                '<button type="button" class="m-2 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
-                                    '<span>刪除</span>' +
-                                '</button>' +
-                                '<button type="button" class="m-2 btn btn-border btn-light edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<i class="fas fa-edit fa-fw"></i>' +
-                                    '<span>編輯</span>' +
-                                '</button>' +
-                            '</div>' +
-                        '</th>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" name="appName">' + app.name + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Channel ID:</td>' +
-                        '<td class="long-token" name="appId1">' + app.id1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Channel secret:</td>' +
-                        '<td class="long-token" name="appSecret">' + app.secret + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Channel access token:</td>' +
-                        '<td class="long-token" name="appToken1">' + app.token1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Webhook URL:</td>' +
-                        '<td class="long-token">' +
-                            '<span name="appWebhookId">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
-                        '</td>' +
-                    '</tr>'
-                );
-                break;
-            case FACEBOOK:
-                itemHtml = (
-                    '<tr class="active" app-id="' + appId + '">' +
-                        '<th class="align-middle">Facebook</th>' +
-                        '<th class="text-right">' +
-                            '<div id="group3" class="fb">' +
-                                '<button class="m-2 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
-                                    '<span>刪除</span>' +
-                                '</button>' +
-                                '<button type="button" class="m-2 btn btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<i class="fas fa-edit fa-fw"></i>' +
-                                    '<span>編輯</span>' +
-                                '</button>' +
-                            '</div>' +
-                        '</th>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" name="appName">' + app.name + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">粉絲頁 ID:</td>' +
-                        '<td class="long-token" name="appId1">' + app.id1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App ID:</td>' +
-                        '<td class="long-token" name="appId2">' + app.id2 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App secret:</td>' +
-                        '<td class="long-token" name="appSecret">' + app.secret + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App client token:</td>' +
-                        '<td class="long-token" name="appToken1">' + app.token1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Page token:</td>' +
-                        '<td class="long-token" name="appToken2">' + app.token2 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Webhook URL:</td>' +
-                        '<td class="long-token">' +
-                            '<span name="appWebhookId">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
-                        '</td>' +
-                    '</tr>'
-                );
-                break;
-            case WECHAT:
-                itemHtml = (
-                    '<tr class="active" app-id="' + appId + '">' +
-                        '<th class="align-middle">Wechat</th>' +
-                        '<th class="text-right">' +
-                            '<div id="group1" class="wechat">' +
-                                '<button class="m-2 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
-                                    '<span>刪除</span>' +
-                                '</button>' +
-                                '<button type="button" class="m-2 btn btn-border btn-light edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<i class="fas fa-edit fa-fw"></i>' +
-                                    '<span>編輯</span>' +
-                                '</button>' +
-                            '</div>' +
-                        '</th>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" name="appName">' + app.name + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App ID:</td>' +
-                        '<td class="long-token" name="appId1">' + app.id1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App secret:</td>' +
-                        '<td class="long-token" name="appSecret">' + app.secret + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Webhook URL:</td>' +
-                        '<td class="long-token">' +
-                            '<span name="appWebhookId">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
-                        '</td>' +
-                    '</tr>'
-                );
-                break;
-            default:
-                break;
-        }
-        itemHtml && $('.group-body[group-id="' + app.group_id + '"]').append(itemHtml);
+                    '<div class="my-3">' +
+                        '<button type="button" class="mr-1 btn btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
+                            '<i class="fas fa-edit"></i>' +
+                        '</button>' +
+                        '<button class="ml-1 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
+                            '<i class="fas fa-trash-alt"></i>' +
+                        '</button>' +
+                    '</div>' +
+
+                    '<label class="font-weight-bold">Webhook URL:</label>' +
+                    '<div class="app-webhook-id" app-type="' + app.type + '" data-toggle="tooltip" data-placement="top" title="點擊複製至剪貼簿">' +
+                        createWebhookUrl(baseWebhookUrl, app.webhook_id) +
+                    '</div>' +
+                '</div>' +
+            '</div>'
+        );
+        itemHtml && $('.apps-body[group-id="' + app.group_id + '"]').append(itemHtml);
     }
 
     function generateEditAppForm(appId, app) {
@@ -1061,6 +970,34 @@
         baseWebhookUrl = baseWebhookUrl.replace(/\/+$/, '');
         webhookUrl = 'https://' + baseWebhookUrl + '/' + webhookId;
         return webhookUrl;
+    }
+
+    function copyWebhookToClipboard(ev) {
+        var text = ev.target.textContent;
+        var appType = ev.target.getAttribute('app-type');
+
+        // 由於 LINE Develop 的 webhook 設定會自動加上 https://
+        // 因此自動去除 https:// 前輟
+        if (LINE === appType) {
+            text = text.replace('https://', '');
+        }
+
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-99999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+            document.execCommand('copy');
+            $.notify('成功拷貝到剪貼簿', { type: 'success' });
+        } catch (ex) {
+            $.notify('無法拷貝到剪貼簿，請自行執行拷貝動作', { type: 'warning' });
+        } finally {
+            document.body.removeChild(textarea);
+            textarea = void 0;
+        }
     }
 
     /**
