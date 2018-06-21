@@ -70,7 +70,7 @@ router.get('/setting', (req, res, next) => {
 });
 
 router.get('/consumer_form', (req, res, next) => {
-    res.render('consumer_form', { title: '顧客資料' + titlePostfix });
+    res.render('actions/consumer_form', { title: '顧客資料' + titlePostfix });
 });
 
 module.exports = router;
