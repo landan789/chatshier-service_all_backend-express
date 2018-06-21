@@ -248,10 +248,10 @@ module.exports = (function() {
                         }).then(() => (shouldContinue = true));
                     }
 
-                    // 如果 LINE 用戶封鎖 LINE@ 時，將聊天室中的 messager 的 isUnfollow 設為 true
+                    // 如果 LINE 用戶封鎖 LINE@ 時，將聊天室中的 messager 的 isUnfollowed 設為 true
                     // 來表示用戶已取消關注 LINE@, 此時無法傳送任何訊息給 LINE 用戶
-                    let isUnfollow = webhookInfo.eventType === this.LINE_EVENT_TYPES.UNFOLLOW;
-                    if (isUnfollow) {
+                    let isUnfollowed = webhookInfo.eventType === this.LINE_EVENT_TYPES.UNFOLLOW;
+                    if (isUnfollowed) {
                         return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, webhookInfo.platformUid).then((appsChatroomsMessagers) => {
                             if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
                                 return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
@@ -260,7 +260,7 @@ module.exports = (function() {
                             let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                             let platformMessager;
                             let putMessagers = {
-                                isUnfollow: true
+                                isUnfollowed: true
                             };
 
                             return Promise.all(Object.keys(chatrooms).map((_chatroomId) => {

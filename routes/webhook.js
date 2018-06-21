@@ -244,9 +244,9 @@ router.post('/:webhookid', (req, res, next) => {
                                 webhookChatroomId = _chatroomId;
 
                                 // 更新顧客的 follow 狀態
-                                if (messager.isUnfollow) {
+                                if (messager.isUnfollowed) {
                                     let messageId = messager._id;
-                                    return appsChatroomsMessagersMdl.update(appId, _chatroomId, messageId, { isUnfollow: false }).then((_appsChatroomsMessagers) => {
+                                    return appsChatroomsMessagersMdl.update(appId, _chatroomId, messageId, { isUnfollowed: false }).then((_appsChatroomsMessagers) => {
                                         if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
                                             return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                                         }

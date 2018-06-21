@@ -2175,7 +2175,7 @@
         // 如果 1vs1 聊天室中的客戶已經封鎖或解除關注，則無法發送任何訊息給對方
         if (!chatroom.platformGroupId) {
             var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
-            if (!chatroom.platformGroupId && messager.isUnfollow) {
+            if (!chatroom.platformGroupId && messager.isUnfollowed) {
                 $messageInputContainer.find('button').attr('disabled', true);
                 $messageInputContainer.find('input').attr('disabled', true);
                 $submitMessageInput.attr('placeholder', '對方已取消關注');

@@ -51,7 +51,7 @@ declare module Chatshier {
             remark: string,
             assigned_ids: string[],
             tags: string[],
-            isUnfollow: boolean
+            isUnfollowed: boolean
         }
 
         interface Messages {

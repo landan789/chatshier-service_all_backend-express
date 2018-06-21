@@ -60,7 +60,7 @@ module.exports = (function() {
             'email': {type: String, default: ''},
             'gender': {type: String, default: ''},
             'isDeleted': {type: Boolean, default: false},
-            'isUnfollow': {type: Boolean, default: false},
+            'isUnfollowed': {type: Boolean, default: false},
             'lastTime': {type: Date, default: Date.now()},
             'namings': {type: Object, default: {}},
             'phone': {type: String, default: ''},
@@ -290,13 +290,14 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
-        'commodity_ids': {type: [{type: String}], default: []},
-        'prices': [{
-            'price': {type: Number, default: 1},
-            'discount': {type: Number, default: 1.0}
+        'commodities': [{
+            'name': {type: String, default: ''},
+            'description': {type: String, default: ''},
+            'price': {type: Number, default: 0}
         }],
-        'isCheckout': {type: Boolean, default: false},
-        'consumerUid': {type: String, default: ''}
+        'isCheckedOut': {type: Boolean, default: false},
+        'consumerUid': {type: String, default: ''},
+        'app_id': {type: String, default: ''}
     });
 
     // endregion
