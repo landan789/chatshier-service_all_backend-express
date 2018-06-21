@@ -54,7 +54,7 @@ router.post('/payment_result', (req, res) => {
     res.sendStatus(isCheckMacValueVaild ? 200 : 400);
 });
 
-router.get('/aio_check_out_credit_onetime', (req, res) => {
+router.get('/aio_check_out_all', (req, res) => {
     // let serverAddr = retrieveServerAddr(req);
     let serverAddr = 'https://3bd160b3.ngrok.io';
     let TotalAmount = '' + req.query.TotalAmount;
@@ -108,7 +108,7 @@ router.get('/aio_check_out_credit_onetime', (req, res) => {
         // InvType: '07'
     };
 
-    let html = ecpay.payment_client.aio_check_out_credit_onetime(params, invoiceParams);
+    let html = ecpay.payment_client.aio_check_out_all(params, invoiceParams);
     res.send(html);
 });
 

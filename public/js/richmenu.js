@@ -163,7 +163,10 @@
                                 actionData = actionData.context;
                             } else if (POSTBACK_DATA_TYPES.SEND_DONATE_OPTIONS === actionJson.action) {
                                 actionType = ACTION_TYPES.DONATE;
-                                actionData = actionData.options;
+                                let donateAmounts = actionData.context ? actionData.context.donateAmounts || [] : [];
+                                for (let i in donateAmounts) {
+                                    actionData['donateAmount' + i] = donateAmounts[i];
+                                }
                             }
                             break;
                         case 'uri':
@@ -445,15 +448,15 @@
                         return (
                             '<label class="w-100 font-weight-bold col-form-label">' +
                                 '<span>金額選項一:</span>' +
-                                '<input class="form-control content-input action-data" action-property="donatePrice1" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
+                                '<input class="form-control content-input action-data" action-property="donateAmount0" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
                             '</label>' +
                             '<label class="w-100 font-weight-bold col-form-label">' +
                                 '<span>金額選項二:</span>' +
-                                '<input class="form-control content-input action-data" action-property="donatePrice2" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
+                                '<input class="form-control content-input action-data" action-property="donateAmount1" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
                             '</label>' +
                             '<label class="w-100 font-weight-bold col-form-label">' +
                                 '<span>金額選項三:</span>' +
-                                '<input class="form-control content-input action-data" action-property="donatePrice3" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
+                                '<input class="form-control content-input action-data" action-property="donateAmount2" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
                             '</label>'
                         );
                     case ACTION_TYPES.CONSUMER_FORM:
@@ -510,9 +513,9 @@
                         $actionData.get(2).value = actionData.buttonText || '';
                         break;
                     case ACTION_TYPES.DONATE:
-                        $actionData.get(0).value = actionData.donatePrice1 || '';
-                        $actionData.get(1).value = actionData.donatePrice2 || '';
-                        $actionData.get(2).value = actionData.donatePrice3 || '';
+                        for (let i = 0; i <= 2; i++) {
+                            $actionData.get(i).value = actionData['donateAmount' + i] || '';
+                        }
                         break;
                     default:
                         break;
@@ -817,11 +820,18 @@
                 case ACTION_TYPES.DONATE:
                     let donateData = {
                         action: POSTBACK_DATA_TYPES.SEND_DONATE_OPTIONS,
-                        options: {}
+                        context: {
+                            altText: '小額捐款金額選項',
+                            templateTitle: actionData.templateTitle || '',
+                            templateText: actionData.templateText || '點擊以下金額進行捐款動作',
+                            donateAmounts: [],
+                            currency: 'TWD'
+
+                        }
                     };
-                    actionData.donatePrice1 && (donateData.options.donatePrice1 = actionData.donatePrice1);
-                    actionData.donatePrice2 && (donateData.options.donatePrice2 = actionData.donatePrice2);
-                    actionData.donatePrice3 && (donateData.options.donatePrice3 = actionData.donatePrice3);
+                    actionData.donateAmount0 && donateData.context.donateAmounts.push(actionData.donateAmount0);
+                    actionData.donateAmount1 && donateData.context.donateAmounts.push(actionData.donateAmount1);
+                    actionData.donateAmount2 && donateData.context.donateAmounts.push(actionData.donateAmount2);
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(donateData);
                     break;

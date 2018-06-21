@@ -4,6 +4,7 @@ module.exports = (function() {
 
     const appsGreetingsMdl = require('../models/apps_greetings');
     const appsAutorepliesMdl = require('../models/apps_autoreplies');
+    const appsPaymentsMdl = require('../models/apps_payments');
     const appsRichmenusMdl = require('../models/apps_richmenus');
     const appsTemplatesMdl = require('../models/apps_templates');
     const fuseHlp = require('../helpers/fuse');
@@ -40,6 +41,9 @@ module.exports = (function() {
 
                     /** @type {Webhook.Chatshier.PostbackData} */
                     let dataJson = JSON.parse(postback.data);
+                    let serverAddr = webhookInfo.serverAddress;
+                    let platformUid = webhookInfo.platformUid;
+                    let url = serverAddr;
 
                     switch (dataJson.action) {
                         case 'CHANGE_RICHMENU':
@@ -85,10 +89,8 @@ module.exports = (function() {
                             promises.push(templatePromise);
                             break;
                         case 'SEND_CONSUMER_FORM':
-                            let serverAddr = webhookInfo.serverAddress;
-                            let platformUid = webhookInfo.platformUid;
                             let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                            let url = serverAddr + '/consumer_form?aid=' + appId + '&t=' + token;
+                            url += '/consumer_form?aid=' + appId + '&t=' + token;
 
                             let formMessage = {
                                 type: 'template',
@@ -97,16 +99,52 @@ module.exports = (function() {
                                     type: 'buttons',
                                     title: dataJson.context ? dataJson.context.templateTitle : 'Fill your profile',
                                     text: dataJson.context ? dataJson.context.templateText : 'Open this link for continue',
-                                    actions: [
-                                        {
-                                            type: 'uri',
-                                            label: dataJson.context ? dataJson.context.buttonText : 'Click here',
-                                            uri: url
-                                        }
-                                    ]
+                                    actions: [{
+                                        type: 'uri',
+                                        label: dataJson.context ? dataJson.context.buttonText : 'Click here',
+                                        uri: url
+                                    }]
                                 }
                             };
                             repliedMessages.push(formMessage);
+                            break;
+                        case 'SEND_DONATE_OPTIONS':
+                            let context = dataJson.context;
+                            let donateMessage = {
+                                type: 'template',
+                                altText: context ? context.altText || '' : 'Template created by Chatshier',
+                                template: {
+                                    type: 'buttons',
+                                    title: context ? context.templateTitle : '',
+                                    text: context ? context.templateText || '' : 'Open this link for continue',
+                                    /** @type {any[]} */
+                                    actions: []
+                                }
+                            };
+
+                            let donatePromise = appsPaymentsMdl.find(appId).then((appsPayments) => {
+                                if (!(appsPayments && appsPayments[appId])) {
+                                    return;
+                                }
+
+                                // 此 app 尚未設定任何金流服務，不處理此 postback
+                                let payment = Object.values(appsPayments[appId].payments).shift();
+                                if (!(payment && payment.type)) {
+                                    return;
+                                }
+
+                                donateMessage.template.title = payment.type; // 將金流服務的類型作為訊息的標題顯示
+                                let donateAmounts = context ? context.donateAmounts || [] : [];
+                                for (let i in donateAmounts) {
+                                    donateMessage.template.actions.push({
+                                        type: 'uri',
+                                        label: donateAmounts[i] + ' ' + (context ? context.currency : ''),
+                                        uri: url + '/ecpay/aio_check_out_all?TotalAmount=' + donateAmounts[i] + '&TradeDesc=Donate&ItemName=DonateAmount'
+                                    });
+                                }
+                                repliedMessages.push(donateMessage);
+                            });
+                            promises.push(donatePromise);
                             break;
                         default:
                             break;
