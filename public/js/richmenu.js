@@ -160,7 +160,6 @@
                                 actionType = ACTION_TYPES.TEMPLATE;
                             } else if (POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM === actionJson.action) {
                                 actionType = ACTION_TYPES.CONSUMER_FORM;
-                                actionData = actionData.context;
                             } else if (POSTBACK_DATA_TYPES.SEND_DONATE_OPTIONS === actionJson.action) {
                                 actionType = ACTION_TYPES.DONATE;
                                 let donateAmounts = actionData.context ? actionData.context.donateAmounts || [] : [];
@@ -282,7 +281,7 @@
                             '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.URI + '" data-toggle="tooltip" data-placement="top" title="前往指定連結">' +
                                 '<i class="fas fa-link fa-2x"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.TEMPLATE + '" data-toggle="tooltip" data-placement="top" title="顯示指定模板">' +
+                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.TEMPLATE + '" data-toggle="tooltip" data-placement="top" title="發送指定模板訊息">' +
                                 '<i class="fas fa-clipboard-list fa-2x"></i>' +
                             '</button>' +
                             '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.RICHMENU + '" data-toggle="tooltip" data-placement="top" title="切換已啟用的圖文選單">' +
@@ -462,16 +461,7 @@
                     case ACTION_TYPES.CONSUMER_FORM:
                         return (
                             '<label class="w-100 font-weight-bold col-form-label">' +
-                                '<span>模板標題:</span>' +
-                                '<input class="form-control content-input action-data" action-property="templateTitle" type="text" placeholder="預設: 填寫基本資料" />' +
-                            '</label>' +
-                            '<label class="w-100 font-weight-bold col-form-label">' +
-                                '<span>模板文字:</span>' +
-                                '<input class="form-control content-input action-data" action-property="templateText" type="text" placeholder="預設: 開啟以下連結進行填寫動作" />' +
-                            '</label>' +
-                            '<label class="w-100 font-weight-bold col-form-label">' +
-                                '<span>按鈕文字:</span>' +
-                                '<input class="form-control content-input action-data" action-property="buttonText" type="text" placeholder="預設: 按此開啟" />' +
+                                '<span>無須設定</span>' +
                             '</label>'
                         );
                     default:
@@ -507,16 +497,12 @@
                     case ACTION_TYPES.RICHMENU:
                         $actionData.val(actionData.richmenuId || '');
                         break;
-                    case ACTION_TYPES.CONSUMER_FORM:
-                        $actionData.get(0).value = actionData.templateTitle || '';
-                        $actionData.get(1).value = actionData.templateText || '';
-                        $actionData.get(2).value = actionData.buttonText || '';
-                        break;
                     case ACTION_TYPES.DONATE:
                         for (let i = 0; i <= 2; i++) {
                             $actionData.get(i).value = actionData['donateAmount' + i] || '';
                         }
                         break;
+                    case ACTION_TYPES.CONSUMER_FORM:
                     default:
                         break;
                 }
@@ -806,13 +792,7 @@
                     break;
                 case ACTION_TYPES.CONSUMER_FORM:
                     let userFormData = {
-                        action: POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM,
-                        context: {
-                            altText: '填寫基本資料模板訊息',
-                            templateTitle: actionData.templateTitle || '填寫基本資料',
-                            templateText: actionData.templateText || '開啟以下連結進行填寫動作',
-                            buttonText: actionData.buttonText || '按此開啟'
-                        }
+                        action: POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM
                     };
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(userFormData);
@@ -821,12 +801,8 @@
                     let donateData = {
                         action: POSTBACK_DATA_TYPES.SEND_DONATE_OPTIONS,
                         context: {
-                            altText: '小額捐款金額選項',
-                            templateTitle: actionData.templateTitle || '',
-                            templateText: actionData.templateText || '點擊以下金額進行捐款動作',
                             donateAmounts: [],
                             currency: 'TWD'
-
                         }
                     };
                     actionData.donateAmount0 && donateData.context.donateAmounts.push(actionData.donateAmount0);
@@ -837,7 +813,7 @@
                     break;
                 default:
                     richmenuAction.type = 'postback';
-                    richmenuAction.data = '';
+                    richmenuAction.data = 'none';
                     break;
             }
             return richmenuAction;

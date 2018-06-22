@@ -4,6 +4,7 @@ module.exports = (function() {
 
     const appsGreetingsMdl = require('../models/apps_greetings');
     const appsAutorepliesMdl = require('../models/apps_autoreplies');
+    const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     const appsPaymentsMdl = require('../models/apps_payments');
     const appsRichmenusMdl = require('../models/apps_richmenus');
     const appsTemplatesMdl = require('../models/apps_templates');
@@ -31,6 +32,7 @@ module.exports = (function() {
             // 針對 LINE 的 postback 訊息，有些需要回應有些只是動作，需做不同的處理
             if (LINE === app.type && eventType === botSvc.LINE_EVENT_TYPES.POSTBACK) {
                 let promises = [];
+
                 while (messages.length > 0) {
                     let message = messages.shift();
                     let postback = message.postback;
@@ -41,6 +43,7 @@ module.exports = (function() {
 
                     /** @type {Webhook.Chatshier.PostbackData} */
                     let dataJson = JSON.parse(postback.data);
+                    let context = dataJson.context;
                     let serverAddr = webhookInfo.serverAddress;
                     let platformUid = webhookInfo.platformUid;
                     let url = serverAddr;
@@ -49,20 +52,13 @@ module.exports = (function() {
                         case 'CHANGE_RICHMENU':
                             let richmenuId = dataJson.richmenuId || '';
                             let richmenuPromise = appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
-                                let unableMessage = [{
-                                    type: 'text',
-                                    text: 'Unable to switch rich menu'
-                                }];
-
                                 if (!(appsRichmenus && appsRichmenus[appId])) {
-                                    repliedMessages.push(unableMessage);
                                     return;
                                 }
 
-                                // 如果此 richmenu 沒有啟用或者找不到，需回應無法切換
+                                // 如果此 richmenu 沒有啟用或者找不到，則不做任何處理
                                 let richmenu = appsRichmenus[appId].richmenus[richmenuId];
                                 if (!(richmenu && richmenu.isActivated)) {
-                                    repliedMessages.push(unableMessage);
                                     return;
                                 }
 
@@ -90,18 +86,18 @@ module.exports = (function() {
                             break;
                         case 'SEND_CONSUMER_FORM':
                             let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                            url += '/consumer_form?aid=' + appId + '&t=' + token;
+                            url += '/consumer-form?aid=' + appId + '&t=' + token;
 
                             let formMessage = {
                                 type: 'template',
-                                altText: dataJson.context ? dataJson.context.altText : 'Template created by Chatshier',
+                                altText: '填寫基本資料模板訊息',
                                 template: {
                                     type: 'buttons',
-                                    title: dataJson.context ? dataJson.context.templateTitle : 'Fill your profile',
-                                    text: dataJson.context ? dataJson.context.templateText : 'Open this link for continue',
+                                    title: '填寫基本資料',
+                                    text: '開啟以下連結進行填寫動作',
                                     actions: [{
                                         type: 'uri',
-                                        label: dataJson.context ? dataJson.context.buttonText : 'Click here',
+                                        label: '按此開啟',
                                         uri: url
                                     }]
                                 }
@@ -109,15 +105,13 @@ module.exports = (function() {
                             repliedMessages.push(formMessage);
                             break;
                         case 'SEND_DONATE_OPTIONS':
-                            let context = dataJson.context;
                             let donateMessage = {
                                 type: 'template',
-                                altText: context ? context.altText || '' : 'Template created by Chatshier',
+                                altText: '小額捐款金額選項',
                                 template: {
                                     type: 'buttons',
-                                    title: context ? context.templateTitle : '',
-                                    text: context ? context.templateText || '' : 'Open this link for continue',
-                                    /** @type {any[]} */
+                                    text: '點擊以下金額進行捐款動作',
+                                    /** @type {Chatshier.Models.TemplateAction[]} */
                                     actions: []
                                 }
                             };
@@ -136,15 +130,138 @@ module.exports = (function() {
                                 donateMessage.template.title = payment.type; // 將金流服務的類型作為訊息的標題顯示
                                 let donateAmounts = context ? context.donateAmounts || [] : [];
                                 for (let i in donateAmounts) {
+                                    let amount = donateAmounts[i] + ' ' + (context ? context.currency : '');
+                                    let _context = {
+                                        altText: '捐款確認',
+                                        templateText: '進行捐款 ' + amount
+                                    };
+
+                                    switch (payment.type) {
+                                        case 'ECPay':
+                                            _context.paymentId = payment._id;
+                                            _context.TotalAmount = donateAmounts[i];
+                                            _context.TradeDesc = '小額捐款';
+                                            _context.ItemName = '小額捐款 ' + amount;
+                                            break;
+                                        case 'Spgateway':
+                                        default:
+                                            break;
+                                    }
+
+                                    let postbackData = {
+                                        action: 'CONFIRM_PAYMENT',
+                                        context: _context
+                                    };
+
                                     donateMessage.template.actions.push({
-                                        type: 'uri',
-                                        label: donateAmounts[i] + ' ' + (context ? context.currency : ''),
-                                        uri: url + '/ecpay/aio_check_out_all?TotalAmount=' + donateAmounts[i] + '&TradeDesc=Donate&ItemName=DonateAmount'
+                                        type: 'postback',
+                                        label: amount,
+                                        data: JSON.stringify(postbackData)
                                     });
                                 }
                                 repliedMessages.push(donateMessage);
                             });
                             promises.push(donatePromise);
+                            break;
+                        case 'CONFIRM_PAYMENT':
+                            let paymentId = (context && context.paymentId) || '';
+                            if (!paymentId) {
+                                break;
+                            }
+
+                            // 當 consumer 確認付款時，檢查此 consumer 是否已經填寫完個人基本資料
+                            // 如果沒有填寫完基本資料，則發送填寫基本資料模板給使用者
+                            let confirmPromise = appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid).then((appsChatroomsMessagers) => {
+                                if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                                    return;
+                                }
+
+                                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                                let chatroomId = Object.keys(chatrooms).shift() || '';
+                                let messager = chatrooms[chatroomId].messagers[platformUid];
+
+                                let isFinishProfile = (
+                                    messager.namings && messager.namings[platformUid] &&
+                                    messager.email &&
+                                    messager.phone
+                                );
+
+                                if (!isFinishProfile) {
+                                    let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+                                    url += '/consumer-form?aid=' + appId + '&t=' + token;
+
+                                    let alertMessage = {
+                                        type: 'text',
+                                        text: '您尚未完成個人基本資料的填寫'
+                                    };
+
+                                    let formMessage = {
+                                        type: 'template',
+                                        altText: '填寫基本資料模板訊息',
+                                        template: {
+                                            type: 'buttons',
+                                            title: '填寫基本資料',
+                                            text: '開啟以下連結進行填寫動作',
+                                            actions: [{
+                                                type: 'uri',
+                                                label: '按此開啟',
+                                                uri: url
+                                            }]
+                                        }
+                                    };
+                                    repliedMessages.push(alertMessage, formMessage);
+                                    return;
+                                }
+
+                                return appsPaymentsMdl.find(appId, paymentId).then((appsPayments) => {
+                                    if (!(appsPayments && appsPayments[appId])) {
+                                        return;
+                                    }
+
+                                    let payment = appsPayments[appId].payments[paymentId];
+                                    let url = serverAddr + '/payment/' + payment.type.toLowerCase();
+
+                                    switch (payment.type) {
+                                        case 'ECPay':
+                                            url += (
+                                                '/aio-check-out-all?' +
+                                                'aid=' + appId + '&' +
+                                                'cid=' + platformUid + '&' +
+                                                'pid=' + (context ? context.paymentId : '') + '&' +
+                                                'amount=' + encodeURIComponent(context ? context.TotalAmount || '' : '') + '&' +
+                                                'desc=' + encodeURIComponent(context ? context.TradeDesc || '' : '') + '&' +
+                                                'iname=' + encodeURIComponent(context ? context.ItemName || '' : '') + '&' +
+                                                'ts=' + Date.now()
+                                            );
+                                            break;
+                                        case 'Spgateway':
+                                            url += '/spgateway';
+                                            break;
+                                        default:
+                                            break;
+                                    }
+
+                                    let confirmMessage = {
+                                        type: 'template',
+                                        altText: context && context.altText,
+                                        template: {
+                                            type: 'confirm',
+                                            text: context && context.templateText,
+                                            actions: [{
+                                                type: 'uri',
+                                                label: '是',
+                                                uri: url
+                                            }, {
+                                                type: 'postback',
+                                                label: '否',
+                                                data: JSON.stringify({ action: 'CANCEL_PAYMENT' })
+                                            }]
+                                        }
+                                    };
+                                    repliedMessages.push(confirmMessage);
+                                });
+                            });
+                            promises.push(confirmPromise);
                             break;
                         default:
                             break;

@@ -367,7 +367,9 @@ module.exports = (function() {
                 app = apps[appId];
                 return botSvc.create(appId, app);
             }).then(() => {
+                /** @type {Webhook.Chatshier.Information} */
                 let platformInfo = {
+                    serverAddress: 'https://' + req.hostname,
                     platformUid: platformUid
                 };
                 return botSvc.getProfile(platformInfo, appId, app);

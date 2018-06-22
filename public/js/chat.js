@@ -1514,9 +1514,9 @@
                                     '<div class="d-flex flex-row justify-content-between template-sm-buttons">' +
                                         (function() {
                                             return template.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-auto template-sm-button${i + 1}">
-                                                    <span class="template-confirm pl-1">${8 >= action.label.length ? action.label : `${action.label.substring(0, 6)}...`}</span>
-                                                    <span class="template-confirm pl-1">(${4 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 4)}...`})</span>
+                                                `<div class="d-flex flex-column justify-content-center my-auto px-3 template-sm-button${i + 1}">
+                                                    <span class="template-confirm">${8 >= action.label.length ? action.label : `${action.label.substring(0, 6)}...`}</span>
+                                                    <span class="template-confirm">(${4 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 4)}...`})</span>
                                                 </div>`
                                             )).join('');
                                         })() +
@@ -1544,12 +1544,15 @@
                                     </div>` +
                                     '<div class="d-flex flex-column py-2 template-buttons">' +
                                         (function() {
-                                            return template.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
-                                                    <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
-                                                    <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
-                                                </div>`
-                                            )).join('');
+                                            return template.actions.map((action, i) => {
+                                                let label = action.label || '';
+                                                return (
+                                                    `<div class="d-flex flex-column justify-content-center my-1 px-3 template-button${i + 1}">
+                                                        <span class="template-button">${10 >= label.length ? label : `${label.substring(0, 9)}...`}</span>
+                                                        <span class="template-button">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
+                                                    </div>`
+                                                );
+                                            }).join('');
                                         })() +
                                     '</div>' +
                                 '</div>'
@@ -1568,12 +1571,15 @@
                                     </div>` +
                                     '<div class="d-flex flex-column py-2 template-buttons">' +
                                         (function() {
-                                            return column.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
-                                                    <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
-                                                    <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
-                                                </div>`
-                                            )).join('');
+                                            return column.actions.map((action, i) => {
+                                                let label = action.label || '';
+                                                return (
+                                                    `<div class="d-flex flex-column justify-content-center my-1 px-3 template-button${i + 1}">
+                                                        <span class="template-button">${10 >= label.length ? label : `${label.substring(0, 9)}...`}</span>
+                                                        <span class="template-button">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
+                                                    </div>`
+                                                );
+                                            }).join('');
                                         })() +
                                     '</div>' +
                                 '</div>'
@@ -1589,8 +1595,10 @@
         switch (action.type) {
             case 'uri':
                 return action.uri;
-            default:
+            case 'text':
                 return action.text;
+            default:
+                return '互動資料';
         }
     }
 
