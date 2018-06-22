@@ -53,9 +53,7 @@ module.exports = (function() {
                 return res.send('<script>window.alert("付款期限已過期，請重新操作")</script>');
             }
 
-            // let serverAddr = this.retrieveServerAddr(req);
-            let serverAddr = 'https://3bd160b3.ngrok.io';
-
+            let serverAddr = this.retrieveServerAddr(req);
             return appsPaymentsMdl.find(appId, paymentId).then((appsPayments) => {
                 if (!(appsPayments && appsPayments[appId])) {
                     return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
