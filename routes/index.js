@@ -73,7 +73,7 @@ router.get('/setting', (req, res, next) => {
     res.render('setting', { title: '設定' + titlePostfix });
 });
 
-router.get('/consumer_form', (req, res, next) => {
+router.get('/consumer-form', (req, res, next) => {
     res.render('consumer_form', { title: '顧客資料' + titlePostfix });
 });
 
