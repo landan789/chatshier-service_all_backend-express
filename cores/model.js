@@ -164,6 +164,30 @@ module.exports = (function() {
         }]
     }, { minimize: false });
 
+    const AppointmentsSchema = new mongoose.Schema({
+        'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'items': [{
+            'isDeleted': {type: Boolean, default: false},
+            'createdTime': {type: Date, default: Date.now()},
+            'updatedTime': {type: Date, default: Date.now()},
+            'name': {type: String, default: ''},
+            'member_ids': {type: [{type: String}], default: []}
+        }],
+        'members': [{
+            'isDeleted': {type: Boolean, default: false},
+            'createdTime': {type: Date, default: Date.now()},
+            'updatedTime': {type: Date, default: Date.now()},
+            'name': {type: String, default: ''}
+        }],
+        'timetable': [{
+            'isDeleted': {type: Boolean, default: false},
+            'createdTime': {type: Date, default: Date.now()},
+            'updatedTime': {type: Date, default: Date.now()},
+        }]
+    });
+
     const FieldsSchema = new mongoose.Schema({
         'text': {type: String, default: ''},
         'alias': {type: String, default: ''},
@@ -211,7 +235,8 @@ module.exports = (function() {
         'fields': [FieldsSchema],
         'tickets': [TicketsSchema],
         'richmenus': [RichmenusSchema],
-        'imagemaps': [ImagemapsSchema]
+        'imagemaps': [ImagemapsSchema],
+        'appointments': [AppointmentsSchema]
     });
 
     const EventsSchema = new mongoose.Schema({

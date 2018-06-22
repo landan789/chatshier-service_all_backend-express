@@ -36,7 +36,6 @@
         "facebook-bot-messenger": "1.0.8",
         "fluent-ffmpeg": "2.1.2",
         "fuse.js": "3.2.0",
-        "googleapis": "^27.0.0",
         "isomorphic-fetch": "2.2.1",
         "jsonwebtoken": "8.2.0",
         "mime-types": "2.1.18",

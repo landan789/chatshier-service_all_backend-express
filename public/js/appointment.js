@@ -7,38 +7,29 @@
     var $modal = $('#appointmentAddModal');
     var $itemSelector = $('#item-select');
 
+    var gClientHlp = window.googleClientHelper;
     var api = window.restfulAPI;
     var nowSelectAppId = '';
     var userId;
 
-    const NEW = 'NEW';
+    if ('/appointment' !== window.location.pathname) gClientHlp.signOut();
 
+    var gCalendarPromise = window.googleClientHelper.loadAPI().then(function() {
+        return window.googleClientHelper.init(window.chatshier.GOOGLE.CALENDAR);
+    }).then((isSignedIn) => {
+        // return gClientHlp.signIn();
+        if (!isSignedIn) return Promise.reject('is not signed in');
+        return Promise.resolve();
+    }).then(() => {
+        return window.googleCalendarHelper.findEvents();
+    }).catch(() => {
+        return { items: [] };
+    });
+
+    const NEW = 'NEW';
     const ICONS = {
         LINE: 'fab fa-line fa-fw line-color',
         FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
-    };
-
-    const datetimePickerInitOpts = {
-        sideBySide: true,
-        locale: 'zh-tw',
-        defaultDate: Date.now(),
-        icons: {
-            time: 'far fa-clock',
-            date: 'far fa-calendar-alt',
-            up: 'fas fa-chevron-up',
-            down: 'fas fa-chevron-down',
-            previous: 'fas fa-chevron-left',
-            next: 'fas fa-chevron-right',
-            today: 'fas fa-sun',
-            clear: 'far fa-trash-alt',
-            close: 'fas fa-times'
-        }
-    };
-
-    const timePickerInitOpts = {
-        format: 'YYYY-MM-DD',
-        locale: datetimePickerInitOpts.locale,
-        icons: datetimePickerInitOpts.icons
     };
 
     try {
@@ -179,8 +170,13 @@
         return YYYY + '-' + MM + '-' + DD;
     }
 
-    return api.apps.findAll(userId).then(function(respJson) {
-        var apps = respJson.data;
+    return Promise.all([
+        api.apps.findAll(userId),
+        gCalendarPromise
+    ]).then(function(respJson) {
+        var apps = respJson[0].data;
+        var calendars = respJson[1].items;
+        console.log(calendars);
         var $dropdownMenu = $appDropdown.find('[aria-labelledby="appsDropdown"]');
 
         nowSelectAppId = '';
