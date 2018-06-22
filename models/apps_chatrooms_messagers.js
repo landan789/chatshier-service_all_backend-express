@@ -326,7 +326,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, doc, options).then(() => {
-                return this.find(appId, chatroomId, messagerId);
+                return this.find(appId, chatroomId, messagerId.toHexString());
             }).then((appsChatroomsMessagers) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessagers);
                 return appsChatroomsMessagers;

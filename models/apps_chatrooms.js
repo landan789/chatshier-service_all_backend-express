@@ -238,7 +238,7 @@ module.exports = (function() {
                     return this.AppsModel.update(query, doc, options);
                 }));
             }).then(() => {
-                return this.find(appId, chatroomId);
+                return this.find(appId, chatroomId.toHexString());
             }).then((appsChatrooms) => {
                 ('function' === typeof callback) && callback(appsChatrooms);
                 return appsChatrooms;

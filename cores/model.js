@@ -291,12 +291,22 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'commodities': [{
+            'commodity_id': {type: String, default: ''},
             'name': {type: String, default: ''},
-            'description': {type: String, default: ''},
-            'price': {type: Number, default: 0}
+            'description': {type: String, default: ''}
         }],
-        'isCheckedOut': {type: Boolean, default: false},
+        'tradeId': {type: String, default: ''},
+        'tradeDate': {type: Date, default: Date.now()},
+        'tradeAmount': {type: Number, default: 0},
+        'tradeDescription': {type: String, default: ''},
+        'isPaid': {type: Boolean, default: false},
+        'invoiceId': {type: String, default: ''},
+        'taxId': {type: String, default: ''},
         'consumerUid': {type: String, default: ''},
+        'payerName': {type: String, default: ''},
+        'payerEmail': {type: String, default: ''},
+        'payerPhone': {type: String, default: ''},
+        'payerAddress': {type: String, default: ''},
         'app_id': {type: String, default: ''}
     });
 

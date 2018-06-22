@@ -35,6 +35,7 @@ declare module Chatshier {
                 [platformUid: string]: string
             },
             age: number,
+            address: string,
             custom_fields: {
                 [fieldId: string]: {
                     value: any

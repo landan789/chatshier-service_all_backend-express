@@ -95,7 +95,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                return this.find(appId, ticketId);
+                return this.find(appId, ticketId.toHexString());
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
                 return appsTickets;

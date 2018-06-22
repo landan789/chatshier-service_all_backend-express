@@ -174,5 +174,8 @@
     "APP_PAYMENT_FAILED_TO_FIND": { "MSG": "app payment failed to find", "CODE": "22.1" },
     "APP_PAYMENT_FAILED_TO_INSERT": { "MSG": "app payment failed to insert", "CODE": "22.2" },
     "APP_PAYMENT_FAILED_TO_UPDATE": { "MSG": "app payment failed to update", "CODE": "22.3" },
-    "APP_PAYMENT_FAILED_TO_REMOVE": { "MSG": "app payment failed to remove", "CODE": "22.4" }
+    "APP_PAYMENT_FAILED_TO_REMOVE": { "MSG": "app payment failed to remove", "CODE": "22.4" },
+
+    "ORDER_FAILED_TO_FIND": { "MSG": "order failed to find", "CODE": "23.1" },
+    "ORDER_FAILED_TO_INSERT": { "MSG": "order failed to insert", "CODE": "23.2" }
 }

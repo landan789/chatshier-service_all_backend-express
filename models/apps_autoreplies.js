@@ -142,7 +142,7 @@ module.exports = (function() {
                 app.autoreplies.push(postAutoreply);
                 return app.save();
             }).then(() => {
-                return this.find(appId, autoreplyId);
+                return this.find(appId, autoreplyId.toHexString());
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);
                 return appsAutoreplies;

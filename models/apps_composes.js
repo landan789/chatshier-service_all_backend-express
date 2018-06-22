@@ -93,7 +93,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                return this.find(appId, composeId);
+                return this.find(appId, composeId.toHexString());
             }).then((appsComposes) => {
                 ('function' === typeof callback) && callback(appsComposes);
                 return appsComposes;

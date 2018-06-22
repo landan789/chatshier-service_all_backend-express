@@ -22,7 +22,7 @@ declare module ECPay {
              * 交易狀態；若回傳值為 1 時，為付款成功，其餘代碼皆為交易失敗，請勿出貨。
              * ex: 1
              */
-            RtnCode: number,
+            RtnCode: string,
 
             /*
              * 交易訊息

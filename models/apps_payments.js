@@ -88,7 +88,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                return this.find(appId, paymentId);
+                return this.find(appId, paymentId.toHexString());
             }).then((appsPayments) => {
                 ('function' === typeof callback) && callback(appsPayments);
                 return appsPayments;

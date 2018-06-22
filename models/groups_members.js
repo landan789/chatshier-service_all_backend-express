@@ -17,8 +17,8 @@ module.exports = (function() {
         /**
          * @param {string | string[]} groupIds
          * @param {string} [memberId]
-         * @param {(groupsMember: Chatshier.Models.GroupsMembers | null) => any} [callback]
-         * @returns {Promise<Chatshier.Models.GroupsMembers>}
+         * @param {(groupsMembers: Chatshier.Models.GroupsMembers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.GroupsMembers | null>}
          */
         find(groupIds, memberId, callback) {
             // polymorphism from groupid | groupid[]
@@ -45,20 +45,20 @@ module.exports = (function() {
                 }
             ];
             return this.GroupsModel.aggregate(aggregations).then((results) => {
-                let groups = {};
+                let groupsMembers = {};
                 if (0 === results.length) {
-                    return Promise.resolve(groups);
+                    return Promise.resolve(groupsMembers);
                 }
 
-                groups = results.reduce((output, group) => {
+                groupsMembers = results.reduce((output, group) => {
                     output[group._id] = output[group._id] || {members: {}};
                     Object.assign(output[group._id].members, this.toObject(group.members));
                     return output;
                 }, {});
-                return groups;
-            }).then((groups) => {
-                ('function' === typeof callback) && callback(groups);
-                return Promise.resolve(groups);
+                return groupsMembers;
+            }).then((groupsMembers) => {
+                ('function' === typeof callback) && callback(groupsMembers);
+                return Promise.resolve(groupsMembers);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
@@ -172,7 +172,7 @@ module.exports = (function() {
                     if (!user) {
                         return Promise.reject(new Error());
                     }
-                    return this.find(groupId, memberId);
+                    return this.find(groupId, memberId.toHexString());
                 });
             }).then((groups) => {
                 ('function' === typeof callback) && callback(groups);
