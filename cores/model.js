@@ -194,6 +194,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'type': {type: String, default: ''},
+        'merchantId': {type: String, default: ''},
         'hashKey': {type: String, default: ''},
         'hashIV': {type: String, default: ''}
     });

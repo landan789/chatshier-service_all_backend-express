@@ -302,6 +302,7 @@
                 $paymentSelect.val(payment.type);
                 onChangePayment();
 
+                $paymentItemsContainer.find('[name="paymentMerchantId"]').val(payment.merchantId);
                 $paymentItemsContainer.find('[name="paymentHashKey"]').val(payment.hashKey);
                 $paymentItemsContainer.find('[name="paymentHashIV"]').val(payment.hashIV);
             });
@@ -314,6 +315,12 @@
                 case 'ECPay':
                 case 'Spgateway':
                     $paymentItemsContainer.html(
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">商店代號:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" name="paymentMerchantId" placeholder="在此貼上 商店代號" />' +
+                            '</div>' +
+                        '</div>' +
                         '<div class="form-group">' +
                             '<label class="col-form-label font-weight-bold">Hash Key:</label>' +
                             '<div class="input-container">' +
@@ -338,6 +345,7 @@
             /** @type {Chatshier.Models.Payment} */
             var newPayment = {
                 type: $paymentSelect.val(),
+                merchantId: $paymentItemsContainer.find('[name="paymentMerchantId"]').val() || '',
                 hashKey: $paymentItemsContainer.find('[name="paymentHashKey"]').val() || '',
                 hashIV: $paymentItemsContainer.find('[name="paymentHashIV"]').val() || ''
             };

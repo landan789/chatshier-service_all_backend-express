@@ -63,6 +63,7 @@ module.exports = (function() {
             let appId = req.params.appid;
             let postTikeck = {
                 type: req.body.type === undefined ? '' : req.body.type,
+                merchantId: req.body.merchantId === undefined ? '' : req.body.merchantId,
                 hashKey: req.body.hashKey === undefined ? '' : req.body.hashKey,
                 hashIV: req.body.hashIV === undefined ? '' : req.body.hashIV
             };
@@ -89,11 +90,11 @@ module.exports = (function() {
             let appId = req.params.appid;
             let paymentId = req.params.paymentid;
 
-            let putTikcket = {
-                type: req.body.type === undefined ? '' : req.body.type,
-                hashKey: req.body.hashKey === undefined ? '' : req.body.hashKey,
-                hashIV: req.body.hashIV === undefined ? '' : req.body.hashIV
-            };
+            let putTikcket = {};
+            (req.body.type !== undefined) && (putTikcket.type = req.body.type);
+            (req.body.merchantId !== undefined) && (putTikcket.merchantId = req.body.merchantId);
+            (req.body.hashKey !== undefined) && (putTikcket.hashKey = req.body.hashKey);
+            (req.body.hashIV !== undefined) && (putTikcket.hashIV = req.body.hashIV);
 
             return this.appsRequestVerify(req).then(() => {
                 if (!paymentId) {

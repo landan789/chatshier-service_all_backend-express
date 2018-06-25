@@ -16,6 +16,7 @@ declare module Chatshier {
             updatedTime: Date | number,
             isDeleted: boolean,
             type: 'ECPay' | 'Spgateway',
+            merchantId: string,
             hashKey: string,
             hashIV: string
         }

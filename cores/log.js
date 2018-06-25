@@ -6,17 +6,14 @@ module.exports = (function() {
 
     let winston = require('winston');
 
-    let logger = winston.createLogger({
-        format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json()
-        )
-    });
-
     class LogCore {
         constructor () {
-            this.logger = logger;
-            this.winston = winston;
+            this.logger = winston.createLogger({
+                format: winston.format.combine(
+                    winston.format.timestamp(),
+                    winston.format.json()
+                )
+            });
         }
 
         start(message) {
@@ -43,6 +40,8 @@ module.exports = (function() {
             return this.logger.log(json);
         }
     };
+
+    LogCore.winston = winston;
 
     return LogCore;
 })();

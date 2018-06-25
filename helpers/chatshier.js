@@ -138,12 +138,12 @@ module.exports = (function() {
 
                                     switch (payment.type) {
                                         case 'ECPay':
+                                        case 'Spgateway':
                                             _context.paymentId = payment._id;
                                             _context.TotalAmount = donateAmounts[i];
                                             _context.TradeDesc = '小額捐款';
                                             _context.ItemName = '小額捐款 ' + amount;
                                             break;
-                                        case 'Spgateway':
                                         default:
                                             break;
                                     }
@@ -223,23 +223,24 @@ module.exports = (function() {
 
                                     switch (payment.type) {
                                         case 'ECPay':
-                                            url += (
-                                                '/aio-check-out-all?' +
-                                                'aid=' + appId + '&' +
-                                                'cid=' + platformUid + '&' +
-                                                'pid=' + (context ? context.paymentId : '') + '&' +
-                                                'amount=' + encodeURIComponent(context ? context.TotalAmount || '' : '') + '&' +
-                                                'desc=' + encodeURIComponent(context ? context.TradeDesc || '' : '') + '&' +
-                                                'iname=' + encodeURIComponent(context ? context.ItemName || '' : '') + '&' +
-                                                'ts=' + Date.now()
-                                            );
+                                            url += '/aio-check-out-all?';
                                             break;
                                         case 'Spgateway':
-                                            url += '/spgateway';
+                                            url += '/multi-payment-gateway?';
                                             break;
                                         default:
                                             break;
                                     }
+
+                                    url += (
+                                        'aid=' + appId + '&' +
+                                        'cid=' + platformUid + '&' +
+                                        'pid=' + (context ? context.paymentId : '') + '&' +
+                                        'amount=' + encodeURIComponent(context ? context.TotalAmount || '' : '') + '&' +
+                                        'desc=' + encodeURIComponent(context ? context.TradeDesc || '' : '') + '&' +
+                                        'iname=' + encodeURIComponent(context ? context.ItemName || '' : '') + '&' +
+                                        'ts=' + Date.now()
+                                    );
 
                                     let confirmMessage = {
                                         type: 'template',

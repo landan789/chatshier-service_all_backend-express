@@ -20,4 +20,7 @@ router.use(
 router.get('/ecpay/aio-check-out-all', paymentCtl.getECPayAioCheckOutAll);
 router.post('/ecpay/payment-result', paymentCtl.postECPayPaymentResult);
 
+router.get('/spgateway/multi-payment-gateway', paymentCtl.getSpgatewayMultiPaymentGateway);
+router.post('/spgateway/payment-result', paymentCtl.postSpgatewayPaymentResult);
+
 module.exports = router;
