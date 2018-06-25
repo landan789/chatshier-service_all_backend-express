@@ -65,6 +65,51 @@ module.exports = (function() {
         }
 
         /**
+         * @param {string} merchantId
+         * @param {(appsPayments: Chatshier.Models.AppsPayments | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsPayments | null>}
+         */
+        findByMerchantId(merchantId, callback) {
+            let query = {
+                'isDeleted': false,
+                'payments.merchantId': merchantId,
+                'payments.isDeleted': false
+            };
+
+            let aggregations = [
+                {
+                    $unwind: '$payments'
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        payments: true
+                    }
+                }
+            ];
+
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsPayments = {};
+                if (0 === results.length) {
+                    return appsPayments;
+                }
+
+                appsPayments = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { payments: {} };
+                    Object.assign(output[app._id].payments, this.toObject(app.payments));
+                    return output;
+                }, {});
+                return appsPayments;
+            }).then((appsPayments) => {
+                ('function' === typeof callback) && callback(appsPayments);
+                return appsPayments;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
          * @param {string} appId
          * @param {any} payment
          * @param {(appsPayments: Chatshier.Models.AppsPayments | null) => any} [callback]

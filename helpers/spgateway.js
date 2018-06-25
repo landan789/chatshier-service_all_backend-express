@@ -64,7 +64,6 @@ module.exports = (function() {
          * @param {string} encryptStr
          * @param {string} hashKey
          * @param {string} hashIV
-         * @returns {Spgateway.Payment.TradeInformation}
          */
         decryptTradeInfo(encryptStr, hashKey, hashIV) {
             let plainText = decodeURIComponent(cipherHlp.aesDecrypt(encryptStr, hashKey, hashIV));
@@ -73,7 +72,7 @@ module.exports = (function() {
             /** @type {any} */
             let tradeInfo = splits.reduce((output, split) => {
                 let values = split.split('=');
-                output[values[0]] = values[1].replace(/\+/g, ' ');
+                output[values[0]] = values[1] ? values[1].replace(/\+/g, ' ') : '';
                 return output;
             }, {});
             return tradeInfo;

@@ -135,18 +135,40 @@ module.exports = (function() {
             };
             paymentsLog.start(paymentNotify);
 
-            // let tradeId = paymentResult.MerchantTradeNo;
-            // return ordersMdl.findByTradeId(tradeId).then((orders) => {
-            //     if (!(orders && orders[tradeId])) {
-            //         return Promise.resolve(null);
-            //     }
+            /** @type {ECPay.Payment.Result} */
+            let paymentResult = req.body;
+            let params = Object.assign({}, paymentResult);
+            delete params.CheckMacValue;
 
-            //     let orderId = orders[tradeId]._id;
-            //     let putOrder = {
-            //         isPaid: true
-            //     };
-            //     return ordersMdl.update(orderId, putOrder);
-            // });
+            let checkMacValue = ecpay.payment_client.helper.gen_chk_mac_value(params);
+            let isCheckMacValueVaild = checkMacValue === paymentResult.CheckMacValue;
+            res.sendStatus(isCheckMacValueVaild ? 200 : 400);
+
+            // 交易失敗，暫時不需要更新訂單狀態
+            if ('1' !== paymentResult.RtnCode) {
+                return Promise.resolve();
+            }
+
+            let tradeId = paymentResult.MerchantTradeNo;
+            return ordersMdl.findByTradeId(tradeId).then((orders) => {
+                if (!(orders && orders[tradeId])) {
+                    return Promise.resolve();
+                }
+
+                let orderId = orders[tradeId]._id;
+                let putOrder = {
+                    isPaid: true
+                };
+
+                return ordersMdl.update(orderId, putOrder).then((orders) => {
+                    if (!(orders && orders[tradeId])) {
+                        return Promise.resolve(API_ERROR.ORDER_FAILED_TO_UPDATE);
+                    }
+                    return Promise.resolve();
+                });
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
+            });
         }
 
         getSpgatewayMultiPaymentGateway(req, res) {
@@ -210,6 +232,46 @@ module.exports = (function() {
                 body: req.body
             };
             paymentsLog.start(paymentNotify);
+
+            /** @type {Spgateway.Payment.Result} */
+            let paymentResult = req.body;
+            let merchantId = paymentResult.MerchantID;
+
+            return appsPaymentsMdl.findByMerchantId(merchantId).then((appsPayments) => {
+                if (!appsPayments) {
+                    return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
+                }
+
+                let appId = Object.keys(appsPayments).shift() || '';
+                let paymentId = Object.keys(appsPayments[appId].payments).shift() || '';
+                return Promise.resolve(appsPayments[appId].payments[paymentId]);
+            }).then((payment) => {
+                /** @type {Spgateway.Payment.ResultInformation} */
+                let resultInfo = spgatewayHlp.decryptTradeInfo(paymentResult.TradeInfo, payment.hashKey, payment.hashIV);
+                let tradeId = resultInfo.MerchantOrderNo;
+
+                return ordersMdl.findByTradeId(tradeId).then((orders) => {
+                    if (!(orders && orders[tradeId])) {
+                        return Promise.resolve();
+                    }
+
+                    let orderId = orders[tradeId]._id;
+                    let putOrder = {
+                        isPaid: true
+                    };
+
+                    return ordersMdl.update(orderId, putOrder).then((orders) => {
+                        if (!(orders && orders[tradeId])) {
+                            return Promise.resolve(API_ERROR.ORDER_FAILED_TO_UPDATE);
+                        }
+                        return Promise.resolve();
+                    });
+                });
+            }).then(() => {
+                return res.sendStatus(200);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
+            });
         }
 
         _retrieveServerAddr(req) {
