@@ -5,14 +5,12 @@ module.exports = (function() {
     const chatshierCfg = require('../config/chatshier');
     const cipherHlp = require('../helpers/cipher');
     const spgatewayHlp = require('../helpers/spgateway');
+    const ecpayHlp = require('../helpers/ecpay');
     const paymentsLog = require('../logs/payments');
 
     const appsPaymentsMdl = require('../models/apps_payments');
     const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     const ordersMdl = require('../models/orders');
-
-    const ECPayPayment = require('ecpay_payment_nodejs');
-    const ecpay = new ECPayPayment();
 
     /**
      * 將時間轉換為 ECPay 交易時間字串格式 YYYY-MM-DD hh:mm:ss
@@ -58,19 +56,15 @@ module.exports = (function() {
             }
 
             let serverAddr = this._retrieveServerAddr(req);
-            return appsPaymentsMdl.find(appId, paymentId).then((appsPayments) => {
+
+            return Promise.all([
+                appsPaymentsMdl.find(appId, paymentId),
+                this._createOrder(appId, consumerUid, ItemName, TotalAmount, TradeDesc)
+            ]).then(([ appsPayments, order ]) => {
                 if (!(appsPayments && appsPayments[appId])) {
                     return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
                 }
 
-                // 由於 ECPay 的 SDK 計算驗證碼的 HashKey 與 HashIV 儲存在程式當中，而不是作為參數傳入
-                // 因此必須更換 ECPay 的參數數值
-                let payment = appsPayments[appId].payments[paymentId];
-                ecpay.payment_client.helper.hkey = payment.hashKey;
-                ecpay.payment_client.helper.hiv = payment.hashIV;
-
-                return this._createOrder(appId, consumerUid, ItemName, TotalAmount, TradeDesc);
-            }).then((order) => {
                 let params = {
                     MerchantTradeNo: order.tradeId, // 請帶 20 碼 uid, ex: f0a0d7e9fae1bb72bc93
                     MerchantTradeDate: datetimeToTradeDate(new Date(order.tradeDate)), // ex: 2017/02/13 15:45:30
@@ -118,54 +112,16 @@ module.exports = (function() {
                     // InvType: '07'
                 };
 
-                let html = ecpay.payment_client.aio_check_out_all(params, invoiceParams);
+                // 由於 ECPay 的 SDK 計算驗證碼的 HashKey 與 HashIV 儲存在程式當中，而不是作為參數傳入
+                // 因此必須更換 ECPay 的參數數值
+                let payment = appsPayments[appId].payments[paymentId];
+                ecpayHlp.setMerchant(payment.merchantId, payment.hashKey, payment.hashIV);
+
+                let html = ecpayHlp.paymentClient.aio_check_out_all(params, invoiceParams);
                 return res.send(html);
             }).then(() => {
                 let suc = { msg: 'OK' };
                 return this.successJson(req, res, suc);
-            }).catch((err) => {
-                return this.errorJson(req, res, err);
-            });
-        }
-
-        postECPayPaymentResult(req, res) {
-            let paymentNotify = {
-                url: req.hostname + req.originalUrl,
-                body: req.body
-            };
-            paymentsLog.start(paymentNotify);
-
-            /** @type {ECPay.Payment.Result} */
-            let paymentResult = req.body;
-            let params = Object.assign({}, paymentResult);
-            delete params.CheckMacValue;
-
-            let checkMacValue = ecpay.payment_client.helper.gen_chk_mac_value(params);
-            let isCheckMacValueVaild = checkMacValue === paymentResult.CheckMacValue;
-            res.sendStatus(isCheckMacValueVaild ? 200 : 400);
-
-            // 交易失敗，暫時不需要更新訂單狀態
-            if ('1' !== paymentResult.RtnCode) {
-                return Promise.resolve();
-            }
-
-            let tradeId = paymentResult.MerchantTradeNo;
-            return ordersMdl.findByTradeId(tradeId).then((orders) => {
-                if (!(orders && orders[tradeId])) {
-                    return Promise.resolve();
-                }
-
-                let orderId = orders[tradeId]._id;
-                let putOrder = {
-                    isPaid: true
-                };
-
-                return ordersMdl.update(orderId, putOrder).then((orders) => {
-                    if (!(orders && orders[tradeId])) {
-                        return Promise.resolve(API_ERROR.ORDER_FAILED_TO_UPDATE);
-                    }
-                    return Promise.resolve();
-                });
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -217,12 +173,50 @@ module.exports = (function() {
                     NotifyURL: serverAddr + '/payment/spgateway/payment-result',
                     Email: order.payerEmail,
                     EmailModify: 0,
-                    LoginType: 0,
-                    CREDIT: 1
+                    LoginType: 0
                 };
 
                 let html = spgatewayHlp.generateMPGFormHtml(tradeInfo, payment.hashKey, payment.hashIV);
                 return res.send(html);
+            });
+        }
+
+        postECPayPaymentResult(req, res) {
+            let paymentNotify = {
+                url: req.hostname + req.originalUrl,
+                body: req.body
+            };
+            paymentsLog.start(paymentNotify);
+
+            /** @type {ECPay.Payment.Result} */
+            let paymentResult = req.body;
+            let params = Object.assign({}, paymentResult);
+            delete params.CheckMacValue;
+
+            let merchantId = paymentResult.MerchantID;
+            return appsPaymentsMdl.findByMerchantId(merchantId).then((appsPayments) => {
+                if (!appsPayments) {
+                    return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
+                }
+
+                let appId = Object.keys(appsPayments).shift() || '';
+                let paymentId = Object.keys(appsPayments[appId].payments).shift() || '';
+                return Promise.resolve(appsPayments[appId].payments[paymentId]);
+            }).then((payment) => {
+                ecpayHlp.setMerchant(payment.merchantId, payment.hashKey, payment.hashIV);
+                let checkMacValue = ecpayHlp.paymentHelper.gen_chk_mac_value(params);
+                let isCheckMacValueVaild = checkMacValue === paymentResult.CheckMacValue;
+                res.sendStatus(isCheckMacValueVaild ? 200 : 400);
+
+                // 交易失敗，暫時不需要更新訂單狀態
+                if ('1' !== paymentResult.RtnCode) {
+                    return;
+                }
+
+                let tradeId = paymentResult.MerchantTradeNo;
+                return this._paidOrder(tradeId);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -250,23 +244,7 @@ module.exports = (function() {
                 let resultInfo = spgatewayHlp.decryptTradeInfo(paymentResult.TradeInfo, payment.hashKey, payment.hashIV);
                 let tradeId = resultInfo.MerchantOrderNo;
 
-                return ordersMdl.findByTradeId(tradeId).then((orders) => {
-                    if (!(orders && orders[tradeId])) {
-                        return Promise.resolve();
-                    }
-
-                    let orderId = orders[tradeId]._id;
-                    let putOrder = {
-                        isPaid: true
-                    };
-
-                    return ordersMdl.update(orderId, putOrder).then((orders) => {
-                        if (!(orders && orders[tradeId])) {
-                            return Promise.resolve(API_ERROR.ORDER_FAILED_TO_UPDATE);
-                        }
-                        return Promise.resolve();
-                    });
-                });
+                return this._paidOrder(tradeId);
             }).then(() => {
                 return res.sendStatus(200);
             }).catch((err) => {
@@ -275,7 +253,8 @@ module.exports = (function() {
         }
 
         _retrieveServerAddr(req) {
-            let serverAddr = req.protocol + '://' + req.hostname + (req.subdomains.includes('fea') ? ':' + chatshierCfg.API.PORT : '');
+            // let serverAddr = req.protocol + '://' + req.hostname + (req.subdomains.includes('fea') ? ':' + chatshierCfg.API.PORT : '');
+            let serverAddr = 'https://3bd160b3.ngrok.io';
             return serverAddr;
         }
 
@@ -314,6 +293,26 @@ module.exports = (function() {
 
                     let orderId = Object.keys(orders).shift() || '';
                     return Promise.resolve(orders[orderId]);
+                });
+            });
+        }
+
+        _paidOrder(tradeId) {
+            return ordersMdl.findByTradeId(tradeId).then((orders) => {
+                if (!(orders && orders[tradeId])) {
+                    return Promise.resolve();
+                }
+
+                let orderId = orders[tradeId]._id;
+                let putOrder = {
+                    isPaid: true
+                };
+
+                return ordersMdl.update(orderId, putOrder).then((orders) => {
+                    if (!(orders && orders[tradeId])) {
+                        return Promise.resolve(API_ERROR.ORDER_FAILED_TO_UPDATE);
+                    }
+                    return Promise.resolve();
                 });
             });
         }

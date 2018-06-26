@@ -19,10 +19,10 @@
     
     <IgnorePayment>
         <!--<Method>Credit</Method>-->
-        <Method>WebATM</Method>
-        <Method>ATM</Method>
-        <Method>CVS</Method>
-        <Method>BARCODE</Method>
-        <Method>AndroidPay</Method>
+        <!--<Method>WebATM</Method>-->
+        <!--<Method>ATM</Method>-->
+        <!--<Method>CVS</Method>-->
+        <!--<Method>BARCODE</Method>-->
+        <!--<Method>AndroidPay</Method>-->
     </IgnorePayment>
 </Conf>

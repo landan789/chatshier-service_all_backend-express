@@ -100,12 +100,10 @@ class APIHelper {
            let temp_arr = (Object.keys(params).sort(function (a, b) {
                return a.toLowerCase().localeCompare(b.toLowerCase());
            }));
-           // console.log(temp_arr);
            let raw = temp_arr.forEach(function (key) {od[key] = params[key];});
            raw = JSON.stringify(od).toLowerCase().replace(/":"/g, '=');
            raw = raw.replace(/","|{"|"}/g, '&');
            raw = this.urlencode_dot_net(`HashKey=${this.hkey}${raw}HashIV=${this.hiv}`);
-           console.log(raw);
 
            let chksum = "";
            switch (mode){
@@ -173,17 +171,11 @@ class APIHelper {
         return new Promise((resolve, reject) => {
 
             const req = http_op.request(options, (res) => {
-                console.log(`STATUS: ${res.statusCode}`);
-                // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-                // res.setEncoding('utf8');
                 const body = [];
                 res.on('data', (chunk) => {
-                    // console.log(`BODY: ${chunk}`);
                     body.push(chunk);
                 });
                 res.on('end', () => {
-                    // console.log('response data.');
-                    // console.log(body);
                     resolve(body);
                 });
             });
@@ -205,7 +197,6 @@ class APIHelper {
             html += `<script type="text/javascript">document.getElementById("${id}").submit();</script>`;
         }
         html += "</form>";
-        // console.log(typeof html);
         return html
     }
     valid_chkmc_string(str){

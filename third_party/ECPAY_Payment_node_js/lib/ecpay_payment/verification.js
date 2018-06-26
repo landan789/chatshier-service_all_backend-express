@@ -19,9 +19,8 @@ class PaymentVerifyBase{
     get_special_encode_param(apiname){
         let ret = [];
         let node = this.param_xml.findall(`./${apiname}/Parameters//param[@urlencode=\"1\"]`);
-        // console.log(node);
+
         node.forEach(function (elem) {
-            // console.log(elem.attrib.name);
             ret.push(elem.attrib.name);
         });
         return ret;
@@ -30,7 +29,6 @@ class PaymentVerifyBase{
     get_basic_params(apiname){
         let basic_param = [];
         this.param_xml.findall(`./${apiname}/Parameters/param[@require=\"1\"]`).forEach(function (elem) {
-           // console.log(elem.attrib.name);
            basic_param.push(elem.attrib.name);
         });
         return basic_param;
@@ -40,7 +38,6 @@ class PaymentVerifyBase{
         let aio_sw_param = [];
         let conditional_param = {};
         this.param_xml.findall(`./${apiname}/Config/switchparam/n`).forEach(function (elem) {
-           // console.log(elem.text);
            aio_sw_param.push(elem.text);
         });
         let param_xml = this.param_xml;
@@ -76,20 +73,16 @@ class PaymentVerifyBase{
         node.forEach(function (param_elem) {
             temp_arr.push(param_elem.attrib.name);
         });
-        // console.log(temp_arr);
+
         temp_arr.forEach(function (opt_params) {
-            // console.log(opt_params);
             let opt_elems = param_xml.findall(`./${apiname}/Parameters//param[@name=\"${opt_params}\"]//option`);
-            // console.log(opt_elems);
             let opt = [];
             opt_elems.forEach(function (oe) {opt.push(oe.text);});
-            // console.log(opt);
             pattern[opt_params] = opt;
         });
         if (apiname === 'AioCheckOut'){
             pattern['ChoosePayment'].splice(3, 13);
         }
-        // console.log(pattern);
         return pattern;
     }
 
@@ -101,25 +94,22 @@ class PaymentVerifyBase{
         node.forEach(function (param_elem) {
             temp_arr.push(param_elem.attrib.name);
         });
-        // console.log(temp_arr);
+
         temp_arr.forEach(function (opt_params) {
-            // console.log(opt_params);
             let mode = param_xml.findall(`./${apiname}/Parameters//param[@name=\"${opt_params}\"]//mode`);
             let mx = param_xml.findall(`./${apiname}/Parameters//param[@name=\"${opt_params}\"]//maximum`);
             let mn = param_xml.findall(`./${apiname}/Parameters//param[@name=\"${opt_params}\"]//minimal`);
-            // console.log(mode);
+
             let arr = [];
             mode.forEach(function (md) {arr.push(md.text);});
             mx.forEach(function (mx) {arr.push(mx.text);});
             mn.forEach(function (mn) {arr.push(mn.text);});
-            // console.log(arr);
             pattern[opt_params] = arr;
         });
         if (apiname === 'AioCheckOut'){
             pattern['StoreExpireDate'].splice(1, 2);
             pattern['StoreExpireDate'].splice(2, 1);
         }
-        // console.log(pattern);
         return pattern;
     }
 
@@ -131,13 +121,11 @@ class PaymentVerifyBase{
         node.forEach(function (param_elem) {
             temp_arr.push(param_elem.attrib.name);
         });
-        // console.log(temp_arr);
+
         temp_arr.forEach(function (opt_params) {
-            // console.log(opt_params);
             let pat_elems = param_xml.findall(`./${apiname}/Parameters//param[@name=\"${opt_params}\"]//pattern`);
             let arr = [];
             pat_elems.forEach(function (pa) {arr.push(pa.text);});
-            // console.log(arr);
             pattern[opt_params] = arr.toString();
         });
         if (apiname === 'AioCheckOut'){
@@ -149,7 +137,6 @@ class PaymentVerifyBase{
             pattern['Desc_3'] = pattern['Desc_3'].slice(10,20);
             pattern['Desc_4'] = pattern['Desc_4'].slice(10,20);
         }
-        // console.log(pattern);
         return pattern;
     }
 
@@ -178,11 +165,8 @@ class PaymentVerifyBase{
                 sub_opts[elem] = opt;
             });
         });
-        // console.log(sub_opts);
         parent_n_opts[parent_name] = sub_opts;
-        // console.log(parent_n_opts);
         pattern[p_name] = parent_n_opts;
-        // console.log(pattern['ChooseSubPayment']['ChoosePayment']['BARCODE']);
         return pattern;
     }
 
@@ -197,16 +181,10 @@ class PaymentVerifyBase{
     }
 
     verify_param_by_pattern(params, pattern){
-        // console.log(params);
-        // console.log(pattern);
         let type_index = pattern['Type_idx'];
-        // console.log(type_index);
         Object.keys(params).forEach(function (p_name) {
-           // console.log(p_name);
            let p_type = type_index[p_name];
-           // console.log(p_type);
            let patt_container = pattern[p_type];
-           // console.log(patt_container);
            switch (p_type) {
                case 'String':
                    let regex_patt = patt_container[p_name];
@@ -224,15 +202,10 @@ class PaymentVerifyBase{
                    break;
                case 'Int':
                    let criteria = patt_container[p_name];
-                   // console.log('criteria: '+ criteria);
                    let mode = criteria[0];
                    let max = parseInt(criteria[1]);
                    let min = parseInt(criteria[2]);
                    let val = parseInt(params[p_name]);
-                   // console.log('mode: '+ mode);
-                   // console.log('max: '+  max);
-                   // console.log('min: '+  min);
-                   // console.log('val: '+  val);
                    switch (mode){
                        case 'BETWEEN':
                            if (val < min || val > max){
@@ -288,14 +261,8 @@ class AioCheckOutParamVerify extends PaymentVerifyBase{
     }
 
     get_serialized_data(){
-        console.log(this.aio_basic_param);
-        console.log('-----');
-        console.log(this.aio_conditional_param);
         let new_di = this.aio_conditional_param;
         delete new_di['InvoiceMark'];
-        console.log(this.aio_conditional_param);
-        console.log('-----');
-        console.log(new_di);
     }
 
     verify_aio_payment_param(params){

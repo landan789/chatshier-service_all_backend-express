@@ -1,11 +1,26 @@
 // 智付通 Spgateway 串接 API
-
 module.exports = (function() {
     const cipherHlp = require('./cipher');
-    const ENDPOINT = 'https://ccore.spgateway.com/MPG/mpg_gateway'; // testing
-    // const ENDPOINT = 'https://core.spgateway.com/MPG/mpg_gateway'; // prodution
+
+    const TEST = 'Test';
+    const PRODUTION = 'Prodution';
+    const ENDPOINT = {
+        [TEST]: 'https://ccore.spgateway.com/MPG/mpg_gateway',
+        [PRODUTION]: 'https://core.spgateway.com/MPG/mpg_gateway'
+    };
 
     class SpgatewayHelper {
+        constructor() {
+            this._mode = TEST;
+        }
+
+        /**
+         * @param {'Test' | 'Prodution'} value
+         */
+        set mode(value) {
+            this._mode = value;
+        }
+
         /**
          * @param {Spgateway.Payment.TradeInformation} tradeInfo
          * @param {string} hashKey
@@ -24,6 +39,20 @@ module.exports = (function() {
                 throw new Error('Missing parameter. hashIV is required.');
             }
 
+            let paymentWays = {
+                CREDIT: 1,
+                ANDROIDPAY: 0,
+                SAMSUNGPAY: 0,
+                UNIONPAY: 0,
+                WEBATM: 1,
+                VACC: 0,
+                CVS: 0,
+                BARCODE: 0,
+                P2G: 0,
+                CVSCOM: 0
+            };
+            Object.assign(tradeInfo, paymentWays);
+
             let tradeInfoEncrypt = this.encryptTradeInfo(tradeInfo, hashKey, hashIV);
             let tradeShaHash = this.generateTradeHash(tradeInfoEncrypt, hashKey, hashIV);
 
@@ -37,7 +66,7 @@ module.exports = (function() {
 
             let formId = 'spgatewayMPGForm';
             let html = (
-                '<form id="' + formId + '" action="' + ENDPOINT + '" method="POST">' +
+                '<form id="' + formId + '" action="' + ENDPOINT[this._mode] + '" method="POST">' +
                     (() => Object.keys(params).map((prop) => {
                         let param = params[prop];
                         return '<input type="hidden" name="' + prop + '" value="' + param + '" />';
@@ -91,6 +120,7 @@ module.exports = (function() {
             let props = Object.keys(tradeInfo).sort((a, b) => {
                 return a.toLowerCase().localeCompare(b.toLowerCase());
             });
+
             let queryString = props.map((prop) => {
                 let str = prop + '=' + encodeURIComponent(tradeInfo[prop]).replace(/%20/g, '+');
                 return str;
@@ -109,6 +139,9 @@ module.exports = (function() {
             return str.trim();
         }
     }
+
+    SpgatewayHelper.TEST = TEST;
+    SpgatewayHelper.PRODUTION = PRODUTION;
 
     return new SpgatewayHelper();
 })();

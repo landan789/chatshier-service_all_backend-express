@@ -166,7 +166,7 @@ declare module Spgateway {
              * 1 = 啟用
              * 0 或者未有此參數 = 不啟用
              */
-            CREDIT: 0 | 1,
+            CREDIT?: 0 | 1,
 
             /**
              * Google Pay 啟用

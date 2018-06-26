@@ -95,7 +95,6 @@ class ECpayQueryClient{
         });
         // encode special param
         // Insert chkmacval
-        console.log(params);
         let chkmac = this.helper.gen_chk_mac_value(params);
         params['CheckMacValue'] = chkmac;
 
@@ -104,7 +103,6 @@ class ECpayQueryClient{
            let paymenttoken = helper.gen_aes_encrypt(exclusive_ele);
            params[param] = paymenttoken;
         });
-        console.log(params);
 
         // gen post html
         let api_url = verify_query_api.get_svc_url(apiname, this.helper.get_op_mode());
