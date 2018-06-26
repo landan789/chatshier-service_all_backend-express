@@ -3,6 +3,9 @@ const bodyParser = require('body-parser');
 const formData = require('express-form-data');
 
 const appsAutorepliesCtl = require('../controllers/apps_autoreplies');
+const appsAppointmentsCtl = require('../controllers/apps_appointments');
+const appsAppointmentsItemsCtl = require('../controllers/apps_appointments_items');
+const appsAppointmentsMembersCtl = require('../controllers/apps_appointments_members');
 const appsComposesCtl = require('../controllers/apps_composes');
 const appsTemplateCtl = require('../controllers/apps_templates');
 const appsImagemapsCtl = require('../controllers/apps_imagemaps');
@@ -135,6 +138,36 @@ router.get('/apps-imagemaps/apps/:appid/imagemaps/:imagemapid/users/:userid', ap
 router.post('/apps-imagemaps/apps/:appid/users/:userid', appsImagemapsCtl.postOne);
 router.put('/apps-imagemaps/apps/:appid/imagemaps/:imagemapid/users/:userid', appsImagemapsCtl.putOne);
 router.delete('/apps-imagemaps/apps/:appid/imagemaps/:imagemapid/users/:userid', appsImagemapsCtl.deleteOne);
+// ==========
+
+// ==========
+// 預約
+router.get('/apps-appointments/users/:userid', appsAppointmentsCtl.getAll);
+router.get('/apps-appointments/apps/:appid/users/:userid', appsAppointmentsCtl.getAll);
+router.get('/apps-appointments/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsCtl.getOne);
+router.post('/apps-appointments/apps/:appid/users/:userid', appsAppointmentsCtl.postOne);
+router.put('/apps-appointments/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsCtl.putOne);
+router.delete('/apps-appointments/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsCtl.deleteOne);
+// ==========
+
+// ==========
+// 預約產品
+router.get('/apps-appointments-items/users/:userid', appsAppointmentsItemsCtl.getAll);
+router.get('/apps-appointments-items/apps/:appid/users/:userid', appsAppointmentsItemsCtl.getAll);
+router.get('/apps-appointments-items/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsItemsCtl.getOne);
+router.post('/apps-appointments-items/apps/:appid/users/:userid', appsAppointmentsItemsCtl.postOne);
+router.put('/apps-appointments-items/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsItemsCtl.putOne);
+router.delete('/apps-appointments-items/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsItemsCtl.deleteOne);
+// ==========
+
+// ==========
+// 預約成員
+router.get('/apps-appointments-members/users/:userid', appsAppointmentsMembersCtl.getAll);
+router.get('/apps-appointments-members/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsMembersCtl.getAll);
+router.get('/apps-appointments-members/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsMembersCtl.getOne);
+router.post('/apps-appointments-members/apps/:appid/users/:userid', appsAppointmentsMembersCtl.postOne);
+router.put('/apps-appointments-members/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsMembersCtl.putOne);
+router.delete('/apps-appointments-members/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsMembersCtl.deleteOne);
 // ==========
 
 // ===============

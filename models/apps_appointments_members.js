@@ -8,21 +8,15 @@ module.exports = (function() {
             this.AppsModel = this.model(APPS, this.AppsSchema);
         }
         /**
-         * 輸入全部的 appId, appointmentId 取得該 Appointment 所有預約資料
+         * 輸入全部的 appId, appointmentId 取得該 Appointment 所有成員資料
          *
          * @param {string|string[]} appIds
-         * @param {string|string[]} appointmentIds
-         * @param {string|string[]} memberIds
          * @param {(appsAppointments: Chatshier.Models.AppsAppointments | null) => any} [callback]
          * @return {Promise<Chatshier.Models.AppsAppointments | null>}
          */
-        find(appIds, appointmentIds, memberIds, callback) {
+        find(appIds, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
-            }
-
-            if (!(appointmentIds instanceof Array)) {
-                appointmentIds = [appointmentIds];
             }
 
             let query = {
@@ -30,21 +24,8 @@ module.exports = (function() {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false,
-                'appointments._id': {
-                    $in: appointmentIds.map((appointmentId) => this.Types.ObjectId(appointmentId))
-                },
                 'appointments.isDeleted': false
             };
-
-            if (memberIds) {
-                if (!(memberIds instanceof Array)) {
-                    memberIds = [memberIds];
-                }
-
-                query['appointments.members._id'] = {
-                    $in: memberIds.map((memberId) => this.Types.ObjectId(memberId))
-                };
-            }
 
             let aggregations = [
                 {

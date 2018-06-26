@@ -3,6 +3,7 @@ interface Window {
         setJWT: (value: string) => void,
         apps: AppAPI,
         appsAutoreplies: AppsAutorepliesAPI,
+        appsAppointments: AppsAppointmentsAPI,
         appsChatrooms: AppsChatroomsAPI,
         appsChatroomsMessagers: AppsChatroomsMessagersAPI,
         appsComposes: AppsComposesAPI,
@@ -63,6 +64,13 @@ interface AppsAutorepliesAPI {
     insert: (appId: string, userId: string, autoreplyData: any) => Promise<any>;
     update: (appId: string, autoreplyId: string, userId: string, autoreplyData: any) => Promise<any>;
     remove: (appId: string, autoreplyId: string, userId: string) => Promise<any>;
+}
+
+interface AppsAppointmentsAPI {
+    findAll: (appId: string, userId: string) => Promise<any>;
+    insert: (appId: string, userId: string, appointmentData: any) => Promise<any>;
+    update: (appId: string, appointmentId: string, userId: string, appointmentData: any) => Promise<any>;
+    remove: (appId: string, appointmentId: string, userId: string) => Promise<any>;
 }
 
 interface AppsChatroomsAPI {

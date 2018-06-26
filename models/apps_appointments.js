@@ -1,4 +1,4 @@
-module.export = (function() {
+module.exports = (function() {
     let ModelCore = require('../cores/model');
     const APPS = 'apps';
 

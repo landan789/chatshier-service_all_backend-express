@@ -5,9 +5,9 @@ module.exports = (function() {
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
-    const appsAppointmentsMdl = require('../models/apps_appointments');
+    const appsAppointmentsItemsMdl = require('../models/apps_appointments_items');
 
-    class AppsAppointmentsController extends ControllerCore {
+    class AppsAppointmentsItemsController extends ControllerCore {
         constructor() {
             super();
             this.getAll = this.getAll.bind(this);
@@ -20,16 +20,16 @@ module.exports = (function() {
         getAll(req, res, next) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return appsAppointmentsMdl.find(appIds).then((appsAppointments) => {
-                    if (!appsAppointments) {
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                return appsAppointmentsItemsMdl.find(appIds).then((appsAppointmentsItems) => {
+                    if (!appsAppointmentsItems) {
+                        return Promise.reject(API_ERROR.APP_APPOINTMENT_ITEM_FAILED_TO_FIND);
                     }
-                    return Promise.resolve(appsAppointments);
+                    return Promise.resolve(appsAppointmentsItems);
                 });
-            }).then((appsAppointments) => {
+            }).then((appsAppointmentsItems) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: appsAppointments
+                    data: appsAppointmentsItems
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -40,18 +40,19 @@ module.exports = (function() {
         getOne(req, res, next) {
             let appId = req.params.appid;
             let appointmentId = req.params.appointmentid;
+            let itemId = req.params.itemid;
 
             return this.appsRequestVerify(req).then(() => {
-                return appsAppointmentsMdl.find(appId, appointmentId).then((appsAppointments) => {
-                    if (!(appsAppointments && appsAppointments[appId])) {
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                return appsAppointmentsItemsMdl.find(appId, appointmentId, itemId).then((appsAppointmentsItems) => {
+                    if (!(appsAppointmentsItems && appsAppointmentsItems[appId])) {
+                        return Promise.reject(API_ERROR.APP_APPOINTMENT_ITEM_FAILED_TO_FIND);
                     }
-                    return Promise.resolve(appsAppointments);
+                    return Promise.resolve(appsAppointmentsItems);
                 });
-            }).then((appsAppointments) => {
+            }).then((appsAppointmentsItems) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: appsAppointments
+                    data: appsAppointmentsItems
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -61,6 +62,7 @@ module.exports = (function() {
 
         postOne(req, res, next) {
             let appId = req.params.appid;
+            let appointmentId = req.params.appointmentid;
             let appointment = {
                 name: req.body.name || '',
                 items: [],
@@ -68,16 +70,16 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then(() => {
-                return appsAppointmentsMdl.insert(appId, appointment).then((appsAppointments) => {
-                    if (!appsAppointments) {
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_INSERT);
+                return appsAppointmentsItemsMdl.insert(appId, appointmentId, appointment).then((appsAppointmentsItems) => {
+                    if (!appsAppointmentsItems) {
+                        return Promise.reject(API_ERROR.APP_APPOINTMENT_ITEM_FAILED_TO_INSERT);
                     }
-                    return Promise.resolve(appsAppointments);
+                    return Promise.resolve(appsAppointmentsItems);
                 });
-            }).then((appsAppointments) => {
+            }).then((appsAppointmentsItems) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: appsAppointments
+                    data: appsAppointmentsItems
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -88,39 +90,40 @@ module.exports = (function() {
         putOne(req, res, next) {
             let appId = req.params.appid;
             let appointmentId = req.params.appointmentid;
+            let itemId = req.params.itemid;
             let appointment = {
                 name: req.body.name || '',
             };
 
             return this.appsRequestVerify(req).then(() => {
                 if (!appointmentId) {
-                    return Promise.reject(API_ERROR.APP_APPOINTMENT_APPOINTMENTID_WAS_EMPTY);
+                    return Promise.reject(API_ERROR.APP_APPOINTMENT_ITEM_APPOINTMENTID_WAS_EMPTY);
                 };
 
                 if ('' === appointment.name) {
-                    return Promise.reject(API_ERROR.APP_APPOINTMENT_NAME_WAS_EMPTY);
+                    return Promise.reject(API_ERROR.APP_APPOINTMENT_ITEM_NAME_WAS_EMPTY);
                 };
 
-                return appsAppointmentsMdl.findAppointments(appId);
+                return appsAppointmentsItemsMdl.findItems(appId);
             }).then((appointments) => {
                 if (!appointments) {
-                    return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                    return Promise.reject(API_ERROR.APP_APPOINTMENT_ITEM_FAILED_TO_FIND);
                 }
 
                 if (!appointments[appointmentId]) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APPOINTMENT);
                 }
 
-                return appsAppointmentsMdl.update(appId, appointmentId, appointment).then((appsAppointments) => {
-                    if (!(appsAppointments && appsAppointments[appId])) {
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_UPDATE);
+                return appsAppointmentsItemsMdl.update(appId, appointmentId, itemId, appointment).then((appsAppointmentsItems) => {
+                    if (!(appsAppointmentsItems && appsAppointmentsItems[appId])) {
+                        return Promise.reject(API_ERROR.APP_APPOINTMENT_ITEM_FAILED_TO_UPDATE);
                     }
-                    return Promise.resolve(appsAppointments);
+                    return Promise.resolve(appsAppointmentsItems);
                 });
-            }).then((appsAppointments) => {
+            }).then((appsAppointmentsItems) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-                    data: appsAppointments
+                    data: appsAppointmentsItems
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -131,31 +134,32 @@ module.exports = (function() {
         deleteOne(req, res, next) {
             let appId = req.params.appid;
             let appointmentId = req.params.appointmentid;
+            let itemId = req.params.itemid;
 
             return this.appsRequestVerify(req).then(() => {
                 if (!appointmentId) {
-                    return Promise.reject(API_ERROR.APP_APPOINTMENT_APPOINTMENTID_WAS_EMPTY);
+                    return Promise.reject(API_ERROR.APP_APPOINTMENT_ITEM_APPOINTMENTID_WAS_EMPTY);
                 }
-                return appsAppointmentsMdl.findAppointments(appId);
+                return appsAppointmentsItemsMdl.findItems(appId);
             }).then((appointments) => {
                 if (!appointments) {
-                    return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                    return Promise.reject(API_ERROR.APP_APPOINTMENT_ITEM_FAILED_TO_FIND);
                 }
 
                 if (!appointments[appointmentId]) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APPOINTMENT);
                 }
 
-                return appsAppointmentsMdl.remove(appId, appointmentId).then((appsAppointments) => {
-                    if (!appsAppointments) {
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_REMOVE);
+                return appsAppointmentsItemsMdl.remove(appId, appointmentId, itemId).then((appsAppointmentsItems) => {
+                    if (!appsAppointmentsItems) {
+                        return Promise.reject(API_ERROR.APP_APPOINTMENT_ITEM_FAILED_TO_REMOVE);
                     }
-                    return Promise.resolve(appsAppointments);
+                    return Promise.resolve(appsAppointmentsItems);
                 });
-            }).then((appsAppointments) => {
+            }).then((appsAppointmentsItems) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
-                    data: appsAppointments
+                    data: appsAppointmentsItems
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -163,6 +167,5 @@ module.exports = (function() {
             });
         };
     }
-
-    return new AppsAppointmentsController();
+    return new AppsAppointmentsItemsController();
 })();

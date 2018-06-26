@@ -168,6 +168,7 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
+        'name': {type: String, default: ''},
         'items': [{
             'isDeleted': {type: Boolean, default: false},
             'createdTime': {type: Date, default: Date.now()},
@@ -179,12 +180,12 @@ module.exports = (function() {
             'isDeleted': {type: Boolean, default: false},
             'createdTime': {type: Date, default: Date.now()},
             'updatedTime': {type: Date, default: Date.now()},
-            'name': {type: String, default: ''}
-        }],
-        'timetable': [{
-            'isDeleted': {type: Boolean, default: false},
-            'createdTime': {type: Date, default: Date.now()},
-            'updatedTime': {type: Date, default: Date.now()},
+            'name': {type: String, default: ''},
+            'timetable': [{
+                'isDeleted': {type: Boolean, default: false},
+                'createdTime': {type: Date, default: Date.now()},
+                'updatedTime': {type: Date, default: Date.now()},
+            }]
         }]
     });
 
@@ -305,7 +306,6 @@ module.exports = (function() {
     class ModelCore {
         constructor () {
             this.Types = mongoose.Types;
-            this.AutorepliesSchema = AutorepliesSchema;
             this.RootsSchema = RootsSchema;
             this.AppsSchema = AppsSchema;
             this.CalendarsSchema = CalendarsSchema;
