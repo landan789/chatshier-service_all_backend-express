@@ -271,7 +271,7 @@
         $autoreplyAddModal.on('click', '#addSubmitBtn', autoreplyInsert);
         $autoreplyAddModal.on('click', '#periodAddBtn', showPeriodElem);
 
-        $autoreplyAddModal.on('hidden.bs.modal', function() {
+        $autoreplyAddModal.on('hide.bs.modal', function() {
             let modalAppId = $appSelector.val();
             if (nowSelectAppId !== modalAppId) {
                 $appDropdown.find('#' + modalAppId).trigger('click');

@@ -11,7 +11,7 @@ window.chatshier = {
         otherFileMaxSize: 100 * 1024 * 1024 // 100 MB
     },
     facebook: {
-        appId: '178381762879392',
+        appId: '1569929989761572',
         cookie: true,
         xfbml: true,
         version: 'v3.0'

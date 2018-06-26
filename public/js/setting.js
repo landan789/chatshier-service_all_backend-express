@@ -1932,7 +1932,7 @@
                         var file = files[0];
                         return new Promise(function(resolve, reject) {
                             var fileReader = new FileReader();
-                            fileReader.onload = function() {
+                            fileReader.onloadend = function() {
                                 resolve(fileReader.result);
                             };
                             fileReader.readAsDataURL(file);

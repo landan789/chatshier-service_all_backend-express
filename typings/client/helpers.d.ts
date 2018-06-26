@@ -11,9 +11,11 @@ interface Window {
         appsTemplates: AppsTemplatesAPI,
         appsPayments: AppsPaymentsAPI,
         appsRichmenus: AppsRichmenusAPI,
+        appsImagemaps: AppsImagemapsAPI,
         appsFields: AppsFieldsAPI,
         appsTickets: AppsTicketsAPI,
         bot: BotAPI,
+        image: ImageAPI,
         calendarsEvents: CalendarsEventsAPI,
         consumers: ConsumersAPI,
         groupsMembers: GroupsMembersAPI,
@@ -120,6 +122,14 @@ interface AppsRichmenusAPI {
     remove: (appId: string, richmenuId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsRichmenus }>;
 }
 
+interface AppsImagemapsAPI {
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsImagemaps }>;
+    findOne: (appId: string, imagemapId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsImagemaps }>;
+    insert: (appId: string, userId: string, postImagemap: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsImagemaps }>;
+    update: (appId: string, imagemapId: string, userId: string, putImagemap: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsImagemaps }>;
+    remove: (appId: string, imagemapId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsImagemaps }>;
+}
+
 interface AppsFieldsAPI {
     findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsFields }>;
     insert: (appId: string, userId: string, postField: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsFields }>;
@@ -205,4 +215,9 @@ interface BotAPI {
     uploadFile: (appId: string, userId: string, file: File) => Promise<any>;
     moveFile: (appId: string, richMenuId: string, userId: string, path: string) => Promise<any>;
     leaveGroupRoom: (appId: string, chatroomId: string, userId: string) => Promise<any>;
+}
+
+interface ImageAPI {
+    uploadFile: (userId: string, file: File) => Promise<{ status: number, msg: string, data: { url: string, originalFilePath: string } }>;
+    moveFile: (userId: string, fromPath: string, toPath: string) => Promise<{ status: number, msg: string }>;
 }

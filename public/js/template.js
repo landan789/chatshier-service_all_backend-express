@@ -45,7 +45,7 @@
         $('#carousel-container').on('slide.bs.carousel', checkCarouselSide);
 
         $modal.on('show.bs.modal', initTemplateModal);
-        $modal.on('hidden.bs.modal', function() {
+        $modal.on('hide.bs.modal', function() {
             let modalAppId = $appSelector.val();
             if (nowSelectAppId !== modalAppId) {
                 $appDropdown.find('#' + modalAppId).trigger('click');
@@ -367,7 +367,7 @@
 
                 return new Promise(function(resolve, reject) {
                     var fileReader = new FileReader();
-                    fileReader.onload = function() {
+                    fileReader.onloadend = function() {
                         resolve(fileReader.result);
                     };
                     fileReader.readAsDataURL(file);
@@ -399,7 +399,7 @@
                 return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
                     return Promise.resolve().then(() => {
                         if (imageFile[imageFileNum]) {
-                            return api.image.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson) => {
+                            return api.image.uploadFile(userId, imageFile[imageFileNum]).then((resJson) => {
                                 return resJson.data.url;
                             });
                         }
@@ -464,7 +464,7 @@
                 return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
                     return Promise.resolve().then(() => {
                         if (imageFile[imageFileNum]) {
-                            return api.image.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson) => {
+                            return api.image.uploadFile(userId, imageFile[imageFileNum]).then((resJson) => {
                                 return resJson.data.url;
                             });
                         }

@@ -7,6 +7,7 @@ module.exports = (function() {
     const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     const appsPaymentsMdl = require('../models/apps_payments');
     const appsRichmenusMdl = require('../models/apps_richmenus');
+    const appsImagemapsMdl = require('../models/apps_imagemaps');
     const appsTemplatesMdl = require('../models/apps_templates');
     const fuseHlp = require('../helpers/fuse');
     const jwtHlp = require('../helpers/jwt');
@@ -281,6 +282,7 @@ module.exports = (function() {
                 return Promise.resolve({});
             });
 
+            /** @type {Chatshier.Models.Keywordreplies} */
             let keywordreplies = {};
             let keywordrepliesPromise = Promise.all(messages.map((message) => {
                 if (LINE === app.type &&
@@ -299,6 +301,38 @@ module.exports = (function() {
                     return _keywordreplies;
                 });
             })).then(() => {
+                return Promise.all(Object.keys(keywordreplies).map((keywordreplyId) => {
+                    let keywordreply = keywordreplies[keywordreplyId];
+                    switch (keywordreply.type) {
+                        case 'template':
+                            let templateId = keywordreply.template_id;
+                            return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
+                                // 此關鍵字回覆的模板訊息可能已被刪除或找不到，因此刪除回復訊息
+                                if (!(appsTemplates && appsTemplates[appId])) {
+                                    delete keywordreplies[keywordreplyId];
+                                    return;
+                                }
+                                let template = appsTemplates[appId].templates[templateId];
+                                Object.assign(keywordreplies[keywordreplyId], template);
+                            });
+                        case 'imagemap':
+                            let imagemapId = keywordreply.imagemap_id;
+                            return appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
+                                // 此關鍵字回覆的圖文訊息可能已被刪除或找不到，因此刪除回復訊息
+                                if (!(appsImagemaps && appsImagemaps[appId])) {
+                                    delete keywordreplies[keywordreplyId];
+                                    return;
+                                }
+                                let imagemap = appsImagemaps[appId].imagemaps[imagemapId];
+                                Object.assign(keywordreplies[keywordreplyId], imagemap);
+                            });
+                        case 'image':
+                        case 'text':
+                        default:
+                            return Promise.resolve();
+                    }
+                }));
+            }).then(() => {
                 return keywordreplies;
             });
 

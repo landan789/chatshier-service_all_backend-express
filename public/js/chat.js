@@ -2470,7 +2470,7 @@
         return api.appsImagemaps.findOne(appId, imagemapId, userId).then((resJson) => {
             let imagemap = {
                 type: resJson.data[imagemapId].type,
-                baseUri: resJson.data[imagemapId].baseUri,
+                baseUrl: resJson.data[imagemapId].baseUrl,
                 altText: resJson.data[imagemapId].altText,
                 baseSize: resJson.data[imagemapId].baseSize,
                 actions: resJson.data[imagemapId].actions,

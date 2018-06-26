@@ -169,8 +169,7 @@ module.exports = (function() {
                     }
 
                     let keywordreplies = appsKeywordreplies[appId].keywordreplies;
-                    let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
-                    keywordreplyIds = keywordreplyIds.filter((keywordreplyId) => !!keywordreplies[keywordreplyId].status);
+                    let keywordreplyIds = Object.keys(keywordreplies).filter((keywordreplyId) => !!keywordreplies[keywordreplyId].status);
                     let list = [{
                         text: inputText
                     }];

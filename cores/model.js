@@ -86,13 +86,17 @@ module.exports = (function() {
 
     const KeywordrepliesSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'keyword': {type: String, default: ''},
+        'subKeywords': {type: Array, default: []},
         'replyCount': {type: Number, default: 0},
         'status': {type: Boolean, default: false}, // false 為草稿，true 為開放
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
-        'updatedTime': {type: Date, default: Date.now()}
+        'src': {type: String, default: ''},
+        'template_id': {type: String, default: ''},
+        'imagemap_id': {type: String, default: ''}
     });
 
     const ComposesSchema = new Schema({
@@ -152,7 +156,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'type': {type: String, default: 'imagemap'},
-        'baseUri': {type: String, default: ''},
+        'baseUrl': {type: String, default: ''},
         'altText': {type: String, default: ''},
         'form': {type: String, default: ''},
         'title': {type: String, default: ''},

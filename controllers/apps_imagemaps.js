@@ -76,7 +76,7 @@ module.exports = (function() {
         postOne(req, res) {
             let appId = req.params.appid;
             let type = req.body.type || '';
-            let baseUri = req.body.baseUri || '';
+            let baseUrl = req.body.baseUrl || '';
             let altText = req.body.altText || '';
             let baseSize = req.body.baseSize || {};
             let actions = req.body.actions || {};
@@ -86,7 +86,7 @@ module.exports = (function() {
 
             let postImagemap = {
                 type,
-                baseUri,
+                baseUrl,
                 altText,
                 baseSize,
                 actions,
@@ -105,8 +105,8 @@ module.exports = (function() {
                 appsImagemaps = _appsImagemaps;
                 let imagemaps = appsImagemaps[appId].imagemaps;
                 let imagemapId = Object.keys(imagemaps)[0] || '';
-                let baseUri = imagemaps[imagemapId].baseUri;
-                let fileName = baseUri.split('/').pop();
+                let baseUrl = imagemaps[imagemapId].baseUrl;
+                let fileName = baseUrl.split('/').pop();
                 let fromPath = `/temp/${fileName}`;
                 let toPath = `/apps/${appId}/imagemaps/${imagemapId}/src/${fileName}`;
                 return storageHlp.filesMoveV2(fromPath, toPath);
@@ -126,7 +126,7 @@ module.exports = (function() {
             let imagemapId = req.params.imagemapid;
 
             let type = req.body.type || '';
-            let baseUri = req.body.baseUri || '';
+            let baseUrl = req.body.baseUrl || '';
             let altText = req.body.altText || '';
             let baseSize = req.body.baseSize || {};
             let actions = req.body.actions || {};
@@ -135,7 +135,7 @@ module.exports = (function() {
 
             let putImagemap = {
                 type,
-                baseUri,
+                baseUrl,
                 altText,
                 baseSize,
                 actions,

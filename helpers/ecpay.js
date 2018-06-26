@@ -24,6 +24,21 @@ module.exports = (function() {
             this.paymentHelper.hkey = hashKey;
             this.paymentHelper.hiv = hashIV;
         }
+
+        /**
+         * 將時間轉換為 ECPay 交易時間字串格式 YYYY-MM-DD hh:mm:ss
+         * @param {Date} datetime
+         */
+        datetimeToTradeDate(datetime) {
+            let leadZero = (i) => (i < 10 ? '0' : '') + i;
+            let YYYY = datetime.getFullYear();
+            let MM = leadZero(datetime.getMonth() + 1);
+            let DD = leadZero(datetime.getDate());
+            let hh = leadZero(datetime.getHours());
+            let mm = leadZero(datetime.getMinutes());
+            let ss = leadZero(datetime.getSeconds());
+            return YYYY + '/' + MM + '/' + DD + ' ' + hh + ':' + mm + ':' + ss;
+        }
     }
 
     return new ECPayHelper();

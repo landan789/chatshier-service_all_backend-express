@@ -12,21 +12,6 @@ module.exports = (function() {
     const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     const ordersMdl = require('../models/orders');
 
-    /**
-     * 將時間轉換為 ECPay 交易時間字串格式 YYYY-MM-DD hh:mm:ss
-     * @param {Date} datetime
-     */
-    const datetimeToTradeDate = (datetime) => {
-        let leadZero = (i) => (i < 10 ? '0' : '') + i;
-        let YYYY = datetime.getFullYear();
-        let MM = leadZero(datetime.getMonth() + 1);
-        let DD = leadZero(datetime.getDate());
-        let hh = leadZero(datetime.getHours());
-        let mm = leadZero(datetime.getMinutes());
-        let ss = leadZero(datetime.getSeconds());
-        return YYYY + '/' + MM + '/' + DD + ' ' + hh + ':' + mm + ':' + ss;
-    };
-
     class PaymentController extends ControllerCore {
         constructor() {
             super();
@@ -67,7 +52,7 @@ module.exports = (function() {
 
                 let params = {
                     MerchantTradeNo: order.tradeId, // 請帶 20 碼 uid, ex: f0a0d7e9fae1bb72bc93
-                    MerchantTradeDate: datetimeToTradeDate(new Date(order.tradeDate)), // ex: 2017/02/13 15:45:30
+                    MerchantTradeDate: ecpayHlp.datetimeToTradeDate(new Date(order.tradeDate)), // ex: 2017/02/13 15:45:30
                     TotalAmount: order.tradeAmount,
                     TradeDesc: order.tradeDescription,
                     ItemName: ItemName,
@@ -182,11 +167,7 @@ module.exports = (function() {
         }
 
         postECPayPaymentResult(req, res) {
-            let paymentNotify = {
-                url: req.hostname + req.originalUrl,
-                body: req.body
-            };
-            paymentsLog.start(paymentNotify);
+            this._recordLog(req);
 
             /** @type {ECPay.Payment.Result} */
             let paymentResult = req.body;
@@ -221,11 +202,7 @@ module.exports = (function() {
         }
 
         postSpgatewayPaymentResult(req, res) {
-            let paymentNotify = {
-                url: req.hostname + req.originalUrl,
-                body: req.body
-            };
-            paymentsLog.start(paymentNotify);
+            this._recordLog(req);
 
             /** @type {Spgateway.Payment.Result} */
             let paymentResult = req.body;
@@ -250,6 +227,14 @@ module.exports = (function() {
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
+        }
+
+        _recordLog(req) {
+            let paymentNotify = {
+                url: req.hostname + req.originalUrl,
+                body: req.body
+            };
+            return paymentsLog.start(paymentNotify);
         }
 
         _retrieveServerAddr(req) {

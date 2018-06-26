@@ -841,8 +841,8 @@ module.exports = (function() {
                 switch (app.type) {
                     case LINE:
                         return Promise.all(messages.map((message) => {
-                            if ('template' === message.type) {
-                                // TODO
+                            if ('image' === message.type) {
+                                message.originalContentUrl = message.previewImageUrl = message.src;
                             }
                             return Promise.resolve(message);
                         })).then((_messages) => {
@@ -972,7 +972,7 @@ module.exports = (function() {
                     if ('imagemap' === message.type) {
                         messages.push({
                             type: message.type,
-                            baseUrl: message.baseUri,
+                            baseUrl: message.baseUrl,
                             altText: message.altText,
                             baseSize: message.baseSize,
                             actions: message.actions
