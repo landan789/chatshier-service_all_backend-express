@@ -372,22 +372,20 @@
         }
 
         elementDisabled($(this), handleMessages.working);
-        return Promise.resolve().then(() => {
-            return api.image.uploadFile(userId, imageFile);
-        }).then((resJson) => {
+        return api.image.uploadFile(userId, imageFile).then((resJson) => {
             let url = resJson.data.url;
 
             let postImagemap = {
                 type: 'imagemap',
                 baseUrl: url,
-                altText: 'imagemap create by chatshier via line',
+                altText: title,
                 baseSize: {
                     height: 1040,
                     width: 1040
                 },
-                actions,
-                form,
-                title
+                actions: actions,
+                form: form,
+                title: title
             };
             return api.appsImagemaps.insert(appId, userId, postImagemap);
         }).then(() => {
@@ -417,14 +415,14 @@
         let putImagemap = {
             type: 'imagemap',
             baseUrl: currentImageUri,
-            altText: 'imagemap create by chatshier via line',
+            altText: title,
             baseSize: {
                 height: 1040,
                 width: 1040
             },
-            actions,
-            form,
-            title
+            actions: actions,
+            form: form,
+            title: title
         };
 
         elementDisabled($updateBtn, handleMessages.working);

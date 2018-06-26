@@ -76,18 +76,23 @@
                 $appSelector.append('<option value="' + _appId + '">' + app.name + '</option>');
             }
 
+            var $keywordreplyForm = $keywordreplyModal.find('.modal-body form');
+            var $isDraftCbx = $keywordreplyForm.find('input[name="keywordreplyIsDraft"]');
+
             if ($relatedBtn.hasClass('insert-btn')) {
                 modalAppId = nowSelectAppId;
                 modalKeywordreplyId = modalKeywordreply = void 0;
                 $appSelector.val(modalAppId);
 
-                $keywordreplyModal.find('input[name="keywordreplyKeyword"]').val('');
-                $keywordreplyModal.find('textarea[name="keywordreplyText"]').val('');
-                $keywordreplyModal.find('input[name="keywordreplyIsDraft"]').prop('checked', false);
+                $keywordreplyForm.find('input[name="keywordreplyKeyword"]').val('');
+                $keywordreplyForm.find('textarea[name="keywordreplyText"]').val('');
+                $isDraftCbx.prop('checked', false);
+                $isDraftCbx.parents('.form-group').removeClass('d-none');
 
                 var $replyContentSelect = $keywordreplyModal.find('#replyContentSelect');
-                $replyContentSelect.find('.reply-item').removeClass('active');
-                $replyContentSelect.find('.reply-item[reply-type="text"]').addClass('active').trigger('click');
+                var $textReplyItem = $replyContentSelect.find('.reply-item[reply-type="text"]');
+                $textReplyItem.addClass('active').siblings().removeClass('active');
+                $textReplyItem.trigger('click');
 
                 $keywordreplyModal.find('#insertSubmitBtn').removeClass('d-none');
                 $keywordreplyModal.find('#updateSubmitBtn').addClass('d-none');
@@ -102,19 +107,21 @@
             modalKeywordreply = appsKeywordreplies[modalAppId].keywordreplies[modalKeywordreplyId];
             $appSelector.val(modalAppId);
 
-            var targetData = modalKeywordreply;
-            var $keywordreplyForm = $keywordreplyModal.find('.modal-body form');
-            $keywordreplyForm.find('input[name="keywordreplyKeyword"]').val(targetData.keyword);
-            $keywordreplyForm.find('textarea[name="keywordreplyText"]').val(targetData.text);
+            var keywordreply = modalKeywordreply;
+            $keywordreplyForm.find('input[name="keywordreplyKeyword"]').val(keywordreply.keyword);
+            $keywordreplyForm.find('textarea[name="keywordreplyText"]').val(keywordreply.text);
 
             // 如果是屬於草稿則顯示 checkbox 否則隱藏
-            var checkboxIsDraft = $keywordreplyForm.find('.checkbox-is-draft');
-            checkboxIsDraft.find('input[name="keywordreplyIsDraft"]').prop('checked', !targetData.status);
-            if (!targetData.status) {
-                checkboxIsDraft.show();
+            $isDraftCbx.prop('checked', !keywordreply.status);
+            if (!keywordreply.status) {
+                $isDraftCbx.parents('.form-group').removeClass('d-none');
             } else {
-                checkboxIsDraft.hide();
+                $isDraftCbx.parents('.form-group').addClass('d-none');
             }
+
+            var $replyItem = $keywordreplyForm.find('#replyContentSelect .reply-item[reply-type="' + keywordreply.type + '"]');
+            $replyItem.addClass('active').siblings().removeClass('active');
+            $replyItem.trigger('click');
 
             $keywordreplyModal.find('#updateSubmitBtn').removeClass('d-none');
             $keywordreplyModal.find('#insertSubmitBtn').addClass('d-none');
@@ -146,10 +153,10 @@
                         return (
                             '<button type="button" class="btn btn-light btn-sm btn-border upload-image-btn">' +
                                 '<i class="fas fa-upload fa-fw"></i>' +
-                                '<span class="font-weight-bold">上傳圖片</span>' +
+                                '<span class="font-weight-bold">上傳圖像</span>' +
                             '</button>' +
                             '<input class="image-ghost d-none" type="file" name="replyImageFile" accept="image/png,image/jpg,image/jpeg" />' +
-                            '<div class="mt-2 w-100 bg-light preview-image-container" style="height: 16rem;">' +
+                            '<div class="position-relative mt-2 w-100 bg-light preview-image-container" style="height: 16rem;">' +
                                 '<img class="m-auto preview-image" src="' + (modalKeywordreply ? modalKeywordreply.src : '') + '" alt="" />' +
                             '</div>'
                         );
@@ -255,7 +262,7 @@
                 return api.appsKeywordreplies.insert(appId, userId, postKeywordreply);
             }).then(function(resJson) {
                 var _appsKeywordreplies = resJson.data;
-                if (appsKeywordreplies[appId]) {
+                if (!appsKeywordreplies[appId]) {
                     appsKeywordreplies[appId] = { keywordreplies: {} };
                 }
                 Object.assign(appsKeywordreplies[appId].keywordreplies, _appsKeywordreplies[appId].keywordreplies);
@@ -298,7 +305,7 @@
                 return api.appsKeywordreplies.update(appId, keywordreplyId, userId, putKeywordreply);
             }).then((resJson) => {
                 var _appsKeywordreplies = resJson.data;
-                if (appsKeywordreplies[appId]) {
+                if (!appsKeywordreplies[appId]) {
                     appsKeywordreplies[appId] = { keywordreplies: {} };
                 }
                 Object.assign(appsKeywordreplies[appId].keywordreplies, _appsKeywordreplies[appId].keywordreplies);
@@ -452,22 +459,40 @@
             for (var keywordreplyId in keywordreplies) {
                 var keywordreply = keywordreplies[keywordreplyId];
 
-                var trGrop = (
+                var keywordreplyRow = (
                     '<tr class="keywordreply-row" app-id="' + appId + '" keywordreply-id="' + keywordreplyId + '">' +
                         '<td data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</td>' +
-                        '<td class="text-pre" data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>' +
+                        (function() {
+                            if ('text' === keywordreply.type) {
+                                return '<td class="text-pre" data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>';
+                            } else if ('image' === keywordreply.type) {
+                                return (
+                                    '<td class="text-pre">' +
+                                        '<label>圖像</label>' +
+                                        '<div class="position-relative image-container" style="width: 6rem; height: 6rem;">' +
+                                            '<img class="m-auto preview-image" src="' + keywordreply.src + '" alt="" style="max-height: 6rem;" />' +
+                                        '</div>' +
+                                    '</td>'
+                                );
+                            } else if ('imagemap' === keywordreply.type) {
+                                return '<td class="text-pre" data-title="圖文訊息">圖文訊息</td>';
+                            } else if ('template' === keywordreply.type) {
+                                return '<td class="text-pre" data-title="模板訊息">模板訊息</td>';
+                            }
+                            return '<td class="text-pre" data-title=""></td>';
+                        })() +
                         '<td>' + keywordreply.replyCount + '</td>' +
                         '<td>' +
-                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update-btn" data-toggle="modal" data-target="#keywordreplyModal" aria-hidden="true"></button>' +
                             '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove-btn"></button>' +
                         '</td>' +
                     '</tr>'
                 );
 
                 if (!keywordreply.status) {
-                    $draftTableElem.append(trGrop);
+                    $draftTableElem.append(keywordreplyRow);
                 } else {
-                    $openTableElem.append(trGrop);
+                    $openTableElem.append(keywordreplyRow);
                 }
             }
         });
