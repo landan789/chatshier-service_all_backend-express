@@ -420,8 +420,11 @@ module.exports = (function() {
                 let currentUserMemberId = Object.keys(members)[index];
                 // member 當下使用者所對應到的 member 在 該 group 中
                 let currentMember = members[currentUserMemberId];
-                if (OWNER !== currentMember.type && ADMIN !== currentMember.type) {
+                if (OWNER !== currentMember.type &&
+                    ADMIN !== currentMember.type &&
+                    currentUserMemberId !== memberId) {
                     // 只有當下使用者為 OWNER 或 ADMIN 才能夠 刪除 成員
+                    // 但是自己可以離開群組
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_REMOVE_GROUP_MEMBER);
                 }
 

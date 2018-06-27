@@ -70,15 +70,15 @@ module.exports = (function() {
          *
          * @param {string} groupId
          * @param {string | string[]} [memberIds]
-         * @param {boolean} [isDeleted]
+         * @param {boolean} [isDeleted=false]
          * @param {boolean} [status]
          * @param {(members: Chatshier.Models.Members | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.Members | null>}
          */
-        findMembers(groupId, memberIds, isDeleted = false, status = true, callback) {
+        findMembers(groupId, memberIds, isDeleted = false, status, callback) {
             if (memberIds && !(memberIds instanceof Array)) {
                 memberIds = [memberIds];
-            };
+            }
 
             let query = {
                 '_id': this.Types.ObjectId(groupId),

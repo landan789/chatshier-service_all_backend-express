@@ -2062,7 +2062,9 @@
                         $memberStatus.find('.active').removeClass('d-none');
                         $memberStatus.find('.inactive').addClass('d-none');
                         $self.remove();
-                        $.notify('您已加入群組', { type: 'success' });
+                        $.notify('您已加入 "' + groups[groupId].name + '" 群組', { type: 'success' });
+                    }).catch(() => {
+                        $.notify('加入群組失敗', { type: 'danger' });
                     });
                 });
 
@@ -2082,7 +2084,7 @@
                         $memberRow.remove();
                         delete groups[groupId].members[memberId];
 
-                        // 如果是群組成員自行離開群組，離開後開除整個群組資料
+                        // 如果是群組成員自行離開群組，離開後刪除整個群組資料
                         if (memberUserId === userId) {
                             $groupBody.find('.group-tab[group-id="' + groupId + '"]').remove();
                             $groupBody.find('.card-collapse#' + groupId).remove();
@@ -2098,6 +2100,10 @@
                             };
                             socket.emit(SOCKET_EVENTS.USER_REMOVE_GROUP_MEMBER_TO_SERVER, socketBody, resolve);
                         });
+                    }).then(() => {
+                        $.notify('刪除成員成功', { type: 'success' });
+                    }).catch(() => {
+                        $.notify('刪除成員失敗', { type: 'danger' });
                     });
                 });
             };
