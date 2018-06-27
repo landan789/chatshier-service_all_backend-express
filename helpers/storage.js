@@ -9,6 +9,9 @@ module.exports = (function() {
     });
     const POLL_INTERVAL = 250; // 每秒詢問 4 次
 
+    const FDL_API_ENDPOINT = 'https://firebasedynamiclinks.googleapis.com/v1/shortLinks';
+    const FDL_REFERER = 'https://service.chatshier.com';
+
     class StorageHelper {
         constructor() {
             this.tempPath = '/temp';
@@ -161,10 +164,10 @@ module.exports = (function() {
          * @returns {Promise<{ shortLink: string, previewLink: string }>}
          */
         FDLcreate(url) {
-            let apiEndpoint = 'https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=' + chatshierCfg.GOOGLE.serverAPIKey;
+            let apiEndpoint = FDL_API_ENDPOINT + '?key=' + chatshierCfg.GOOGLE.serverAPIKey;
             let reqHeaders = new Headers({
                 'Content-Type': 'application/json',
-                'referer': 'https://service.chatshier.com'
+                'referer': FDL_REFERER
             });
 
             let args = {

@@ -3,7 +3,6 @@ module.exports = (function() {
     const FuseJS = require('fuse.js');
     const usersMdl = require('../models/users');
     const appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
-    const appsTemplatesMdl = require('../models/apps_templates');
     const redisHlp = require('./redis');
     const REDIS_API_CHANNEL = redisHlp.CHANNELS.REDIS_API_CHANNEL;
 
@@ -182,50 +181,6 @@ module.exports = (function() {
                         }
                     });
                     return _keywordreplies;
-                });
-            });
-        };
-
-        /**
-         * @param {string} appId
-         * @param {string} inputText
-         * @returns {Promise<Chatshier.Models.Templates>}
-         */
-        searchTemplates(appId, inputText) {
-            let fuseOptions = this.fuseOptionBuilder({
-                includeScore: true,
-                distance: 100,
-                threshold: 1,
-                keys: [
-                    'text'
-                ]
-            });
-
-            return Promise.resolve().then(() => {
-                if (!(appId && inputText)) {
-                    return {};
-                }
-
-                return appsTemplatesMdl.find(appId).then((appsTemplates) => {
-                    if (!(appsTemplates && appsTemplates[appId])) {
-                        return {};
-                    }
-
-                    let templates = appsTemplates[appId].templates;
-                    let templatesIds = Object.keys(appsTemplates[appId].templates);
-                    let list = [{
-                        text: inputText
-                    }];
-                    let templateFuse = new FuseJS(list, fuseOptions);
-                    let _templates = {};
-                    templatesIds.forEach((templatesId) => {
-                        let results = templateFuse.search(templates[templatesId].keyword);
-
-                        if (results.length > 0 && 0.1 > results[0].score) {
-                            _templates[templatesId] = templates[templatesId];
-                        }
-                    });
-                    return _templates;
                 });
             });
         };
