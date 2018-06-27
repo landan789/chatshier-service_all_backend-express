@@ -17,6 +17,11 @@ module.exports = (function() {
     const FACEBOOK = 'FACEBOOK';
     const SYSTEM = 'SYSTEM';
 
+    const PAYMENT_LOGOS = {
+        ECPay: 'https://www.ecpay.com.tw/Content/Themes/WebStyle20131201/images/header_logo.png',
+        Spgateway: 'https://www.spgateway.com/ud/img/logo.png'
+    };
+
     class ChatshierHelp {
         /**
          * 根據 HTTP request body 與 app.type 決定要回傳甚麼訊息
@@ -111,6 +116,7 @@ module.exports = (function() {
                                 altText: '小額捐款金額選項',
                                 template: {
                                     type: 'buttons',
+                                    imageSize: 'contain',
                                     text: '點擊以下金額進行捐款動作',
                                     /** @type {Chatshier.Models.TemplateAction[]} */
                                     actions: []
@@ -128,7 +134,18 @@ module.exports = (function() {
                                     return;
                                 }
 
-                                donateMessage.template.title = payment.type; // 將金流服務的類型作為訊息的標題顯示
+                                PAYMENT_LOGOS[payment.type] && (donateMessage.template.thumbnailImageUrl = PAYMENT_LOGOS[payment.type]);
+                                switch (payment.type) {
+                                    case 'ECPay':
+                                        donateMessage.template.title = '綠界科技 ' + payment.type;
+                                        break;
+                                    case 'Spgateway':
+                                        donateMessage.template.title = '智付通 ' + payment.type;
+                                        break;
+                                    default:
+                                        break;
+                                }
+
                                 let donateAmounts = context ? context.donateAmounts || [] : [];
                                 for (let i in donateAmounts) {
                                     let amount = donateAmounts[i] + ' ' + (context ? context.currency : '');
