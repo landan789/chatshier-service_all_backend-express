@@ -157,7 +157,7 @@
                             '</button>' +
                             '<input class="image-ghost d-none" type="file" name="replyImageFile" accept="image/png,image/jpg,image/jpeg" />' +
                             '<div class="position-relative mt-2 w-100 bg-light preview-image-container" style="height: 16rem;">' +
-                                '<img class="m-auto preview-image" src="' + (modalKeywordreply ? modalKeywordreply.src : '') + '" alt="" />' +
+                                '<img class="m-auto preview-image" src="/image/upload.png" alt="" />' +
                             '</div>'
                         );
                     case 'imagemap':
@@ -176,8 +176,8 @@
                             return appsImagemaps[appId].imagemaps;
                         }).then((imagemaps) => {
                             return (
-                                '<label class="font-weight-bold">' +
-                                    '<span class="font-weight-bold">選擇已新增的圖文訊息</span>' +
+                                '<label class="w-100 col-form-label font-weight-bold">' +
+                                    '<div class="mb-2 font-weight-bold">選擇已新增的圖文訊息:</div>' +
                                     '<select class="imagemap-select form-control" value="">' +
                                         '<option value="">未選擇</option>' +
                                         (function() {
@@ -206,8 +206,8 @@
                             return appsTemplates[appId].templates;
                         }).then((templates) => {
                             return (
-                                '<label class="font-weight-bold">' +
-                                    '<span class="font-weight-bold">選擇已新增的模板訊息</span>' +
+                                '<label class="w-100 col-form-label font-weight-bold">' +
+                                    '<div class="mb-2 font-weight-bold">選擇已新增的模板訊息:</div>' +
                                     '<select class="template-select form-control" value="">' +
                                         '<option value="">未選擇</option>' +
                                         (function() {
@@ -222,11 +222,31 @@
                         });
                     case 'text':
                     default:
-                        return '<textarea class="form-control" name="keywordreplyText" style="resize: vertical"></textarea>';
+                        return '<textarea class="form-control keywordreply-text" name="keywordreplyText" style="resize: vertical"></textarea>';
                 }
             }).then((html) => {
                 var $replyContentWrapper = $keywordreplyModal.find('#replyContentWrapper');
                 $replyContentWrapper.html(html);
+
+                if (!modalKeywordreply) {
+                    return;
+                }
+
+                if (modalKeywordreply.text) {
+                    $replyContentWrapper.find('.keywordreply-text').val(modalKeywordreply.text);
+                }
+
+                if (modalKeywordreply.src) {
+                    $replyContentWrapper.find('.preview-image-container .preview-image').prop('src', modalKeywordreply.src);
+                }
+
+                if (modalKeywordreply.imagemap_id) {
+                    $replyContentWrapper.find('.imagemap-select').val(modalKeywordreply.imagemap_id);
+                }
+
+                if (modalKeywordreply.template_id) {
+                    $replyContentWrapper.find('.template-select').val(modalKeywordreply.template_id);
+                }
             });
         });
 
@@ -470,7 +490,7 @@
                                     '<td class="text-pre">' +
                                         '<label>圖像</label>' +
                                         '<div class="position-relative image-container" style="width: 6rem; height: 6rem;">' +
-                                            '<img class="m-auto preview-image" src="' + keywordreply.src + '" alt="" style="max-height: 6rem;" />' +
+                                            '<img class="m-auto preview-image" src="' + keywordreply.src + '" alt="" />' +
                                         '</div>' +
                                     '</td>'
                                 );
