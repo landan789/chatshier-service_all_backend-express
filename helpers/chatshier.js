@@ -237,8 +237,11 @@ module.exports = (function() {
                                     }
 
                                     let payment = appsPayments[appId].payments[paymentId];
-                                    let url = serverAddr + '/payment/' + payment.type.toLowerCase();
+                                    if (!(payment && payment.type)) {
+                                        return;
+                                    }
 
+                                    let url = serverAddr + '/payment/' + payment.type.toLowerCase();
                                     switch (payment.type) {
                                         case 'ECPay':
                                             url += '/aio-check-out-all?';
