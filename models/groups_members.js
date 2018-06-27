@@ -62,16 +62,16 @@ module.exports = (function() {
          * 根據 groupId 找到 members
          *
          * @param {string} groupId
-         * @param {string|string[]|null} memberIds
-         * @param {boolean|null} isDeleted
-         * @param {boolean|null} status
-         * @param {(chatroomId: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {string | string[]} [memberIds]
+         * @param {boolean} [isDeleted=false]
+         * @param {boolean} [status]
+         * @param {(members: Chatshier.Models.Members | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Members | null>}
          */
-        findMembers(groupId, memberIds, isDeleted = false, status = true, callback) {
+        findMembers(groupId, memberIds, isDeleted = false, status, callback) {
             if (memberIds && !(memberIds instanceof Array)) {
                 memberIds = [memberIds];
-            };
+            }
 
             let query = {
                 '_id': this.Types.ObjectId(groupId),
