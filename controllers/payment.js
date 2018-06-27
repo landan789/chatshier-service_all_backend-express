@@ -53,7 +53,7 @@ module.exports = (function() {
                 let params = {
                     MerchantTradeNo: order.tradeId, // 請帶 20 碼 uid, ex: f0a0d7e9fae1bb72bc93
                     MerchantTradeDate: ecpayHlp.datetimeToTradeDate(new Date(order.tradeDate)), // ex: 2017/02/13 15:45:30
-                    TotalAmount: order.tradeAmount,
+                    TotalAmount: '' + order.tradeAmount,
                     TradeDesc: order.tradeDescription,
                     ItemName: ItemName,
                     ReturnURL: serverAddr + '/payment/ecpay/payment-result'
@@ -295,7 +295,7 @@ module.exports = (function() {
 
                 return ordersMdl.update(orderId, putOrder).then((orders) => {
                     if (!(orders && orders[tradeId])) {
-                        return Promise.resolve(API_ERROR.ORDER_FAILED_TO_UPDATE);
+                        return Promise.reject(API_ERROR.ORDER_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve();
                 });

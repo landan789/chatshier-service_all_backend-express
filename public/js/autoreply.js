@@ -185,7 +185,7 @@
 
             generatePeriodItem(period) {
                 let $periodItem = $(
-                    '<div class="my-2 d-flex align-items-center period-item">' +
+                    '<div class="my-2 d-flex align-items-center period-item animated fadeIn">' +
                         '<div class="mr-2 form-control">' +
                             '<div class="period-text">' +
                                 '<span class="mr-2">時段:</span>' +
