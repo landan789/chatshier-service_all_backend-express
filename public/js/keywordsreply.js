@@ -157,7 +157,7 @@
                             '</button>' +
                             '<input class="image-ghost d-none" type="file" name="replyImageFile" accept="image/png,image/jpg,image/jpeg" />' +
                             '<div class="position-relative mt-2 w-100 bg-light preview-image-container" style="height: 16rem;">' +
-                                '<img class="m-auto preview-image" src="/image/upload.png" alt="" />' +
+                                '<img class="image-fit" src="/image/upload.png" alt="" />' +
                             '</div>'
                         );
                     case 'imagemap':
@@ -237,7 +237,7 @@
                 }
 
                 if (modalKeywordreply.src) {
-                    $replyContentWrapper.find('.preview-image-container .preview-image').prop('src', modalKeywordreply.src);
+                    $replyContentWrapper.find('.preview-image-container img').prop('src', modalKeywordreply.src);
                 }
 
                 if (modalKeywordreply.imagemap_id) {
@@ -363,7 +363,7 @@
                 fileReader.readAsDataURL(replyImageFile);
             }).then((imgBase64) => {
                 var $previewImageContainer = $(fileInput).siblings('.preview-image-container');
-                var $previewImage = $previewImageContainer.find('.preview-image');
+                var $previewImage = $previewImageContainer.find('img');
                 $previewImage.prop('src', imgBase64);
             }).catch(() => {
                 return $.notify('載入失敗', { type: 'danger' });
@@ -490,7 +490,7 @@
                                     '<td class="text-pre">' +
                                         '<label>圖像</label>' +
                                         '<div class="position-relative image-container" style="width: 6rem; height: 6rem;">' +
-                                            '<img class="m-auto preview-image" src="' + keywordreply.src + '" alt="" />' +
+                                            '<img class="image-fit" src="' + keywordreply.src + '" alt="" />' +
                                         '</div>' +
                                     '</td>'
                                 );
