@@ -61,6 +61,8 @@
     $jqDoc.on('click', '.activate-btn', activateRichmenu);
     $jqDoc.on('click', '.deactivate-btn', deactivateRichmenu);
     $jqDoc.on('click', '.set-default-btn', setDefaultRichmenu);
+    // 停用所有 form 的提交
+    $jqDoc.on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
     (function modalProcess() {
         var $modal = $('#richmenu-modal');

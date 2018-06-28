@@ -77,6 +77,9 @@
     $(document).on('click', '.edit-app-btn', editOneApp);
     $(document).on('click', '.remove-app-btn', removeOneApp);
 
+    // 停用所有 form 的提交
+    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
+
     $(document).on('click', '#changePasswordBtn', function(ev) {
         var $changePasswordCollapse = $('#changePasswordCollapse');
         $(ev.target).text($changePasswordCollapse.hasClass('show') ? '展開' : '關閉');
@@ -1183,10 +1186,14 @@
                     for (var i = 0; i < $fieldRows.length; i++) {
                         var $row = $($fieldRows[i]);
                         var data = {
-                            text: $row.find('.field-name input').val(),
+                            text: ($row.find('.field-name input').val() || '').trim(),
                             setsType: $row.find('.field-type select option:selected').val(),
                             order: i
                         };
+
+                        if (!data.text) {
+                            return $.notify('名稱不可設置為空', { type: 'warning' });
+                        }
 
                         switch (data.setsType) {
                             case fieldEnums.setsType.MULTI_SELECT:
@@ -1268,6 +1275,7 @@
                                     '<option value="' + fieldEnums.setsType.SELECT + '">單一選項</option>' +
                                     '<option value="' + fieldEnums.setsType.CHECKBOX + '">勾選</option>' +
                                     '<option value="' + fieldEnums.setsType.NUMBER + '">數字</option>' +
+                                    '<option value="' + fieldEnums.setsType.TEXT + '">文字</option>' +
                                 '</select>' +
                             '</div>' +
                         '</div>' +

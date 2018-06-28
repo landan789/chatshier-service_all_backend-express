@@ -41,6 +41,9 @@
     $jqDoc.on('click', '#insert-btn', insertImagemap);
     $jqDoc.on('click', '#remove-btn', removeImagemap);
 
+    // 停用所有 form 的提交
+    $jqDoc.on('submit', 'form', function(ev) { return ev.preventDefault(); });
+
     $modal.on('show.bs.modal', function(ev) {
         let $relatedBtn = $(ev.relatedTarget);
         cleanModal();

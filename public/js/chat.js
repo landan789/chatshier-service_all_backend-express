@@ -472,6 +472,9 @@
     $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
 
+    // 停用所有 form 的提交
+    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
+
     $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
         if (13 === ev.keyCode && ev.ctrlKey) {
             $('.message-input-container #submitMessageBtn').click();
@@ -1529,12 +1532,15 @@
                                     </div>` +
                                     '<div class="d-flex flex-column template-buttons">' +
                                         (function() {
-                                            return template.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
-                                                    <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
-                                                    <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
-                                                </div>`
-                                            )).join('');
+                                            return template.actions.map((action, i) => {
+                                                action.label = action.label || '';
+                                                return (
+                                                    `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
+                                                        <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
+                                                        <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
+                                                    </div>`
+                                                );
+                                            }).join('');
                                         })() +
                                     '</div>' +
                                 '</div>'
@@ -1553,12 +1559,15 @@
                                     </div>` +
                                     '<div class="d-flex flex-column template-buttons">' +
                                         (function() {
-                                            return column.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
-                                                    <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
-                                                    <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
-                                                </div>`
-                                            )).join('');
+                                            return column.actions.map((action, i) => {
+                                                action.label = action.label || '';
+                                                return (
+                                                    `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
+                                                        <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
+                                                        <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
+                                                    </div>`
+                                                );
+                                            }).join('');
                                         })() +
                                     '</div>' +
                                 '</div>'
@@ -1575,7 +1584,7 @@
             case 'uri':
                 return action.uri;
             default:
-                return action.text;
+                return action.text || '';
         }
     }
 
