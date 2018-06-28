@@ -18,7 +18,7 @@
 
     var logos = {
         [LINE]: 'https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg',
-        [FACEBOOK]: 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png',
+        [FACEBOOK]: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Facebook_Messenger_logo.svg',
         [WECHAT]: 'https://cdn.worldvectorlogo.com/logos/wechat.svg',
         [CHATSHIER]: 'image/logo-no-transparent.png'
     };
@@ -27,6 +27,7 @@
     var DEFAULT_CHATROOM_NAME = '群組聊天室';
     var SOCKET_NAMESPACE = '/chatshier';
     var SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    var SOCKET_EVENTS = window.SOCKET_EVENTS;
 
     // var BREAKPOINT_SM = 576;
     // var BREAKPOINT_MD = 768;
@@ -41,13 +42,20 @@
         userId = '';
     }
 
-    var chatroomList = [];
-    var apps = {}; // 此變數用來裝所有的 app 資料
-    var appsChatrooms = {};
-    var appsFields = {};
     var appsAgents = {};
+    var chatroomList = [];
+
+    /** @type {Chatshier.Models.Apps} */
+    var apps = {};
+    /** @type {Chatshier.Models.AppsChatrooms} */
+    var appsChatrooms = {};
+    /** @type {Chatshier.Models.AppsFields} */
+    var appsFields = {};
+    /** @type {Chatshier.Models.Consumers} */
     var consumers = {};
+    /** @type {Chatshier.Models.Groups} */
     var groups = {};
+    /** @type {Chatshier.Models.Users} */
     var users = {};
 
     // selectors
@@ -471,6 +479,9 @@
     $mediaBtns.on('click', triggerFileUpload); // 傳圖，音，影檔功能
     $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
+
+    // 停用所有 form 的提交
+    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
     $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
         if (13 === ev.keyCode && ev.ctrlKey) {
@@ -1506,9 +1517,9 @@
                                     '<div class="d-flex flex-row justify-content-between template-sm-buttons">' +
                                         (function() {
                                             return template.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-auto template-sm-button${i + 1}">
-                                                    <span class="template-confirm pl-1">${8 >= action.label.length ? action.label : `${action.label.substring(0, 6)}...`}</span>
-                                                    <span class="template-confirm pl-1">(${4 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 4)}...`})</span>
+                                                `<div class="d-flex flex-column justify-content-center my-auto px-3 template-sm-button${i + 1}">
+                                                    <span class="template-confirm">${8 >= action.label.length ? action.label : `${action.label.substring(0, 6)}...`}</span>
+                                                    <span class="template-confirm">(${4 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 4)}...`})</span>
                                                 </div>`
                                             )).join('');
                                         })() +
@@ -1518,23 +1529,33 @@
                         case 'buttons':
                             return (
                                 '<div class="template ml-1">' +
-                                    '<div class="text-center top-img-container">' +
-                                        `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
-                                    '</div>' +
-                                    `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
+                                    (function() {
+                                        if (template.thumbnailImageUrl) {
+                                            return (
+                                                '<div class="text-center top-img-container">' +
+                                                    `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
+                                                '</div>'
+                                            );
+                                        }
+                                        return '';
+                                    })() +
+                                    `<div class="template-title py-2 px-3">
                                         <span class="template-title">${template.title}</span>
                                     </div>` +
-                                    `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
+                                    `<div class="template-desc py-2 px-3">
                                         <span class="template-desc">${template.text}</span>
                                     </div>` +
-                                    '<div class="d-flex flex-column template-buttons">' +
+                                    '<div class="d-flex flex-column py-2 template-buttons">' +
                                         (function() {
-                                            return template.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
-                                                    <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
-                                                    <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
-                                                </div>`
-                                            )).join('');
+                                            return template.actions.map((action, i) => {
+                                                let label = action.label || '';
+                                                return (
+                                                    `<div class="d-flex flex-column justify-content-center my-1 px-3 template-button${i + 1}">
+                                                        <span class="template-button">${10 >= label.length ? label : `${label.substring(0, 9)}...`}</span>
+                                                        <span class="template-button">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
+                                                    </div>`
+                                                );
+                                            }).join('');
                                         })() +
                                     '</div>' +
                                 '</div>'
@@ -1545,20 +1566,23 @@
                                     '<div class="text-center top-img-container">' +
                                         `<img src="${column.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
                                     '</div>' +
-                                    `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
+                                    `<div class="template-title py-2 px-3">
                                         <span class="template-title">${column.title}</span>
                                     </div>` +
-                                    `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
+                                    `<div class="template-desc py-2 px-3">
                                         <span class="template-desc">${column.text}</span>
                                     </div>` +
-                                    '<div class="d-flex flex-column template-buttons">' +
+                                    '<div class="d-flex flex-column py-2 template-buttons">' +
                                         (function() {
-                                            return column.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
-                                                    <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
-                                                    <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
-                                                </div>`
-                                            )).join('');
+                                            return column.actions.map((action, i) => {
+                                                let label = action.label || '';
+                                                return (
+                                                    `<div class="d-flex flex-column justify-content-center my-1 px-3 template-button${i + 1}">
+                                                        <span class="template-button">${10 >= label.length ? label : `${label.substring(0, 9)}...`}</span>
+                                                        <span class="template-button">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
+                                                    </div>`
+                                                );
+                                            }).join('');
                                         })() +
                                     '</div>' +
                                 '</div>'
@@ -1573,9 +1597,13 @@
     function getTemplateOutput(action) {
         switch (action.type) {
             case 'uri':
-                return action.uri;
+                return action.uri || '';
+            case 'text':
+                return action.text || '';
+            case 'postback':
+                return '互動資料';
             default:
-                return action.text;
+                return '';
         }
     }
 
@@ -1796,8 +1824,8 @@
                     var fields = appsFields[appId].fields;
                     var fieldIds = Object.keys(fields);
 
-                    var SETS_TYPES = api.appsFields.enums.setsType;
-                    var FIELD_TYPES = api.appsFields.enums.type;
+                    var SETS_TYPES = api.appsFields.SETS_TYPES;
+                    var FIELD_TYPES = api.appsFields.TYPES;
                     fieldIds.sort(function(a, b) {
                         let fieldsA = appsFields[appId].fields[a];
                         let fieldsB = appsFields[appId].fields[b];
@@ -1822,7 +1850,7 @@
                         }
 
                         var fieldValue;
-                        if (field.type === api.appsFields.enums.type.CUSTOM) {
+                        if (field.type === api.appsFields.TYPES.CUSTOM) {
                             fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
                         } else {
                             fieldValue = undefined !== messager[field.alias] ? messager[field.alias] : '';
@@ -2160,7 +2188,7 @@
         // 如果 1vs1 聊天室中的客戶已經封鎖或解除關注，則無法發送任何訊息給對方
         if (!chatroom.platformGroupId) {
             var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
-            if (!chatroom.platformGroupId && messager.isUnfollow) {
+            if (!chatroom.platformGroupId && messager.isUnfollowed) {
                 $messageInputContainer.find('button').attr('disabled', true);
                 $messageInputContainer.find('input').attr('disabled', true);
                 $submitMessageInput.attr('placeholder', '對方已取消關注');
@@ -2782,7 +2810,7 @@
 
         var $fieldRows = $profileGroup.find('.fields-form .user-info');
         var fields = appsFields[appId].fields;
-        var setsTypeEnums = api.appsFields.enums.setsType;
+        var SETS_TYPES = api.appsFields.SETS_TYPES;
 
         var putMessager = {};
         $fieldRows.each(function() {
@@ -2793,18 +2821,18 @@
             var value = '';
             var $fieldValue = $fieldRow.find('.field-value');
             switch (field.setsType) {
-                case setsTypeEnums.NUMBER:
+                case SETS_TYPES.NUMBER:
                     value = parseInt($fieldValue.val(), 10);
                     value = !isNaN(value) ? value : '';
                     break;
-                case setsTypeEnums.DATE:
+                case SETS_TYPES.DATE:
                     value = $fieldValue.val();
                     value = value ? new Date(value).getTime() : 0;
                     break;
-                case setsTypeEnums.CHECKBOX:
+                case SETS_TYPES.CHECKBOX:
                     value = $fieldValue.prop('checked');
                     break;
-                case setsTypeEnums.MULTI_SELECT:
+                case SETS_TYPES.MULTI_SELECT:
                     var $checkboxes = $fieldValue.find('input[type="checkbox"]:checked');
                     var selectVals = [];
                     $checkboxes.each(function() {
@@ -2812,8 +2840,8 @@
                     });
                     value = selectVals;
                     break;
-                case setsTypeEnums.TEXT:
-                case setsTypeEnums.SELECT:
+                case SETS_TYPES.TEXT:
+                case SETS_TYPES.SELECT:
                 default:
                     value = $fieldValue.val();
                     break;

@@ -7,9 +7,13 @@
 
     var api = window.restfulAPI;
 
+    /** @type {Chatshier.Models.Apps} */
     var apps = {};
+    /** @type {Chatshier.Models.AppsKeywordreplies} */
     var appsKeywordreplies = {};
+    /** @type {Chatshier.Models.AppsRichmenus} */
     var appsRichmenus = {};
+    /** @type {Chatshier.Models.AppsTemplates} */
     var appsTemplates = {};
 
     var nowSelectAppId = '';
@@ -46,13 +50,15 @@
         URI: 'uri',
         TEMPLATE: 'template',
         RICHMENU: 'richmenu',
-        CONSUMER_FORM: 'consumerForm'
+        CONSUMER_FORM: 'consumerForm',
+        DONATE: 'donate'
     });
 
     const POSTBACK_DATA_TYPES = Object.freeze({
         CHANGE_RICHMENU: 'CHANGE_RICHMENU',
         SEND_TEMPLATE: 'SEND_TEMPLATE',
-        SEND_CONSUMER_FORM: 'SEND_CONSUMER_FORM'
+        SEND_CONSUMER_FORM: 'SEND_CONSUMER_FORM',
+        SEND_DONATE_OPTIONS: 'SEND_DONATE_OPTIONS'
     });
 
     elementHide($('.action-input'));
@@ -61,6 +67,8 @@
     $jqDoc.on('click', '.activate-btn', activateRichmenu);
     $jqDoc.on('click', '.deactivate-btn', deactivateRichmenu);
     $jqDoc.on('click', '.set-default-btn', setDefaultRichmenu);
+    // 停用所有 form 的提交
+    $jqDoc.on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
     (function modalProcess() {
         var $modal = $('#richmenu-modal');
@@ -139,38 +147,42 @@
                     let $box = $($boxes[i]);
                     let action = areas[i].action;
                     let actionType = '';
-                    let actionData = action.data || '';
+                    let actionData = action.data ? JSON.parse(action.data) : {};
 
                     switch (action.type) {
                         case 'postback':
-                            if (actionData.indexOf('{') < 0) {
+                            if (action.data.indexOf('{') < 0) {
                                 break;
                             }
 
-                            let actionJson = JSON.parse(actionData);
+                            let actionJson = JSON.parse(action.data);
                             if (POSTBACK_DATA_TYPES.CHANGE_RICHMENU === actionJson.action) {
                                 actionType = ACTION_TYPES.RICHMENU;
-                                actionData = actionJson.richmenuId;
                             } else if (POSTBACK_DATA_TYPES.SEND_TEMPLATE === actionJson.action) {
                                 actionType = ACTION_TYPES.TEMPLATE;
-                                actionData = actionJson.templateId;
                             } else if (POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM === actionJson.action) {
                                 actionType = ACTION_TYPES.CONSUMER_FORM;
+                            } else if (POSTBACK_DATA_TYPES.SEND_DONATE_OPTIONS === actionJson.action) {
+                                actionType = ACTION_TYPES.DONATE;
+                                let donateAmounts = actionData.context ? actionData.context.donateAmounts || [] : [];
+                                for (let i in donateAmounts) {
+                                    actionData['donateAmount' + i] = donateAmounts[i];
+                                }
                             }
                             break;
                         case 'uri':
                             actionType = ACTION_TYPES.URI;
-                            actionData = action.uri;
+                            actionData.uri = action.uri;
                             break;
                         default:
                             actionType = ACTION_TYPES.TEXT;
-                            actionData = action.text;
+                            actionData.text = action.text;
                             break;
                     }
 
                     $box.addClass('marked');
                     $box.attr('action-type', actionType);
-                    $box.attr('action-data', actionData);
+                    $box.data('action', actionData);
                 });
             });
         });
@@ -271,7 +283,7 @@
                             '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.URI + '" data-toggle="tooltip" data-placement="top" title="前往指定連結">' +
                                 '<i class="fas fa-link fa-2x"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.TEMPLATE + '" data-toggle="tooltip" data-placement="top" title="顯示指定模板">' +
+                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.TEMPLATE + '" data-toggle="tooltip" data-placement="top" title="發送指定模板訊息">' +
                                 '<i class="fas fa-clipboard-list fa-2x"></i>' +
                             '</button>' +
                             '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.RICHMENU + '" data-toggle="tooltip" data-placement="top" title="切換已啟用的圖文選單">' +
@@ -279,6 +291,9 @@
                             '</button>' +
                             '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.CONSUMER_FORM + '" data-toggle="tooltip" data-placement="top" title="要求填寫個人資料">' +
                                 '<i class="fas fa-id-badge fa-2x"></i>' +
+                            '</button>' +
+                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.DONATE + '" data-toggle="tooltip" data-placement="top" title="小額捐款功能">' +
+                                '<i class="fas fas fa-donate fa-2x"></i>' +
                             '</button>' +
                         '</div>' +
                     '</div>' +
@@ -289,18 +304,22 @@
 
         function onActionDataChange() {
             let $contentInput = $(this);
+            let actionProperty = $contentInput.attr('action-property');
+
             let $actionInput = $contentInput.parents('.action-input');
             let boxId = $actionInput.attr('id').replace('-input', '');
             let $box = $('.show-richmenu-form #' + boxId);
 
             let actionType = $box.attr('action-type');
-            let actionData = $contentInput.val() || '';
+            let actionValue = $contentInput.val() || '';
+            let actionData = $box.data('action') || {};
 
             if (ACTION_TYPES.URI === actionType) {
                 let uriPrefix = $actionInput.find('.uri-prefix').text();
-                actionData = uriPrefix + actionData;
+                actionValue = uriPrefix + actionData;
             }
-            $box.attr('action-data', actionData);
+            actionData[actionProperty] = actionValue;
+            $box.data('action', actionData);
         }
 
         function onActionTypeChange(ev) {
@@ -339,7 +358,7 @@
                             return appsKeywordreplies[appId].keywordreplies;
                         }).then((keywordreplies) => {
                             return (
-                                '<textarea class="form-control content-input action-data" style="resize: vertical"></textarea>' +
+                                '<textarea class="form-control content-input action-data" action-property="text" style="resize: vertical"></textarea>' +
                                 '<select class="form-control keyword-select" value="">' +
                                     '<option value="" disabled selected>-- 選擇可用的關鍵字 --</option>' +
                                     (function() {
@@ -364,7 +383,7 @@
                                         '<a class="dropdown-item">tel:</a>' +
                                     '</div>' +
                                 '</div>' +
-                                '<input class="form-control content-input action-data" type="url" />' +
+                                '<input class="form-control content-input action-data" action-property="uri" type="url" />' +
                             '</div>'
                         );
                     case ACTION_TYPES.TEMPLATE:
@@ -386,7 +405,7 @@
                             return appsTemplates[appId].templates;
                         }).then((templates) => {
                             return (
-                                '<select class="form-control content-input action-data" value="">' +
+                                '<select class="form-control content-input action-data" action-property="templateId" value="">' +
                                     '<option value="" disabled selected>-- 請選擇目標模板 --</option>' +
                                     (function() {
                                         return Object.keys(templates).map((templateId) => {
@@ -415,7 +434,7 @@
                             return appsRichmenus[appId].richmenus;
                         }).then((richmenus) => {
                             return (
-                                '<select class="form-control content-input action-data" value="">' +
+                                '<select class="form-control content-input action-data" action-property="richmenuId" value="">' +
                                     '<option value="" disabled selected>-- 請選擇目標圖文選單 --</option>' +
                                     (function() {
                                         let richmenuIds = Object.keys(richmenus).filter((richmenuId) => richmenus[richmenuId].isActivated);
@@ -426,12 +445,69 @@
                                 '</select>'
                             );
                         });
+                    case ACTION_TYPES.DONATE:
+                        return (
+                            '<label class="w-100 font-weight-bold col-form-label">' +
+                                '<span>金額選項一:</span>' +
+                                '<input class="form-control content-input action-data" action-property="donateAmount0" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
+                            '</label>' +
+                            '<label class="w-100 font-weight-bold col-form-label">' +
+                                '<span>金額選項二:</span>' +
+                                '<input class="form-control content-input action-data" action-property="donateAmount1" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
+                            '</label>' +
+                            '<label class="w-100 font-weight-bold col-form-label">' +
+                                '<span>金額選項三:</span>' +
+                                '<input class="form-control content-input action-data" action-property="donateAmount2" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
+                            '</label>'
+                        );
+                    case ACTION_TYPES.CONSUMER_FORM:
+                        return (
+                            '<label class="w-100 font-weight-bold col-form-label">' +
+                                '<span>無須設定</span>' +
+                            '</label>'
+                        );
                     default:
                         break;
                 }
             }).then((html) => {
                 let $actionContent = $actionInput.find('.action-content');
                 $actionContent.html(html || '');
+
+                let actionData = $box.data('action') || {};
+                let $actionData = $actionInput.find('.action-data');
+                switch (actionType) {
+                    case ACTION_TYPES.TEXT:
+                        $actionData.val(actionData.text || '');
+                        break;
+                    case ACTION_TYPES.URI:
+                        let uri = actionData.uri || '';
+                        let uriSplits = uri.split(':');
+                        let uriPrefix = uriSplits.shift() || '';
+                        uriPrefix && (uriPrefix += ':');
+                        uri = uriSplits.pop() || '';
+
+                        if (0 === uriPrefix.indexOf('http')) {
+                            uriPrefix = uriPrefix + '//';
+                            uri = uri.substring(2);
+                        }
+                        $actionInput.find('.uri-prefix').text(uriPrefix);
+                        $actionData.val(uri || '');
+                        break;
+                    case ACTION_TYPES.TEMPLATE:
+                        $actionData.val(actionData.templateId || '');
+                        break;
+                    case ACTION_TYPES.RICHMENU:
+                        $actionData.val(actionData.richmenuId || '');
+                        break;
+                    case ACTION_TYPES.DONATE:
+                        for (let i = 0; i <= 2; i++) {
+                            $actionData.get(i).value = actionData['donateAmount' + i] || '';
+                        }
+                        break;
+                    case ACTION_TYPES.CONSUMER_FORM:
+                    default:
+                        break;
+                }
             });
         }
 
@@ -447,8 +523,8 @@
             let boxId = $actionInput.attr('id').replace('-input', '');
             let $box = $('.show-richmenu-form #' + boxId);
 
-            let actionData = uriPrefix + $actionData.val();
-            $box.attr('action-data', actionData);
+            let uri = uriPrefix + $actionData.val();
+            $box.data('action', { uri: uri });
         }
 
         function onKeywordSelect(ev) {
@@ -463,7 +539,6 @@
 
             let boxId = $box.attr('id');
             let actionType = $box.attr('action-type') || '';
-            let actionData = $box.attr('action-data') || '';
 
             $box.siblings().removeClass('checked').css('background-color', '');
             $box.addClass('checked').css('background-color', 'rgba(158, 158, 158, .7)');
@@ -475,31 +550,7 @@
             $actionSelect.attr('action-type', actionType);
 
             let $actionItem = $actionSelect.find('.action-item[action-type="' + actionType + '"]');
-            return onActionTypeChange({ target: $actionItem.get(0) }).then(() => {
-                let $actionData = $actionInput.find('.action-data');
-
-                if (ACTION_TYPES.URI === actionType) {
-                    let dataSplits = actionData.split(':');
-                    let uriPrefix = dataSplits.shift() || '';
-                    uriPrefix && (uriPrefix += ':');
-                    actionData = dataSplits.pop() || '';
-
-                    if (0 === uriPrefix.indexOf('http')) {
-                        uriPrefix = uriPrefix + '//';
-                        actionData = actionData.substring(2);
-                    }
-                    $actionInput.find('.uri-prefix').text(uriPrefix);
-                }
-
-                let elemLocalName = $actionData.prop('localName');
-                if ('input' === elemLocalName ||
-                    'select' === elemLocalName ||
-                    'textarea' === elemLocalName) {
-                    $actionData.val(actionData);
-                } else {
-                    $actionData.text(actionData);
-                }
-            });
+            return onActionTypeChange({ target: $actionItem.get(0) });
         }
 
         function photoFormShow() {
@@ -691,7 +742,7 @@
             $boxes.each(function() {
                 let $box = $(this);
                 let actionType = $box.attr('action-type');
-                let actionData = $box.attr('action-data');
+                let actionData = $box.data('action');
 
                 let boxWidth = $box.width();
                 let boxHeight = $box.height();
@@ -719,16 +770,16 @@
             switch (actionType) {
                 case ACTION_TYPES.TEXT:
                     richmenuAction.type = 'message';
-                    richmenuAction.text = actionData;
+                    richmenuAction.text = actionData.text;
                     break;
                 case ACTION_TYPES.URI:
                     richmenuAction.type = 'uri';
-                    richmenuAction.uri = actionData;
+                    richmenuAction.uri = actionData.uri;
                     break;
                 case ACTION_TYPES.RICHMENU:
                     let richmenuData = {
                         action: POSTBACK_DATA_TYPES.CHANGE_RICHMENU,
-                        richmenuId: actionData
+                        richmenuId: actionData.richmenuId
                     };
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(richmenuData);
@@ -736,23 +787,31 @@
                 case ACTION_TYPES.TEMPLATE:
                     let templateData = {
                         action: POSTBACK_DATA_TYPES.SEND_TEMPLATE,
-                        templateId: actionData
+                        templateId: actionData.templateId
                     };
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(templateData);
                     break;
                 case ACTION_TYPES.CONSUMER_FORM:
                     let userFormData = {
-                        action: POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM,
-                        context: {
-                            altText: '填寫基本資料模板訊息',
-                            templateTitle: '填寫基本資料',
-                            templateText: '開啟以下連結進行填寫動作',
-                            buttonText: '按此開啟'
-                        }
+                        action: POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM
                     };
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(userFormData);
+                    break;
+                case ACTION_TYPES.DONATE:
+                    let donateData = {
+                        action: POSTBACK_DATA_TYPES.SEND_DONATE_OPTIONS,
+                        context: {
+                            donateAmounts: [],
+                            currency: 'TWD'
+                        }
+                    };
+                    actionData.donateAmount0 && donateData.context.donateAmounts.push(actionData.donateAmount0);
+                    actionData.donateAmount1 && donateData.context.donateAmounts.push(actionData.donateAmount1);
+                    actionData.donateAmount2 && donateData.context.donateAmounts.push(actionData.donateAmount2);
+                    richmenuAction.type = 'postback';
+                    richmenuAction.data = JSON.stringify(donateData);
                     break;
                 default:
                     richmenuAction.type = 'postback';
@@ -861,7 +920,7 @@
 
             // 目前只有 LINE 支援此功能
             if (app.isDeleted ||
-                app.type !== api.apps.enums.type.LINE) {
+                app.type !== api.apps.TYPES.LINE) {
                 delete apps[appId];
                 continue;
             }
@@ -1021,6 +1080,8 @@
                     return '發送模板';
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM) >= 0) {
                     return '要求填寫個人資料';
+                } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_DONATE_OPTIONS) >= 0) {
+                    return '小額捐款功能';
                 }
                 return '未設定';
             case 'uri':
@@ -1063,7 +1124,7 @@
 
     function syncRichmenus(appId) {
         let app = apps[appId];
-        if (app.type !== api.apps.enums.type.LINE) {
+        if (app.type !== api.apps.TYPES.LINE) {
             return Promise.resolve();
         }
 

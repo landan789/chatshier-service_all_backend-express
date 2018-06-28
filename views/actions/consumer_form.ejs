@@ -2,12 +2,12 @@
 <html>
 
 <head>
-    <% include ../views/partials/meta_tags.ejs %>
-    <% include ../views/partials/favicon.ejs %>
+    <% include ../partials/meta_tags.ejs %>
+    <% include ../partials/favicon.ejs %>
     <title><%= title %></title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.9/css/all.css" integrity="sha384-5SOiIsAziJl6AWe0HWRKTXlfcSHKmYV4RBF18PPJ173Kzn7jzMyFuTtk8JA7QQG1" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-5SOiIsAziJl6AWe0HWRKTXlfcSHKmYV4RBF18PPJ173Kzn7jzMyFuTtk8JA7QQG1" crossorigin="anonymous" />
     <style>
         .data-container {
             max-width: 30rem; }
@@ -43,6 +43,7 @@
 
             <div class="row form-group">
                 <label class="col-12 col-sm-3 control-label" for="consumerEmail">
+                    <span class="text-danger">*</span>
                     <span class="font-weight-bold">Email:</span>
                 </label>
                 <div class="col-12 col-sm-9">
@@ -51,7 +52,8 @@
                         id="consumerEmail"
                         name="consumerEmail"
                         placeholder="Email"
-                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$" />
+                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$"
+                        required />
                 </div>
             </div>
 
@@ -89,13 +91,12 @@
 
             <div class="row form-group">
                 <label class="col-12 col-sm-3 font-weight-bold control-label">
-                    <span class="text-danger">*</span>
                     <span>生日:</span>
                 </label>
                 <div class="d-flex birthday-picker col-12 col-sm-9">
-                    <select class="mr-1 form-control birth-year" name="birthYear" required></select>
-                    <select class="mx-1 form-control birth-month" name="birthMonth" required></select>
-                    <select class="ml-1 form-control birth-day" name="birthDay" required></select>
+                    <select class="mr-1 form-control birth-year" name="birthYear"></select>
+                    <select class="mx-1 form-control birth-month" name="birthMonth"></select>
+                    <select class="ml-1 form-control birth-day" name="birthDay"></select>
                     <input type="hidden" name="birthdate" />
                 </div>
             </div>

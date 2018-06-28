@@ -35,6 +35,7 @@ declare module Chatshier {
                 [platformUid: string]: string
             },
             age: number,
+            address: string,
             custom_fields: {
                 [fieldId: string]: {
                     value: any
@@ -51,7 +52,7 @@ declare module Chatshier {
             remark: string,
             assigned_ids: string[],
             tags: string[],
-            isUnfollow: boolean
+            isUnfollowed: boolean
         }
 
         interface Messages {

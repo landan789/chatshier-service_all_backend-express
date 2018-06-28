@@ -3,6 +3,7 @@
 (function() {
     const SOCKET_NAMESPACE = '/chatshier';
     const SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    const SOCKET_EVENTS = window.SOCKET_EVENTS;
     const socket = io(SOCKET_SERVER_URL);
 
     const LINE = 'LINE';
@@ -17,9 +18,13 @@
     const PASSWORD_WAS_INCORRECT = '2.2';
     const NEW_PASSWORD_WAS_INCONSISTENT = '2.4';
 
+    /** @type {Chatshier.Models.Apps} */
     var apps = {};
+    /** @type {Chatshier.Models.AppsFields} */
     var appsFields = {};
+    /** @type {Chatshier.Models.Groups} */
     var groups = {};
+    /** @type {Chatshier.Models.Users} */
     var users = {};
 
     var api = window.restfulAPI;
@@ -76,6 +81,10 @@
     // ACTIONS
     $(document).on('click', '.edit-app-btn', editOneApp);
     $(document).on('click', '.remove-app-btn', removeOneApp);
+    $(document).on('click', '.app-webhook-id', copyWebhookToClipboard);
+
+    // 停用所有 form 的提交
+    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
     $(document).on('click', '#changePasswordBtn', function(ev) {
         var $changePasswordCollapse = $('#changePasswordCollapse');
@@ -247,6 +256,123 @@
         $settingModal.find('.modal-body').append(str);
     });
 
+    // payment modal 處理
+    (function() {
+        var $paymentModal = $('#paymentModal');
+        var $paymentSelect = $paymentModal.find('#paymentSelect');
+        var $paymentItemsContainer = $paymentModal.find('#paymentItemsContainer');
+
+        /** @type {Chatshier.Models.AppsPayments} */
+        var appsPayments = {};
+        /** @type {string} */
+        var selectAppId;
+        /** @type {string} */
+        var paymentId;
+
+        $paymentModal.on('show.bs.modal', loadAppPayment);
+        $paymentModal.on('click', '#paymentModalSubmitBtn', insertPayment);
+        $paymentSelect.on('change', onChangePayment);
+
+        function loadAppPayment(ev) {
+            var $targetBtn = $(ev.relatedTarget);
+            var appId = $targetBtn.attr('app-id');
+            selectAppId = appId;
+            paymentId = void 0;
+
+            $paymentSelect.val('');
+            $paymentItemsContainer.empty();
+
+            return Promise.resolve().then(function() {
+                if (!appsPayments[appId]) {
+                    return api.appsPayments.findAll(appId, userId).then(function(resJson) {
+                        var _appsPayments = resJson.data;
+                        if (!_appsPayments[appId]) {
+                            return {};
+                        }
+                        appsPayments[appId] = { payments: {} };
+                        Object.assign(appsPayments[appId].payments, _appsPayments[appId].payments);
+                        return appsPayments[appId].payments;
+                    });
+                }
+                return appsPayments[appId].payments;
+            }).then(function(payments) {
+                paymentId = Object.keys(payments).shift();
+                if (!paymentId) {
+                    return;
+                }
+
+                var payment = payments[paymentId];
+                $paymentSelect.val(payment.type);
+                onChangePayment();
+
+                $paymentItemsContainer.find('[name="paymentMerchantId"]').val(payment.merchantId);
+                $paymentItemsContainer.find('[name="paymentHashKey"]').val(payment.hashKey);
+                $paymentItemsContainer.find('[name="paymentHashIV"]').val(payment.hashIV);
+            });
+        }
+
+        function onChangePayment() {
+            var paymentType = $paymentSelect.val();
+
+            switch (paymentType) {
+                case 'ECPay':
+                case 'Spgateway':
+                    $paymentItemsContainer.html(
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">商店代號:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" name="paymentMerchantId" placeholder="在此貼上 商店代號" />' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">Hash Key:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" name="paymentHashKey" placeholder="在此貼上 Hash Key" />' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">Hash IV:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" name="paymentHashIV" placeholder="在此貼上 Hash IV" />' +
+                            '</div>' +
+                        '</div>'
+                    );
+                    break;
+                default:
+                    $paymentItemsContainer.empty();
+                    break;
+            }
+        }
+
+        function insertPayment() {
+            /** @type {Chatshier.Models.Payment} */
+            var newPayment = {
+                type: $paymentSelect.val(),
+                merchantId: $paymentItemsContainer.find('[name="paymentMerchantId"]').val() || '',
+                hashKey: $paymentItemsContainer.find('[name="paymentHashKey"]').val() || '',
+                hashIV: $paymentItemsContainer.find('[name="paymentHashIV"]').val() || ''
+            };
+
+            return Promise.resolve().then(function() {
+                if (paymentId) {
+                    return api.appsPayments.update(selectAppId, paymentId, userId, newPayment);
+                }
+                return api.appsPayments.insert(selectAppId, userId, newPayment);
+            }).then(function(resJson) {
+                var _appsPayments = resJson.data;
+                if (!appsPayments[selectAppId]) {
+                    appsPayments[selectAppId] = { payments: {} };
+                }
+                Object.assign(appsPayments[selectAppId].payments, _appsPayments[selectAppId].payments);
+
+                $.notify('設定成功', { type: 'success' });
+                $paymentModal.modal('hide');
+            }).catch(function() {
+                $.notify('發生錯誤，設定失敗', { type: 'danger' });
+            });
+        }
+    })();
+
     Promise.all([
         findAllGroups(),
         findUserProfile()
@@ -254,6 +380,7 @@
         // 列出所有設定的APPs
         return findAllApps();
     }).then(function() {
+        $('.app-container .card-collapse').first().collapse('show');
         return new Promise(function(resolve) {
             socket.emit(SOCKET_EVENTS.USER_REGISTRATION, userId, resolve);
         });
@@ -413,6 +540,7 @@
                             groups[groupId].app_ids.push(appId);
                             generateAppItem(appId, apps[appId]);
                         }
+                        $('[data-toggle="tooltip"]').tooltip();
                         responses.push(resJson);
                         return nextRequest(i + 1);
                     });
@@ -606,6 +734,7 @@
             }
             $('.chsr.nav-pills .nav-link:first-child').tab('show');
             $('.app-add-btn').removeAttr('disabled');
+            $('[data-toggle="tooltip"]').tooltip();
         });
     }
 
@@ -629,6 +758,7 @@
                 apps[appId] = _apps[appId];
                 generateAppItem(appId, _apps[appId]);
             }
+            $('[data-toggle="tooltip"]').tooltip();
         }).catch((resJson) => {
             $appAddModal.modal('hide');
             if (NO_PERMISSION_CODE === resJson.code) {
@@ -644,14 +774,9 @@
         return api.apps.update(appId, userId, appData).then(function(resJson) {
             var _apps = resJson.data;
             apps[appId] = _apps[appId];
-            var app = apps[appId];
 
-            $('tr[app-id="' + appId + '"] td[name="appName"]').html(app.name);
-            $('tr[app-id="' + appId + '"] td[name="appId1"]').html(app.id1);
-            $('tr[app-id="' + appId + '"] td[name="appId2"]').html(app.id2);
-            $('tr[app-id="' + appId + '"] td[name="appSecret"]').html(app.secret);
-            $('tr[app-id="' + appId + '"] td[name="appToken1"]').html(app.token1);
-            $('tr[app-id="' + appId + '"] td[name="appToken2"]').html(app.token2);
+            var app = apps[appId];
+            $('.apps-body .card[app-id="' + appId + '"] .app-name').text(app.name);
 
             $settingModal.modal('hide');
             $.notify('更新成功!', { type: 'success' });
@@ -677,7 +802,7 @@
 
             return api.apps.remove(appId, userId).then(function() {
                 delete apps[appId];
-                $('tr[app-id="' + appId + '"]').remove();
+                $('.apps-body .card[app-id="' + appId + '"]').remove();
 
                 $.notify('刪除成功!', { type: 'success' });
             }).catch((resJson) => {
@@ -729,157 +854,74 @@
                     (group.name || '') +
                 '</a>' +
             '</div>' +
-            '<div id="' + groupId + '-group" class="card-collapse collapse">' +
-                '<div class="app-table-space">' +
-                    '<button type="button" class="btn btn-light btn-border mt-2 mb-3 app-add-btn" group-id="' + groupId + '" data-toggle="modal" data-target="#appAddModal">' +
-                        '<i class="fas fa-plus fa-fw"></i>' +
-                        '<span>新增聊天機器人</span>' +
-                    '</button>' +
-                    '<table class="table chsr-group chsr-table">' +
-                        '<tbody class="group-body" group-id="' + groupId + '"></tbody>' +
-                    '</table>' +
-                '</div>' +
+            '<div id="' + groupId + '-group" class="px-3 py-2 card-collapse collapse">' +
+                '<button type="button" class="btn btn-light btn-border mt-2 mb-3 app-add-btn" group-id="' + groupId + '" data-toggle="modal" data-target="#appAddModal">' +
+                    '<i class="fas fa-plus fa-fw"></i>' +
+                    '<span>新增聊天機器人</span>' +
+                '</button>' +
+                '<div class="apps-body card-columns" group-id="' + groupId + '"></div>' +
             '</div>'
         );
         $('#apps .app-container').append(groupStr);
     }
 
     function generateAppItem(appId, app) {
-        var baseWebhookUrl = urlConfig.webhookUrl;
-        var itemHtml = '';
+        var baseWebhookUrl = window.urlConfig.webhookUrl;
+        var itemHtml = (
+            '<div class="card text-dark" app-id="' + appId + '">' +
+                '<div class="card-body">' +
+                    (function() {
+                        switch (app.type) {
+                            case LINE:
+                                return (
+                                    '<div class="d-flex align-items-center">' +
+                                        '<i class="fab fa-line fa-fw fa-2x line-color"></i>' +
+                                        '<span class="font-weight-bold app-name">' + app.name + '</span>' +
+                                    '</div>'
+                                );
+                            case FACEBOOK:
+                                return (
+                                    '<div class="d-flex align-items-center">' +
+                                        '<i class="fab fa-facebook-messenger fa-fw fa-2x fb-messsenger-color"></i>' +
+                                        '<span class="font-weight-bold app-name">' + app.name + '</span>' +
+                                    '</div>'
+                                );
+                            case WECHAT:
+                                return (
+                                    '<div class="d-flex align-items-center">' +
+                                        '<i class="fab fa-weixin fa-fw fa-2x wechat-color"></i>' +
+                                        '<span class="font-weight-bold app-name">' + app.name + '</span>' +
+                                    '</div>'
+                                );
+                            default:
+                                return '';
+                        }
+                    })() +
 
-        switch (app.type) {
-            case LINE:
-                itemHtml = (
-                    '<tr class="active" app-id="' + appId + '">' +
-                        '<th class="align-middle">LINE</th>' +
-                        '<th class="text-right">' +
-                            '<div id="group1" class="line">' +
-                                '<button type="button" class="m-2 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
-                                    '<span>刪除</span>' +
-                                '</button>' +
-                                '<button type="button" class="m-2 btn btn-border btn-light edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<i class="fas fa-edit fa-fw"></i>' +
-                                    '<span>編輯</span>' +
-                                '</button>' +
-                            '</div>' +
-                        '</th>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" name="appName">' + app.name + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Channel ID:</td>' +
-                        '<td class="long-token" name="appId1">' + app.id1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Channel secret:</td>' +
-                        '<td class="long-token" name="appSecret">' + app.secret + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Channel access token:</td>' +
-                        '<td class="long-token" name="appToken1">' + app.token1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Webhook URL:</td>' +
-                        '<td class="long-token">' +
-                            '<span name="appWebhookId">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
-                        '</td>' +
-                    '</tr>'
-                );
-                break;
-            case FACEBOOK:
-                itemHtml = (
-                    '<tr class="active" app-id="' + appId + '">' +
-                        '<th class="align-middle">Facebook</th>' +
-                        '<th class="text-right">' +
-                            '<div id="group3" class="fb">' +
-                                '<button class="m-2 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
-                                    '<span>刪除</span>' +
-                                '</button>' +
-                                '<button type="button" class="m-2 btn btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<i class="fas fa-edit fa-fw"></i>' +
-                                    '<span>編輯</span>' +
-                                '</button>' +
-                            '</div>' +
-                        '</th>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" name="appName">' + app.name + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">粉絲頁 ID:</td>' +
-                        '<td class="long-token" name="appId1">' + app.id1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App ID:</td>' +
-                        '<td class="long-token" name="appId2">' + app.id2 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App secret:</td>' +
-                        '<td class="long-token" name="appSecret">' + app.secret + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App client token:</td>' +
-                        '<td class="long-token" name="appToken1">' + app.token1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Page token:</td>' +
-                        '<td class="long-token" name="appToken2">' + app.token2 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Webhook URL:</td>' +
-                        '<td class="long-token">' +
-                            '<span name="appWebhookId">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
-                        '</td>' +
-                    '</tr>'
-                );
-                break;
-            case WECHAT:
-                itemHtml = (
-                    '<tr class="active" app-id="' + appId + '">' +
-                        '<th class="align-middle">Wechat</th>' +
-                        '<th class="text-right">' +
-                            '<div id="group1" class="wechat">' +
-                                '<button class="m-2 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
-                                    '<span>刪除</span>' +
-                                '</button>' +
-                                '<button type="button" class="m-2 btn btn-border btn-light edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<i class="fas fa-edit fa-fw"></i>' +
-                                    '<span>編輯</span>' +
-                                '</button>' +
-                            '</div>' +
-                        '</th>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" name="appName">' + app.name + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App ID:</td>' +
-                        '<td class="long-token" name="appId1">' + app.id1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App secret:</td>' +
-                        '<td class="long-token" name="appSecret">' + app.secret + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Webhook URL:</td>' +
-                        '<td class="long-token">' +
-                            '<span name="appWebhookId">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
-                        '</td>' +
-                    '</tr>'
-                );
-                break;
-            default:
-                break;
-        }
-        itemHtml && $('.group-body[group-id="' + app.group_id + '"]').append(itemHtml);
+                    '<div class="my-3">' +
+                        '<button type="button" class="mr-1 btn btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
+                            '<i class="fas fa-edit"></i>' +
+                        '</button>' +
+                        '<button class="ml-1 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
+                            '<i class="fas fa-trash-alt"></i>' +
+                        '</button>' +
+                    '</div>' +
+
+                    '<label class="font-weight-bold">Webhook URL:</label>' +
+                    '<div class="app-webhook-id" app-type="' + app.type + '" data-toggle="tooltip" data-placement="top" title="點擊複製至剪貼簿">' +
+                        createWebhookUrl(baseWebhookUrl, app.webhook_id) +
+                    '</div>' +
+
+                    '<div class="mt-3">' +
+                        '<button type="button" class="mr-1 btn btn-border set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
+                            '<i class="mr-1 text-warning fas fa-money-check-alt fa-fw"></i>' +
+                            '<span>設定金流服務</span>' +
+                        '</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>'
+        );
+        itemHtml && $('.apps-body[group-id="' + app.group_id + '"]').append(itemHtml);
     }
 
     function generateEditAppForm(appId, app) {
@@ -1055,11 +1097,36 @@
     }
 
     function createWebhookUrl(baseWebhookUrl, webhookId) {
-        let webhookUrl;
-        baseWebhookUrl = baseWebhookUrl.replace(/^https?:\/\//, '');
-        baseWebhookUrl = baseWebhookUrl.replace(/\/+$/, '');
-        webhookUrl = 'https://' + baseWebhookUrl + '/' + webhookId;
-        return webhookUrl;
+        let webhookUrl = baseWebhookUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+        return 'https://' + webhookUrl + '/' + webhookId;
+    }
+
+    function copyWebhookToClipboard(ev) {
+        var text = ev.target.textContent;
+        var appType = ev.target.getAttribute('app-type');
+
+        // 由於 LINE Develop 的 webhook 設定會自動加上 https://
+        // 因此自動去除 https:// 前輟
+        if (LINE === appType) {
+            text = text.replace(/^https?:\/\//, '');
+        }
+
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-99999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+            document.execCommand('copy');
+            $.notify('成功拷貝到剪貼簿', { type: 'success' });
+        } catch (ex) {
+            $.notify('無法拷貝到剪貼簿，請自行執行拷貝動作', { type: 'warning' });
+        } finally {
+            document.body.removeChild(textarea);
+            textarea = void 0;
+        }
     }
 
     /**
@@ -1114,7 +1181,8 @@
     // #region 客戶分類條件 Tab 代碼區塊
     (function() {
         var NEW_TAG_ID_PREFIX = 'temp_field_id';
-        var fieldEnums = api.appsFields.enums;
+        var FIELD_TYPES = api.appsFields.TYPES;
+        var SETS_TYPES = api.appsFields.SETS_TYPES;
 
         var fieldPanelCtrl = (function() {
             var instance = new FieldPanelCtrl();
@@ -1165,8 +1233,8 @@
                     var tempFieldId = NEW_TAG_ID_PREFIX + Date.now();
                     _this.addFieldItem(appId, tempFieldId, {
                         text: '新客戶分類條件',
-                        type: fieldEnums.type.CUSTOM,
-                        setsType: fieldEnums.setsType.MULTI_SELECT
+                        type: FIELD_TYPES.CUSTOM,
+                        setsType: SETS_TYPES.MULTI_SELECT
                     });
 
                     var $tempField = $('#' + tempFieldId);
@@ -1183,20 +1251,24 @@
                     for (var i = 0; i < $fieldRows.length; i++) {
                         var $row = $($fieldRows[i]);
                         var data = {
-                            text: $row.find('.field-name input').val(),
+                            text: ($row.find('.field-name input').val() || '').trim(),
                             setsType: $row.find('.field-type select option:selected').val(),
                             order: i
                         };
 
+                        if (!data.text) {
+                            return $.notify('名稱不可設置為空', { type: 'warning' });
+                        }
+
                         switch (data.setsType) {
-                            case fieldEnums.setsType.MULTI_SELECT:
-                            case fieldEnums.setsType.SELECT:
+                            case SETS_TYPES.MULTI_SELECT:
+                            case SETS_TYPES.SELECT:
                                 // 單選的資料將 textarea 中的文字依照換行符號切割成陣列
                                 data.sets = $row.find('.field-sets .sets-item').val().split('\n');
                                 break;
-                            case fieldEnums.setsType.CHECKBOX:
-                            case fieldEnums.setsType.NUMBER:
-                            case fieldEnums.setsType.TEXT:
+                            case SETS_TYPES.CHECKBOX:
+                            case SETS_TYPES.NUMBER:
+                            case SETS_TYPES.TEXT:
                             default:
                                 data.sets = [];
                                 break;
@@ -1227,8 +1299,8 @@
 
                 var generateSetsHtml = function(setsType, setsData) {
                     switch (setsType) {
-                        case fieldEnums.setsType.SELECT:
-                        case fieldEnums.setsType.MULTI_SELECT:
+                        case SETS_TYPES.SELECT:
+                        case SETS_TYPES.MULTI_SELECT:
                             return (
                                 '<textarea class= "sets-item form-control" rows="3" columns="10" style="resize: vertical" placeholder="以換行區隔資料">' +
                                     (function(sets) {
@@ -1240,10 +1312,10 @@
                                     })(setsData).join('\n') +
                                 '</textarea>'
                             );
-                        case fieldEnums.setsType.CHECKBOX:
-                        case fieldEnums.setsType.TEXT:
-                        case fieldEnums.setsType.DATE:
-                        case fieldEnums.setsType.NUMBER:
+                        case SETS_TYPES.CHECKBOX:
+                        case SETS_TYPES.TEXT:
+                        case SETS_TYPES.DATE:
+                        case SETS_TYPES.NUMBER:
                         default:
                             return (
                                 '<input type="text" class="sets-item form-control" value="無設定" disabled />'
@@ -1264,10 +1336,11 @@
                             '<label class="col-3 col-form-label">類型:</label>' +
                             '<div class="col-9 d-flex align-items-center">' +
                                 '<select class="form-control" value="' + field.setsType + '">' +
-                                    '<option value="' + fieldEnums.setsType.MULTI_SELECT + '">多選項</option>' +
-                                    '<option value="' + fieldEnums.setsType.SELECT + '">單一選項</option>' +
-                                    '<option value="' + fieldEnums.setsType.CHECKBOX + '">勾選</option>' +
-                                    '<option value="' + fieldEnums.setsType.NUMBER + '">數字</option>' +
+                                    '<option value="' + SETS_TYPES.MULTI_SELECT + '">多選項</option>' +
+                                    '<option value="' + SETS_TYPES.SELECT + '">單一選項</option>' +
+                                    '<option value="' + SETS_TYPES.CHECKBOX + '">勾選</option>' +
+                                    '<option value="' + SETS_TYPES.NUMBER + '">數字</option>' +
+                                    '<option value="' + SETS_TYPES.TEXT + '">文字</option>' +
                                 '</select>' +
                             '</div>' +
                         '</div>' +
@@ -1278,7 +1351,7 @@
                             '</div>' +
                         '</div>' +
                         '<div class="field-item field-delete mt-auto mb-1 py-2 w-100 text-right">' +
-                            '<button type="button" class="btn btn-danger btn-sm btn-danger field-delete-btn' + (fieldEnums.type.SYSTEM === field.type ? ' d-none' : '') + '">' +
+                            '<button type="button" class="btn btn-danger btn-sm btn-danger field-delete-btn' + (FIELD_TYPES.SYSTEM === field.type ? ' d-none' : '') + '">' +
                                 '<i class="fas fa-times fa-fw"></i>' +
                                 '<span>刪除</span>' +
                             '</button>' +
@@ -1290,7 +1363,7 @@
                 var $fieldTypeSelect = $fieldContent.find('.field-type select');
                 $fieldTypeSelect.find('option[value="' + field.setsType + '"]').prop('selected', true);
 
-                if (field.type !== fieldEnums.type.CUSTOM) {
+                if (field.type !== FIELD_TYPES.CUSTOM) {
                     $fieldTypeSelect.prop('disabled', true);
                     $fieldContent.find('.field-name input').prop('disabled', true);
                     $fieldContent.find('.field-sets .sets-item').prop('disabled', true);
@@ -1378,7 +1451,6 @@
                     firstAppId = firstAppId || appId;
 
                     // 將客戶分類條件資料依照設定的 order 進行排序，根據順序擺放到 UI 上
-                    var FIELD_TYPES = api.appsFields.enums.type;
                     var fieldIds = Object.keys(fields);
                     fieldIds.sort(function(a, b) {
                         let fieldsA = appsFields[appId].fields[a];
@@ -1420,7 +1492,7 @@
                         for (var key in destField) {
                             // 因為有翻譯文字的關係
                             // 非自定義客戶分類條件的名稱與系統性別的設定不檢查
-                            if (('text' === key && fieldEnums.type.CUSTOM !== srcField.type) ||
+                            if (('text' === key && FIELD_TYPES.CUSTOM !== srcField.type) ||
                                 ('sets' === key && 'gender' === srcField.alias)) {
                                 continue;
                             }
@@ -1452,7 +1524,7 @@
                         // 需對照 UI 上目前每個客戶分類條件的順序，更新至對應的客戶分類條件
                         if (!!fieldOnUI && fieldHasChanged(fieldOrg, fieldOnUI)) {
                             // 只允許自定義的欄位可進行資料變更動作
-                            if (fieldOrg.type === fieldEnums.type.CUSTOM) {
+                            if (fieldOrg.type === FIELD_TYPES.CUSTOM) {
                                 fieldOrg.text = fieldOnUI.text;
                                 fieldOrg.setsType = fieldOnUI.setsType;
                                 fieldOrg.sets = fieldOnUI.sets;
@@ -1480,7 +1552,7 @@
                             var fieldOnUI = args.uiFields[fieldId];
                             var newField = {
                                 text: fieldOnUI.text,
-                                type: fieldEnums.type.CUSTOM,
+                                type: FIELD_TYPES.CUSTOM,
                                 sets: fieldOnUI.sets,
                                 setsType: fieldOnUI.setsType,
                                 order: fieldOnUI.order
@@ -1521,7 +1593,7 @@
     // #region 內部群組代碼區塊
     (function() {
         var api = window.restfulAPI;
-        var memberTypes = api.groupsMembers.enums.type;
+        var MEMBER_TYPES = api.groupsMembers.TYPES;
         var searchCache = {};
         var keyinWaitTimer = null;
 
@@ -1567,7 +1639,7 @@
                         '</a>' +
                     '</div>' +
                     '<div id="' + groupId + '" class="chsr-group card-collapse collapse">' +
-                        '<div class="px-3 py-2 ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
+                        '<div class="px-3 py-2 ' + (MEMBER_TYPES.OWNER === member.type || MEMBER_TYPES.ADMIN === member.type ? '' : 'd-none') + '">' +
                             '<label for="group_name" class="col-form-label">群組名稱: </label>' +
                             '<div class="input-container">' +
                                 '<div class="input-group group-name" id="group_name">' +
@@ -1603,7 +1675,7 @@
                         //     '</div>' +
                         // '</div>' +
 
-                        '<div class="px-3 py-2 user-invite' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? ' d-flex' : ' d-none') + '">' +
+                        '<div class="px-3 py-2 user-invite' + (MEMBER_TYPES.OWNER === member.type || MEMBER_TYPES.ADMIN === member.type ? ' d-flex' : ' d-none') + '">' +
                             '<div class="w-100 position-relative input-container">' +
                                 '<input type="email" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus="false" />' +
                             '</div>' +
@@ -1646,10 +1718,10 @@
                 // 群組成員可以自行離開群組
                 // 群組擁有者不能離開群組
                 var canDelete =
-                    (memberTypes.OWNER === memberSelf.type ||
-                    memberTypes.ADMIN === memberSelf.type ||
+                    (MEMBER_TYPES.OWNER === memberSelf.type ||
+                    MEMBER_TYPES.ADMIN === memberSelf.type ||
                     member.user_id === userId) &&
-                    memberTypes.OWNER !== member.type;
+                    MEMBER_TYPES.OWNER !== member.type;
 
                 var html =
                     '<div class="col-12 m-2 card justify-content-around group-member" member-id="' + memberId + '">' +
@@ -1661,16 +1733,16 @@
                         '</div>' +
                         '<div class="d-flex flex-nowrap align-items-center permission-group">' +
                             '<div class="mr-3 text-left">權限:</div>' +
-                            '<div class="permission-item text-center' + (memberTypes.READ === member.type ? ' btn-primary' : '') + '">' +
+                            '<div class="permission-item text-center' + (MEMBER_TYPES.READ === member.type ? ' btn-primary' : '') + '">' +
                                 '<span class="permission-text cursor-pointer">R</span>' +
                             '</div>' +
-                            '<div class="permission-item text-center' + (memberTypes.WRITE === member.type ? ' btn-primary' : '') + '">' +
+                            '<div class="permission-item text-center' + (MEMBER_TYPES.WRITE === member.type ? ' btn-primary' : '') + '">' +
                                 '<span class="permission-text cursor-pointer">W</span>' +
                             '</div>' +
-                            '<div class="permission-item text-center' + (memberTypes.ADMIN === member.type ? ' btn-primary' : '') + '">' +
+                            '<div class="permission-item text-center' + (MEMBER_TYPES.ADMIN === member.type ? ' btn-primary' : '') + '">' +
                                 '<span class="permission-text cursor-pointer">A</span>' +
                             '</div>' +
-                            '<div class="permission-item text-center' + (memberTypes.OWNER === member.type ? ' btn-primary' : '') + '">' +
+                            '<div class="permission-item text-center' + (MEMBER_TYPES.OWNER === member.type ? ' btn-primary' : '') + '">' +
                                 '<span class="permission-text cursor-pointer">O</span>' +
                             '</div>' +
                         '</div>' +
@@ -1802,7 +1874,7 @@
                     if (!memberEmail) {
                         $.notify('請輸入目標成員的 Email', { type: 'warning' });
                         return;
-                    } else if (!memberTypes[permission]) {
+                    } else if (!MEMBER_TYPES[permission]) {
                         $.notify('請選擇目標成員的權限', { type: 'warning' });
                         return;
                     }
@@ -1813,7 +1885,7 @@
                     return api.users.find(userId, memberEmail).then(function(resJson) {
                         var memberUserId = Object.keys(resJson.data).shift();
                         var postMemberData = {
-                            type: memberTypes[permission],
+                            type: MEMBER_TYPES[permission],
                             userid: memberUserId
                         };
 
@@ -1958,19 +2030,19 @@
                     var $permissionItem = $(this);
                     var $permissionText = $permissionItem.find('.permission-text');
                     var wantPermission = {
-                        'R': memberTypes.READ,
-                        'W': memberTypes.WRITE,
-                        'A': memberTypes.ADMIN,
-                        'O': memberTypes.OWNER
+                        'R': MEMBER_TYPES.READ,
+                        'W': MEMBER_TYPES.WRITE,
+                        'A': MEMBER_TYPES.ADMIN,
+                        'O': MEMBER_TYPES.OWNER
                     }[$permissionText.text()];
 
                     if (wantPermission === groups[groupId].members[memberId].type) {
                         // 想變更的權限與目前的權限一樣，無需執行更新
                         return;
-                    } else if (memberTypes.OWNER === groups[groupId].members[memberId].type) {
+                    } else if (MEMBER_TYPES.OWNER === groups[groupId].members[memberId].type) {
                         $.notify('群組擁有者無法變更權限', { type: 'warning' });
                         return;
-                    } else if (wantPermission === memberTypes.OWNER) {
+                    } else if (wantPermission === MEMBER_TYPES.OWNER) {
                         $.notify('權限無法變更為群組擁有者', { type: 'warning' });
                         return;
                     }
@@ -2008,7 +2080,7 @@
                     let member = groups[groupId].members[memberId];
                     let memberUserId = member.user_id;
 
-                    if (memberTypes.OWNER === member.type) {
+                    if (MEMBER_TYPES.OWNER === member.type) {
                         $.notify('群組擁有者無法刪除', { type: 'warning' });
                         return;
                     } else if (!confirm('確定刪除此成員嗎？')) {

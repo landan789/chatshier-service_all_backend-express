@@ -1,6 +1,7 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    /** @type {Chatshier.Models.AppsAutoreplies} */
     var appsAutoreplies = {};
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
@@ -52,6 +53,9 @@
 
     $(document).on('click', '#delete-btn', autoreplyRemove); // 刪除
     $(document).on('change paste keyup', '.search-bar', dataSearch);
+
+    // 停用所有 form 的提交
+    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
     var PeriodComponent = (function() {
         class PeriodComponent {
@@ -503,7 +507,7 @@
         for (var appId in apps) {
             var app = apps[appId];
             if (app.isDeleted ||
-                app.type === api.apps.enums.type.CHATSHIER) {
+                app.type === api.apps.TYPES.CHATSHIER) {
                 delete apps[appId];
                 continue;
             }

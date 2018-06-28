@@ -199,7 +199,7 @@ module.exports = (function() {
                 app.richmenus.push(postRichmenu);
                 return app.save();
             }).then(() => {
-                return this.find(appId, richmenuId);
+                return this.find(appId, richmenuId.toHexString());
             }).then((appsRichmenus) => {
                 ('function' === typeof callback) && callback(appsRichmenus);
                 return appsRichmenus;

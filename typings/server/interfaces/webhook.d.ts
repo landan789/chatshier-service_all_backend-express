@@ -1,6 +1,7 @@
 declare module Webhook {
     namespace Chatshier {
         interface Information {
+            serverAddress: string,
             eventType?: string,
             isEcho?: boolean,
             platfromAppId?: string,
@@ -19,14 +20,21 @@ declare module Webhook {
         }
 
         interface PostbackData {
-            action: 'CHANGE_RICHMENU' | 'SEND_TEMPLATE' | 'SEND_CONSUMER_FORM',
+            action: 'CHANGE_RICHMENU' | 'SEND_TEMPLATE' | 'SEND_CONSUMER_FORM' | 'SEND_DONATE_OPTIONS' | 'CONFIRM_PAYMENT',
             richmenuId?: string,
             templateId?: string,
             context?: {
                 altText: string,
-                templateTitle: string,
+                templateTitle?: string,
                 templateText: string,
-                buttonText: string
+                donateAmounts?: number[],
+                currency?: string,
+                paymentId?: string,
+
+                // ECPay
+                TotalAmount?: string,
+                TradeDesc?: string,
+                ItemName?: string
             }
         }
     }

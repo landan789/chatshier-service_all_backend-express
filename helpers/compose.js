@@ -7,7 +7,23 @@ module.exports = (function() {
 
     const CHATSHIER = 'CHATSHIER';
 
+    const TEXT_MATCH_WAYS = Object.freeze({
+        INCLUDES: 'INCLUDES',
+        FULL_MATCH: 'FULL_MATCH',
+        STARTS_WITH: 'STARTS_WITH',
+        ENDS_WITH: 'ENDS_WITH'
+    });
+
     class ComposeHelper {
+        constructor() {
+            this.textValidation = {
+                [TEXT_MATCH_WAYS.INCLUDES]: (src, dest) => src.includes(dest),
+                [TEXT_MATCH_WAYS.FULL_MATCH]: (src, dest) => (src === dest),
+                [TEXT_MATCH_WAYS.STARTS_WITH]: (src, dest) => src.startsWith(dest),
+                [TEXT_MATCH_WAYS.ENDS_WITH]: (src, dest) => src.endsWith(dest)
+            };
+        }
+
         /**
          * @param {Chatshier.Models.ComposeCondition[]} conditions
          * @param {string} appId
@@ -122,6 +138,13 @@ module.exports = (function() {
                                                     (customFieldValue && 'true' === condition.values[0]) ||
                                                     (!customFieldValue && 'false' === condition.values[0])
                                                 );
+                                                break;
+                                            case SETS_TYPES.TEXT:
+                                                let matchText = condition.values[0] || '';
+                                                let matchWay = condition.values[1] || '';
+                                                if (matchText && matchWay) {
+                                                    isAccept = this.textValidation[matchWay] ? this.textValidation[matchWay](customFieldValue, matchText) : false;
+                                                }
                                                 break;
                                             default:
                                                 break;

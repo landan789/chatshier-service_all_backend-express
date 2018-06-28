@@ -94,7 +94,7 @@ module.exports = (function() {
                     calendar.events.push(postEvent);
                     return calendar.save().then((insertedCalendar) => {
                         let calendarId = insertedCalendar._id;
-                        return this.find(calendarId, eventId);
+                        return this.find(calendarId, eventId.toHexString());
                     });
                 }
 
@@ -117,7 +117,7 @@ module.exports = (function() {
                     if (!result.ok) {
                         return Promise.reject(new Error());
                     }
-                    return this.find(calendarIds, eventId);
+                    return this.find(calendarIds, eventId.toHexString());
                 });
             }).then((calendars) => {
                 ('function' === typeof callback) && callback(calendars);

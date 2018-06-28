@@ -85,7 +85,7 @@ module.exports = (function() {
                 app.keywordreplies.push(postKeywordreply);
                 return app.save();
             }).then(() => {
-                return this.find(appId, keywordreplyId);
+                return this.find(appId, keywordreplyId.toHexString());
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
                 return appsKeywordreplies;

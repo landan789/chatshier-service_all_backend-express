@@ -137,7 +137,7 @@ module.exports = (function() {
                 app.greetings.push(postGreeting);
                 return app.save();
             }).then(() => {
-                return this.find(appId, greetId);
+                return this.find(appId, greetId.toHexString());
             }).then((appsGreetings) => {
                 ('function' === typeof callback) && callback(appsGreetings);
                 return appsGreetings;

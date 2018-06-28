@@ -29,13 +29,8 @@
         "navigator": true,
         "window": true,
 
-        "describe": true,
-        "it": true,
-
         "FB": true,
-        "io": true,
-        "SOCKET_EVENTS": true,
-        "urlConfig": true
+        "io": true
     },
 
     "rules": {

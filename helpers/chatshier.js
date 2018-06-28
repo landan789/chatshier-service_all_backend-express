@@ -4,7 +4,12 @@ module.exports = (function() {
 
     const appsGreetingsMdl = require('../models/apps_greetings');
     const appsAutorepliesMdl = require('../models/apps_autoreplies');
+    const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
+    const appsPaymentsMdl = require('../models/apps_payments');
+    const appsRichmenusMdl = require('../models/apps_richmenus');
+    const appsTemplatesMdl = require('../models/apps_templates');
     const fuseHlp = require('../helpers/fuse');
+    const jwtHlp = require('../helpers/jwt');
     const botSvc = require('../services/bot');
 
     const LINE = 'LINE';
@@ -14,12 +19,258 @@ module.exports = (function() {
     class ChatshierHelp {
         /**
          * 根據 HTTP request body 與 app.type 決定要回傳甚麼訊息
-         * @param {any} messages
+         * @param {any[]} messages
          * @param {Webhook.Chatshier.Information} webhookInfo
-         * @param {any} app
+         * @param {string} appId
+         * @param {Chatshier.Models.App} app
+         * @returns {Promise<any[]>}
          */
         getRepliedMessages(messages, webhookInfo, appId, app) {
             let eventType = webhookInfo.eventType;
+            let repliedMessages = [];
+
+            // 針對 LINE 的 postback 訊息，有些需要回應有些只是動作，需做不同的處理
+            if (LINE === app.type && eventType === botSvc.LINE_EVENT_TYPES.POSTBACK) {
+                let promises = [];
+
+                while (messages.length > 0) {
+                    let message = messages.shift();
+                    let postback = message.postback;
+                    let canParseData = 'string' === typeof postback.data && postback.data.startsWith('{') && postback.data.endsWith('}');
+                    if (!canParseData) {
+                        continue;
+                    }
+
+                    /** @type {Webhook.Chatshier.PostbackData} */
+                    let dataJson = JSON.parse(postback.data);
+                    let context = dataJson.context;
+                    let serverAddr = webhookInfo.serverAddress;
+                    let platformUid = webhookInfo.platformUid;
+                    let url = serverAddr;
+
+                    switch (dataJson.action) {
+                        case 'CHANGE_RICHMENU':
+                            let richmenuId = dataJson.richmenuId || '';
+                            let richmenuPromise = appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
+                                if (!(appsRichmenus && appsRichmenus[appId])) {
+                                    return;
+                                }
+
+                                // 如果此 richmenu 沒有啟用或者找不到，則不做任何處理
+                                let richmenu = appsRichmenus[appId].richmenus[richmenuId];
+                                if (!(richmenu && richmenu.isActivated)) {
+                                    return;
+                                }
+
+                                let platformUid = webhookInfo.platformUid;
+                                return botSvc.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId, app);
+                            });
+                            promises.push(richmenuPromise);
+                            break;
+                        case 'SEND_TEMPLATE':
+                            let templateId = dataJson.templateId || '';
+                            let templatePromise = appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
+                                if (!(appsTemplates && appsTemplates[appId])) {
+                                    return Promise.resolve();
+                                }
+
+                                let template = appsTemplates[appId].templates[templateId];
+                                let templateMessage = {
+                                    type: template.type,
+                                    altText: template.altText,
+                                    template: template.template
+                                };
+                                repliedMessages.push(templateMessage);
+                            });
+                            promises.push(templatePromise);
+                            break;
+                        case 'SEND_CONSUMER_FORM':
+                            let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+                            url += '/consumer-form?aid=' + appId + '&t=' + token;
+
+                            let formMessage = {
+                                type: 'template',
+                                altText: '填寫基本資料模板訊息',
+                                template: {
+                                    type: 'buttons',
+                                    title: '填寫基本資料',
+                                    text: '開啟以下連結進行填寫動作',
+                                    actions: [{
+                                        type: 'uri',
+                                        label: '按此開啟',
+                                        uri: url
+                                    }]
+                                }
+                            };
+                            repliedMessages.push(formMessage);
+                            break;
+                        case 'SEND_DONATE_OPTIONS':
+                            let donateMessage = {
+                                type: 'template',
+                                altText: '小額捐款金額選項',
+                                template: {
+                                    type: 'buttons',
+                                    text: '點擊以下金額進行捐款動作',
+                                    /** @type {Chatshier.Models.TemplateAction[]} */
+                                    actions: []
+                                }
+                            };
+
+                            let donatePromise = appsPaymentsMdl.find(appId).then((appsPayments) => {
+                                if (!(appsPayments && appsPayments[appId])) {
+                                    return;
+                                }
+
+                                // 此 app 尚未設定任何金流服務，不處理此 postback
+                                let payment = Object.values(appsPayments[appId].payments).shift();
+                                if (!(payment && payment.type)) {
+                                    return;
+                                }
+
+                                donateMessage.template.title = payment.type; // 將金流服務的類型作為訊息的標題顯示
+                                let donateAmounts = context ? context.donateAmounts || [] : [];
+                                for (let i in donateAmounts) {
+                                    let amount = donateAmounts[i] + ' ' + (context ? context.currency : '');
+                                    let _context = {
+                                        altText: '捐款確認',
+                                        templateText: '進行捐款 ' + amount
+                                    };
+
+                                    switch (payment.type) {
+                                        case 'ECPay':
+                                        case 'Spgateway':
+                                            _context.paymentId = payment._id;
+                                            _context.TotalAmount = donateAmounts[i];
+                                            _context.TradeDesc = '小額捐款';
+                                            _context.ItemName = '小額捐款 ' + amount;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+
+                                    let postbackData = {
+                                        action: 'CONFIRM_PAYMENT',
+                                        context: _context
+                                    };
+
+                                    donateMessage.template.actions.push({
+                                        type: 'postback',
+                                        label: amount,
+                                        data: JSON.stringify(postbackData)
+                                    });
+                                }
+                                repliedMessages.push(donateMessage);
+                            });
+                            promises.push(donatePromise);
+                            break;
+                        case 'CONFIRM_PAYMENT':
+                            let paymentId = (context && context.paymentId) || '';
+                            if (!paymentId) {
+                                break;
+                            }
+
+                            // 當 consumer 確認付款時，檢查此 consumer 是否已經填寫完個人基本資料
+                            // 如果沒有填寫完基本資料，則發送填寫基本資料模板給使用者
+                            let confirmPromise = appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid).then((appsChatroomsMessagers) => {
+                                if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                                    return;
+                                }
+
+                                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                                let chatroomId = Object.keys(chatrooms).shift() || '';
+                                let messager = chatrooms[chatroomId].messagers[platformUid];
+
+                                let isFinishProfile = (
+                                    messager.namings && messager.namings[platformUid] &&
+                                    messager.email &&
+                                    messager.phone
+                                );
+
+                                if (!isFinishProfile) {
+                                    let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+                                    url += '/consumer-form?aid=' + appId + '&t=' + token;
+
+                                    let alertMessage = {
+                                        type: 'text',
+                                        text: '您尚未完成個人基本資料的填寫'
+                                    };
+
+                                    let formMessage = {
+                                        type: 'template',
+                                        altText: '填寫基本資料模板訊息',
+                                        template: {
+                                            type: 'buttons',
+                                            title: '填寫基本資料',
+                                            text: '開啟以下連結進行填寫動作',
+                                            actions: [{
+                                                type: 'uri',
+                                                label: '按此開啟',
+                                                uri: url
+                                            }]
+                                        }
+                                    };
+                                    repliedMessages.push(alertMessage, formMessage);
+                                    return;
+                                }
+
+                                return appsPaymentsMdl.find(appId, paymentId).then((appsPayments) => {
+                                    if (!(appsPayments && appsPayments[appId])) {
+                                        return;
+                                    }
+
+                                    let payment = appsPayments[appId].payments[paymentId];
+                                    let url = serverAddr + '/payment/' + payment.type.toLowerCase();
+
+                                    switch (payment.type) {
+                                        case 'ECPay':
+                                            url += '/aio-check-out-all?';
+                                            break;
+                                        case 'Spgateway':
+                                            url += '/multi-payment-gateway?';
+                                            break;
+                                        default:
+                                            break;
+                                    }
+
+                                    url += (
+                                        'aid=' + appId + '&' +
+                                        'cid=' + platformUid + '&' +
+                                        'pid=' + (context ? context.paymentId : '') + '&' +
+                                        'amount=' + encodeURIComponent(context ? context.TotalAmount || '' : '') + '&' +
+                                        'desc=' + encodeURIComponent(context ? context.TradeDesc || '' : '') + '&' +
+                                        'iname=' + encodeURIComponent(context ? context.ItemName || '' : '') + '&' +
+                                        'ts=' + Date.now()
+                                    );
+
+                                    let confirmMessage = {
+                                        type: 'template',
+                                        altText: context && context.altText,
+                                        template: {
+                                            type: 'confirm',
+                                            text: context && context.templateText,
+                                            actions: [{
+                                                type: 'uri',
+                                                label: '是',
+                                                uri: url
+                                            }, {
+                                                type: 'postback',
+                                                label: '否',
+                                                data: JSON.stringify({ action: 'CANCEL_PAYMENT' })
+                                            }]
+                                        }
+                                    };
+                                    repliedMessages.push(confirmMessage);
+                                });
+                            });
+                            promises.push(confirmPromise);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                return Promise.all(promises).then(() => repliedMessages);
+            }
 
             let greetingsPromise = Promise.resolve().then(() => {
                 if (LINE === app.type &&
@@ -34,12 +285,12 @@ module.exports = (function() {
             let keywordrepliesPromise = Promise.all(messages.map((message) => {
                 if (LINE === app.type &&
                     botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
-                    return Promise.resolve();
+                    return Promise.resolve(null);
                 }
 
                 let text = message.text;
                 if (!text) {
-                    return Promise.resolve();
+                    return Promise.resolve(null);
                 }
 
                 // 關鍵字回復使用模糊比對，不直接對 DB 查找
@@ -55,7 +306,6 @@ module.exports = (function() {
                 greetingsPromise,
                 keywordrepliesPromise
             ]).then(([ greetings, keywordreplies ]) => {
-                let repliedMessages = [];
                 let _message = { from: SYSTEM };
 
                 greetings = greetings || {};
@@ -139,7 +389,7 @@ module.exports = (function() {
                 }
                 return repliedMessages;
             });
-        };
+        }
 
         getKeywordreplies(messages, appId, app) {
             let keywordreplies = {};
@@ -161,7 +411,7 @@ module.exports = (function() {
                 });
                 return Promise.resolve(_keywordreplies);
             });
-        };
+        }
     }
 
     return new ChatshierHelp();

@@ -41,6 +41,9 @@
     $jqDoc.on('click', '#insert-btn', insertImagemap);
     $jqDoc.on('click', '#remove-btn', removeImagemap);
 
+    // 停用所有 form 的提交
+    $jqDoc.on('submit', 'form', function(ev) { return ev.preventDefault(); });
+
     $modal.on('show.bs.modal', function(ev) {
         let $relatedBtn = $(ev.relatedTarget);
         cleanModal();
@@ -686,7 +689,7 @@
 
             // 目前只有 LINE 支援此功能
             if (app.isDeleted ||
-                app.type !== api.apps.enums.type.LINE) {
+                app.type !== api.apps.TYPES.LINE) {
                 delete appsData[appId];
                 continue;
             }

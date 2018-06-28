@@ -1,16 +1,17 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    let api = window.restfulAPI;
-    let SOCKET_NAMESPACE = '/chatshier';
-    let SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
-    let socket = io(SOCKET_SERVER_URL);
+    const SOCKET_NAMESPACE = '/chatshier';
+    const SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    const SOCKET_EVENTS = window.SOCKET_EVENTS;
+    const socket = io(SOCKET_SERVER_URL);
 
     const ICONS = {
         LINE: 'fab fa-line fa-fw line-color',
         FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
     };
 
+    let api = window.restfulAPI;
     let apps = {};
     let appsChatrooms = {};
     let appsFields = {};
@@ -46,6 +47,13 @@
         }
     };
 
+    const TEXT_MATCH_WAYS = Object.freeze({
+        INCLUDES: 'INCLUDES',
+        FULL_MATCH: 'FULL_MATCH',
+        STARTS_WITH: 'STARTS_WITH',
+        ENDS_WITH: 'ENDS_WITH'
+    });
+
     let userId;
     try {
         let payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -74,6 +82,9 @@
     $appSelector.on('click', '.dropdown-item', appSourceChanged);
     $(document).on('click', '.remove.delete-btn', removeCompose);
     $(document).on('change paste keyup', '.search-bar', composesSearch);
+
+    // 停用所有 form 的提交
+    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
     // 當有收到訊息發送的事件時更新 compose
     socket.on(SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, function(data) {
@@ -194,7 +205,7 @@
                                 '</div>' +
                             '</div>' +
                             '<div class="col-12 mt-2 px-0 text-center condition-content-wrapper">' +
-                                generateConditionContent(options) +
+                                this.generateConditionContent(options) +
                             '</div>' +
                         '</div>' +
                         '<i class="col-1 ml-auto p-2 fas fa-times-circle condition-remove-btn"></i>' +
@@ -230,12 +241,12 @@
                 options = options || {};
                 let type = options.type;
                 let field = options.field;
-                let values = options.values || [];
+                let conditionValues = options.conditionValues || [];
 
                 switch (type) {
                     case 'AGE_RANGE':
-                        let ageDown = values[0] || '10';
-                        let ageUp = values[1] || '50';
+                        let ageDown = conditionValues[0] || '10';
+                        let ageUp = conditionValues[1] || '50';
                         return (
                             '<div class="d-inline-block dropdown condition-content range range-down">' +
                                 '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
@@ -276,7 +287,7 @@
                             '</div>'
                         );
                     case 'GENDER':
-                        let gender = values[0] ? values[0] : 'MALE';
+                        let gender = conditionValues[0] ? conditionValues[0] : 'MALE';
                         let genderText = 'MALE' === gender ? '男' : '女';
                         return (
                             '<div class="dropdown condition-content">' +
@@ -297,22 +308,22 @@
                         );
                     default:
                         if (field) {
-                            return fieldSetsToConditionInput(field);
+                            return this.fieldSetsToConditionInput(field);
                         }
                         return '';
                 }
             }
 
             /**
-             * @param {any} field
+             * @param {Chatshier.Models.Field} field
              */
             fieldSetsToConditionInput(field) {
-                let SETS_TYPES = api.appsFields.enums.setsType;
+                let SETS_TYPES = api.appsFields.SETS_TYPES;
 
                 switch (field.setsType) {
                     case SETS_TYPES.CHECKBOX:
                         return (
-                            '<div class="d-inline-block dropdown condition-content">' +
+                            '<div class="dropdown condition-content">' +
                                 '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
                                     '<span class="condition-value" value="true">是</span>' +
                                 '</button>' +
@@ -335,7 +346,7 @@
                     case SETS_TYPES.SELECT:
                     case SETS_TYPES.MULTI_SELECT:
                         return (
-                            '<div class="d-inline-block dropdown condition-content">' +
+                            '<div class="dropdown condition-content">' +
                                 '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
                                     '<span class="condition-value" value="' + (field.sets[0] || '') + '">' + (field.sets[0] || '') + '</span>' +
                                 '</button>' +
@@ -348,6 +359,43 @@
                                             return (
                                                 '<a class="dropdown-item" value="' + set + '">' +
                                                     '<span>' + set + '</span>' +
+                                                '</a>'
+                                            );
+                                        }).join('');
+                                    })() +
+                                '</div>' +
+                            '</div>'
+                        );
+                    case SETS_TYPES.TEXT:
+                        return (
+                            '<div class="d-inline-block condition-content range">' +
+                                '<input class="form-control condition-value" type="text" maxlength="50" placeholder="輸入條件文字" />' +
+                            '</div>' +
+                            '<span class="px-2">-</span>' +
+                            '<div class="d-inline-block condition-content range">' +
+                                '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                                    '<span class="condition-value" value="' + TEXT_MATCH_WAYS.INCLUDES + '">含有文字</span>' +
+                                '</button>' +
+                                '<div class="dropdown-menu condition-content-menu">' +
+                                    (function() {
+                                        let items = [{
+                                            value: TEXT_MATCH_WAYS.INCLUDES,
+                                            text: '含有文字'
+                                        }, {
+                                            value: TEXT_MATCH_WAYS.FULL_MATCH,
+                                            text: '完全符合'
+                                        }, {
+                                            value: TEXT_MATCH_WAYS.STARTS_WITH,
+                                            text: '以此開頭'
+                                        }, {
+                                            value: TEXT_MATCH_WAYS.ENDS_WITH,
+                                            text: '以此結尾'
+                                        }];
+
+                                        return items.map(function(item) {
+                                            return (
+                                                '<a class="dropdown-item" value="' + item.value + '">' +
+                                                    '<span>' + item.text + '</span>' +
                                                 '</a>'
                                             );
                                         }).join('');
@@ -401,7 +449,7 @@
                     type: type,
                     field: this._allFields[conditionType.field_id]
                 };
-                let $conditionContent = $(generateConditionContent(options));
+                let $conditionContent = $(this.generateConditionContent(options));
                 $conditionContentWrapper.append($conditionContent);
                 this.refreshAvailable();
 
@@ -469,6 +517,13 @@
                     return output;
                 }, {});
 
+                let textValidation = {
+                    [TEXT_MATCH_WAYS.INCLUDES]: (src, dest) => src.includes(dest),
+                    [TEXT_MATCH_WAYS.FULL_MATCH]: (src, dest) => (src === dest),
+                    [TEXT_MATCH_WAYS.STARTS_WITH]: (src, dest) => src.startsWith(dest),
+                    [TEXT_MATCH_WAYS.ENDS_WITH]: (src, dest) => src.endsWith(dest)
+                };
+
                 for (let i in appIds) {
                     let appId = appIds[i];
                     let app = apps[appId];
@@ -535,7 +590,7 @@
                                         } else {
                                             let field = this._allFields[fieldId];
                                             let customFieldValue = customField.value;
-                                            let SETS_TYPES = api.appsFields.enums.setsType;
+                                            let SETS_TYPES = api.appsFields.SETS_TYPES;
 
                                             switch (field.setsType) {
                                                 case SETS_TYPES.SELECT:
@@ -556,6 +611,13 @@
                                                     isAccept = isAccept ||
                                                         ((customFieldValue && 'true' === condition.values[0]) ||
                                                         (!customFieldValue && 'false' === condition.values[0]));
+                                                    break;
+                                                case SETS_TYPES.TEXT:
+                                                    let matchText = condition.values[0] || '';
+                                                    let matchWay = condition.values[1] || '';
+                                                    if (matchText && matchWay) {
+                                                        isAccept = textValidation[matchWay] ? textValidation[matchWay](customFieldValue, matchText) : false;
+                                                    }
                                                     break;
                                                 default:
                                                     break;
@@ -594,7 +656,7 @@
                     } else {
                         let $contentValues = $conditionItem.find('.condition-content .condition-value');
                         $contentValues.each(function() {
-                            let value = $(this).val() || $(this).attr('value');
+                            let value = $(this).val() || $(this).attr('value') || '';
                             contentValues.push(value);
                         });
                     }
@@ -667,7 +729,7 @@
 
                     for (let fieldId in _fields) {
                         let field = _fields[fieldId];
-                        if (api.appsFields.enums.type.CUSTOM !== field.type) {
+                        if (api.appsFields.TYPES !== field.type) {
                             continue;
                         }
 
@@ -935,7 +997,7 @@
 
                     for (let fieldId in _fields) {
                         let field = _fields[fieldId];
-                        if (api.appsFields.enums.type.CUSTOM !== field.type) {
+                        if (api.appsFields.TYPES.CUSTOM !== field.type) {
                             continue;
                         }
 
@@ -1115,143 +1177,6 @@
             } else if (isHistory) {
                 $historyTableBody.append($composeRow);
             }
-        }
-    }
-
-    /**
-     * @param {any} options
-     */
-    function generateConditionContent(options) {
-        options = options || {};
-        let type = options.type;
-        let field = options.field;
-        let conditionValues = options.conditionValues || [];
-
-        switch (type) {
-            case 'AGE_RANGE':
-                let ageDown = conditionValues[0] || '10';
-                let ageUp = conditionValues[1] || '50';
-                return (
-                    '<div class="d-inline-block dropdown condition-content range range-down">' +
-                        '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
-                            '<span class="condition-value" value="' + ageDown + '">' + ageDown + ' 歲</span>' +
-                        '</button>' +
-                        '<div class="dropdown-menu condition-content-menu">' +
-                            (function() {
-                                let age = 10;
-                                let items = '';
-                                while (age <= 80) {
-                                    items += (
-                                        '<a class="dropdown-item" value="' + age + '">' + age + ' 歲</a>'
-                                    );
-                                    age += 5;
-                                }
-                                return items;
-                            })() +
-                        '</div>' +
-                    '</div>' +
-                    '<span class="px-2">~</span>' +
-                    '<div class="d-inline-block dropdown condition-content range range-up">' +
-                        '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
-                            '<span class="condition-value" value="' + ageUp + '">' + ageUp + ' 歲</span>' +
-                        '</button>' +
-                        '<div class="dropdown-menu condition-content-menu">' +
-                            (function() {
-                                let age = 15;
-                                let items = '';
-                                while (age <= 80) {
-                                    items += (
-                                        '<a class="dropdown-item" value="' + age + '">' + age + ' 歲</a>'
-                                    );
-                                    age += 5;
-                                }
-                                return items;
-                            })() +
-                        '</div>' +
-                    '</div>'
-                );
-            case 'GENDER':
-                let gender = conditionValues[0] ? conditionValues[0] : 'MALE';
-                let genderText = 'MALE' === gender ? '男' : '女';
-                return (
-                    '<div class="dropdown condition-content">' +
-                        '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
-                            '<span class="condition-value" value="' + gender + '">' + genderText + '</span>' +
-                        '</button>' +
-                        '<div class="dropdown-menu condition-content-menu">' +
-                            '<a class="dropdown-item" value="MALE">男</a>' +
-                            '<a class="dropdown-item" value="FEMALE">女</a>' +
-                        '</div>' +
-                    '</div>'
-                );
-            case 'TAGS':
-                return (
-                    '<div class="condition-content">' +
-                        '<input class="form-control typeahead" data-provide="typeahead" type="text" placeholder="請輸入標籤關鍵字" />' +
-                    '</div>'
-                );
-            default:
-                if (field) {
-                    return fieldSetsToConditionInput(field);
-                }
-                return '';
-        }
-    }
-
-    /**
-     * @param {any} field
-     */
-    function fieldSetsToConditionInput(field) {
-        let SETS_TYPES = api.appsFields.enums.setsType;
-
-        switch (field.setsType) {
-            case SETS_TYPES.CHECKBOX:
-                return (
-                    '<div class="dropdown condition-content">' +
-                        '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
-                            '<span class="condition-value" value="true">是</span>' +
-                        '</button>' +
-                        '<div class="dropdown-menu condition-content-menu">' +
-                            '<a class="dropdown-item" value="true">是</a>' +
-                            '<a class="dropdown-item" value="false">否</a>' +
-                        '</div>' +
-                    '</div>'
-                );
-            case SETS_TYPES.NUMBER:
-                return (
-                    '<div class="d-inline-block condition-content range">' +
-                        '<input class="form-control condition-value" type="number" value="0" min="0" />' +
-                    '</div>' +
-                    '<span class="px-2">~</span>' +
-                    '<div class="d-inline-block condition-content range">' +
-                        '<input class="form-control condition-value" type="number" value="1" min="1" />' +
-                    '</div>'
-                );
-            case SETS_TYPES.SELECT:
-            case SETS_TYPES.MULTI_SELECT:
-                return (
-                    '<div class="dropdown condition-content">' +
-                        '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
-                            '<span class="condition-value" value="' + (field.sets[0] || '') + '">' + (field.sets[0] || '') + '</span>' +
-                        '</button>' +
-                        '<div class="dropdown-menu condition-content-menu">' +
-                            (function() {
-                                return field.sets.map(function(set) {
-                                    if (!set) {
-                                        return '';
-                                    }
-                                    return (
-                                        '<a class="dropdown-item" value="' + set + '">' +
-                                            '<span>' + set + '</span>' +
-                                        '</a>'
-                                    );
-                                }).join('');
-                            })() +
-                        '</div>' +
-                    '</div>'
-                );
-            default:
-                return '';
         }
     }
 

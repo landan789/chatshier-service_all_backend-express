@@ -15,6 +15,48 @@ module.exports = (function() {
             hmac.write(password);
             return hmac.digest('hex');
         }
+
+        /**
+         * @param {number} [len=20]
+         */
+        generateRandomHex(len = 20) {
+            return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
+        }
+
+        /**
+         * @param {string} plainText
+         * @param {string} key
+         * @param {string} iv
+         * @param {string} [algorithm='aes-256-cbc']
+         */
+        aesEncrypt(plainText, key, iv, algorithm = 'aes-256-cbc') {
+            let encipher = crypto.createCipheriv(algorithm, key, iv);
+            let encrypted = encipher.update(plainText, 'utf8', 'hex');
+            return encrypted;
+        }
+
+        /**
+         * @param {string} encryptedText
+         * @param {string} key
+         * @param {string} iv
+         * @param {string} [algorithm='aes-256-cbc']
+         */
+        aesDecrypt(encryptedText, key, iv, algorithm = 'aes-256-cbc') {
+            let decrypt = crypto.createDecipheriv(algorithm, key, iv);
+            decrypt.setAutoPadding(false);
+            let text = decrypt.update(encryptedText, 'hex', 'utf8');
+            // eslint-disable-next-line no-control-regex
+            let plainText = text.replace(/[\x00-\x20]+/g, '');
+            return plainText;
+        }
+
+        /**
+         * @param {string} rawText
+         * @param {string} [algorithm='sha256']
+         */
+        createHash(rawText, algorithm = 'sha256') {
+            return crypto.createHash('sha256').update(rawText).digest('hex');
+        }
     }
     return new CipherHelper();
 })();

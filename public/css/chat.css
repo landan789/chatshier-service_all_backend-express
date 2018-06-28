@@ -180,10 +180,10 @@
     font-size: 1rem; }
 .message[message-type="template"] .content .template .template-desc {
     overflow: hidden;
-    overflow: hidden;
     height: 3.5rem;
     font-size: 1rem; }
-.message[message-type="template"] .content .template .template-button, .message[message-type="template"] .content .template-sm-buttons .template-confirm {
+.message[message-type="template"] .content .template .template-button,
+.message[message-type="template"] .content .template-sm-buttons .template-confirm {
     overflow: hidden;
     font-weight: bold;
     font-size: 1rem; }
@@ -206,8 +206,8 @@
             background-color: #33ccff !important; }
         .message .content.media.buttons-format, .message .content.media.carousel-format {
             position: relative;
-            overflow-x: scroll;
-            height: 27rem; }
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; }
         .message .content.media.confirm-format {
             position: relative;
             height: 10rem; }
@@ -443,7 +443,8 @@
         height: 2rem;
         cursor: pointer;
         color: transparent;
-        border: none; }
+        border: none;
+        background-color: white; }
         .message-input .submit-message-btn::before {
             content: "";
             position: absolute;
@@ -598,16 +599,22 @@
     border-radius: 1rem;
     width: 18rem;
     min-width: 18rem;
-    height: 25rem;
     word-break: break-all; }
+    .template div:first-child {
+        border-radius: 1rem 1rem 0 0; }
     .template .top-img-container {
         position: relative;
         width: 100%;
-        height: 43%; }
+        height: 12.5rem;
+        overflow-y: hidden; }
         .template .top-img-container img {
+            position: absolute;
+            left: 25%;
+            top: 25%;
             width: 100%;
-            height: 100%;
-            border-radius: 1rem 1rem 0 0; }
+            height: auto;
+            border-radius: 1rem 1rem 0 0;
+            transform: translate3d(-25%, -25%, 0); }
     .template .template-title {
         font-weight: bold;
         background-color: #fff; }
@@ -616,7 +623,6 @@
         background-color: #fff;
         font-size: 1rem; }
     .template .template-buttons {
-        height: 44%;
         color: #7caeff;
         background-color: #fff;
         border: 0.0625rem solid #efefef;

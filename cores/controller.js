@@ -95,7 +95,7 @@ module.exports = (function() {
             };
             suc.data && (json.data = suc.data);
             suc.jwt && (json.jwt = suc.jwt);
-            return res && res.status(200).json(json);
+            return res && !res.headersSent && res.status(200).json(json);
         }
 
         errorJson(req, res, err) {
@@ -105,7 +105,7 @@ module.exports = (function() {
                 msg: err.MSG || '',
                 code: err.CODE || ''
             };
-            return res && res.status(err && err.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
+            return res && !res.headersSent && res.status(err && err.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
         }
     }
 

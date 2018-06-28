@@ -6,16 +6,6 @@ module.exports = (function() {
         constructor() {
             super();
             this.Model = this.model(CONSUMERS, this.ConsumersSchema);
-            this.project = {
-                platformUid: true,
-                isDeleted: true,
-                updatedTime: true,
-                createdTime: true,
-                name: true,
-                photo: true,
-                photoOriginal: true,
-                type: true
-            };
         }
 
         /**
@@ -40,7 +30,7 @@ module.exports = (function() {
                 };
             }
 
-            return this.Model.find(query, this.project).then((consumers) => {
+            return this.Model.find(query).lean().then((consumers) => {
                 return this.toObject(consumers, 'platformUid');
             }).then((consumers) => {
                 ('function' === typeof callback) && callback(consumers);
@@ -115,7 +105,7 @@ module.exports = (function() {
                     return Promise.reject(new Error());
                 }
 
-                return this.Model.findOne(query, this.project).then((consumer) => {
+                return this.Model.findOne(query).lean().then((consumer) => {
                     return this.toObject(consumer);
                 });
             }).then((consumers) => {

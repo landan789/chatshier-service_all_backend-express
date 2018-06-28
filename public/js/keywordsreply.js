@@ -49,6 +49,10 @@
             }
         }
     });
+
+    // 停用所有 form 的提交
+    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
+
     // ==========
     // 設定關鍵字新增 modal 相關 element 與事件
     $appSelector = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
@@ -141,7 +145,7 @@
         for (var appId in apps) {
             var app = apps[appId];
             if (app.isDeleted ||
-                app.type === api.apps.enums.type.CHATSHIER) {
+                app.type === api.apps.TYPES.CHATSHIER) {
                 delete apps[appId];
                 continue;
             }
