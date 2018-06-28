@@ -1622,12 +1622,11 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * @param {string} appId
          * @param {string} userId
          * @param {File} file
          */
-        ImageAPI.prototype.uploadFile = function(appId, userId, file) {
-            var destUrl = `${this.urlPrefix}upload-file/users/${userId}?appid=${appId}`;
+        ImageAPI.prototype.uploadFile = function(userId, file) {
+            var destUrl = `${this.urlPrefix}upload-file/users/${userId}`;
             var formData = new FormData();
             formData.append('file', file);
             formData.append('fileName', file.name);
@@ -1645,13 +1644,12 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * @param {string} appId
          * @param {string} richMenuId
          * @param {string} userId
          * @param {string} path
          */
-        ImageAPI.prototype.moveFile = function(appId, richMenuId, userId, path) {
-            var destUrl = `${this.urlPrefix}move-file/users/${userId}?appid=${appId}&richmenuid=${richMenuId}&path=${path}`;
+        ImageAPI.prototype.moveFile = function(userId, fromPath, toPath) {
+            var destUrl = `${this.urlPrefix}move-file/users/${userId}?frompath=${fromPath}&topath=${toPath}`;
 
             var reqInit = {
                 method: 'POST',

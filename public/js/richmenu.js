@@ -187,7 +187,7 @@
             });
         });
 
-        $modal.on('hidden.bs.modal', function() {
+        $modal.on('hide.bs.modal', function() {
             let modalAppId = $appSelector.val();
             if (nowSelectAppId !== modalAppId) {
                 $appDropdown.find('#' + modalAppId).trigger('click');
@@ -448,6 +448,9 @@
                     case ACTION_TYPES.DONATE:
                         return (
                             '<label class="w-100 font-weight-bold col-form-label">' +
+                                '<span class="text-danger">提醒: 機器人必須完成金流設定，否則此功能將無作用</span>' +
+                            '</label>' +
+                            '<label class="w-100 font-weight-bold col-form-label">' +
                                 '<span>金額選項一:</span>' +
                                 '<input class="form-control content-input action-data" action-property="donateAmount0" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
                             '</label>' +
@@ -490,7 +493,7 @@
                             uriPrefix = uriPrefix + '//';
                             uri = uri.substring(2);
                         }
-                        $actionInput.find('.uri-prefix').text(uriPrefix);
+                        $actionInput.find('.uri-prefix').text(uriPrefix || 'http://');
                         $actionData.val(uri || '');
                         break;
                     case ACTION_TYPES.TEMPLATE:

@@ -28,9 +28,9 @@ module.exports = {
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
-        appId: '178381762879392',
-        appSecret: '27aad72319bf154c059f696bce055ac2',
-        appAccessToken: '8eeabaf3c836d295edb26264ec76e975',
+        appId: '1569929989761572',
+        appSecret: '8e21836de6f01a6a5d1d0876e4f2c1d1',
+        appAccessToken: 'd83ed3a87f6aef9eb7982e5ef5acb187',
         apiVersion: 'v3.0'
     },
     GOOGLE: {

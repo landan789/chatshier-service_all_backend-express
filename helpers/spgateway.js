@@ -41,15 +41,15 @@ module.exports = (function() {
 
             let paymentWays = {
                 CREDIT: 1,
-                ANDROIDPAY: 0,
-                SAMSUNGPAY: 0,
-                UNIONPAY: 0,
-                WEBATM: 1,
-                VACC: 0,
-                CVS: 0,
-                BARCODE: 0,
-                P2G: 0,
-                CVSCOM: 0
+                // ANDROIDPAY: 0,
+                // SAMSUNGPAY: 0,
+                // UNIONPAY: 0,
+                WEBATM: 1
+                // VACC: 0,
+                // CVS: 0,
+                // BARCODE: 0,
+                // P2G: 0,
+                // CVSCOM: 0
             };
             Object.assign(tradeInfo, paymentWays);
 
@@ -118,7 +118,7 @@ module.exports = (function() {
          */
         _tradeInfoToQueryString(tradeInfo) {
             let props = Object.keys(tradeInfo).sort((a, b) => {
-                return a.toLowerCase().localeCompare(b.toLowerCase());
+                return a.localeCompare(b);
             });
 
             let queryString = props.map((prop) => {

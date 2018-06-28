@@ -1533,7 +1533,7 @@
                                         if (template.thumbnailImageUrl) {
                                             return (
                                                 '<div class="text-center top-img-container">' +
-                                                    `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
+                                                    `<img class="template-image image-fit" src="${template.thumbnailImageUrl}" alt="未顯示圖片" />` +
                                                 '</div>'
                                             );
                                         }
@@ -1564,7 +1564,7 @@
                             return template.columns.map((column) => (
                                 '<div class="template ml-1">' +
                                     '<div class="text-center top-img-container">' +
-                                        `<img src="${column.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
+                                        `<img src="${column.thumbnailImageUrl}" class="template-image image-fit" alt="未顯示圖片" />` +
                                     '</div>' +
                                     `<div class="template-title py-2 px-3">
                                         <span class="template-title">${column.title}</span>
@@ -2475,7 +2475,7 @@
         return api.appsImagemaps.findOne(appId, imagemapId, userId).then((resJson) => {
             let imagemap = {
                 type: resJson.data[imagemapId].type,
-                baseUri: resJson.data[imagemapId].baseUri,
+                baseUrl: resJson.data[imagemapId].baseUrl,
                 altText: resJson.data[imagemapId].altText,
                 baseSize: resJson.data[imagemapId].baseSize,
                 actions: resJson.data[imagemapId].actions,

@@ -39,7 +39,7 @@
                                 <i class="fa fa-search"></i>
                             </span>
                             <input type="text" class="search-bar align-middle" placeholder="搜尋" aria-hidden="true">
-                            <button type="button" class="btn btn-light btn-border inner-add insert" data-toggle="modal" data-target="#keywordreply_add_modal" aria-hidden="true" disabled="true">
+                            <button type="button" class="btn btn-light btn-border inner-add insert-btn" data-toggle="modal" data-target="#keywordreplyModal" aria-hidden="true" disabled="true">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -76,104 +76,68 @@
         </div>
     </div>
 
-    <div class="chsr modal fade" id="keywordreply_add_modal" tabindex="-1" role="dialog" aria-labelledby="keywordreply_add_modal_title" aria-hidden="true">
+    <div class="chsr modal fade" id="keywordreplyModal" tabindex="-1" role="dialog" aria-labelledby="keywordreplyModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="keywordreply_add_modal_title"></h5>
+                    <h5 class="modal-title" id="keywordreplyModalTitle"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 </div>
 
                 <div class="modal-body">
-                    <!-- Form Content -->
-                    <div class="form-group">
-                        <label for="keywordreply-app-name" class="col-form-label font-weight-bold">目標機器人:</label>
-                        <div class="select-container">
-                            <select class="form-control" name="keywordreply-app-name">
-                                <option value=''>載入中...</option>
-                            </select>
+                    <form class="keywordreply-form">
+                        <div class="form-group">
+                            <label class="col-form-label font-weight-bold">目標機器人:</label>
+                            <div class="select-container">
+                                <select class="form-control" name="keywordreplyAppName">
+                                    <option value="">載入中...</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="keywordreply-keyword" class="col-form-label font-weight-bold">關鍵字:</label>
-                        <div class="input-container">
-                            <input class="form-control" type="text" name="keywordreply-keyword">
+                        <div class="form-group">
+                            <label class="col-form-label font-weight-bold">關鍵字:</label>
+                            <div class="input-container">
+                                <input class="form-control" type="text" name="keywordreplyKeyword">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="modal-text" class="font-weight-bold">回覆內容:</label>
-                        <div id="text">
-                            <textarea class="w-100 h-100 form-control" type="text" name="keywordreply-text" style="resize: vertical"></textarea>
-                        </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label class="form-check-label col-form-label font-weight-bold">是否儲存為草稿？</label>
-                        <div class="input-container form-check">
-                            <input class="form-check-input" type="checkbox" name="keywordreply-is-draft" />
-                            <label class="form-check-label">是</label>
+                        <div class="form-group">
+                            <label class="font-weight-bold">回覆內容:</label>
+                            <div class="w-100 mb-2 btn-group reply-content-select" id="replyContentSelect">
+                                <button type="button" class="btn btn-info reply-item" reply-type="text" data-toggle="tooltip" data-placement="top" title="文字">
+                                    <i class="fas fa-text-height fa-2x"></i>
+                                </button>
+                                <button type="button" class="btn btn-info reply-item" reply-type="image" data-toggle="tooltip" data-placement="top" title="圖像">
+                                    <i class="fas fa-image fa-2x"></i>
+                                </button>
+                                <button type="button" class="btn btn-info reply-item" reply-type="imagemap" data-toggle="tooltip" data-placement="top" title="圖文訊息">
+                                    <i class="fas fa-map fa-2x"></i>
+                                </button>
+                                <button type="button" class="btn btn-info reply-item" reply-type="template" data-toggle="tooltip" data-placement="top" title="模板訊息">
+                                    <i class="fas fa-clipboard-list fa-2x"></i>
+                                </button>
+                            </div>
+                            <div class="w-100 input-container" id="replyContentWrapper"></div>
                         </div>
-                    </div>
 
+                        <div class="form-group">
+                            <label class="form-check-label col-form-label font-weight-bold">是否儲存為草稿？</label>
+                            <div class="input-container form-check">
+                                <input class="form-check-input" type="checkbox" name="keywordreplyIsDraft" />
+                                <label class="form-check-label">是</label>
+                            </div>
+                        </div>
+                    </form>
                     <span class="text-danger error-msg"></span>
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary btn-insert-submit">新增</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="chsr modal fade" id="keywordreply_edit_modal" tabindex="-1" role="dialog" aria-labelledby="keywordreply_edit_modal_title" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="keywordreply_edit_modal_title"></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <i class="fas fa-times" aria-hidden="true"></i>
-                    </button>
-                </div>
-
-                <div class="modal-body">
-                    <form>
-                        <!-- 關鍵字 -->
-                        <div class="form-group">
-                            <label for="keywordreply-keyword" class="col-form-label font-weight-bold">關鍵字:</label>
-                            <input class="form-control" type="text" name="keywordreply-keyword">
-                        </div>
-
-                        <!-- 副關鍵字 -->
-                        <!-- <div class="form-group">
-                            <label for="keywordreply-subkeyword" class="col-form-label font-weight-bold">副關鍵字:  </label>
-                            <input class="form-control" type="text" name="keywordreply-subkeyword">
-                        </div> -->
-
-                        <!-- 回覆內容 -->
-                        <div class="form-group">
-                            <label for="keywordreply-text" class="col-form-label font-weight-bold">內容:</label>
-                            <div class="textarea-container">
-                                <textarea class="form-control" type="text" name="keywordreply-text"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="form-group checkbox-is-draft">
-                            <label class="form-check-label col-form-label font-weight-bold">是否儲存為草稿？</label>
-                            <div class="input-container form-check">
-                                <input class="form-check-input" type="checkbox" name="keywordreply-is-draft" />
-                                <label class="form-check-label">是</label>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary btn-update-submit">更新</button>
+                    <button type="button" class="btn btn-primary" id="updateSubmitBtn">更新</button>
+                    <button type="button" class="btn btn-primary" id="insertSubmitBtn">新增</button>
                 </div>
             </div>
         </div>

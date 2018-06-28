@@ -140,14 +140,14 @@ module.exports = (function() {
                     text: message.text || '',
                     time: Date.now() + i,
                     type: message.type,
-                    src: message.src || message.baseUri || ''
+                    src: message.src || message.baseUrl || ''
                 };
 
                 if (message.template) {
                     _message.template = message.template;
                 }
 
-                if (message.baseUri) {
+                if (message.baseUrl) {
                     _message.imagemap = message;
                 }
 

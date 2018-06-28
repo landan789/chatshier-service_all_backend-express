@@ -77,7 +77,7 @@ declare module Chatshier {
             },
             imagemap?: {
                 type: 'imagemap',
-                baseUri: string,
+                baseUrl: string,
                 altText: string,
                 baseSize: {
                     width: number,

@@ -188,7 +188,7 @@
 
             generatePeriodItem(period) {
                 let $periodItem = $(
-                    '<div class="my-2 d-flex align-items-center period-item">' +
+                    '<div class="my-2 d-flex align-items-center period-item animated fadeIn">' +
                         '<div class="mr-2 form-control">' +
                             '<div class="period-text">' +
                                 '<span class="mr-2">時段:</span>' +
@@ -274,7 +274,7 @@
         $autoreplyAddModal.on('click', '#addSubmitBtn', autoreplyInsert);
         $autoreplyAddModal.on('click', '#periodAddBtn', showPeriodElem);
 
-        $autoreplyAddModal.on('hidden.bs.modal', function() {
+        $autoreplyAddModal.on('hide.bs.modal', function() {
             let modalAppId = $appSelector.val();
             if (nowSelectAppId !== modalAppId) {
                 $appDropdown.find('#' + modalAppId).trigger('click');

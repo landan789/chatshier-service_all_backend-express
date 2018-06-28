@@ -110,12 +110,12 @@ module.exports = (function() {
                 'keywordreplies._id': keywordreplyId
             };
 
-            let updateOper = {
-                $set: {
-                    'keywordreplies.$': putKeywordreply
-                }
-            };
-            return this.AppsModel.findOneAndUpdate(query, updateOper).then(() => {
+            let updateOper = { $set: {} };
+            for (let prop in putKeywordreply) {
+                updateOper.$set['keywordreplies.$.' + prop] = putKeywordreply[prop];
+            }
+
+            return this.AppsModel.update(query, updateOper).then(() => {
                 return this.find(appId, keywordreplyId);
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
@@ -169,17 +169,21 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.AppsKeywordreplies | null>}
          */
         remove(appId, keywordreplyId, callback) {
+            let putKeywordreply = {
+                isDeleted: true,
+                updatedTime: Date.now()
+            };
+
             let query = {
                 '_id': appId,
                 'keywordreplies._id': keywordreplyId
             };
 
-            let updateOper = {
-                $set: {
-                    'keywordreplies.$.isDeleted': true,
-                    'keywordreplies.$.updatedTime': Date.now()
-                }
-            };
+            let updateOper = { $set: {} };
+            for (let prop in putKeywordreply) {
+                updateOper.$set['keywordreplies.$.' + prop] = putKeywordreply[prop];
+            }
+
             return this.AppsModel.update(query, updateOper).then(() => {
                 let aggregations = [
                     {

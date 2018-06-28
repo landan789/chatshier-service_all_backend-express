@@ -57,7 +57,7 @@
         $('#modal-greeting-text').val(greetingText);
     });
 
-    $modal.on('hidden.bs.modal', function() {
+    $modal.on('hide.bs.modal', function() {
         let modalAppId = $appSelector.val();
         if (nowSelectAppId !== modalAppId) {
             $appDropdown.find('#' + modalAppId).trigger('click');

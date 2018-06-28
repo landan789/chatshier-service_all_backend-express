@@ -2,8 +2,15 @@
 
 (function() {
     var nowSelectAppId = '';
+    /** @type {Chatshier.Models.Apps} */
     var apps = {};
-    var keywordreplies = {};
+    /** @type {Chatshier.Models.AppsImagemaps} */
+    var appsImagemaps = {};
+    /** @type {Chatshier.Models.AppsKeywordreplies} */
+    var appsKeywordreplies = {};
+    /** @type {Chatshier.Models.AppsTemplates} */
+    var appsTemplates = {};
+
     var api = window.restfulAPI;
 
     const ICONS = {
@@ -12,14 +19,8 @@
     };
 
     var $jqDoc = $(document);
-    var $keywordreplyAddModal = $('#keywordreply_add_modal');
-    var $keywordreplyEditModal = $('#keywordreply_edit_modal');
     var $appDropdown = $('.app-dropdown');
     var $searchBar = $('.search-bar');
-
-    var $openTableElem = null;
-    var $draftTableElem = null;
-    var $appSelector = null;
 
     const NO_PERMISSION_CODE = '3.16';
 
@@ -32,7 +33,7 @@
     }
 
     $searchBar.on('keyup', function(ev) {
-        let searchText = $(this).val().toLocaleLowerCase();
+        var searchText = $(this).val().toLocaleLowerCase();
         if (!searchText) {
             $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().removeAttr('style');
             return;
@@ -50,90 +51,373 @@
         }
     });
 
+    $jqDoc.on('click', '.keywordreply-row .remove-btn', removeKeywordreply);
+
     // 停用所有 form 的提交
-    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
+    $jqDoc.on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
-    // ==========
-    // 設定關鍵字新增 modal 相關 element 與事件
-    $appSelector = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
-    $keywordreplyAddModal.on('show.bs.modal', function() {
-        $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val('');
-        $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val('');
-        $keywordreplyAddModal.find('input[name="keywordreply-is-draft"]').prop('checked', false);
+    (function() {
+        var modalAppId;
+        var modalKeywordreplyId;
+        /** @type {Chatshier.Models.Keywordreply} */
+        var modalKeywordreply;
 
-        // 新增 modal 即將顯示事件發生時，將 App 清單更新
-        $appSelector.empty();
-        for (var appId in apps) {
-            var app = apps[appId];
-            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
-        }
-        $appSelector.val(nowSelectAppId);
-    });
+        var $keywordreplyModal = $('#keywordreplyModal');
+        var $appSelector = $keywordreplyModal.find('.modal-body select[name="keywordreplyAppName"]');
 
-    $keywordreplyAddModal.on('hidden.bs.modal', function() {
-        let modalAppId = $appSelector.val();
-        if (nowSelectAppId !== modalAppId) {
-            $appDropdown.find('#' + modalAppId).trigger('click');
-        }
-    });
+        $keywordreplyModal.find('[data-toggle="tooltip"]').tooltip();
 
-    $keywordreplyAddModal.find('button.btn-insert-submit').on('click', insertSubmit);
-    // ==========
+        // ==========
+        // 設定關鍵字新增 modal 相關 element 與事件
+        $keywordreplyModal.on('show.bs.modal', function(ev) {
+            var $relatedBtn = $(ev.relatedTarget);
 
-    // ==========
-    // 設定關鍵字編輯 modal 相關 element 與事件
-    $keywordreplyEditModal.on('show.bs.modal', function(ev) {
-        // 編輯 modal 即將顯示事件發生時，將欄位資料更新
-        var $targetRow = $(ev.relatedTarget).parent().parent();
-        var appId = $targetRow.attr('data-title');
-        var keywordreplyId = $targetRow.prop('id');
-        var targetData = keywordreplies[keywordreplyId];
+            // 新增 modal 即將顯示事件發生時，將 App 清單更新
+            $appSelector.empty();
+            for (var _appId in apps) {
+                var app = apps[_appId];
+                $appSelector.append('<option value="' + _appId + '">' + app.name + '</option>');
+            }
 
-        var $editForm = $keywordreplyEditModal.find('.modal-body form');
-        $editForm.find('input[name="keywordreply-keyword"]').val(targetData.keyword);
-        $editForm.find('textarea[name="keywordreply-text"]').val(targetData.text);
+            var $keywordreplyForm = $keywordreplyModal.find('.modal-body form');
+            var $isDraftCbx = $keywordreplyForm.find('input[name="keywordreplyIsDraft"]');
 
-        // 如果是屬於草稿則顯示 checkbox 否則隱藏
-        var checkboxIsDraft = $editForm.find('.checkbox-is-draft');
-        checkboxIsDraft.find('input[name="keywordreply-is-draft"]').prop('checked', !targetData.status);
-        if (!targetData.status) {
-            checkboxIsDraft.show();
-        } else {
-            checkboxIsDraft.hide();
-        }
+            if ($relatedBtn.hasClass('insert-btn')) {
+                modalAppId = nowSelectAppId;
+                modalKeywordreplyId = modalKeywordreply = void 0;
+                $appSelector.val(modalAppId);
 
-        $keywordreplyEditModal.find('button.btn-update-submit').off('click').on('click', function() {
-            $keywordreplyEditModal.find('button.btn-update-submit').attr('disabled', 'disabled');
-            targetData.keyword = $editForm.find('input[name="keywordreply-keyword"]').val();
-            targetData.text = $editForm.find('textarea[name="keywordreply-text"]').val();
-            targetData.status = $editForm.find('input[name="keywordreply-is-draft"]').prop('checked') ? 0 : 1;
-            targetData.updatedTime = Date.now();
+                $keywordreplyForm.find('input[name="keywordreplyKeyword"]').val('');
+                $keywordreplyForm.find('textarea[name="keywordreplyText"]').val('');
+                $isDraftCbx.prop('checked', false);
+                $isDraftCbx.parents('.form-group').removeClass('d-none');
 
-            return api.appsKeywordreplies.update(appId, keywordreplyId, userId, targetData).then(function() {
-                $keywordreplyEditModal.modal('hide');
-                $.notify('修改成功！', { type: 'success' });
-                $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
-                return loadKeywordsReplies(appId, userId);
-            }).catch((resJson) => {
-                if (undefined === resJson.status) {
-                    $keywordreplyEditModal.modal('hide');
-                    $.notify('失敗', { type: 'danger' });
-                    $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
-                    return loadKeywordsReplies(appId, userId);
+                var $replyContentSelect = $keywordreplyModal.find('#replyContentSelect');
+                var $textReplyItem = $replyContentSelect.find('.reply-item[reply-type="text"]');
+                $textReplyItem.addClass('active').siblings().removeClass('active');
+                $textReplyItem.trigger('click');
+
+                $keywordreplyModal.find('#insertSubmitBtn').removeClass('d-none');
+                $keywordreplyModal.find('#updateSubmitBtn').addClass('d-none');
+                return;
+            }
+
+            // 設定關鍵字編輯 modal 相關 element 與事件
+            // 編輯 modal 即將顯示事件發生時，將欄位資料更新
+            var $targetRow = $relatedBtn.parents('tr');
+            modalAppId = $targetRow.attr('app-id');
+            modalKeywordreplyId = $targetRow.attr('keywordreply-id');
+            modalKeywordreply = appsKeywordreplies[modalAppId].keywordreplies[modalKeywordreplyId];
+            $appSelector.val(modalAppId);
+
+            var keywordreply = modalKeywordreply;
+            $keywordreplyForm.find('input[name="keywordreplyKeyword"]').val(keywordreply.keyword);
+            $keywordreplyForm.find('textarea[name="keywordreplyText"]').val(keywordreply.text);
+
+            // 如果是屬於草稿則顯示 checkbox 否則隱藏
+            $isDraftCbx.prop('checked', !keywordreply.status);
+            if (!keywordreply.status) {
+                $isDraftCbx.parents('.form-group').removeClass('d-none');
+            } else {
+                $isDraftCbx.parents('.form-group').addClass('d-none');
+            }
+
+            var $replyItem = $keywordreplyForm.find('#replyContentSelect .reply-item[reply-type="' + keywordreply.type + '"]');
+            $replyItem.addClass('active').siblings().removeClass('active');
+            $replyItem.trigger('click');
+
+            $keywordreplyModal.find('#updateSubmitBtn').removeClass('d-none');
+            $keywordreplyModal.find('#insertSubmitBtn').addClass('d-none');
+        });
+
+        $keywordreplyModal.on('hide.bs.modal', function() {
+            var modalAppId = $appSelector.val();
+            if (nowSelectAppId !== modalAppId) {
+                $appDropdown.find('#' + modalAppId).trigger('click');
+            }
+        });
+
+        $keywordreplyModal.on('click', '.upload-image-btn', function() {
+            var $uploadImageBtn = $(this);
+            var $fileInput = $uploadImageBtn.siblings('.image-ghost');
+            $fileInput.trigger('click');
+        });
+
+        $keywordreplyModal.on('click', '#replyContentSelect .reply-item', function() {
+            var $contentBtn = $(this);
+            $contentBtn.addClass('active').siblings().removeClass('active');
+
+            var appId = $appSelector.val();
+            var replyType = $contentBtn.attr('reply-type');
+
+            return Promise.resolve().then(() => {
+                switch (replyType) {
+                    case 'image':
+                        return (
+                            '<button type="button" class="btn btn-light btn-sm btn-border upload-image-btn">' +
+                                '<i class="fas fa-upload fa-fw"></i>' +
+                                '<span class="font-weight-bold">上傳圖像</span>' +
+                            '</button>' +
+                            '<input class="image-ghost d-none" type="file" name="replyImageFile" accept="image/png,image/jpg,image/jpeg" />' +
+                            '<div class="position-relative mt-2 w-100 bg-light preview-image-container" style="height: 16rem;">' +
+                                '<img class="image-fit" src="/image/upload.png" alt="" />' +
+                            '</div>'
+                        );
+                    case 'imagemap':
+                        return Promise.resolve().then(() => {
+                            if (!appsImagemaps[appId]) {
+                                return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
+                                    var _appsImagemaps = resJson.data;
+                                    appsImagemaps[appId] = { imagemaps: {} };
+                                    if (!_appsImagemaps[appId]) {
+                                        return appsImagemaps[appId].imagemaps;
+                                    }
+                                    Object.assign(appsImagemaps[appId].imagemaps, _appsImagemaps[appId].imagemaps);
+                                    return appsImagemaps[appId].imagemaps;
+                                });
+                            }
+                            return appsImagemaps[appId].imagemaps;
+                        }).then((imagemaps) => {
+                            return (
+                                '<label class="w-100 col-form-label font-weight-bold">' +
+                                    '<div class="mb-2 font-weight-bold">選擇已新增的圖文訊息:</div>' +
+                                    '<select class="imagemap-select form-control" value="">' +
+                                        '<option value="">未選擇</option>' +
+                                        (function() {
+                                            return Object.keys(imagemaps).map((imagemapId) => {
+                                                var imagemap = imagemaps[imagemapId];
+                                                return '<option value="' + imagemapId + '">' + imagemap.altText + '</option>';
+                                            }).join('');
+                                        })() +
+                                    '</select>' +
+                                '</label>'
+                            );
+                        });
+                    case 'template':
+                        return Promise.resolve().then(() => {
+                            if (!appsTemplates[appId]) {
+                                return api.appsTemplates.findAll(appId, userId).then((resJson) => {
+                                    var _appsTemplates = resJson.data;
+                                    appsTemplates[appId] = { templates: {} };
+                                    if (!_appsTemplates[appId]) {
+                                        return appsTemplates[appId].templates;
+                                    }
+                                    Object.assign(appsTemplates[appId].templates, _appsTemplates[appId].templates);
+                                    return appsTemplates[appId].templates;
+                                });
+                            }
+                            return appsTemplates[appId].templates;
+                        }).then((templates) => {
+                            return (
+                                '<label class="w-100 col-form-label font-weight-bold">' +
+                                    '<div class="mb-2 font-weight-bold">選擇已新增的模板訊息:</div>' +
+                                    '<select class="template-select form-control" value="">' +
+                                        '<option value="">未選擇</option>' +
+                                        (function() {
+                                            return Object.keys(templates).map((templateId) => {
+                                                var template = templates[templateId];
+                                                return '<option value="' + templateId + '">' + template.altText + '</option>';
+                                            }).join('');
+                                        })() +
+                                    '</select>' +
+                                '</label>'
+                            );
+                        });
+                    case 'text':
+                    default:
+                        return '<textarea class="form-control keywordreply-text" name="keywordreplyText" style="resize: vertical"></textarea>';
                 }
-                if (NO_PERMISSION_CODE === resJson.code) {
-                    $keywordreplyEditModal.modal('hide');
-                    $.notify('無此權限', { type: 'danger' });
-                    $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
-                    return loadKeywordsReplies(appId, userId);
+            }).then((html) => {
+                var $replyContentWrapper = $keywordreplyModal.find('#replyContentWrapper');
+                $replyContentWrapper.html(html);
+
+                if (!modalKeywordreply) {
+                    return;
+                }
+
+                if (modalKeywordreply.text) {
+                    $replyContentWrapper.find('.keywordreply-text').val(modalKeywordreply.text);
+                }
+
+                if (modalKeywordreply.src) {
+                    $replyContentWrapper.find('.preview-image-container img').prop('src', modalKeywordreply.src);
+                }
+
+                if (modalKeywordreply.imagemap_id) {
+                    $replyContentWrapper.find('.imagemap-select').val(modalKeywordreply.imagemap_id);
+                }
+
+                if (modalKeywordreply.template_id) {
+                    $replyContentWrapper.find('.template-select').val(modalKeywordreply.template_id);
                 }
             });
         });
-    });
-    // ==========
 
-    $openTableElem = $('#keywordreply_open_table tbody');
-    $draftTableElem = $('#keywordreply_draft_table tbody');
+        $keywordreplyModal.on('click', '#insertSubmitBtn', insertKeywordreply);
+        $keywordreplyModal.on('click', '#updateSubmitBtn', updateKeywordreply);
+        $keywordreplyModal.on('change', '[name="replyImageFile"]', loadImageForPreview);
+
+        function insertKeywordreply() {
+            var $insertSubmitBtn = $keywordreplyModal.find('#insertSubmitBtn');
+            $insertSubmitBtn.attr('disabled', true);
+
+            var appId = $appSelector.val();
+            var filePath = '';
+
+            return getModalKeywordreply(appId).then((keywordreply) => {
+                filePath = keywordreply.originalFilePath;
+                var postKeywordreply = Object.assign({}, keywordreply);
+                delete postKeywordreply.originalFilePath;
+
+                // ==========
+                // 檢查必填資料有無正確輸入
+                var $errorMsgElem = $keywordreplyModal.find('.text-danger.error-msg').empty();
+                $errorMsgElem.addClass('d-none');
+                if (!appId) {
+                    $errorMsgElem.text('請選擇目標App').removeClass('d-none');
+                    return;
+                } else if (!keywordreply.keyword) {
+                    $errorMsgElem.text('請輸入關鍵字').removeClass('d-none');
+                    return;
+                }
+                // ==========
+
+                return api.appsKeywordreplies.insert(appId, userId, postKeywordreply);
+            }).then(function(resJson) {
+                var _appsKeywordreplies = resJson.data;
+                if (!appsKeywordreplies[appId]) {
+                    appsKeywordreplies[appId] = { keywordreplies: {} };
+                }
+                Object.assign(appsKeywordreplies[appId].keywordreplies, _appsKeywordreplies[appId].keywordreplies);
+
+                var keywordreplyId = Object.keys(appsKeywordreplies[appId].keywordreplies).shift() || '';
+                if (filePath && keywordreplyId) {
+                    var fileName = filePath.split('/').pop();
+                    var toPath = '/apps/' + appId + '/keywordreplies/' + keywordreplyId + '/src/' + fileName;
+                    return api.image.moveFile(userId, filePath, toPath);
+                }
+            }).then(() => {
+                $insertSubmitBtn.removeAttr('disabled');
+                $keywordreplyModal.modal('hide');
+                $.notify('新增成功！', { type: 'success' });
+                return loadKeywordsReplies(appId, userId);
+            }).catch((resJson) => {
+                $insertSubmitBtn.removeAttr('disabled');
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                } else {
+                    $.notify('新增失敗', { type: 'danger' });
+                }
+                return loadKeywordsReplies(appId, userId);
+            });
+        }
+
+        function updateKeywordreply() {
+            var $updateSubmitBtn = $keywordreplyModal.find('#updateSubmitBtn');
+            $updateSubmitBtn.attr('disabled', 'disabled');
+
+            var appId = modalAppId;
+            var keywordreplyId = modalKeywordreplyId;
+            var filePath = '';
+
+            return getModalKeywordreply(appId).then((keywordreply) => {
+                filePath = keywordreply.originalFilePath;
+                var putKeywordreply = Object.assign({}, keywordreply);
+                delete putKeywordreply.originalFilePath;
+
+                return api.appsKeywordreplies.update(appId, keywordreplyId, userId, putKeywordreply);
+            }).then((resJson) => {
+                var _appsKeywordreplies = resJson.data;
+                if (!appsKeywordreplies[appId]) {
+                    appsKeywordreplies[appId] = { keywordreplies: {} };
+                }
+                Object.assign(appsKeywordreplies[appId].keywordreplies, _appsKeywordreplies[appId].keywordreplies);
+
+                if (filePath && keywordreplyId) {
+                    var fileName = filePath.split('/').pop();
+                    var toPath = '/apps/' + appId + '/keywordreplies/' + keywordreplyId + '/src/' + fileName;
+                    return api.image.moveFile(userId, filePath, toPath);
+                }
+            }).then(() => {
+                $updateSubmitBtn.removeAttr('disabled');
+                $keywordreplyModal.modal('hide');
+                $.notify('修改成功！', { type: 'success' });
+                return loadKeywordsReplies(appId, userId);
+            }).catch((resJson) => {
+                $updateSubmitBtn.removeAttr('disabled');
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                } else {
+                    $.notify('修改失敗', { type: 'danger' });
+                }
+                return loadKeywordsReplies(appId, userId);
+            });
+        }
+
+        function loadImageForPreview(ev) {
+            /** @type {HTMLInputElement} */
+            var fileInput = ev.target;
+
+            return new Promise((resolve, reject) => {
+                var replyImageFile = fileInput.files.item(0);
+                var fileReader = new FileReader();
+                fileReader.onloadend = () => resolve(fileReader.result);
+                fileReader.onerror = (err) => reject(err);
+                fileReader.readAsDataURL(replyImageFile);
+            }).then((imgBase64) => {
+                var $previewImageContainer = $(fileInput).siblings('.preview-image-container');
+                var $previewImage = $previewImageContainer.find('img');
+                $previewImage.prop('src', imgBase64);
+            }).catch(() => {
+                return $.notify('載入失敗', { type: 'danger' });
+            });
+        }
+
+        function getModalKeywordreply() {
+            var keyword = $keywordreplyModal.find('input[name="keywordreplyKeyword"]').val() || '';
+            var isDraft = $keywordreplyModal.find('input[name="keywordreplyIsDraft"]').prop('checked');
+            var replyType = $keywordreplyModal.find('#replyContentSelect .reply-item.active').attr('reply-type');
+            var replyText = $keywordreplyModal.find('textarea[name="keywordreplyText"]').val() || '';
+
+            var keywordreply = {
+                keyword: keyword,
+                subKeywords: [],
+                text: replyText,
+                type: replyType,
+                status: !isDraft,
+                originalFilePath: ''
+            };
+
+            return Promise.resolve().then(() => {
+                switch (replyType) {
+                    case 'image':
+                        /** @type {HTMLInputElement} */
+                        var replyImageFile = $keywordreplyModal.find('input[name="replyImageFile"]').get(0);
+                        var imageFile = replyImageFile.files.item(0);
+                        replyImageFile.value = '';
+
+                        return api.image.uploadFile(userId, imageFile).then((resJson) => {
+                            keywordreply.src = resJson.data.url;
+                            keywordreply.originalFilePath = resJson.data.originalFilePath;
+                            return keywordreply;
+                        });
+                    case 'imagemap':
+                        keywordreply.imagemap_id = $keywordreplyModal.find('.imagemap-select').val();
+                        break;
+                    case 'template':
+                        keywordreply.template_id = $keywordreplyModal.find('.template-select').val();
+                        break;
+                    case 'text':
+                    default:
+                        break;
+                }
+                return keywordreply;
+            });
+        }
+    })();
+
+    var $openTableElem = $('#keywordreply_open_table tbody');
+    var $draftTableElem = $('#keywordreply_draft_table tbody');
     return api.apps.findAll(userId).then(function(respJson) {
         apps = respJson.data;
 
@@ -170,123 +454,94 @@
     });
 
     function appSourceChanged() {
-        let $dropdownItem = $(this);
+        var $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
         return loadKeywordsReplies(nowSelectAppId, userId);
     }
 
     function loadKeywordsReplies(appId, userId) {
-        // 先取得使用者所有的 AppId 清單更新至本地端
-        return api.appsKeywordreplies.findAll(appId, userId).then(function(resJson) {
+        return Promise.resolve().then(() => {
+            if (!appsKeywordreplies[appId]) {
+                // 先取得使用者所有的 AppId 清單更新至本地端
+                return api.appsKeywordreplies.findAll(appId, userId).then((resJson) => {
+                    var _appsKeywordreplies = resJson.data;
+                    appsKeywordreplies[appId] = { keywordreplies: {} };
+                    if (!_appsKeywordreplies[appId]) {
+                        return appsKeywordreplies[appId].keywordreplies;
+                    }
+                    Object.assign(appsKeywordreplies[appId].keywordreplies, _appsKeywordreplies[appId].keywordreplies);
+                    return appsKeywordreplies[appId].keywordreplies;
+                });
+            }
+            return appsKeywordreplies[appId].keywordreplies;
+        }).then((keywordreplies) => {
             $openTableElem.empty();
             $draftTableElem.empty();
 
-            let appsKeywordreplis = resJson.data;
-            if (appsKeywordreplis && appsKeywordreplis[appId]) {
-                keywordreplies = appsKeywordreplis[appId].keywordreplies;
-                for (var keywordreplyId in keywordreplies) {
-                    var keywordreply = keywordreplies[keywordreplyId];
-                    if (keywordreply.isDeleted) {
-                        continue;
-                    }
+            for (var keywordreplyId in keywordreplies) {
+                var keywordreply = keywordreplies[keywordreplyId];
 
-                    var trGrop =
-                    '<tr id="' + keywordreplyId + '" data-title="' + appId + '">' +
+                var keywordreplyRow = (
+                    '<tr class="keywordreply-row" app-id="' + appId + '" keywordreply-id="' + keywordreplyId + '">' +
                         '<td data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</td>' +
-                        '<td class="text-pre" data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>' +
+                        (function() {
+                            if ('text' === keywordreply.type) {
+                                return '<td class="text-pre" data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>';
+                            } else if ('image' === keywordreply.type) {
+                                return (
+                                    '<td class="text-pre">' +
+                                        '<label>圖像</label>' +
+                                        '<div class="position-relative image-container" style="width: 6rem; height: 6rem;">' +
+                                            '<img class="image-fit" src="' + keywordreply.src + '" alt="" />' +
+                                        '</div>' +
+                                    '</td>'
+                                );
+                            } else if ('imagemap' === keywordreply.type) {
+                                return '<td class="text-pre" data-title="圖文訊息">圖文訊息</td>';
+                            } else if ('template' === keywordreply.type) {
+                                return '<td class="text-pre" data-title="模板訊息">模板訊息</td>';
+                            }
+                            return '<td class="text-pre" data-title=""></td>';
+                        })() +
                         '<td>' + keywordreply.replyCount + '</td>' +
                         '<td>' +
-                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
-                            '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update-btn" data-toggle="modal" data-target="#keywordreplyModal" aria-hidden="true"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove-btn"></button>' +
                         '</td>' +
-                    '</tr>';
-                    if (!keywordreply.status) {
-                        $draftTableElem.append(trGrop);
-                    } else {
-                        $openTableElem.append(trGrop);
-                    }
+                    '</tr>'
+                );
+
+                if (!keywordreply.status) {
+                    $draftTableElem.append(keywordreplyRow);
+                } else {
+                    $openTableElem.append(keywordreplyRow);
                 }
-
-                $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
-                    var targetRow = $(event.target).parent().parent();
-                    var appId = targetRow.attr('data-title');
-                    var keywordreplyId = targetRow.prop('id');
-
-                    return showDialog('確定要刪除嗎？').then(function(isOK) {
-                        if (!isOK) {
-                            return;
-                        }
-
-                        return api.appsKeywordreplies.remove(appId, keywordreplyId, userId).then(function() {
-                            $.notify('刪除成功！', { type: 'success' });
-                            return loadKeywordsReplies(appId, userId);
-                        }).catch((resJson) => {
-                            if (undefined === resJson.status) {
-                                $.notify('失敗', { type: 'danger' });
-                            }
-                            if (NO_PERMISSION_CODE === resJson.code) {
-                                $.notify('無此權限', { type: 'danger' });
-                            }
-                        });
-                    });
-                });
             }
         });
     }
 
-    function insertSubmit() {
-        $keywordreplyAddModal.find('button.btn-insert-submit').attr('disabled', 'disabled');
-        var appId = $appSelector.find('option:selected').val();
-        var keyword = $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val();
-        var textContent = $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val();
-        var isDraft = $keywordreplyAddModal.find('input[name="keywordreply-is-draft"]').prop('checked');
-        var $errorMsgElem = $keywordreplyAddModal.find('.text-danger.error-msg');
+    function removeKeywordreply(ev) {
+        var $targetRow = $(ev.target).parents('tr');
+        var appId = $targetRow.attr('app-id');
+        var keywordreplyId = $targetRow.attr('keywordreply-id');
 
-        // ==========
-        // 檢查資料有無輸入
-        $errorMsgElem.empty().hide();
-        if (!appId) {
-            $errorMsgElem.text('請選擇目標App').show();
-            return;
-        } else if (!keyword) {
-            $errorMsgElem.text('請輸入關鍵字').show();
-            return;
-        } else if (!textContent) {
-            $errorMsgElem.text('請輸入關鍵字回覆的內容').show();
-            return;
-        }
-        // ==========
-
-        var keywordreply = {
-            keyword: keyword,
-            subKeywords: '',
-            text: textContent,
-            replyCount: 0,
-            status: isDraft ? 0 : 1,
-            createdTime: Date.now(),
-            updatedTime: Date.now()
-        };
-
-        return api.appsKeywordreplies.insert(appId, userId, keywordreply).then(function(resJson) {
-            $keywordreplyAddModal.modal('hide');
-            $.notify('新增成功！', { type: 'success' });
-            $appDropdown.find('#' + appId).click();
-            $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
-            return loadKeywordsReplies(appId, userId);
-        }).catch((resJson) => {
-            if (undefined === resJson.status) {
-                $keywordreplyAddModal.modal('hide');
-                $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
-                $.notify('失敗', { type: 'danger' });
-                return loadKeywordsReplies(appId, userId);
+        return showDialog('確定要刪除嗎？').then(function(isOK) {
+            if (!isOK) {
+                return;
             }
-            if (NO_PERMISSION_CODE === resJson.code) {
-                $keywordreplyAddModal.modal('hide');
-                $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
-                $.notify('無此權限', { type: 'danger' });
+
+            return api.appsKeywordreplies.remove(appId, keywordreplyId, userId).then(function() {
+                delete appsKeywordreplies[appId].keywordreplies[keywordreplyId];
+                $.notify('刪除成功！', { type: 'success' });
                 return loadKeywordsReplies(appId, userId);
-            }
+            }).catch((resJson) => {
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                    return;
+                }
+                $.notify('刪除失敗', { type: 'danger' });
+            });
         });
     }
 
