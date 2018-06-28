@@ -298,11 +298,20 @@
             periodCmp.$periodContainer.empty();
 
             $appSelector.val(nowSelectAppId);
+
+            var $replyText = $autoreplyAddModal.find('#replyText');
+            $replyText.emojioneArea({
+                placeholder: $replyText.attr('placeholder') || '',
+                searchPlaceholder: '搜尋',
+                buttonTitle: '',
+                autocomplete: false
+            });
+            $replyText.data('emojioneArea').setText('');
         }
 
         function autoreplyInsert() {
-            var autoreplyTitle = $('#modal-task-name').val();
-            var autoreplyText = $('#enter-text').val();
+            var autoreplyTitle = $autoreplyAddModal.find('#modal-task-name').val();
+            var autoreplyText = $autoreplyAddModal.find('#replyText').val();
 
             if (!autoreplyTitle) {
                 return $.notify('請輸入標題', { type: 'warning' });
@@ -331,20 +340,20 @@
             $('#addSubmitBtn').attr('disabled', true);
             return api.appsAutoreplies.insert(appId, userId, autoreply).then((resJson) => {
                 $autoreplyAddModal.modal('hide');
-                $('#addSubmitBtn').removeAttr('disabled');
-                $('#modal-task-name').val('');
-                $('#starttime').val('');
-                $('#endtime').val('');
-                $('#enter-text').val('');
+                $autoreplyAddModal.find('#addSubmitBtn').removeAttr('disabled');
+                $autoreplyAddModal.find('#modal-task-name').val('');
+                $autoreplyAddModal.find('#starttime').val('');
+                $autoreplyAddModal.find('#endtime').val('');
+                $autoreplyAddModal.find('#replyText').val('');
                 $appDropdown.find('#' + appId).click();
                 $.notify('新增成功！', { type: 'success' });
             }).catch((resJson) => {
                 $autoreplyAddModal.modal('hide');
-                $('#addSubmitBtn').removeAttr('disabled');
-                $('#modal-task-name').val('');
-                $('#starttime').val('');
-                $('#endtime').val('');
-                $('#enter-text').val('');
+                $autoreplyAddModal.find('#addSubmitBtn').removeAttr('disabled');
+                $autoreplyAddModal.find('#modal-task-name').val('');
+                $autoreplyAddModal.find('#starttime').val('');
+                $autoreplyAddModal.find('#endtime').val('');
+                $autoreplyAddModal.find('#replyText').val('');
 
                 if (undefined === resJson.status) {
                     $.notify('失敗', { type: 'danger' });
@@ -403,7 +412,16 @@
             var periods = autoreply.periods || [];
 
             $autoreplyEditModal.find('#edit-taskTitle').val(autoreply.title); // 標題
-            $autoreplyEditModal.find('#editTaskContent').val(autoreply.text); // 任務內容
+
+            let $replyText = $autoreplyEditModal.find('#replyText');
+            // $replyText.val(autoreply.text); // 任務內容
+            $replyText.emojioneArea({
+                placeholder: $replyText.attr('placeholder') || '',
+                searchPlaceholder: '搜尋',
+                buttonTitle: '',
+                autocomplete: false
+            });
+            $replyText.data('emojioneArea').setText(autoreply.text || '');
 
             var $autoreplyEditSdtInput = $autoreplyEditSdtPicker.find('input[name="startDatetime"]');
             var $autoreplyEditEdtInput = $autoreplyEditEdtPicker.find('input[name="endDatetime"]');
@@ -432,8 +450,8 @@
         }
 
         function autoreplyUpdate() {
-            var autoreplyTitle = $('#edit-taskTitle').val();
-            var autoreplyText = $('#editTaskContent').val();
+            var autoreplyTitle = $autoreplyEditModal.find('#edit-taskTitle').val();
+            var autoreplyText = $autoreplyEditModal.find('#replyText').val();
 
             if (!autoreplyTitle) {
                 return $.notify('請輸入標題', { type: 'warning' });
