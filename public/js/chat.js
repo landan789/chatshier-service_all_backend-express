@@ -33,6 +33,9 @@
     // var BREAKPOINT_MD = 768;
     var BREAKPOINT_LG = 992;
 
+    var $emojiParseInput = $(document.createElement('input'));
+    $emojiParseInput.emojioneArea();
+
     var api = window.restfulAPI;
     var userId;
     try {
@@ -483,10 +486,31 @@
     // 停用所有 form 的提交
     $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
+    $submitMessageInput.emojioneArea({
+        placeholder: $submitMessageInput.attr('placeholder') || '',
+        searchPlaceholder: '搜尋',
+        buttonTitle: '',
+        autocomplete: false,
+        events: {
+            keydown: function(editor, ev) {
+                if (13 === ev.keyCode && ev.ctrlKey) {
+                    ev.preventDefault();
+
+                    let messageText = $submitMessageInput.data('emojioneArea').getText();
+                    $submitMessageInput.val(messageText);
+
+                    let $submitMessageBtn = $('.message-input-container #submitMessageBtn');
+                    submitMessage({ target: $submitMessageBtn.get(0) });
+                }
+            }
+        }
+    });
+
     $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
         if (13 === ev.keyCode && ev.ctrlKey) {
-            $('.message-input-container #submitMessageBtn').click();
             ev.preventDefault();
+            let $submitMessageBtn = $('.message-input-container #submitMessageBtn');
+            submitMessage({ target: $submitMessageBtn.get(0) });
         }
 
         // if (13 === ev.keyCode) {
@@ -1417,6 +1441,8 @@
                 );
             case 'text':
                 var messageText = linkify(filterWechatEmoji(message.text || ''));
+                $emojiParseInput.data('emojioneArea').setText(messageText);
+                messageText = $emojiParseInput.data('emojioneArea').editor.html();
                 return '<span class="text-content">' + messageText + '</span>';
             default:
                 return '';
@@ -2235,7 +2261,7 @@
     }
 
     function submitMessage(ev) {
-        ev.preventDefault();
+        ev.preventDefault && ev.preventDefault();
         var $evElem = $(ev.target);
         var $contentPanel = $evElem.parentsUntil('.chat-content-panel');
         var $messageView = $contentPanel.siblings('.chatroom-body').find('.chat-content.shown');
@@ -2279,7 +2305,8 @@
         scrollMessagePanelToBottom(appId, chatroomId);
 
         return new Promise(function(resolve, reject) {
-            $submitMessageInput.val('');
+            $submitMessageInput.val('').data('emojioneArea').setText('');
+
             chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
                 if (err) {
                     console.error(err);
@@ -2501,7 +2528,8 @@
             $imagemapArea.addClass('d-none');
 
             return new Promise(function(resolve, reject) {
-                $submitMessageInput.val('');
+                $submitMessageInput.val('').data('emojioneArea').setText('');
+
                 chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
                     if (err) {
                         console.error(err);

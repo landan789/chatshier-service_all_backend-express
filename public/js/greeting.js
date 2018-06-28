@@ -33,13 +33,27 @@
 
     $modal.on('show.bs.modal', function(ev) {
         let $relatedBtn = $(ev.relatedTarget);
-        $('#modal-greeting-id').val('');
-        $('#modal-greeting-text').val('');
+        let $modalGreetingId = $('#modal-greeting-id');
+        let $modalGreetingText = $('#modal-greeting-text');
+
+        $modalGreetingId.val('');
+        $modalGreetingText.val('');
+
+        let emojiOptions = {
+            placeholder: $modalGreetingText.attr('placeholder') || '',
+            searchPlaceholder: '搜尋',
+            autocomplete: false,
+            buttonTitle: '',
+            pickerPosition: 'bottom'
+        };
 
         if ('add-btn' === $relatedBtn.attr('id')) {
             $appSelector.val(nowSelectAppId);
             $('#modal-insert-btn').removeClass('d-none');
             $('#modal-update-btn').addClass('d-none');
+
+            $modalGreetingText.emojioneArea(emojiOptions);
+            $modalGreetingText.data('emojioneArea').setText('');
             return;
         }
 
@@ -53,8 +67,10 @@
         $appSelector.val(appId);
 
         $(`[name="greeting-app-name"] option[value="${appId}"]`).attr('selected', true);
-        $('#modal-greeting-id').val(greetingId);
-        $('#modal-greeting-text').val(greetingText);
+
+        $modalGreetingId.val(greetingId);
+        $modalGreetingText.val(greetingText).emojioneArea(emojiOptions);
+        $modalGreetingText.data('emojioneArea').setText(greetingText);
     });
 
     $modal.on('hide.bs.modal', function() {
@@ -69,12 +85,12 @@
 
         return Promise.resolve().then(() => {
             if (!appsGreetings[appId]) {
-                if (!appsGreetings[appId]) {
-                    appsGreetings[appId] = { greetings: {} };
-                }
-
                 return api.appsGreetings.findAll(appId, userId).then((resJson) => {
                     let _appsGreetings = resJson.data;
+                    appsGreetings[appId] = { greetings: {} };
+                    if (!_appsGreetings[appId]) {
+                        return;
+                    }
                     Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
                 });
             }
@@ -95,6 +111,9 @@
 
             return api.appsGreetings.insert(appId, userId, greeting).then(function(resJson) {
                 let _appsGreetings = resJson.data;
+                if (!appsGreetings[appId]) {
+                    appsGreetings[appId] = { greetings: {} };
+                }
                 Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
 
                 $appDropdown.find('#' + appId).trigger('click');
@@ -127,9 +146,11 @@
         };
 
         return api.appsGreetings.update(appId, greetingId, userId, greeting).then((resJson) => {
-            let appsgreetings = resJson.data;
-            let modifiedText = appsgreetings[appId].greetings[greetingId].text;
-            $(`#${greetingId}[rel=${appId}]`).find('td:first').text(modifiedText);
+            let _appsGreetings = resJson.data;
+            Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
+
+            let greeting = _appsGreetings[appId].greetings[greetingId];
+            $(`#${greetingId}[rel=${appId}]`).find('td:first').text(greeting.text);
             $modal.modal('hide');
             return $.notify('修改成功', { type: 'success' });
         }).catch((resJson) => {

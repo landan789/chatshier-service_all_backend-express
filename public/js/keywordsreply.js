@@ -225,11 +225,22 @@
                         });
                     case 'text':
                     default:
-                        return '<textarea class="form-control keywordreply-text" name="keywordreplyText" style="resize: vertical"></textarea>';
+                        return '<textarea class="form-control keywordreply-text" name="keywordreplyText" style="resize: vertical" placeholder="在此輸入文字"></textarea>';
                 }
             }).then((html) => {
                 var $replyContentWrapper = $keywordreplyModal.find('#replyContentWrapper');
                 $replyContentWrapper.html(html);
+
+                if ('text' === replyType) {
+                    let $keywordreplyText = $replyContentWrapper.find('[name="keywordreplyText"]');
+                    $keywordreplyText.emojioneArea({
+                        placeholder: $keywordreplyText.attr('placeholder') || '',
+                        searchPlaceholder: '搜尋',
+                        buttonTitle: '',
+                        autocomplete: false
+                    });
+                    $keywordreplyText.data('emojioneArea').setText('');
+                }
 
                 if (!modalKeywordreply) {
                     return;
