@@ -239,6 +239,7 @@
                         buttonTitle: '',
                         autocomplete: false
                     });
+                    $keywordreplyText.data('emojioneArea').setText('');
                 }
 
                 if (!modalKeywordreply) {

@@ -187,6 +187,7 @@
     overflow: hidden;
     font-weight: bold;
     font-size: 1rem; }
+
 .message {
     width: 100%;
     padding: 0 10px;
@@ -266,6 +267,11 @@
         .message .content .location-icon {
             margin-right: .5rem;
             color: red; }
+        .message .content .emojioneemoji {
+            width: 2.1ex;
+            height: 2ex;
+            min-height: 20px;
+            min-width: 20px; }
     .message .messager-name {
         margin-bottom: .25rem; }
         .message .messager-name .sender-name {
@@ -275,7 +281,6 @@
         .message .messager-name .template-btn {
             font-size: 1rem;
             color: #fff; }
-
     .message .box {
         position: relative; 
         text-align: center; }
@@ -287,6 +292,7 @@
         .message .box .imagemap-text-space a {
             color: #ffffff;
             text-decoration: none; }
+
 .message-group {
     display: flex;
     align-items: flex-end; }
@@ -417,6 +423,13 @@
         transform-origin: bottom center;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch; }
+    .message-input-container .emojionearea-editor {
+        height: 100%;
+        min-height: initial;
+        max-height: initial;
+        padding-left: 0;
+        overflow-y: hidden;
+    }
 
 .message-input {
     display: flex;
@@ -435,7 +448,6 @@
         .message-input.form-lower .submit-message-input {
             width: calc(100% - 2.5rem);
             height: 80%;
-            border: none;
             resize: none; }
     .message-input .submit-message-btn {
         position: relative;
