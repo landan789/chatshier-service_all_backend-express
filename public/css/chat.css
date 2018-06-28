@@ -443,7 +443,8 @@
         height: 2rem;
         cursor: pointer;
         color: transparent;
-        border: none; }
+        border: none;
+        background-color: white; }
         .message-input .submit-message-btn::before {
             content: "";
             position: absolute;

@@ -28,6 +28,8 @@
     $(document).on('click', '#modal-insert-btn', insertGreeting);
     $(document).on('click', '#modal-update-btn', updateGreeting);
     $(document).on('click', '#delete-btn', removeGretting);
+    // 停用所有 form 的提交
+    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
     $modal.on('show.bs.modal', function(ev) {
         let $relatedBtn = $(ev.relatedTarget);

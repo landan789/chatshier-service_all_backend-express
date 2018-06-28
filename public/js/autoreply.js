@@ -54,6 +54,9 @@
     $(document).on('click', '#delete-btn', autoreplyRemove); // 刪除
     $(document).on('change paste keyup', '.search-bar', dataSearch);
 
+    // 停用所有 form 的提交
+    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
+
     var PeriodComponent = (function() {
         class PeriodComponent {
             /**

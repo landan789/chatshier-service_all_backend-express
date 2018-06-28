@@ -53,6 +53,9 @@
 
     $jqDoc.on('click', '.keywordreply-row .remove-btn', removeKeywordreply);
 
+    // 停用所有 form 的提交
+    $jqDoc.on('submit', 'form', function(ev) { return ev.preventDefault(); });
+
     (function() {
         var modalAppId;
         var modalKeywordreplyId;

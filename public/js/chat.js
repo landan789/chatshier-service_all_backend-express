@@ -480,6 +480,9 @@
     $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
 
+    // 停用所有 form 的提交
+    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
+
     $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
         if (13 === ev.keyCode && ev.ctrlKey) {
             $('.message-input-container #submitMessageBtn').click();
@@ -1594,11 +1597,13 @@
     function getTemplateOutput(action) {
         switch (action.type) {
             case 'uri':
-                return action.uri;
+                return action.uri || '';
             case 'text':
-                return action.text;
-            default:
+                return action.text || '';
+            case 'postback':
                 return '互動資料';
+            default:
+                return '';
         }
     }
 
