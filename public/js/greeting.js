@@ -13,6 +13,7 @@
 
     const api = window.restfulAPI;
     const NO_PERMISSION_CODE = '3.16';
+    const isMobile = 'function' === typeof window.isMobileBrowser && window.isMobileBrowser();
 
     const $appDropdown = $('.app-dropdown');
     const $modal = $('#greeting_modal');
@@ -36,9 +37,6 @@
         let $modalGreetingId = $('#modal-greeting-id');
         let $modalGreetingText = $('#modal-greeting-text');
 
-        $modalGreetingId.val('');
-        $modalGreetingText.val('');
-
         let emojiOptions = {
             placeholder: $modalGreetingText.attr('placeholder') || '',
             searchPlaceholder: '搜尋',
@@ -52,8 +50,13 @@
             $('#modal-insert-btn').removeClass('d-none');
             $('#modal-update-btn').addClass('d-none');
 
-            $modalGreetingText.emojioneArea(emojiOptions);
-            $modalGreetingText.data('emojioneArea').setText('');
+            $modalGreetingId.val('');
+            $modalGreetingText.val('');
+
+            if (!isMobile) {
+                $modalGreetingText.emojioneArea(emojiOptions);
+                $modalGreetingText.data('emojioneArea').setText('');
+            }
             return;
         }
 
@@ -62,15 +65,19 @@
 
         let $greetingRow = $relatedBtn.parents('tr');
         let appId = $greetingRow.attr('rel');
-        let greetingId = $greetingRow.attr('id');
-        let greetingText = appsGreetings[appId].greetings[greetingId].text;
+        let greetingId = $greetingRow.attr('id') || '';
+        let greetingText = appsGreetings[appId].greetings[greetingId].text || '';
         $appSelector.val(appId);
 
         $(`[name="greeting-app-name"] option[value="${appId}"]`).attr('selected', true);
 
         $modalGreetingId.val(greetingId);
-        $modalGreetingText.val(greetingText).emojioneArea(emojiOptions);
-        $modalGreetingText.data('emojioneArea').setText(greetingText);
+        $modalGreetingText.val(greetingText);
+
+        if (!isMobile) {
+            $modalGreetingText.emojioneArea(emojiOptions);
+            $modalGreetingText.data('emojioneArea').setText(greetingText);
+        }
     });
 
     $modal.on('hide.bs.modal', function() {

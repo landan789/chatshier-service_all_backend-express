@@ -14,6 +14,7 @@
 
     var api = window.restfulAPI;
     var nowSelectAppId = '';
+    var isMobile = 'function' === typeof window.isMobileBrowser && window.isMobileBrowser();
 
     var NO_PERMISSION_CODE = '3.16';
     var MAX_CHATSHIER_UNIX_TIME = 4701945599000;
@@ -299,14 +300,16 @@
 
             $appSelector.val(nowSelectAppId);
 
-            var $replyText = $autoreplyAddModal.find('#replyText');
-            $replyText.emojioneArea({
-                placeholder: $replyText.attr('placeholder') || '',
-                searchPlaceholder: '搜尋',
-                buttonTitle: '',
-                autocomplete: false
-            });
-            $replyText.data('emojioneArea').setText('');
+            if (!isMobile) {
+                var $replyText = $autoreplyAddModal.find('#replyText');
+                $replyText.emojioneArea({
+                    placeholder: $replyText.attr('placeholder') || '',
+                    searchPlaceholder: '搜尋',
+                    buttonTitle: '',
+                    autocomplete: false
+                });
+                $replyText.data('emojioneArea').setText('');
+            }
         }
 
         function autoreplyInsert() {
@@ -413,15 +416,18 @@
 
             $autoreplyEditModal.find('#edit-taskTitle').val(autoreply.title); // 標題
 
-            let $replyText = $autoreplyEditModal.find('#replyText');
-            // $replyText.val(autoreply.text); // 任務內容
-            $replyText.emojioneArea({
-                placeholder: $replyText.attr('placeholder') || '',
-                searchPlaceholder: '搜尋',
-                buttonTitle: '',
-                autocomplete: false
-            });
-            $replyText.data('emojioneArea').setText(autoreply.text || '');
+            var $replyText = $autoreplyEditModal.find('#replyText');
+            $replyText.val(autoreply.text); // 任務內容
+
+            if (!isMobile) {
+                $replyText.emojioneArea({
+                    placeholder: $replyText.attr('placeholder') || '',
+                    searchPlaceholder: '搜尋',
+                    buttonTitle: '',
+                    autocomplete: false
+                });
+                $replyText.data('emojioneArea').setText(autoreply.text || '');
+            }
 
             var $autoreplyEditSdtInput = $autoreplyEditSdtPicker.find('input[name="startDatetime"]');
             var $autoreplyEditEdtInput = $autoreplyEditEdtPicker.find('input[name="endDatetime"]');
