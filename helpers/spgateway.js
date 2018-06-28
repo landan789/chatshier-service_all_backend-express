@@ -2,8 +2,8 @@
 module.exports = (function() {
     const cipherHlp = require('./cipher');
 
-    const TEST = 'Test';
-    const PRODUTION = 'Prodution';
+    const TEST = 'TEST';
+    const PRODUTION = 'PRODUTION';
     const ENDPOINT = {
         [TEST]: 'https://ccore.spgateway.com/MPG/mpg_gateway',
         [PRODUTION]: 'https://core.spgateway.com/MPG/mpg_gateway'
@@ -15,7 +15,7 @@ module.exports = (function() {
         }
 
         /**
-         * @param {'Test' | 'Prodution'} value
+         * @param {'TEST' | 'PRODUTION'} value
          */
         set mode(value) {
             this._mode = value;
