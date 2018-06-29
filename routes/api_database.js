@@ -153,11 +153,11 @@ router.delete('/apps-appointments/apps/:appid/appointments/:appointmentid/users/
 // ==========
 // 預約產品
 router.get('/apps-appointments-items/users/:userid', appsAppointmentsItemsCtl.getAll);
-router.get('/apps-appointments-items/apps/:appid/users/:userid', appsAppointmentsItemsCtl.getAll);
-router.get('/apps-appointments-items/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsItemsCtl.getOne);
-router.post('/apps-appointments-items/apps/:appid/users/:userid', appsAppointmentsItemsCtl.postOne);
-router.put('/apps-appointments-items/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsItemsCtl.putOne);
-router.delete('/apps-appointments-items/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsItemsCtl.deleteOne);
+router.get('/apps-appointments-items/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsItemsCtl.getAll);
+router.get('/apps-appointments-items/apps/:appid/appointments/:appointmentid/items/:itemid/users/:userid', appsAppointmentsItemsCtl.getOne);
+router.post('/apps-appointments-items/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsItemsCtl.postOne);
+router.put('/apps-appointments-items/apps/:appid/appointments/:appointmentid/items/:itemid/users/:userid', appsAppointmentsItemsCtl.putOne);
+router.delete('/apps-appointments-items/apps/:appid/appointments/:appointmentid/items/:itemid/users/:userid', appsAppointmentsItemsCtl.deleteOne);
 // ==========
 
 // ==========

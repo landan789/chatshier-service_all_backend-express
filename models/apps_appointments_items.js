@@ -37,6 +37,7 @@ module.exports = (function() {
                         // 篩選項目
                         appointments: {
                             _id: '$appointments._id',
+                            name : '$appointments.name',
                             isDeleted: '$appointments.isDeleted',
                             items: 1
                         }
@@ -133,10 +134,11 @@ module.exports = (function() {
             postItem.createdTime = postItem.updatedTime = Date.now();
 
             return this.AppsModel.findById(appId).then((app) => {
-                app.appointments[appointmentId].items.push(postItem);
+                let appointmentIndex = app.appointments.findIndex((appointment) => appointmentId === appointment.id);
+                app.appointments[appointmentIndex].items.push(postItem);
                 return app.save();
             }).then(() => {
-                return this.find(appId, appointmentId, itemId);
+                return this.find(appId);
             }).then((appsAppointmentsItems) => {
                 ('function' === typeof callback) && callback(appsAppointmentsItems);
                 return appsAppointmentsItems;
@@ -166,15 +168,25 @@ module.exports = (function() {
 
             let updateOper = { $set: {} };
             for (let prop in putItem) {
-                updateOper.$set['appointments.$.items.' + prop] = putItem[prop];
+                updateOper.$set['appointments.$[appointment].items.$[item].' + prop] = putItem[prop];
             }
 
-            return this.AppsModel.findOneAndUpdate(query, updateOper).then(() => {
-                return this.find(appId, appointmentId, itemId);
+            let options = {
+                arrayFilters: [
+                    {
+                        'appointment._id': this.Types.ObjectId(appointmentId)
+                    }, {
+                        'item._id': this.Types.ObjectId(itemId)
+                    }
+                ]
+            };
+
+            return this.AppsModel.update(query, updateOper, options).then(() => {
+                return this.find(appId);
             }).then((appsAppointmentsItems) => {
                 ('function' === typeof callback) && callback(appsAppointmentsItems);
                 return appsAppointmentsItems;
-            }).catch(() => {
+            }).catch((ERR) => {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
@@ -197,12 +209,22 @@ module.exports = (function() {
 
             let operate = {
                 $set: {
-                    'appointments.$.items.isDeleted': true,
-                    'appointments.$.items.updatedTime': Date.now()
+                    'appointments.$[appointment].items.$[item].isDeleted': true,
+                    'appointments.$[appointment].items.$[item].updatedTime': Date.now()
                 }
             };
 
-            return this.AppsModel.update(query, operate).then((updateResult) => {
+            let options = {
+                arrayFilters: [
+                    {
+                        'appointment._id': this.Types.ObjectId(appointmentId)
+                    }, {
+                        'item._id': this.Types.ObjectId(itemId)
+                    }
+                ]
+            };
+
+            return this.AppsModel.update(query, operate, options).then((updateResult) => {
                 if (!updateResult.ok) {
                     return Promise.reject(new Error());
                 }
@@ -237,7 +259,7 @@ module.exports = (function() {
             }).then((appsAppointmentsItems) => {
                 ('function' === typeof callback) && callback(appsAppointmentsItems);
                 return appsAppointmentsItems;
-            }).catch(() => {
+            }).catch((ERR) => {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
