@@ -85,7 +85,6 @@ module.exports = (function() {
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                 let putMessager = {};
                 ('string' === typeof req.body.name) && (putMessager.namings = { [platformUid]: req.body.name });
-                ('number' === typeof req.body.age) && (putMessager.age = req.body.age);
                 ('string' === typeof req.body.email) && (putMessager.email = req.body.email);
                 ('string' === typeof req.body.phone) && (putMessager.phone = req.body.phone);
                 ('string' === typeof req.body.county) && (putMessager.county = req.body.county);
@@ -93,6 +92,7 @@ module.exports = (function() {
                 ('string' === typeof req.body.address) && (putMessager.address = req.body.address);
                 ('string' === typeof req.body.birthday) && (putMessager.birthday = req.body.birthday);
                 ('string' === typeof req.body.gender) && (putMessager.gender = req.body.gender);
+                !isNaN(parseInt(req.body.age, 10)) && (putMessager.age = parseInt(req.body.age, 10));
 
                 return Promise.all(Object.keys(chatrooms).map((chatroomId) => {
                     return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, putMessager).then((_appsChatroomsMessagers) => {

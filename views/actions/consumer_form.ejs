@@ -7,7 +7,7 @@
     <title><%= title %></title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-5SOiIsAziJl6AWe0HWRKTXlfcSHKmYV4RBF18PPJ173Kzn7jzMyFuTtk8JA7QQG1" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous" />
     <style>
         .data-container {
             max-width: 30rem; }
@@ -15,11 +15,15 @@
 </head>
 
 <body>
-    <div class="mt-3 page-title text-center">
+    <div class="mt-3 text-center text-info loading-icon" id="loadingIcon">
+        <i class="fas fa-spinner fa-pulse fa-4x"></i>
+    </div>
+        
+    <div class="mt-3 text-center page-title d-none" id="pageTitle">
         <h4>基本資料填寫頁面</h4>
     </div>
 
-    <form class="flex-column align-items-center user-form d-none" id="userForm">
+    <form class="flex-column align-items-center consumer-form d-none" id="consumerForm">
         <input type="hidden" name="chatroomId" />
         <input type="hidden" name="platformUid" />
         
@@ -77,6 +81,7 @@
 
             <div class="row form-group">
                 <label class="col-12 col-sm-3 control-label" for="consumerAddress">
+                    <span class="text-danger">*</span>
                     <span class="font-weight-bold">地址:</span>
                 </label>
                 <div class="col-12 col-sm-9">
@@ -85,18 +90,20 @@
                         type="text"
                         id="consumerAddress"
                         name="consumerAddress"
-                        placeholder="地址" />
+                        placeholder="地址"
+                        required />
                 </div>
             </div>
 
             <div class="row form-group">
                 <label class="col-12 col-sm-3 font-weight-bold control-label">
+                    <span class="text-danger">*</span>
                     <span>生日:</span>
                 </label>
                 <div class="d-flex birthday-picker col-12 col-sm-9">
-                    <select class="mr-1 form-control birth-year" name="birthYear"></select>
-                    <select class="mx-1 form-control birth-month" name="birthMonth"></select>
-                    <select class="ml-1 form-control birth-day" name="birthDay"></select>
+                    <select class="mr-1 form-control birth-year" name="birthYear" required></select>
+                    <select class="mx-1 form-control birth-month" name="birthMonth" required></select>
+                    <select class="ml-1 form-control birth-day" name="birthDay" required></select>
                     <input type="hidden" name="birthdate" />
                 </div>
             </div>
@@ -107,6 +114,14 @@
                 </label>
 
                 <div class="col-12 col-sm-9">
+                    <label for="genderUnset">
+                        <input type="radio"
+                            name="consumerGender"
+                            id="genderUnset"
+                            value="" />
+                        <span class="mx-2">未選擇</span>
+                    </label>
+
                     <label for="genderMale">
                         <input type="radio"
                             name="consumerGender"
@@ -138,18 +153,132 @@
         </div>
     </form>
 
+    <div class="modal fade" id="dialogModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h4 id="textContent"></h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary">確定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@2.2.0/build/jwt-decode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/mobile-detect.js/latest/mobile-detect.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
-    <script src="lib/js/jquery.twzipcode.min.js"></script>
-    <script src="lib/js/birthday-picker.min.js"></script>
-    <script src="config/url-config.js"></script>
+    <script src="/lib/js/jquery.twzipcode.min.js"></script>
+    <script src="/config/url-config.js"></script>
+
+    <script type="text/javascript">
+        var $dialogModal = $('#dialogModal');
+        var $dialogText = $dialogModal.find('#textContent');
+
+        window.methods = {
+            getRequiredData: function(cb) {
+                $.ajax({
+                    url: window.urlConfig.apiUrl + '/api/database/consumers-form/apps/' + urlParams.aid + '/consumers/' + platformUid,
+                    cache: false,
+                    dataType: 'json',
+                    headers: {
+                        Authorization: urlParams.t,
+                    },
+                    type: 'GET',
+                    success: function(res) {
+                        cb && cb(void 0, res);
+                    },
+                    error: function(err) {
+                        console.error(err);
+                        cb && cb(err);
+                    }
+                });
+            },
+            submitForm: function(cb) {
+                var $consumerForm = $('#consumerForm');
+                var name = $consumerForm.find('#consumerName').val();
+                var email = $consumerForm.find('#consumerEmail').val() || '';
+                var phone = $consumerForm.find('#consumerPhone').val();
+                var county = $consumerForm.find('select[name="county"]').val() || '';
+                var district = $consumerForm.find('select[name="district"]').val() || '';
+                var address = county + district + ($consumerForm.find('[name="consumerAddress"]').val() || '');
+                var birthYear = $consumerForm.find('[name="birthYear"]').val();
+                var birthMonth = $consumerForm.find('[name="birthMonth"]').val();
+                var birthDay = $consumerForm.find('[name="birthDay"]').val();
+                var birthdayStr = birthYear + '-' + birthMonth + '-' + birthDay;
+                var gender = $consumerForm.find('[name="consumerGender"]:checked').val() || '';
+
+                var age = (function calculateAge(birthday) {
+                    var ageDifMs = Date.now() - birthday.getTime();
+                    var ageDate = new Date(ageDifMs);
+                    return Math.abs(ageDate.getUTCFullYear() - 1970);
+                })(new Date(birthdayStr));
+
+                var putMessager = {
+                    name: name,
+                    age: age,
+                    email: email,
+                    phone: phone,
+                    county: county,
+                    district: district,
+                    address: address,
+                    birthday: birthdayStr,
+                    gender: gender
+                };
+
+                $.ajax({
+                    url: window.urlConfig.apiUrl + '/api/database/consumers-form/apps/' + urlParams.aid + '/consumers/' + platformUid,
+                    cache: false,
+                    dataType: 'json',
+                    headers: {
+                        Authorization: urlParams.t,
+                    },
+                    type: 'PUT',
+                    data: putMessager,
+                    success: function(res) {
+                        ('function' === typeof cb) && cb(void 0, res);
+                    },
+                    error: function(err) {
+                        console.error(err);
+                        ('function' === typeof cb) && cb(err);
+                    }
+                });
+            },
+            showDialog: function(textContent, noCancel, cb) {
+                var isOK = false;
+                $dialogText.text(textContent)
+
+                if (noCancel) {
+                    $dialogModal.find('.btn-secondary').addClass('d-none');
+                } else {
+                    $dialogModal.find('.btn-secondary').removeClass('d-none');
+                }
+
+                $dialogModal.find('.btn-primary').off('click').on('click', function() {
+                    isOK = true;
+                    $dialogModal.modal('hide');
+                });
+
+                $dialogModal.off('hidden.bs.modal').on('hidden.bs.modal', function() {
+                    ('function' === typeof cb) && cb(isOK);
+                });
+
+                $dialogModal.modal({ backdrop: false, show: true });
+            },
+            closeForm: function() {
+                window.location.replace('about:blank');
+            }
+        };
+    </script>
 
     <script type="text/javascript">
         !window.urlConfig && (window.urlConfig = {});
         !window.urlConfig.apiUrl && (window.urlConfig.apiUrl = window.location.origin);
 
+        var methods = window.methods;
         var fields;
         var messager;
         var urlParams = (function getUrlParams() {
@@ -177,85 +306,12 @@
             platformUid = '';
         }
 
-        function getRequiredData(cb) {
-            $.ajax({
-                url: window.urlConfig.apiUrl + '/api/database/consumers-form/apps/' + urlParams.aid + '/consumers/' + platformUid,
-                cache: false,
-                dataType: 'json',
-                headers: {
-                    Authorization: urlParams.t,
-                },
-                type: 'GET',
-                success: function(res) {
-                    cb && cb(void 0, res);
-                },
-                error: function(err) {
-                    console.error(err);
-                    cb && cb(err);
-                }
-            });
-        }
-
-        function submitForm(cb) {
-            var name = $('#consumerName').val();
-            var email = $('#consumerEmail').val() || '';
-            var phone = $('#consumerPhone').val();
-            var county = $('select[name="county"]').val() || '';
-            var district = $('select[name="district"]').val() || '';
-            var address = county + district + ($('[name="consumerAddress"]').val() || '');
-            var birthYear = $('[name="birthYear"]').val();
-            var birthMonth = $('[name="birthMonth"]').val();
-            var birthDay = $('[name="birthDay"]').val();
-            var birthdayStr = birthYear + '-' + birthMonth + '-' + birthDay;
-            var gender = $('[name="consumerGender"]:checked').val() || '';
-
-            var age = (function calculateAge(birthday) {
-                var ageDifMs = Date.now() - birthday.getTime();
-                var ageDate = new Date(ageDifMs);
-                return Math.abs(ageDate.getUTCFullYear() - 1970);
-            })(new Date(birthdayStr));
-
-            var putMessager = {
-                name: name,
-                age: age,
-                email: email,
-                phone: phone,
-                county: county,
-                district: district,
-                address: address,
-                birthday: birthdayStr,
-                gender: gender
-            };
-
-            $.ajax({
-                url: window.urlConfig.apiUrl + '/api/database/consumers-form/apps/' + urlParams.aid + '/consumers/' + platformUid,
-                cache: false,
-                dataType: 'json',
-                headers: {
-                    Authorization: urlParams.t,
-                },
-                type: 'PUT',
-                data: putMessager,
-                success: function(res) {
-                    cb && cb(void 0, res);
-                },
-                error: function(err) {
-                    console.error(err);
-                    cb && cb(err);
-                }
-            });
-        }
-
-        function closeForm() {
-            document.body.innerHTML = '';
-        }
-
         if (!urlParams.aid || !platformUid || (payload && payload.exp < Date.now())) {
-            window.alert('此表單已無法填寫！請關閉頁面，重新操作填寫流程');
-            closeForm();
+            $('#loadingIcon').remove();
+            methods.showDialog('此表單已無法填寫！請關閉頁面，重新操作填寫流程', true, methods.closeForm);
         } else {
-            var $birthdayPicker = $('.birthday-picker');
-            var $userForm = $('#userForm');
+            var $consumerForm = $('#consumerForm');
+            var $birthdayPicker = $consumerForm.find('.birthday-picker');
 
             var updateNumberOfDays = function() {
                 var $birthDay = $birthdayPicker.find('[name="birthDay"]').html('');
@@ -265,38 +321,43 @@
                     return new Date(year, month, 0).getDate();
                 })(year, month);
 
+                $birthDay.append('<option value="" disabled>日</option>');
                 for (var d = 1; d <= days; d++) {
                     $birthDay.append('<option value="' + ('0' + d).slice(-2) + '">' + d + '</option>');
                 }
             };
 
             $(document).ready(function() {
-                $(document).on('click', '.btn-cancel', closeForm);
+                $(document).on('click', '.btn-cancel', methods.closeForm);
 
-                getRequiredData(function(err, res) {
+                methods.getRequiredData(function(err, res) {
                     if (err) {
-                        return closeForm();
+                        return methods.closeForm();
                     }
 
                     fields = res.data.fields;
                     messager = res.data.messager;
 
-                    $('#consumerName').val((messager.namings && messager.namings[platformUid]) || '');
-                    $('#consumerEmail').val(messager.email || '');
-                    $('#consumerPhone').val(messager.phone || '');
-                    $('[name="consumerGender"][value="' + messager.gender + '"]').prop('checked', true);
-
-                    $('#twZipcode').twzipcode({
+                    $consumerForm.find('#consumerName').val((messager.namings && messager.namings[platformUid]) || '');
+                    $consumerForm.find('#consumerEmail').val(messager.email || '');
+                    $consumerForm.find('#consumerPhone').val(messager.phone || '');
+                    $consumerForm.find('[name="consumerGender"][value="' + messager.gender + '"]').prop('checked', true);
+                    
+                    var $twZipcode = $consumerForm.find('#twZipcode');
+                    $twZipcode.twzipcode({
                         zipcodeIntoDistrict: false,
                         zipcodeSel: '',
                         countySel: messager.county || '',
                         districtSel: messager.district || '',
                         css: ['form-control col-xs-6', 'form-control col-xs-6', 'd-none']
                     });
-                    $('[name="consumerAddress"]').val((messager.address || '').replace(messager.county, '').replace(messager.district, ''));
+                    $twZipcode.find('[name="county"]').attr('required', '');
+                    $twZipcode.find('[name="district"]').attr('required', '');
+                    $consumerForm.find('[name="consumerAddress"]').val((messager.address || '').replace(messager.county, '').replace(messager.district, ''));
                     
-                    var birthday = messager.birthday || '1970-01-01';
+                    var birthday = messager.birthday || '';
                     var $birthYear = $birthdayPicker.find('[name="birthYear"]');
+                    $birthYear.append('<option value="" disabled>年</option>');
                     for (var y = new Date().getFullYear(); y >= 1900; y--) {
                         $birthYear.append('<option value="' + y + '">' + y + '</option>');
                     }
@@ -304,6 +365,7 @@
                     $birthYear.val(birthdaySplits[0]);
 
                     var $birthMonth = $birthdayPicker.find('[name="birthMonth"]');
+                    $birthMonth.append('<option value="" disabled>月</option>');
                     for (var m = 1; m <= 12; m++) {
                         $birthMonth.append('<option value="' + ('0' + m).slice(-2) + '">' + m + '</option>');
                     }
@@ -314,19 +376,28 @@
                     $birthdayPicker.on('change', '[name="birthYear"], [name="birthMonth"]', function() {
                         updateNumberOfDays();
                     });
-
-                    $userForm.removeClass('d-none').addClass('d-flex');
+                    
+                    $('#loadingIcon').remove();
+                    $('#pageTitle').removeClass('d-none');
+                    $consumerForm.removeClass('d-none').addClass('d-flex');
                 });
 
-                $userForm.submit(function(ev) {
+                $consumerForm.submit(function(ev) {
                     ev.preventDefault();
 
-                    if (window.confirm('資料填寫無誤，確定送出嗎？')) {
-                        submitForm(function() {
-                            window.alert('資料更新成功！請關閉此頁面');
-                            closeForm();
+                    methods.showDialog('資料填寫無誤，確定送出嗎？', false, function(isOK) {
+                        if (!isOK) {
+                            return;
+                        }
+
+                        methods.submitForm(function(err, res) {
+                            if (err) {
+                                methods.showDialog('資料更新失敗！如有需求，請聯絡客服人員', true);
+                                return;
+                            }
+                            methods.showDialog('資料更新成功！請關閉此頁面', true, methods.closeForm);
                         });
-                    }
+                    });
                 });
             });
         }
