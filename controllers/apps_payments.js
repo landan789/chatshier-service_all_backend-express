@@ -91,10 +91,10 @@ module.exports = (function() {
             let paymentId = req.params.paymentid;
 
             let putTikcket = {};
-            (req.body.type !== undefined) && (putTikcket.type = req.body.type);
-            (req.body.merchantId !== undefined) && (putTikcket.merchantId = req.body.merchantId);
-            (req.body.hashKey !== undefined) && (putTikcket.hashKey = req.body.hashKey);
-            (req.body.hashIV !== undefined) && (putTikcket.hashIV = req.body.hashIV);
+            ('string' === typeof req.body.type) && (putTikcket.type = req.body.type);
+            ('string' === typeof req.body.merchantId) && (putTikcket.merchantId = req.body.merchantId);
+            ('string' === typeof req.body.hashKey) && (putTikcket.hashKey = req.body.hashKey);
+            ('string' === typeof req.body.hashIV) && (putTikcket.hashIV = req.body.hashIV);
 
             return this.appsRequestVerify(req).then(() => {
                 if (!paymentId) {

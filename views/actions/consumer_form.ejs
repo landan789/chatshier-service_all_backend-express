@@ -9,17 +9,26 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous" />
     <style>
-        .data-container {
+        html {
+            min-height: 100%; }
+        body {
+            height: 100%;
+            background-color: #eefdff;
+            background: linear-gradient(to bottom, #eefdff 0%, #d2ecf3 100%); }
+        .data-container, .buttons-container {
             max-width: 30rem; }
+        .form-control-border {
+            border: 1px solid #ced4da;
+            border-radius: .25rem; }
     </style>
 </head>
 
 <body>
-    <div class="mt-3 text-center text-info loading-icon" id="loadingIcon">
+    <div class="h-100 pt-3 text-center text-info loading-icon" id="loadingIcon">
         <i class="fas fa-spinner fa-pulse fa-4x"></i>
     </div>
         
-    <div class="mt-3 text-center page-title d-none" id="pageTitle">
+    <div class="pt-3 text-center page-title d-none" id="pageTitle">
         <h4>基本資料填寫頁面</h4>
     </div>
 
@@ -139,17 +148,17 @@
                     </label>
                 </div>
             </div>
+        </div>
 
-            <div class="form-group text-right">
-                <button type="button" class="btn btn-warning btn-cancel">
-                    <i class="fas fa-times fa-fw"></i>
-                    <span>下次再填</span>
-                </button>
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-check fa-fw"></i>
-                    <span>送出</span>
-                </button>
-            </div>
+        <div class="w-100 my-3 px-3 text-right buttons-container">
+            <button type="button" class="btn btn-warning btn-cancel">
+                <i class="fas fa-times fa-fw"></i>
+                <span>下次再填</span>
+            </button>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check fa-fw"></i>
+                <span>送出</span>
+            </button>
         </div>
     </form>
 
@@ -170,6 +179,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@2.2.0/build/jwt-decode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/mobile-detect.js/latest/mobile-detect.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
     <script src="/lib/js/jquery.twzipcode.min.js"></script>
     <script src="/config/url-config.js"></script>
@@ -177,6 +187,39 @@
     <script type="text/javascript">
         var $dialogModal = $('#dialogModal');
         var $dialogText = $dialogModal.find('#textContent');
+        var $consumerForm = $('#consumerForm');
+
+        var SETS_TYPES = Object.freeze({
+            TEXT: 'TEXT',
+            NUMBER: 'NUMBER',
+            DATE: 'DATE',
+            SELECT: 'SELECT',
+            MULTI_SELECT: 'MULTI_SELECT',
+            CHECKBOX: 'CHECKBOX'
+        });
+
+        $consumerForm.on('click', '.multi-select-container .dropdown-item', function(ev) {
+            var $checkInput;
+            if ('input' !== ev.target.localName) {
+                $checkInput = $(ev.target).find('.form-check-input');
+                $checkInput.prop('checked', !$checkInput.prop('checked'));
+                ev.stopPropagation();
+                ev.preventDefault();
+            } else {
+                $checkInput = $(ev.target);
+            }
+
+            var $selectContainer = $checkInput.parents('.multi-select-container');
+            var $selectText = $selectContainer.parents('.dropdown').find('.multi-select-text');
+
+            var $checkboxes = $selectContainer.find('input[type="checkbox"]');
+            var textArr = [];
+            $checkboxes.each(function(i, elem) {
+                var $checkbox = $(elem);
+                $checkbox.prop('checked') && textArr.push($checkbox.val());
+            });
+            $selectText.text(textArr.join(','));
+        });
 
         window.methods = {
             getRequiredData: function(cb) {
@@ -217,6 +260,35 @@
                     return Math.abs(ageDate.getUTCFullYear() - 1970);
                 })(new Date(birthdayStr));
 
+                var $customFields = $consumerForm.find('.custom-field');
+                var customFields = {};
+
+                $customFields.each(function(i, elem) {
+                    var $customField = $(elem);
+                    var fieldId = $customField.attr('field-id');
+                    var setsType = $customField.attr('sets-type');
+
+                    var $fieldValues = $customField.find('.field-value');
+
+                    switch (setsType) {
+                        case SETS_TYPES.MULTI_SELECT:
+                            customFields[fieldId] = { value: [] }
+                            $fieldValues.each(function(i, elem) {
+                                customFields[fieldId].value.push(elem.checked);
+                            });
+                            break;
+                        case SETS_TYPES.CHECKBOX:
+                            customFields[fieldId] = { value: $fieldValues.prop('checked') }
+                            break;
+                        case SETS_TYPES.SELECT:
+                        case SETS_TYPES.NUMBER:
+                        case SETS_TYPES.TEXT:
+                        default:
+                            customFields[fieldId] = { value: $fieldValues.val() }
+                            break;
+                    }
+                });
+
                 var putMessager = {
                     name: name,
                     age: age,
@@ -226,7 +298,8 @@
                     district: district,
                     address: address,
                     birthday: birthdayStr,
-                    gender: gender
+                    gender: gender,
+                    custom_fields: customFields
                 };
 
                 $.ajax({
@@ -234,10 +307,11 @@
                     cache: false,
                     dataType: 'json',
                     headers: {
-                        Authorization: urlParams.t,
+                        'Authorization': urlParams.t,
+                        'Content-Type': 'application/json'
                     },
                     type: 'PUT',
-                    data: putMessager,
+                    data: JSON.stringify(putMessager),
                     success: function(res) {
                         ('function' === typeof cb) && cb(void 0, res);
                     },
@@ -270,6 +344,151 @@
             },
             closeForm: function() {
                 window.location.replace('about:blank');
+            },
+            initRequiredRows: function(messager) {
+                var $birthdayPicker = $consumerForm.find('.birthday-picker');
+
+                var updateNumberOfDays = function() {
+                    var $birthDay = $birthdayPicker.find('[name="birthDay"]').html('');
+                    var month = $birthdayPicker.find('[name="birthMonth"]').val();
+                    var year = $birthdayPicker.find('[name="birthYear"]').val();
+                    var days = (function daysInMonth(year, month) {
+                        return new Date(year, month, 0).getDate();
+                    })(year, month);
+
+                    $birthDay.append('<option value="" disabled>日</option>');
+                    for (var d = 1; d <= days; d++) {
+                        $birthDay.append('<option value="' + ('0' + d).slice(-2) + '">' + d + '</option>');
+                    }
+                };
+
+                $consumerForm.find('#consumerName').val((messager.namings && messager.namings[platformUid]) || '');
+                $consumerForm.find('#consumerEmail').val(messager.email || '');
+                $consumerForm.find('#consumerPhone').val(messager.phone || '');
+                $consumerForm.find('[name="consumerGender"][value="' + messager.gender + '"]').prop('checked', true);
+                
+                var $twZipcode = $consumerForm.find('#twZipcode');
+                $twZipcode.twzipcode({
+                    zipcodeIntoDistrict: false,
+                    zipcodeSel: '',
+                    countySel: messager.county || '',
+                    districtSel: messager.district || '',
+                    css: ['form-control col-xs-6', 'form-control col-xs-6', 'd-none']
+                });
+                $twZipcode.find('[name="county"]').attr('required', '');
+                $twZipcode.find('[name="district"]').attr('required', '');
+                $consumerForm.find('[name="consumerAddress"]').val((messager.address || '').replace(messager.county, '').replace(messager.district, ''));
+                    
+                var birthday = messager.birthday || '';
+                var $birthYear = $birthdayPicker.find('[name="birthYear"]');
+                $birthYear.append('<option value="" disabled>年</option>');
+                for (var y = new Date().getFullYear(); y >= 1900; y--) {
+                    $birthYear.append('<option value="' + y + '">' + y + '</option>');
+                }
+                var birthdaySplits = birthday.split('-');
+                $birthYear.val(birthdaySplits[0]);
+
+                var $birthMonth = $birthdayPicker.find('[name="birthMonth"]');
+                $birthMonth.append('<option value="" disabled>月</option>');
+                for (var m = 1; m <= 12; m++) {
+                    $birthMonth.append('<option value="' + ('0' + m).slice(-2) + '">' + m + '</option>');
+                }
+                $birthMonth.val(birthdaySplits[1]);
+                updateNumberOfDays();
+                $birthdayPicker.find('[name="birthDay"]').val(birthdaySplits[2]);
+
+                $birthdayPicker.on('change', '[name="birthYear"], [name="birthMonth"]', function() {
+                    updateNumberOfDays();
+                });
+
+                $('#loadingIcon').remove();
+                $('#pageTitle').removeClass('d-none');
+                $consumerForm.removeClass('d-none').addClass('d-flex');
+            },
+            initFieldRows: function(fields, messager) {
+                var $dataContainer = $consumerForm.find('.data-container');
+
+                var formRows = Object.keys(fields).sort(function(a, b) {
+                    return fields[a].order - fields[b].order;
+                }).map(function(fieldId) {
+                    var field = fields[fieldId];
+                    if (!('CUSTOM' === field.type && field.canShowingOnForm)) {
+                        return '';
+                    }
+
+                    var customFields = messager.custom_fields || {};
+                    var customFieldValue = (customFields[fieldId] || {}).value || '';
+
+                    return (
+                        '<div class="row form-group custom-field" field-id="' + fieldId + '" sets-type="' + field.setsType + '">' +
+                            '<label class="col-12 col-sm-3 font-weight-bold control-label" for="' + fieldId + '">' +
+                                '<span>' + field.text + '</span>' +
+                            '</label>' +
+                            '<div class="col-12 col-sm-9">' +
+                                (function() {
+                                    switch (field.setsType) {
+                                        case SETS_TYPES.CHECKBOX:
+                                            return (
+                                                '<input class="field-value" type="checkbox" id="' + fieldId + '"' + (customFieldValue ? ' checked="true"' : '') + ' />'
+                                            );
+                                        case SETS_TYPES.NUMBER:
+                                            return (
+                                                '<input class="form-control field-value" type="number" id="' + fieldId +'" placeholder="尚未輸入" value="' + customFieldValue + '" />'
+                                            );
+                                        case SETS_TYPES.SELECT:
+                                            return (
+                                                '<select class="form-control field-value" value="' + customFieldValue + '">' +
+                                                    (function() {
+                                                        return field.sets.map(function(set) {
+                                                            return '<option value="' + set + '">' + set + '</option>';
+                                                        }).join('');
+                                                    })() +
+                                                '</select>'
+                                            );
+                                        case SETS_TYPES.MULTI_SELECT:
+                                            customFieldValue = customFieldValue instanceof Array ? customFieldValue : [];
+                                            var multiSelectText = customFieldValue.map(function(value, i) {
+                                                return value ? field.sets[i] : '';
+                                            }).filter(function(value) {
+                                                return !!value;
+                                            }).join(',');
+
+                                            return (
+                                                '<div class="mb-3 dropdown form-control-border">' +
+                                                    '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
+                                                        '<span class="multi-select-text">' + multiSelectText + '</span>' +
+                                                    '</button>' +
+                                                    '<div class="multi-select-container dropdown-menu">' +
+                                                        (function() {
+                                                            return field.sets.map(function(set, i) {
+                                                                return (
+                                                                    '<div class="px-3 dropdown-item">' +
+                                                                        '<div class="form-check form-check-inline">' +
+                                                                            '<label class="form-check-label">' +
+                                                                                '<input class="field-value form-check-input" type="checkbox" value="' + set + '"' + (customFieldValue[i] ? ' checked="true"' : '') + ' />' +
+                                                                                set +
+                                                                            '</label>' +
+                                                                        '</div>' +
+                                                                    '</div>'
+                                                                );
+                                                            }).join('');
+                                                        })() +
+                                                    '</div>' +
+                                                '</div>'
+                                            );
+                                        case SETS_TYPES.TEXT:
+                                        default:
+                                            return (
+                                                '<input class="form-control field-value" type="text" id="' + fieldId +'" placeholder="尚未輸入" value="' + customFieldValue + '" />'
+                                            );
+                                    }
+                                })() +
+                            '</div>' +
+                        '</div>'
+                    );
+                }).join('');
+
+                $dataContainer.append(formRows);
             }
         };
     </script>
@@ -306,27 +525,10 @@
             platformUid = '';
         }
 
-        if (!urlParams.aid || !platformUid || (payload && payload.exp < Date.now())) {
-            $('#loadingIcon').remove();
-            methods.showDialog('此表單已無法填寫！請關閉頁面，重新操作填寫流程', true, methods.closeForm);
-        } else {
-            var $consumerForm = $('#consumerForm');
-            var $birthdayPicker = $consumerForm.find('.birthday-picker');
-
-            var updateNumberOfDays = function() {
-                var $birthDay = $birthdayPicker.find('[name="birthDay"]').html('');
-                var month = $birthdayPicker.find('[name="birthMonth"]').val();
-                var year = $birthdayPicker.find('[name="birthYear"]').val();
-                var days = (function daysInMonth(year, month) {
-                    return new Date(year, month, 0).getDate();
-                })(year, month);
-
-                $birthDay.append('<option value="" disabled>日</option>');
-                for (var d = 1; d <= days; d++) {
-                    $birthDay.append('<option value="' + ('0' + d).slice(-2) + '">' + d + '</option>');
-                }
-            };
-
+        // if (!urlParams.aid || !platformUid || (payload && payload.exp < Date.now())) {
+        //     $('#loadingIcon').remove();
+        //     methods.showDialog('此表單已無法填寫！請關閉頁面，重新操作填寫流程', true, methods.closeForm);
+        // } else {
             $(document).ready(function() {
                 $(document).on('click', '.btn-cancel', methods.closeForm);
 
@@ -338,48 +540,8 @@
                     fields = res.data.fields;
                     messager = res.data.messager;
 
-                    $consumerForm.find('#consumerName').val((messager.namings && messager.namings[platformUid]) || '');
-                    $consumerForm.find('#consumerEmail').val(messager.email || '');
-                    $consumerForm.find('#consumerPhone').val(messager.phone || '');
-                    $consumerForm.find('[name="consumerGender"][value="' + messager.gender + '"]').prop('checked', true);
-                    
-                    var $twZipcode = $consumerForm.find('#twZipcode');
-                    $twZipcode.twzipcode({
-                        zipcodeIntoDistrict: false,
-                        zipcodeSel: '',
-                        countySel: messager.county || '',
-                        districtSel: messager.district || '',
-                        css: ['form-control col-xs-6', 'form-control col-xs-6', 'd-none']
-                    });
-                    $twZipcode.find('[name="county"]').attr('required', '');
-                    $twZipcode.find('[name="district"]').attr('required', '');
-                    $consumerForm.find('[name="consumerAddress"]').val((messager.address || '').replace(messager.county, '').replace(messager.district, ''));
-                    
-                    var birthday = messager.birthday || '';
-                    var $birthYear = $birthdayPicker.find('[name="birthYear"]');
-                    $birthYear.append('<option value="" disabled>年</option>');
-                    for (var y = new Date().getFullYear(); y >= 1900; y--) {
-                        $birthYear.append('<option value="' + y + '">' + y + '</option>');
-                    }
-                    var birthdaySplits = birthday.split('-');
-                    $birthYear.val(birthdaySplits[0]);
-
-                    var $birthMonth = $birthdayPicker.find('[name="birthMonth"]');
-                    $birthMonth.append('<option value="" disabled>月</option>');
-                    for (var m = 1; m <= 12; m++) {
-                        $birthMonth.append('<option value="' + ('0' + m).slice(-2) + '">' + m + '</option>');
-                    }
-                    $birthMonth.val(birthdaySplits[1]);
-                    updateNumberOfDays();
-                    $birthdayPicker.find('[name="birthDay"]').val(birthdaySplits[2]);
-
-                    $birthdayPicker.on('change', '[name="birthYear"], [name="birthMonth"]', function() {
-                        updateNumberOfDays();
-                    });
-                    
-                    $('#loadingIcon').remove();
-                    $('#pageTitle').removeClass('d-none');
-                    $consumerForm.removeClass('d-none').addClass('d-flex');
+                    methods.initRequiredRows(messager);
+                    methods.initFieldRows(fields, messager)
                 });
 
                 $consumerForm.submit(function(ev) {
@@ -400,7 +562,7 @@
                     });
                 });
             });
-        }
+        // }
     </script>
 </body>
 

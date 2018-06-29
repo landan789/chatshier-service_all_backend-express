@@ -178,7 +178,8 @@ module.exports = (function() {
         'order': {type: Number, default: 0},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false}
+        'isDeleted': {type: Boolean, default: false},
+        'canShowingOnForm': {type: Boolean, default: false}
     });
 
     const TicketsSchema = new Schema({

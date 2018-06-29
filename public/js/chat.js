@@ -2841,8 +2841,8 @@
         var SETS_TYPES = api.appsFields.SETS_TYPES;
 
         var putMessager = {};
-        $fieldRows.each(function() {
-            var $fieldRow = $(this);
+        $fieldRows.each(function(i, elem) {
+            var $fieldRow = $(elem);
             var fieldId = $fieldRow.attr('field-id');
             var field = fields[fieldId];
 
@@ -2863,8 +2863,8 @@
                 case SETS_TYPES.MULTI_SELECT:
                     var $checkboxes = $fieldValue.find('input[type="checkbox"]:checked');
                     var selectVals = [];
-                    $checkboxes.each(function() {
-                        selectVals.push($(this).val());
+                    $checkboxes.each(function(i, elem) {
+                        selectVals.push($(elem).val());
                     });
                     value = selectVals;
                     break;
@@ -3064,8 +3064,8 @@
         var valArr = [];
         var textArr = [];
         var $checkboxes = $selectContainer.find('input[type="checkbox"]');
-        $checkboxes.each(function() {
-            var $checkbox = $(this);
+        $checkboxes.each(function(i, elem) {
+            var $checkbox = $(elem);
             if ($checkbox.is(':checked')) {
                 valArr.push($checkbox.val());
                 textArr.push($checkbox.parents('.dropdown-item').text());
@@ -3094,8 +3094,8 @@
             $searchWapper.find('.search-results').addClass('d-none');
             displayAll();
 
-            $('.tablinks').each(function() {
-                var $tablink = $(this);
+            $('.tablinks').each(function(i, elem) {
+                var $tablink = $(elem);
                 var appId = $tablink.attr('app-id');
                 var chatroomId = $tablink.attr('chatroom-id');
                 var $chatContent = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
@@ -3118,8 +3118,8 @@
 
         var count = 0;
         $tablinks.length = $panels.length = $clientNameOrTexts.length = 0;
-        $('.tablinks').each(function() {
-            var $tablinkElem = $(this);
+        $('.tablinks').each(function(i, elem) {
+            var $tablinkElem = $(elem);
             var appId = $tablinkElem.attr('app-id');
             var chatroomId = $tablinkElem.attr('chatroom-id');
             var panel = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
@@ -3127,9 +3127,9 @@
             var display = false;
 
             // 客戶名單搜尋
-            $tablinkElem.find('.client-name').each(function() {
-                var $content = $(this).find('.content');
-                var text = $(this).text();
+            $tablinkElem.find('.client-name').each(function(i, elem) {
+                var $content = $(elem).find('.content');
+                var text = $(elem).text();
 
                 if (text.toLowerCase().indexOf(searchStr) !== -1) {
                     if (0 === count) {
@@ -3146,8 +3146,8 @@
                 }
             });
             // 聊天室搜尋
-            panel.find('.message').each(function() {
-                var $message = $(this);
+            panel.find('.message').each(function(i, elem) {
+                var $message = $(elem);
                 var $content = $message.find('.content');
                 var text = $content.text();
 
@@ -3235,10 +3235,9 @@
     });
 
     function displayAll() {
-        $('.tablinks-area .tablinks').each(function() {
-            var $tablinkElem = $(this);
-            $tablinkElem.removeClass('d-none');
-            $tablinkElem.css({
+        $('.tablinks-area .tablinks').each(function(i, elem) {
+            var $tablinkElem = $(elem);
+            $tablinkElem.removeClass('d-none').css({
                 'background-color': ''
             });
 

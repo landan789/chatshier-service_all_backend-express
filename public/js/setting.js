@@ -1251,9 +1251,10 @@
                     for (var i = 0; i < $fieldRows.length; i++) {
                         var $row = $($fieldRows[i]);
                         var data = {
-                            text: ($row.find('.field-name input').val() || '').trim(),
-                            setsType: $row.find('.field-type select option:selected').val(),
-                            order: i
+                            text: ($row.find('[name="fieldName"]').val() || '').trim(),
+                            setsType: $row.find('.field-type select').val(),
+                            order: i,
+                            canShowingOnForm: $row.find('[name="canShowingOnForm"]').prop('checked')
                         };
 
                         if (!data.text) {
@@ -1326,10 +1327,10 @@
                 var fieldText = (transJson[field.text] ? transJson[field.text] : (field.text || ''));
                 var $fieldContent = $(
                     '<div class="card m-2 p-2 col-12 col-lg-6 field-content" id="' + fieldId + '">' +
-                        '<div class="form-group row field-item field-name mb-1">' +
+                        '<div class="form-group row field-item mb-1">' +
                             '<label class="col-3 col-form-label">名稱:</label>' +
                             '<div class="col-9 d-flex align-items-center">' +
-                                '<input class="form-control" type="text" placeholder="' + fieldText + '" value="' + fieldText + '" />' +
+                                '<input class="form-control" type="text" name="fieldName" placeholder="' + fieldText + '" value="' + fieldText + '" />' +
                             '</div>' +
                         '</div>' +
                         '<div class="form-group row field-item field-type my-1">' +
@@ -1350,6 +1351,12 @@
                                 generateSetsHtml(field.setsType, field.sets) +
                             '</div>' +
                         '</div>' +
+                        '<div class="form-group row field-item my-1 text-right field-options">' +
+                            '<label class="col-12 col-form-label">' +
+                                '<input class="form-check-input" type="checkbox" name="canShowingOnForm"' + (field.canShowingOnForm ? ' checked="true"' : '') + ' />' +
+                                '是否顯示在顧客表單上' +
+                            '</label>' +
+                        '</div>' +
                         '<div class="field-item field-delete mt-auto mb-1 py-2 w-100 text-right">' +
                             '<button type="button" class="btn btn-danger btn-sm btn-danger field-delete-btn' + (FIELD_TYPES.SYSTEM === field.type ? ' d-none' : '') + '">' +
                                 '<i class="fas fa-times fa-fw"></i>' +
@@ -1361,11 +1368,11 @@
                 $fieldBody.append($fieldContent);
 
                 var $fieldTypeSelect = $fieldContent.find('.field-type select');
-                $fieldTypeSelect.find('option[value="' + field.setsType + '"]').prop('selected', true);
+                $fieldTypeSelect.val(field.setsType || '');
 
                 if (field.type !== FIELD_TYPES.CUSTOM) {
                     $fieldTypeSelect.prop('disabled', true);
-                    $fieldContent.find('.field-name input').prop('disabled', true);
+                    $fieldContent.find('[name="fieldName"]').prop('disabled', true);
                     $fieldContent.find('.field-sets .sets-item').prop('disabled', true);
                 }
 
@@ -1528,6 +1535,7 @@
                                 fieldOrg.text = fieldOnUI.text;
                                 fieldOrg.setsType = fieldOnUI.setsType;
                                 fieldOrg.sets = fieldOnUI.sets;
+                                fieldOrg.canShowingOnForm = fieldOnUI.canShowingOnForm;
                             }
                             fieldOrg.order = fieldOnUI.order;
                             return api.appsFields.update(args.appId, fieldId, userId, fieldOrg).then(function(resJson) {
@@ -1555,7 +1563,8 @@
                                 type: FIELD_TYPES.CUSTOM,
                                 sets: fieldOnUI.sets,
                                 setsType: fieldOnUI.setsType,
-                                order: fieldOnUI.order
+                                order: fieldOnUI.order,
+                                canShowingOnForm: fieldOnUI.canShowingOnForm
                             };
                             return api.appsFields.insert(args.appId, userId, newField).then(function(resJson) {
                                 // 完成資料庫儲存後，將暫時使用的 fieldId 替換成真正資料庫的 fieldId

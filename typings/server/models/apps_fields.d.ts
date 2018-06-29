@@ -21,6 +21,7 @@ declare module Chatshier {
             sets: any[],
             setsType: 'TEXT' | 'NUMBER' | 'DATE' | 'SELECT' | 'MULTI_SELECT' | 'CHECKBOX',
             order: number,
+            canShowingOnForm: boolean
         }
     }
 }
