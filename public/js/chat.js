@@ -35,6 +35,7 @@
 
     var $emojiParseInput = $(document.createElement('input'));
     $emojiParseInput.emojioneArea();
+    var emojiData = $emojiParseInput.data('emojioneArea');
 
     var api = window.restfulAPI;
     var userId;
@@ -486,7 +487,7 @@
     // 停用所有 form 的提交
     $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
-    $submitMessageInput.emojioneArea({
+    !isMobile && $submitMessageInput.emojioneArea({
         placeholder: $submitMessageInput.attr('placeholder') || '',
         searchPlaceholder: '搜尋',
         buttonTitle: '',
@@ -1440,9 +1441,13 @@
                     '</div>'
                 );
             case 'text':
-                var messageText = linkify(filterWechatEmoji(message.text || ''));
-                $emojiParseInput.data('emojioneArea').setText(messageText);
-                messageText = $emojiParseInput.data('emojioneArea').editor.html();
+                var messageText = message.text || '';
+                messageText = linkify(filterWechatEmoji(messageText));
+
+                if (emojiData) {
+                    emojiData.setText(messageText);
+                    messageText = emojiData.editor ? emojiData.editor.html() : messageText;
+                }
                 return '<span class="text-content">' + messageText + '</span>';
             default:
                 return '';
@@ -2305,7 +2310,8 @@
         scrollMessagePanelToBottom(appId, chatroomId);
 
         return new Promise(function(resolve, reject) {
-            $submitMessageInput.val('').data('emojioneArea').setText('');
+            $submitMessageInput.val('');
+            !isMobile && $submitMessageInput.data('emojioneArea').setText('');
 
             chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
                 if (err) {
@@ -2528,7 +2534,8 @@
             $imagemapArea.addClass('d-none');
 
             return new Promise(function(resolve, reject) {
-                $submitMessageInput.val('').data('emojioneArea').setText('');
+                $submitMessageInput.val('');
+                !isMobile && $submitMessageInput.data('emojioneArea').setText('');
 
                 chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
                     if (err) {

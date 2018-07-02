@@ -12,6 +12,7 @@
     var appsTemplates = {};
 
     var api = window.restfulAPI;
+    var isMobile = 'function' === typeof window.isMobileBrowser && window.isMobileBrowser();
 
     const ICONS = {
         LINE: 'fab fa-line fa-fw line-color',
@@ -231,7 +232,7 @@
                 var $replyContentWrapper = $keywordreplyModal.find('#replyContentWrapper');
                 $replyContentWrapper.html(html);
 
-                if ('text' === replyType) {
+                if (!isMobile && 'text' === replyType) {
                     let $keywordreplyText = $replyContentWrapper.find('[name="keywordreplyText"]');
                     $keywordreplyText.emojioneArea({
                         placeholder: $keywordreplyText.attr('placeholder') || '',
