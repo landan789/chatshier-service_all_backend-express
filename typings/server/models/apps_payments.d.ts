@@ -18,7 +18,10 @@ declare module Chatshier {
             type: 'ECPay' | 'Spgateway',
             merchantId: string,
             hashKey: string,
-            hashIV: string
+            hashIV: string,
+            invoiceMerchantId: string,
+            invoiceHashKey: string,
+            invoiceHashIV: string
         }
     }
 }

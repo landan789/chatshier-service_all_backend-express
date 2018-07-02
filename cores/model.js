@@ -201,7 +201,10 @@ module.exports = (function() {
         'type': {type: String, default: ''},
         'merchantId': {type: String, default: ''},
         'hashKey': {type: String, default: ''},
-        'hashIV': {type: String, default: ''}
+        'hashIV': {type: String, default: ''},
+        'invoiceMerchantId': {type: String, default: ''},
+        'invoiceHashKey': {type: String, default: ''},
+        'invoiceHashIV': {type: String, default: ''}
     });
 
     const AppsSchema = new Schema({

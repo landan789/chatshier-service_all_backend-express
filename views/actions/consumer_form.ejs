@@ -33,10 +33,7 @@
     </div>
 
     <form class="flex-column align-items-center consumer-form d-none" id="consumerForm">
-        <input type="hidden" name="chatroomId" />
-        <input type="hidden" name="platformUid" />
-        
-        <div class="w-100 mt-3 px-3 data-container">
+        <div class="w-100 mt-3 mx-auto px-3 data-container">
             <div class="row form-group">
                 <label class="col-12 col-sm-3 font-weight-bold control-label" for="consumerName">
                     <span class="text-danger">*</span>
@@ -162,27 +159,8 @@
         </div>
     </form>
 
-    <div class="modal fade" id="dialogModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <h4 id="textContent"></h4>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary">確定</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@2.2.0/build/jwt-decode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/mobile-detect.js/latest/mobile-detect.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
-    <script src="/lib/js/jquery.twzipcode.min.js"></script>
-    <script src="/config/url-config.js"></script>
+    <% include ./dialog.ejs %>
+    <% include ./require_js.ejs %>
 
     <script type="text/javascript">
         var $dialogModal = $('#dialogModal');
@@ -525,11 +503,13 @@
             platformUid = '';
         }
 
-        // if (!urlParams.aid || !platformUid || (payload && payload.exp < Date.now())) {
-        //     $('#loadingIcon').remove();
-        //     methods.showDialog('此表單已無法填寫！請關閉頁面，重新操作填寫流程', true, methods.closeForm);
-        // } else {
-            $(document).ready(function() {
+        if (!urlParams.aid || !platformUid || (payload && payload.exp < Date.now())) {
+            $('#loadingIcon').remove();
+            methods.showDialog('此表單已無法填寫！請關閉頁面，重新操作填寫流程', true, methods.closeForm);
+        } else {
+            $(document).ready(initialForm);
+
+            function initialForm() {
                 $(document).on('click', '.btn-cancel', methods.closeForm);
 
                 methods.getRequiredData(function(err, res) {
@@ -544,7 +524,7 @@
                     methods.initFieldRows(fields, messager)
                 });
 
-                $consumerForm.submit(function(ev) {
+                $consumerForm.on('submit', function(ev) {
                     ev.preventDefault();
 
                     methods.showDialog('資料填寫無誤，確定送出嗎？', false, function(isOK) {
@@ -561,8 +541,8 @@
                         });
                     });
                 });
-            });
-        // }
+            }
+        }
     </script>
 </body>
 

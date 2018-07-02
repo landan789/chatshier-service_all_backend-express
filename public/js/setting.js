@@ -270,7 +270,7 @@
         var paymentId;
 
         $paymentModal.on('show.bs.modal', loadAppPayment);
-        $paymentModal.on('click', '#paymentModalSubmitBtn', insertPayment);
+        $paymentModal.on('submit', '#paymentSettingForm', insertPayment);
         $paymentSelect.on('change', onChangePayment);
 
         function loadAppPayment(ev) {
@@ -301,6 +301,7 @@
                     return;
                 }
 
+                /** @type {Chatshier.Models.Payment} */
                 var payment = payments[paymentId];
                 $paymentSelect.val(payment.type);
                 onChangePayment();
@@ -308,50 +309,104 @@
                 $paymentItemsContainer.find('[name="paymentMerchantId"]').val(payment.merchantId);
                 $paymentItemsContainer.find('[name="paymentHashKey"]').val(payment.hashKey);
                 $paymentItemsContainer.find('[name="paymentHashIV"]').val(payment.hashIV);
+                $paymentItemsContainer.find('[name="invoiceMerchantId"]').val(payment.invoiceMerchantId);
+                $paymentItemsContainer.find('[name="invoiceHashKey"]').val(payment.invoiceHashKey);
+                $paymentItemsContainer.find('[name="invoiceHashIV"]').val(payment.invoiceHashIV);
             });
         }
 
         function onChangePayment() {
             var paymentType = $paymentSelect.val();
 
-            switch (paymentType) {
-                case 'ECPay':
-                case 'Spgateway':
-                    $paymentItemsContainer.html(
+            var html = (
+                '<label class="col-form-label font-weight-bold">交易商店設定</label>' +
+                '<div class="card">' +
+                    '<div class="card-body">' +
                         '<div class="form-group">' +
                             '<label class="col-form-label font-weight-bold">商店代號:</label>' +
                             '<div class="input-container">' +
-                                '<input class="form-control" type="text" name="paymentMerchantId" placeholder="在此貼上 商店代號" />' +
+                                '<input class="form-control" type="text" name="paymentMerchantId" placeholder="在此貼上 商店代號" required />' +
                             '</div>' +
                         '</div>' +
                         '<div class="form-group">' +
                             '<label class="col-form-label font-weight-bold">Hash Key:</label>' +
                             '<div class="input-container">' +
-                                '<input class="form-control" type="text" name="paymentHashKey" placeholder="在此貼上 Hash Key" />' +
+                                '<input class="form-control" type="text" name="paymentHashKey" placeholder="在此貼上 Hash Key" required />' +
                             '</div>' +
                         '</div>' +
                         '<div class="form-group">' +
                             '<label class="col-form-label font-weight-bold">Hash IV:</label>' +
                             '<div class="input-container">' +
-                                '<input class="form-control" type="text" name="paymentHashIV" placeholder="在此貼上 Hash IV" />' +
+                                '<input class="form-control" type="text" name="paymentHashIV" placeholder="在此貼上 Hash IV" required />' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            );
+
+            switch (paymentType) {
+                case 'ECPay':
+                    break;
+                case 'Spgateway':
+                    html += (
+                        '<label class="col-form-label font-weight-bold">智付寶 Pay2Go 電子發票服務平台設定</label>' +
+                        '<div class="card">' +
+                            '<div class="card-body">' +
+                                '<div class="form-group">' +
+                                    '<label class="col-form-label font-weight-bold">電子發票平台商店代號:</label>' +
+                                    '<div class="input-container">' +
+                                        '<input class="form-control" type="text" name="invoiceMerchantId" placeholder="在此貼上 商店代號" required />' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="form-group">' +
+                                    '<label class="col-form-label font-weight-bold">電子發票平台商店 Hash Key:</label>' +
+                                    '<div class="input-container">' +
+                                        '<input class="form-control" type="text" name="invoiceHashKey" placeholder="在此貼上 Hash Key" required />' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="form-group">' +
+                                    '<label class="col-form-label font-weight-bold">電子發票平台商店 Hash IV:</label>' +
+                                    '<div class="input-container">' +
+                                        '<input class="form-control" type="text" name="invoiceHashIV" placeholder="在此貼上 Hash IV" required/>' +
+                                    '</div>' +
+                                '</div>' +
                             '</div>' +
                         '</div>'
                     );
                     break;
                 default:
-                    $paymentItemsContainer.empty();
+                    html = '';
                     break;
             }
+            $paymentItemsContainer.html(html);
         }
 
-        function insertPayment() {
+        function insertPayment(ev) {
+            ev.preventDefault();
+
             /** @type {Chatshier.Models.Payment} */
             var newPayment = {
-                type: $paymentSelect.val(),
+                type: $paymentSelect.val() || '',
                 merchantId: $paymentItemsContainer.find('[name="paymentMerchantId"]').val() || '',
                 hashKey: $paymentItemsContainer.find('[name="paymentHashKey"]').val() || '',
                 hashIV: $paymentItemsContainer.find('[name="paymentHashIV"]').val() || ''
             };
+
+            switch (newPayment.type) {
+                case 'ECPay':
+                    newPayment.invoiceMerchantId = newPayment.merchantId;
+                    newPayment.invoiceHashKey = newPayment.hashKey;
+                    newPayment.invoiceHashIV = newPayment.hashIV;
+                    break;
+                case 'Spgateway':
+                    newPayment.invoiceMerchantId = $paymentItemsContainer.find('[name="invoiceMerchantId"]').val() || '';
+                    newPayment.invoiceHashKey = $paymentItemsContainer.find('[name="invoiceHashKey"]').val() || '';
+                    newPayment.invoiceHashIV = $paymentItemsContainer.find('[name="invoiceHashIV"]').val() || '';
+                    break;
+                default:
+                    newPayment.invoiceMerchantId = newPayment.invoiceHashKey = newPayment.invoiceHashIV = '';
+                    break;
+            }
 
             return Promise.resolve().then(function() {
                 if (paymentId) {
@@ -1141,6 +1196,7 @@
         titleText = titleText || '';
         cancelText = cancelText || '取消';
         submitText = submitText || '確認';
+
         var modalHtml = (
             '<div class="chsr modal fade" id="dynamicModal" tabindex="-1" role="dialog">' +
                 '<div class="modal-dialog" role="document">' +
