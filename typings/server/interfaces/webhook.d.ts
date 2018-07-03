@@ -20,7 +20,7 @@ declare module Webhook {
         }
 
         interface PostbackData {
-            action: 'CHANGE_RICHMENU' | 'SEND_TEMPLATE' | 'SEND_CONSUMER_FORM' | 'SEND_DONATE_OPTIONS' | 'CONFIRM_PAYMENT',
+            action: 'CHANGE_RICHMENU' | 'SEND_TEMPLATE' | 'SEND_CONSUMER_FORM' | 'PAYMENT_CONFIRM',
             richmenuId?: string,
             templateId?: string,
             context?: {

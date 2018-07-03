@@ -302,7 +302,11 @@ module.exports = (function() {
         'commodities': [{
             'commodity_id': {type: String, default: ''},
             'name': {type: String, default: ''},
-            'description': {type: String, default: ''}
+            'description': {type: String, default: ''},
+            'count': {type: Number, default: 0},
+            'unitPrice': {type: Number, default: 0},
+            'unit': {type: String, default: ''},
+            'remark': {type: String, default: ''}
         }],
         'tradeId': {type: String, default: ''},
         'tradeDate': {type: Date, default: Date.now()},
@@ -310,6 +314,8 @@ module.exports = (function() {
         'tradeDescription': {type: String, default: ''},
         'isPaid': {type: Boolean, default: false},
         'invoiceId': {type: String, default: ''},
+        'invoiceTitle': {type: String, default: ''},
+        'invoiceAddress': {type: String, default: ''},
         'taxId': {type: String, default: ''},
         'consumerUid': {type: String, default: ''},
         'payerName': {type: String, default: ''},

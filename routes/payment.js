@@ -17,10 +17,9 @@ router.use(
     formData.union()
 );
 
-router.get('/ecpay/aio-check-out-all', paymentCtl.getECPayAioCheckOutAll);
-router.post('/ecpay/payment-result', paymentCtl.postECPayPaymentResult);
+router.post('/submit', paymentCtl.postSubmit);
 
-router.get('/spgateway/multi-payment-gateway', paymentCtl.getSpgatewayMultiPaymentGateway);
-router.post('/spgateway/payment-result', paymentCtl.postSpgatewayPaymentResult);
+router.post('/ecpay/result', paymentCtl.postECPayResult);
+router.post('/spgateway/result', paymentCtl.postSpgatewayResult);
 
 module.exports = router;

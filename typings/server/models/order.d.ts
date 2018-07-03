@@ -12,7 +12,11 @@ declare module Chatshier {
             commodities: {
                 commodity_id: string,
                 name: string,
-                description: string
+                description: string,
+                count: number,
+                unitPrice: number,
+                unit: string,
+                remark: string
             }[],
             tradeId: string,
             tradeDate: Date | number,
@@ -20,6 +24,8 @@ declare module Chatshier {
             tradeDescription: string,
             isPaid: boolean,
             invoiceId: string,
+            invoiceTitle: string,
+            invoiceAddress: string,
             taxId: string,
             consumerUid: string,
             payerName: string,

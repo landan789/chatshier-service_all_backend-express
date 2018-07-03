@@ -18,6 +18,9 @@
     const PASSWORD_WAS_INCORRECT = '2.2';
     const NEW_PASSWORD_WAS_INCONSISTENT = '2.4';
 
+    const ECPAY = 'ECPAY';
+    const SPGATEWAY = 'SPGATEWAY';
+
     /** @type {Chatshier.Models.Apps} */
     var apps = {};
     /** @type {Chatshier.Models.AppsFields} */
@@ -345,9 +348,9 @@
             );
 
             switch (paymentType) {
-                case 'ECPay':
+                case ECPAY:
                     break;
-                case 'Spgateway':
+                case SPGATEWAY:
                     html += (
                         '<label class="col-form-label font-weight-bold">智付寶 Pay2Go 電子發票服務平台設定</label>' +
                         '<div class="card">' +
@@ -393,12 +396,12 @@
             };
 
             switch (newPayment.type) {
-                case 'ECPay':
+                case ECPAY:
                     newPayment.invoiceMerchantId = newPayment.merchantId;
                     newPayment.invoiceHashKey = newPayment.hashKey;
                     newPayment.invoiceHashIV = newPayment.hashIV;
                     break;
-                case 'Spgateway':
+                case SPGATEWAY:
                     newPayment.invoiceMerchantId = $paymentItemsContainer.find('[name="invoiceMerchantId"]').val() || '';
                     newPayment.invoiceHashKey = $paymentItemsContainer.find('[name="invoiceHashKey"]').val() || '';
                     newPayment.invoiceHashIV = $paymentItemsContainer.find('[name="invoiceHashIV"]').val() || '';

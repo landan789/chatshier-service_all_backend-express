@@ -101,5 +101,129 @@ declare module ECPay {
              */
             CheckMacValue: string
         }
+
+        interface InvoiceParameters {
+            /**
+             * 發票關聯號碼，請用 30 碼 UID
+             */
+            RelateNumber: string,
+            
+            /**
+             * 客戶代號
+             */
+            CustomerID: string,
+
+            /**
+             * 統一編號，固定 8 位長度數字
+             */
+            CustomerIdentifier: string,
+            
+            /**
+             * 買受人姓名，須為中英文及數字
+             */
+            CustomerName: string,
+
+            /**
+             * 買受人地址
+             */
+            CustomerAddr: string,
+
+            /**
+             * 買受人電話(純數字)
+             */
+            CustomerPhone: string,
+
+            /**
+             * 買受人電子郵件
+             */
+            CustomerEmail: string,
+
+            /**
+             * 經海關出口: 1
+             * 非經海關出口: 2
+             */
+            ClearanceMark: '1' | '2'
+
+            /**
+             * 
+             */
+            TaxType: '1' | '2',
+
+            /**
+             * 載具類別:
+             * 無載具: 空字串
+             * 會員載具: 1
+             * 自然人憑證: 2
+             * 手機條碼: 3
+             */
+            CarruerType: '' | '1' | '2' | '3',
+            
+            /**
+             * 1. 當載具類別[CarruerType]為空字串 (無載具) 或 1 (會員載具) 時，則請帶空字串。
+             * 2. 當載具類別[CarruerType]為 2 (自然人憑證)時，則請 帶固定長度為 16 且格式為 2 碼大小寫字母 加上 14 碼數字。
+             * 3. 當載具類別[CarruerType]為 3 (買受人之手機條碼) 時，則請帶固定長度 為 8 且格式為 1 碼斜線「/ 加上 由 7 碼數字及大小寫字母組成
+             */
+            CarruerNum: string,
+            
+            /**
+             * 是否捐贈發票
+             * 捐贈: 1
+             * 不捐贈: 2
+             */
+            Donation: '1' | '2',
+
+            /**
+             * 受捐贈單位愛心碼
+             */
+            LoveCode: string,
+
+            /**
+             * 列印: 1
+             * 不列印: 0
+             */
+            Print: '0' | '1',
+
+            /**
+             * 商品名稱，若有兩項以上商品時請用管線符號 "|" 分隔。
+             */
+            InvoiceItemName: string,
+
+            /**
+             * 商品數量，若有兩項以上商品時請用管線符號 "|" 分隔。
+             */
+            InvoiceItemCount: string,
+
+            /**
+             * 商品單位，若有兩項以上商品時請用管線符號 "|" 分隔。
+             */
+            InvoiceItemWord: string,
+
+            /**
+             * 商品價格，若有兩項以上商品時請用管線符號 "|" 分隔。
+             */
+            InvoiceItemPrice: string,
+
+            /**
+             * 商品課稅類別，若有兩項以上商品時請用管線符號 "|" 分隔。
+             */
+            InvoiceItemTaxType: string,
+
+            /**
+             * 商品備註，若有兩項以上商品時請用管線符號 "|" 分隔。
+             */
+            InvoiceRemark: string,
+
+            /**
+             * 發票開立延遲天數。
+             * 本參數值請帶 0 ~ 15(天)，當天數為 0 時，則付款完成後立即開立發票。
+             */
+            DelayDay: string,
+
+            /**
+             * 一般稅額: 07
+             * 特種稅額: 08
+             */
+            InvType: '07' | '08'
+        }
     }
 }
