@@ -62,11 +62,11 @@
                     <i class="fas fa-spinner fa-pulse fa-4x"></i>
                 </div>
 
-                <div class="pt-3 text-center page-title" id="pageTitle">
+                <div class="pt-3 text-center page-title d-none" id="pageTitle">
                     <h4>捐款確認</h4>
                 </div>
             
-                <form class="flex-column align-items-center donation-form" id="donationForm">
+                <form class="flex-column align-items-center donation-form d-none" id="donationForm">
                     <div class="w-100 mt-3 mx-auto px-3 data-container">
                         <div class="card">
                             <div class="card-header">
@@ -267,12 +267,6 @@
 
                 if (hasRequestInvoice) {
                     paymentParam.taxId = $donationForm.find('#taxId').val() || '';
-                    paymentParam.invoiceTitle = $donationForm.find('#invoiceTitle').val() || '';
-
-                    var invoiceCounty = $donationForm.find('.invoice-address select[name="county"]').val() || '';
-                    var invoiceDistrict = $donationForm.find('.invoice-address select[name="district"]').val() || '';
-                    var invoiceAddress = invoiceCounty + invoiceDistrict + ($donationForm.find('.invoice-address [name="invoiceAddress"]').val() || '');
-                    paymentParam.invoiceAddress = invoiceAddress;
                 }
 
                 window.methods.postPayment(paymentParam, cb);
@@ -393,66 +387,10 @@
                                     'maxlength="8" />' +
                             '</div>' +
                         '</div>' +
-                        '<div class="row form-group">' +
-                            '<label class="col-12 col-sm-3 font-weight-bold control-label" for="invoiceTitle">' +
-                                '<span class="mr-1 text-danger">*</span>' +
-                                '<span>收據抬頭:</span>' +
-                            '</label>' +
-                            '<div class="col-12 col-sm-9">' +
-                                '<input class="form-control"' +
-                                    'type="text"' +
-                                    'id="invoiceTitle"' +
-                                    'name="invoiceTitle"' +
-                                    'placeholder="請輸入收據抬頭"' +
-                                    'minlength="1"' +
-                                    'maxlength="50"' +
-                                    'required />' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="row form-group invoice-address">' +
-                            '<label class="col-12 col-sm-3 font-weight-bold control-label" for="invoiceAddress">' +
-                                '<span class="mr-1 text-danger">*</span>' +
-                                '<span>收據地址:</span>' +
-                            '</label>' +
-
-                            '<div class="col-12 col-sm-9">' +
-                                '<button class="my-2 btn btn-info btn-sm btn-copy-address" type="button">同捐款人地址</button>' +
-                                '<div class="d-flex tw-zipcode-invoice" id="twZipcodeInvoice"></div>' +
-                                '<input class="mt-2 form-control"' +
-                                    'type="text"' +
-                                    'id="invoiceAddress"' +
-                                    'name="invoiceAddress"' +
-                                    'placeholder="請輸入收據地址"' +
-                                    'required />' +
-                            '</div>' +
-                        '</div>' +
                     '</div>' +
                 '</div>'
             );
             $donationForm.find('.data-container').append($invoiceRow);
-            
-            var $twZipcodeInvoice = $invoiceRow.find('#twZipcodeInvoice');
-            $twZipcodeInvoice.twzipcode({
-                zipcodeIntoDistrict: false,
-                zipcodeSel: '',
-                countySel: '',
-                districtSel: '',
-                css: ['form-control col-xs-6', 'form-control col-xs-6', 'd-none']
-            });
-            $twZipcodeInvoice.find('[name="county"]').attr('required', '');
-            $twZipcodeInvoice.find('[name="district"]').attr('required', '');
-
-            $invoiceRow.on('click', '.btn-copy-address', function() {
-                var payerCounty = $donationForm.find('.payer-address select[name="county"]').val() || '';
-                var payerDistrict = $donationForm.find('.payer-address select[name="district"]').val() || '';
-                var payerAddress = $donationForm.find('.payer-address [name="payerAddress"]').val() || '';
-                
-                $twZipcodeInvoice.twzipcode('set', {
-                    county: payerCounty,
-                    district: payerDistrict
-                });
-                $invoiceRow.find('[name="invoiceAddress"]').val(payerAddress);
-            });
         }
 
         /**

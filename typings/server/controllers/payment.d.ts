@@ -13,8 +13,6 @@ declare module Chatshier {
             payerPhone: string,
             payerAddress: string,
             hasRequestInvoice: boolean,
-            invoiceTitle?: string,
-            invoiceAddress?: string,
             taxId?: string
         }
     }

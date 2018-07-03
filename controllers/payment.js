@@ -49,9 +49,7 @@ module.exports = (function() {
                 payerEmail: req.body.payerEmail,
                 payerPhone: req.body.payerPhone,
                 payerAddress: req.body.payerAddress,
-                hasRequestInvoice: req.body.hasRequestInvoice,
-                invoiceTitle: req.body.invoiceTitle,
-                invoiceAddress: req.body.invoiceAddress
+                hasRequestInvoice: req.body.hasRequestInvoice
             };
 
             return Promise.all([
@@ -94,12 +92,11 @@ module.exports = (function() {
                             // CustomField4: ''
                         };
 
-                        // 若要測試開立電子發票，請將 invoiceParams 內的 "所有" 參數取消註解
                         /** @type {ECPay.Payment.InvoiceParameters | void } */
-                        let invoiceParams = paymentParams.hasRequestInvoice ? {
-                            RelateNumber: order.invoiceId, // 請帶 30 碼 uid ex: SJDFJGH24FJIL97G73653XM0VOMS4K
-                            CustomerID: '', // 會員編號
-                            CustomerIdentifier: order.taxId, // 統一編號
+                        let invoiceParams = order.invoiceId ? {
+                            RelateNumber: order.invoiceId,
+                            CustomerID: '',
+                            CustomerIdentifier: order.taxId,
                             CustomerName: order.payerName,
                             CustomerAddr: order.payerAddress,
                             CustomerPhone: order.payerPhone,
@@ -177,11 +174,11 @@ module.exports = (function() {
 
                 // 交易失敗，暫時不需要更新訂單狀態
                 if ('1' !== paymentResult.RtnCode) {
-                    return;
+                    return Promise.resolve(null);
                 }
 
                 let tradeId = paymentResult.MerchantTradeNo;
-                return this._paidOrder(tradeId);
+                return this._paidOrder(tradeId, { isInvoiceIssued: true });
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -190,7 +187,7 @@ module.exports = (function() {
         postSpgatewayResult(req, res) {
             this._recordLog(req);
 
-            /** @type {Spgateway.Payment.Result} */
+            /** @type {Spgateway.Payment.TradeResponse} */
             let paymentResult = req.body;
             let merchantId = paymentResult.MerchantID;
 
@@ -203,11 +200,25 @@ module.exports = (function() {
                 let paymentId = Object.keys(appsPayments[appId].payments).shift() || '';
                 return Promise.resolve(appsPayments[appId].payments[paymentId]);
             }).then((payment) => {
-                /** @type {Spgateway.Payment.ResultInformation} */
-                let resultInfo = spgatewayHlp.decryptTradeInfo(paymentResult.TradeInfo, payment.hashKey, payment.hashIV);
-                let tradeId = resultInfo.MerchantOrderNo;
+                /** @type {Spgateway.Payment.ResultResponse} */
+                let resultInfo = spgatewayHlp.decryptStrToJson(paymentResult.TradeInfo, payment.hashKey, payment.hashIV);
+                let tradeId = (resultInfo.Result && resultInfo.Result.MerchantOrderNo) || '';
 
-                return this._paidOrder(tradeId);
+                return Promise.all([
+                    Promise.resolve(payment),
+                    this._paidOrder(tradeId)
+                ]);
+            }).then(([ payment, order ]) => {
+                // 此訂單沒有建立發票關聯 ID 則不需要開立發票
+                if (!(order && order.invoiceId)) {
+                    return Promise.resolve(void 0);
+                }
+
+                // 智付通 Spgateway 的電子發票是獨立開來的，使用 智付寶 Pay2Go 電子發票平台
+                // 因此在智付通支付完成後，必須再使用 Pay2Go 的電子發票 API 來開立發票
+                return spgatewayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then(() => {
+                    return ordersMdl.update(order._id, { isInvoiceIssued: true });
+                });
             }).then(() => {
                 return res.sendStatus(200);
             }).catch((err) => {
@@ -232,6 +243,7 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} consumerUid
          * @param {Chatshier.Controllers.PaymentSubmit} params
+         * @returns {Promise<Chatshier.Models.Order>}
          */
         _createOrder(appId, consumerUid, params) {
             return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, consumerUid).then((appsChatroomsMessagers) => {
@@ -246,9 +258,7 @@ module.exports = (function() {
                 let order = {
                     app_id: appId,
                     consumerUid: consumerUid,
-                    invoiceId: cipherHlp.generateRandomHex(30),
-                    invoiceTitle: params.invoiceTitle || '',
-                    invoiceAddress: params.invoiceAddress || '',
+                    invoiceId: params.hasRequestInvoice ? cipherHlp.generateRandomHex(30) : '',
                     taxId: params.taxId || '',
                     commodities: [{
                         name: params.itemName,
@@ -279,22 +289,26 @@ module.exports = (function() {
             });
         }
 
-        _paidOrder(tradeId) {
+        /**
+         * @param {string} tradeId
+         * @param {any} [putOrder]
+         * @returns {Promise<Chatshier.Models.Order>}
+         */
+        _paidOrder(tradeId, putOrder) {
+            putOrder = putOrder || {};
+            putOrder.isPaid = true;
+
             return ordersMdl.findByTradeId(tradeId).then((orders) => {
                 if (!(orders && orders[tradeId])) {
-                    return Promise.resolve();
+                    return Promise.reject(API_ERROR.ORDER_FAILED_TO_FIND);
                 }
 
                 let orderId = orders[tradeId]._id;
-                let putOrder = {
-                    isPaid: true
-                };
-
                 return ordersMdl.update(orderId, putOrder).then((orders) => {
-                    if (!(orders && orders[tradeId])) {
+                    if (!(orders && orders[orderId])) {
                         return Promise.reject(API_ERROR.ORDER_FAILED_TO_UPDATE);
                     }
-                    return Promise.resolve();
+                    return Promise.resolve(orders[orderId]);
                 });
             });
         }
