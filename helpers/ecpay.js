@@ -53,7 +53,7 @@ module.exports = (function() {
         issueInvoice(order, merchantId, hashKey, hashIV) {
             /** @type {ECPay.Invoice.IssueParameters} */
             let invoiceParams = {
-                TimeStamp: this.datetimeToTradeDate(new Date()),
+                TimeStamp: '' + Math.floor(Date.now() / 1000),
                 MerchantID: merchantId,
                 RelateNumber: order.invoiceId,
                 CustomerID: '',
