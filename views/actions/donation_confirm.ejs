@@ -513,11 +513,11 @@
         (function() {
             var methods = window.methods;
 
-            // if (!window.urlParams.aid || !(window.payload && window.payload.uid) || (window.payload && window.payload.exp < Date.now())) {
-            //     $('.swiper-container').remove();
-            //     methods.showDialog('此連結已無效！請關閉頁面，重新操作', true, methods.closeForm);
-            //     return;
-            // }
+            if (!window.urlParams.aid || !(window.payload && window.payload.uid) || (window.payload && window.payload.exp < Date.now())) {
+                $('.swiper-container').remove();
+                methods.showDialog('此連結已無效！請關閉頁面，重新操作', true, methods.closeForm);
+                return;
+            }
 
             $(document).ready(initialForm);
             function initialForm() {
