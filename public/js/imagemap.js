@@ -89,7 +89,7 @@
                     .attr('ref', output);
                 let id = $(this).attr('id');
                 imagemap.actions[i].text ? $(`#${id}-input #text`).val(imagemap.actions[i].text) : $(`#${id}-input #url`).val(imagemap.actions[i].linkUri);
-                imagemap.actions[i].text ? $(`.boxes-inputs #${id}-input [value="text"]`).attr('checked', true) : $(`.boxes-inputs #${id}-input [value="url"]`).attr('checked', true);
+                imagemap.actions[i].text ? $(`.boxes-inputs #${id}-input [value="text"]`).prop('checked', true) : $(`.boxes-inputs #${id}-input [value="url"]`).prop('checked', true);
             });
         });
     });

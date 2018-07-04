@@ -66,6 +66,7 @@ module.exports = (function() {
                 merchantId: req.body.merchantId || '',
                 hashKey: req.body.hashKey || '',
                 hashIV: req.body.hashIV || '',
+                canIssueInvoice: !!req.body.canIssueInvoice,
                 invoiceMerchantId: req.body.invoiceMerchantId || '',
                 invoiceHashKe: req.body.invoiceHashKey || '',
                 invoiceHashIV: req.body.invoiceHashIV || ''
@@ -98,6 +99,7 @@ module.exports = (function() {
             ('string' === typeof req.body.merchantId) && (putTikcket.merchantId = req.body.merchantId);
             ('string' === typeof req.body.hashKey) && (putTikcket.hashKey = req.body.hashKey);
             ('string' === typeof req.body.hashIV) && (putTikcket.hashIV = req.body.hashIV);
+            (undefined !== req.body.canIssueInvoice) && (putTikcket.canIssueInvoice = !!req.body.canIssueInvoice);
             ('string' === typeof req.body.invoiceMerchantId) && (putTikcket.invoiceMerchantId = req.body.invoiceMerchantId);
             ('string' === typeof req.body.invoiceHashKey) && (putTikcket.invoiceHashKey = req.body.invoiceHashKey);
             ('string' === typeof req.body.invoiceHashIV) && (putTikcket.invoiceHashIV = req.body.invoiceHashIV);

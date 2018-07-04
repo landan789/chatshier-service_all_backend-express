@@ -202,6 +202,7 @@ module.exports = (function() {
         'merchantId': {type: String, default: ''},
         'hashKey': {type: String, default: ''},
         'hashIV': {type: String, default: ''},
+        'canIssueInvoice': {type: Boolean, default: false},
         'invoiceMerchantId': {type: String, default: ''},
         'invoiceHashKey': {type: String, default: ''},
         'invoiceHashIV': {type: String, default: ''}
@@ -315,6 +316,7 @@ module.exports = (function() {
         'isPaid': {type: Boolean, default: false},
         'isInvoiceIssued': {type: Boolean, default: false},
         'invoiceId': {type: String, default: ''},
+        'invoiceNumber': {type: String, default: ''},
         'taxId': {type: String, default: ''},
         'consumerUid': {type: String, default: ''},
         'payerName': {type: String, default: ''},

@@ -19,6 +19,7 @@ declare module Chatshier {
             merchantId: string,
             hashKey: string,
             hashIV: string,
+            canIssueInvoice: boolean,
             invoiceMerchantId: string,
             invoiceHashKey: string,
             invoiceHashIV: string

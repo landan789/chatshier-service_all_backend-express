@@ -985,7 +985,7 @@
                 $composesEditDtInput.val(toDatetimeLocal(new Date(compose.time)));
             }
             $composeEditModal.find('.compose-textarea').val(compose.text);
-            $composeEditModal.find('.form-check-input[name="isDraft"]').attr('checked', !compose.status);
+            $composeEditModal.find('.form-check-input[name="isDraft"]').prop('checked', !compose.status);
 
             conditionTypes = {};
             allFields = {};
@@ -1052,7 +1052,7 @@
                 return;
             }
 
-            let isDraft = $composeEditModal.find('.form-check-input[name="isDraft"]:checked').length > 0;
+            let isDraft = $composeEditModal.find('.form-check-input[name="isDraft"]').prop('checked');
             let composesEditDtPickerData = $composesEditDtPicker.data('DateTimePicker');
             let reserveTime = composesEditDtPickerData
                 ? composesEditDtPickerData.date().toDate().getTime()

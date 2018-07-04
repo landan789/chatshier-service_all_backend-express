@@ -17,13 +17,12 @@ module.exports = (function() {
     const FACEBOOK = 'FACEBOOK';
     const SYSTEM = 'SYSTEM';
 
-    const ECPAY = 'ECPAY';
-    const SPGATEWAY = 'SPGATEWAY';
-
-    const PAYMENT_LOGOS = {
-        [ECPAY]: 'https://www.ecpay.com.tw/Content/Themes/WebStyle20131201/images/header_logo.png',
-        [SPGATEWAY]: 'https://www.spgateway.com/ud/img/logo.png'
-    };
+    // const ECPAY = 'ECPAY';
+    // const SPGATEWAY = 'SPGATEWAY';
+    // const PAYMENT_LOGOS = {
+    //     [ECPAY]: 'https://www.ecpay.com.tw/Content/Themes/WebStyle20131201/images/header_logo.png',
+    //     [SPGATEWAY]: 'https://www.spgateway.com/ud/img/logo.png'
+    // };
 
     const POSTBACK_ACTIONS = Object.freeze({
         CHANGE_RICHMENU: 'CHANGE_RICHMENU',
@@ -59,7 +58,6 @@ module.exports = (function() {
 
                     /** @type {Webhook.Chatshier.PostbackData} */
                     let dataJson = JSON.parse(postback.data);
-                    let context = dataJson.context;
                     let serverAddr = webhookInfo.serverAddress;
                     let platformUid = webhookInfo.platformUid;
                     let url = serverAddr;
@@ -166,8 +164,22 @@ module.exports = (function() {
                                     return;
                                 }
 
+                                return appsPaymentsMdl.find(appId).then((appsPayments) => {
+                                    if (!(appsPayments && appsPayments[appId])) {
+                                        return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
+                                    }
+                                    return Promise.resolve(Object.values(appsPayments[appId].payments).shift());
+                                });
+                            }).then((payment) => {
+                                if (!payment) {
+                                    return;
+                                }
+
                                 let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
                                 url += '/donation-confirm?aid=' + appId + '&t=' + token;
+                                if (payment.canIssueInvoice) {
+                                    url += '&cii=1';
+                                }
 
                                 let linkMessage = {
                                     type: 'template',
@@ -175,7 +187,7 @@ module.exports = (function() {
                                     template: {
                                         type: 'buttons',
                                         title: '捐款連結',
-                                        text: '開啟以下連結前往捐款前確認',
+                                        text: '開啟以下連結前往捐款資料確認',
                                         actions: [{
                                             type: 'uri',
                                             label: '按此開啟',

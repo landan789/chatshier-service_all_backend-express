@@ -1,6 +1,11 @@
 module.exports = (function() {
-    const ECPayPayment = require('ecpay_payment_nodejs');
-    const ecpay = new ECPayPayment();
+    // const ECPayPayment = require('ecpay_payment_nodejs');
+    // const ECPayInvoice = require('ecpay_invoice_nodejs');
+    const ECPayPayment = require('../third_party/ecpay_payment_nodejs');
+    const ECPayInvoice = require('../third_party/ecpay_invoice_nodejs');
+
+    const ecpayPayment = new ECPayPayment();
+    const ecpayInvoice = new ECPayInvoice();
 
     class ECPayHelper {
         constructor() {
@@ -12,17 +17,35 @@ module.exports = (function() {
         }
 
         get paymentClient() {
-            return ecpay.payment_client;
+            return ecpayPayment.payment_client;
         }
 
         get paymentHelper() {
-            return ecpay.payment_client.helper;
+            return this.paymentClient.helper;
         }
 
-        setMerchant(merchantId, hashKey, hashIV) {
-            this.paymentHelper.merc_id = merchantId;
-            this.paymentHelper.hkey = hashKey;
-            this.paymentHelper.hiv = hashIV;
+        get invoiceClient() {
+            return ecpayInvoice.invoice_client;
+        }
+
+        get invoiceHelper() {
+            return this.invoiceClient.helper;
+        }
+
+        /**
+         * @param {string} merchantId
+         * @param {string} paymentHashKey
+         * @param {string} paymentHashIV
+         * @param {string} [invoiceHashKey='']
+         * @param {string} [invoiceHashIV='']
+         */
+        setMerchant(merchantId, paymentHashKey, paymentHashIV, invoiceHashKey = '', invoiceHashIV = '') {
+            this.paymentHelper.merc_id = this.invoiceHelper.merc_id = merchantId;
+            this.paymentHelper.hkey = paymentHashKey;
+            this.paymentHelper.hiv = paymentHashIV;
+
+            invoiceHashKey && (this.invoiceHelper.hkey = invoiceHashKey);
+            invoiceHashIV && (this.invoiceHelper.hiv = invoiceHashIV);
         }
 
         /**
