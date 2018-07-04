@@ -109,7 +109,6 @@ class ECpayInvoiceClient{
         this.helper.encode_special_param(params, sp_param);
 
         // Insert chkmacval
-        // console.log(params);
         let chkmac = this.helper.gen_chk_mac_value(params, 0);
         params['CheckMacValue'] = chkmac;
 
@@ -120,8 +119,6 @@ class ECpayInvoiceClient{
         sp_param.forEach(function (key) {
            params[key] = decodeURIComponent(params[key]);
         });
-
-        console.log(params);
 
         // gen post html
         let api_url = verify_invoice_api.get_svc_url(apiname, this.helper.get_op_mode());

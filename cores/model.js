@@ -317,6 +317,7 @@ module.exports = (function() {
         'isInvoiceIssued': {type: Boolean, default: false},
         'invoiceId': {type: String, default: ''},
         'invoiceNumber': {type: String, default: ''},
+        'invoiceRandomNumber': {type: String, default: ''},
         'taxId': {type: String, default: ''},
         'consumerUid': {type: String, default: ''},
         'payerName': {type: String, default: ''},

@@ -101,8 +101,27 @@ declare module ECPay {
              */
             CheckMacValue: string
         }
+    }
 
-        interface InvoiceParameters {
+    namespace Invoice {
+        interface IssueParameters {
+            /**
+             * 時間戳記
+             * 綠界科技會利用此參數將當下的時間轉為 UnixTimeStamp 來驗證此次介接的時間區間。
+             * 注意事項：
+             * 1. 驗證時間區間暫訂為 5 分鐘內有效，若超過此驗證時間則此次訂單將無法建立
+             * 參考資料：http://www.epochconverter.com/。
+             * 2. 合作特店須進行主機「時間校正」，避免主機產生時差，延伸 API 無法正常運作。
+             */
+            TimeStamp: string,
+
+            /**
+             * 合作特店編號
+             * 1. 測試環境合作特店編號
+             * 2. 正式環境金鑰取得
+             */
+            MerchantID: string,
+
             /**
              * 發票關聯號碼，請用 30 碼 UID
              */
@@ -142,12 +161,16 @@ declare module ECPay {
              * 經海關出口: 1
              * 非經海關出口: 2
              */
-            ClearanceMark: '1' | '2'
+            ClearanceMark: '' | '1' | '2'
 
             /**
-             * 
+             * 課稅類別
+             * 1. 若為應稅，請帶 1。
+             * 2. 若為零稅率，請帶 2。
+             * 3. 若為免稅，請帶 3。
+             * 4. 若為混合應稅與免稅時(限收銀機發票無法分辨時使用，且需通過申請核可)，則請帶 9。
              */
-            TaxType: '1' | '2',
+            TaxType: '1' | '2' | '3' | '9',
 
             /**
              * 載具類別:
@@ -184,29 +207,12 @@ declare module ECPay {
             Print: '0' | '1',
 
             /**
-             * 商品名稱，若有兩項以上商品時請用管線符號 "|" 分隔。
+             * 發票總金額 (含稅)
+             * 1. 請帶整數，不可有小數點。
+             * 2. 僅限新台幣。
+             * 3. 金額不可為 0 元。
              */
-            InvoiceItemName: string,
-
-            /**
-             * 商品數量，若有兩項以上商品時請用管線符號 "|" 分隔。
-             */
-            InvoiceItemCount: string,
-
-            /**
-             * 商品單位，若有兩項以上商品時請用管線符號 "|" 分隔。
-             */
-            InvoiceItemWord: string,
-
-            /**
-             * 商品價格，若有兩項以上商品時請用管線符號 "|" 分隔。
-             */
-            InvoiceItemPrice: string,
-
-            /**
-             * 商品課稅類別，若有兩項以上商品時請用管線符號 "|" 分隔。
-             */
-            InvoiceItemTaxType: string,
+            SalesAmount: string,
 
             /**
              * 商品備註，若有兩項以上商品時請用管線符號 "|" 分隔。
@@ -214,16 +220,104 @@ declare module ECPay {
             InvoiceRemark: string,
 
             /**
+             * 商品名稱，若有兩項以上商品時請用管線符號 "|" 分隔。
+             */
+            ItemName: string,
+
+            /**
+             * 商品數量，若有兩項以上商品時請用管線符號 "|" 分隔。
+             */
+            ItemCount: string,
+
+            /**
+             * 商品單位，若有兩項以上商品時請用管線符號 "|" 分隔。
+             */
+            ItemWord: string,
+
+            /**
+             * 商品價格，若有兩項以上商品時請用管線符號 "|" 分隔。
+             */
+            ItemPrice: string,
+
+            /**
+             * 商品課稅類別，若有兩項以上商品時請用管線符號 "|" 分隔。
+             */
+            ItemTaxType: string,
+
+            /**
+             * 商品合計
+             * 此為含稅小計金額若超過二筆以上請以「|」符號區隔。
+             */
+            ItemAmount: string,
+
+            /**
+             * 商品備註說明
+             * 1. 若超過二筆以上請以「|」符號區隔。
+             * 2. 每個備註的預設最大長度為 40 碼。
+             * 3. 將參數值做 UrlEncode。
+             * 4. 計算檢查碼時，需將此參數排除。
+             * 注意事項：
+             * 備註裡面有「|」，請以「##」取代「|」。我方會在上傳財政部時協助轉回「|」。
+             */
+            ItemRemark: string,
+
+            /**
              * 發票開立延遲天數。
              * 本參數值請帶 0 ~ 15(天)，當天數為 0 時，則付款完成後立即開立發票。
              */
-            DelayDay: string,
+            DelayDay?: string,
 
             /**
              * 一般稅額: 07
              * 特種稅額: 08
              */
-            InvType: '07' | '08'
+            InvType: '07' | '08',
+
+            /**
+             * 商品單價是否含稅
+             * 預設為含稅價
+             * 0: 未稅
+             * 1: 含稅
+             */
+            vat: '0' | '1'
+        }
+
+        interface IssueResponse {
+            /**
+             * 回應代碼
+             * 1 為成功，其餘為失敗。
+             */
+            RtnCode: string,
+
+            /**
+             * 回應訊息
+             * ex: 開立發票成功
+             */
+            RtnMsg: string,
+
+            /**
+             * 發票號碼
+             * 若開立成功，則會回傳一組發票號碼
+             * 若開立失敗，則會回傳空值。
+             * ex: EV00004242
+             */
+            InvoiceNumber: string,
+
+            /**
+             * 發票開立時間
+             * ex: 2012-03-16 12:03:12
+             */
+            InvoiceDate: string,
+
+            /**
+             * 隨機碼
+             */
+            RandomNumber: string,
+
+            /**
+             * 檢查碼
+             */
+            CheckMacValue: string
         }
     }
 }

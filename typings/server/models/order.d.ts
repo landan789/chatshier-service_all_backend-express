@@ -26,6 +26,7 @@ declare module Chatshier {
             isInvoiceIssued: boolean,
             invoiceId: string,
             invoiceNumber: string,
+            invoiceRandomNumber: string,
             taxId: string,
             consumerUid: string,
             payerName: string,

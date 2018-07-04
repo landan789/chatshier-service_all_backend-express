@@ -377,9 +377,12 @@
             switch (paymentType) {
                 case ECPAY:
                     $issueInvoiceElems = $(
-                        '<label class="col-form-label font-weight-bold issue-invoice">綠界 ECPay 電子發票服務設定</label>' +
+                        '<label class="col-form-label font-weight-bold issue-invoice">' +
+                            '<a href="https://www.ecpay.com.tw/Business/invoice" target="_blank">綠界 ECPay 電子發票服務</a>' +
+                        '</label>' +
                         '<div class="card issue-invoice">' +
                             '<div class="card-body">' +
+                                '<p class="text-danger small">請確定商店確實具有開立電子發票之服務，否則將無法正常開立發票</p>' +
                                 '<div class="form-group">' +
                                     '<label class="col-form-label font-weight-bold">電子發票服務 Hash Key:</label>' +
                                     '<div class="input-container">' +
@@ -398,9 +401,12 @@
                     break;
                 case SPGATEWAY:
                     $issueInvoiceElems = $(
-                        '<label class="col-form-label font-weight-bold issue-invoice">智付寶 Pay2Go 電子發票服務設定</label>' +
+                        '<label class="col-form-label font-weight-bold issue-invoice">' +
+                            '<a href="https://inv.pay2go.com/" target="_blank">智付寶 Pay2Go 電子發票服務</a>' +
+                        '</label>' +
                         '<div class="card issue-invoice">' +
                             '<div class="card-body">' +
+                                '<p class="text-danger small">請確定商店確實具有開立電子發票之服務，否則將無法正常開立發票</p>' +
                                 '<div class="form-group">' +
                                     '<label class="col-form-label font-weight-bold">電子發票商店代號:</label>' +
                                     '<div class="input-container">' +

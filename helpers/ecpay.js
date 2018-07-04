@@ -34,18 +34,65 @@ module.exports = (function() {
 
         /**
          * @param {string} merchantId
-         * @param {string} paymentHashKey
-         * @param {string} paymentHashIV
-         * @param {string} [invoiceHashKey='']
-         * @param {string} [invoiceHashIV='']
+         * @param {string} hashKey
+         * @param {string} hashIV
          */
-        setMerchant(merchantId, paymentHashKey, paymentHashIV, invoiceHashKey = '', invoiceHashIV = '') {
-            this.paymentHelper.merc_id = this.invoiceHelper.merc_id = merchantId;
-            this.paymentHelper.hkey = paymentHashKey;
-            this.paymentHelper.hiv = paymentHashIV;
+        setPaymentMerchant(merchantId, hashKey, hashIV) {
+            this.paymentHelper.merc_id = merchantId;
+            this.paymentHelper.hkey = hashKey;
+            this.paymentHelper.hiv = hashIV;
+        }
 
-            invoiceHashKey && (this.invoiceHelper.hkey = invoiceHashKey);
-            invoiceHashIV && (this.invoiceHelper.hiv = invoiceHashIV);
+        /**
+         * @param {Chatshier.Models.Order} order
+         * @param {string} merchantId
+         * @param {string} hashKey
+         * @param {string} hashIV
+         * @returns {Promise<ECPay.Invoice.IssueResponse>}
+         */
+        issueInvoice(order, merchantId, hashKey, hashIV) {
+            /** @type {ECPay.Invoice.IssueParameters} */
+            let invoiceParams = {
+                TimeStamp: this.datetimeToTradeDate(new Date()),
+                MerchantID: merchantId,
+                RelateNumber: order.invoiceId,
+                CustomerID: '',
+                CustomerIdentifier: order.taxId,
+                CustomerName: order.payerName,
+                CustomerAddr: order.payerAddress,
+                CustomerPhone: order.payerPhone,
+                CustomerEmail: order.payerEmail,
+                ClearanceMark: '',
+                TaxType: '1',
+                CarruerType: '',
+                CarruerNum: '',
+                Donation: '2',
+                LoveCode: '',
+                Print: '0',
+                SalesAmount: '' + order.tradeAmount,
+                InvoiceRemark: '',
+                ItemName: order.commodities.map((commodity) => commodity.name).join('|'),
+                ItemCount: order.commodities.map((commodity) => commodity.count).join('|'),
+                ItemWord: order.commodities.map((commodity) => commodity.unit).join('|'),
+                ItemPrice: order.commodities.map((commodity) => commodity.unitPrice).join('|'),
+                ItemAmount: order.commodities.map((commodity) => commodity.count * commodity.unitPrice).join('|'),
+                ItemTaxType: '',
+                ItemRemark: order.commodities.map((commodity) => commodity.remark).join('|'),
+                InvType: '07',
+                vat: '1'
+            };
+
+            this.invoiceHelper.merc_id = merchantId;
+            this.invoiceHelper.hkey = hashKey;
+            this.invoiceHelper.hiv = hashIV;
+            return this.invoiceClient.ecpay_invoice_issue(invoiceParams).then((resQuery) => {
+                /** @type {ECPay.Invoice.IssueResponse} */
+                let issueResponse = this._queryStringToJSON(resQuery);
+                if ('1' !== issueResponse.RtnCode) {
+                    return Promise.reject(new Error(issueResponse.RtnMsg));
+                }
+                return Promise.resolve(issueResponse);
+            });
         }
 
         /**
@@ -61,6 +108,20 @@ module.exports = (function() {
             let mm = leadZero(datetime.getMinutes());
             let ss = leadZero(datetime.getSeconds());
             return YYYY + '/' + MM + '/' + DD + ' ' + hh + ':' + mm + ':' + ss;
+        }
+
+        /**
+         * @param {string} queryString
+         * @returns {any}
+         */
+        _queryStringToJSON(queryString) {
+            return queryString.split('&').reduce((output, str) => {
+                let splits = str.split('=');
+                if (splits[0]) {
+                    output[splits[0]] = splits[1] || '';
+                }
+                return output;
+            }, {});
         }
     }
 

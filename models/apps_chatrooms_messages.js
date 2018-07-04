@@ -121,7 +121,7 @@ module.exports = (function() {
          *
          * @param {string} appId
          * @param {string} chatroomId
-         * @param {any} messages
+         * @param {any[]} messages
          * @param {(appsChatroomsMessages: Chatshier.Models.AppsChatrooms | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */

@@ -2,15 +2,23 @@ module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
     const API_ERROR = require('../config/api_error.json');
+    const SOCKET_EVENTS = require('../config/socket-events');
     const chatshierCfg = require('../config/chatshier');
+
     const cipherHlp = require('../helpers/cipher');
     const spgatewayHlp = require('../helpers/spgateway');
     const ecpayHlp = require('../helpers/ecpay');
+    const socketHlp = require('../helpers/socket');
     const paymentsLog = require('../logs/payments');
+    const botSvc = require('../services/bot');
 
+    const appsMdl = require('../models/apps');
     const appsPaymentsMdl = require('../models/apps_payments');
     const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
+    const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
     const ordersMdl = require('../models/orders');
+
+    const CHATSHIER = 'CHATSHIER';
 
     const ECPAY = 'ECPAY';
     const SPGATEWAY = 'SPGATEWAY';
@@ -69,7 +77,7 @@ module.exports = (function() {
                     case ECPAY:
                         // 由於 ECPay 的 SDK 計算驗證碼的 HashKey 與 HashIV 儲存在程式當中，而不是作為參數傳入
                         // 因此必須更換 ECPay 的參數數值
-                        ecpayHlp.setMerchant(payment.merchantId, payment.hashKey, payment.hashIV);
+                        ecpayHlp.setPaymentMerchant(payment.merchantId, payment.hashKey, payment.hashIV);
 
                         let params = {
                             MerchantTradeNo: order.tradeId, // 請帶 20 碼 uid, ex: f0a0d7e9fae1bb72bc93
@@ -92,38 +100,10 @@ module.exports = (function() {
                             // CustomField4: ''
                         };
 
-                        /** @type {ECPay.Payment.InvoiceParameters | void } */
-                        let invoiceParams = order.invoiceId ? {
-                            RelateNumber: order.invoiceId,
-                            CustomerID: '',
-                            CustomerIdentifier: order.taxId,
-                            CustomerName: order.payerName,
-                            CustomerAddr: order.payerAddress,
-                            CustomerPhone: order.payerPhone,
-                            CustomerEmail: order.payerEmail,
-                            ClearanceMark: '2',
-                            TaxType: '1',
-                            CarruerType: '',
-                            CarruerNum: '',
-                            Donation: '2',
-                            LoveCode: '',
-                            Print: '0',
-                            InvoiceItemName: order.commodities.map((commodity) => commodity.name).join('|'),
-                            InvoiceItemCount: order.commodities.map((commodity) => commodity.count).join('|'),
-                            InvoiceItemWord: order.commodities.map((commodity) => commodity.unit).join('|'),
-                            InvoiceItemPrice: order.commodities.map((commodity) => commodity.unitPrice).join('|'),
-                            InvoiceItemTaxType: order.commodities.map(() => '1').join('|'),
-                            InvoiceRemark: order.commodities.map((commodity) => commodity.remark).join('|'),
-                            DelayDay: '0',
-                            InvType: '07'
-                        } : void 0;
-
-                        plainHtml = ecpayHlp.paymentClient.aio_check_out_all(params, invoiceParams || {});
+                        plainHtml = ecpayHlp.paymentClient.aio_check_out_all(params, {});
                         break;
                     case SPGATEWAY:
-                        /**
-                         * @type {Spgateway.Payment.TradeInformation}
-                         */
+                        /** @type {Spgateway.Payment.TradeInformation} */
                         let tradeInfo = {
                             MerchantID: payment.merchantId,
                             MerchantOrderNo: order.tradeId,
@@ -157,6 +137,11 @@ module.exports = (function() {
             let params = Object.assign({}, paymentResult);
             delete params.CheckMacValue;
 
+            // 交易失敗，不需要處理
+            if ('1' !== paymentResult.RtnCode) {
+                return res.sendStatus(200);
+            }
+
             let merchantId = paymentResult.MerchantID;
             return appsPaymentsMdl.findByMerchantId(merchantId).then((appsPayments) => {
                 if (!appsPayments) {
@@ -167,18 +152,55 @@ module.exports = (function() {
                 let paymentId = Object.keys(appsPayments[appId].payments).shift() || '';
                 return Promise.resolve(appsPayments[appId].payments[paymentId]);
             }).then((payment) => {
-                ecpayHlp.setMerchant(payment.merchantId, payment.hashKey, payment.hashIV);
+                ecpayHlp.setPaymentMerchant(payment.merchantId, payment.hashKey, payment.hashIV);
                 let checkMacValue = ecpayHlp.paymentHelper.gen_chk_mac_value(params);
                 let isCheckMacValueVaild = checkMacValue === paymentResult.CheckMacValue;
-                res.sendStatus(isCheckMacValueVaild ? 200 : 400);
 
-                // 交易失敗，暫時不需要更新訂單狀態
-                if ('1' !== paymentResult.RtnCode) {
-                    return Promise.resolve(null);
+                // 驗證碼正確，回應 200 OK
+                // 驗證碼不正確，回應 400 Bad Request
+                !res.headersSent && res.sendStatus(isCheckMacValueVaild ? 200 : 400);
+                if (!isCheckMacValueVaild) {
+                    return Promise.reject(new Error('400 Bad Request'));
                 }
 
                 let tradeId = paymentResult.MerchantTradeNo;
-                return this._paidOrder(tradeId, { isInvoiceIssued: true });
+                return Promise.all([
+                    Promise.resolve(payment),
+                    this._paidOrder(tradeId)
+                ]);
+            }).then(([ payment, order ]) => {
+                // 此訂單沒有建立發票關聯 ID 則不需要開立發票
+                if (!(order && order.invoiceId)) {
+                    return Promise.resolve(void 0);
+                }
+
+                let orderId = order._id;
+                return ecpayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then((invoice) => {
+                    let putOrder = {
+                        isInvoiceIssued: true,
+                        invoiceNumber: invoice.InvoiceNumber,
+                        invoiceRandomNumber: invoice.RandomNumber
+                    };
+                    return ordersMdl.update(orderId, putOrder);
+                }).then((orders) => {
+                    if (!(orders && orders[orderId])) {
+                        return Promise.reject(API_ERROR.ORDER_FAILED_TO_UPDATE);
+                    }
+
+                    let _order = orders[orderId];
+                    let replyText = (
+                        '=== 支付成功 ===\n' +
+                        '感謝您！'
+                    );
+
+                    if (_order.isInvoiceIssued && _order.invoiceNumber) {
+                        replyText += (
+                            '\n\n已為你開立電子發票: ' + _order.invoiceNumber +
+                            '\n如需索取紙本，請留言。'
+                        );
+                    }
+                    return this._replyToConsumer(order.app_id, order.consumerUid, replyText);
+                });
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -216,13 +238,109 @@ module.exports = (function() {
 
                 // 智付通 Spgateway 的電子發票是獨立開來的，使用 智付寶 Pay2Go 電子發票平台
                 // 因此在智付通支付完成後，必須再使用 Pay2Go 的電子發票 API 來開立發票
-                return spgatewayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then(() => {
-                    return ordersMdl.update(order._id, { isInvoiceIssued: true });
+                let orderId = order._id;
+                return spgatewayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then((invoice) => {
+                    let putOrder = {
+                        isInvoiceIssued: true,
+                        invoiceNumber: invoice.InvoiceNumber,
+                        invoiceRandomNumber: invoice.RandomNum
+                    };
+                    return ordersMdl.update(orderId, putOrder);
+                }).then((orders) => {
+                    if (!(orders && orders[orderId])) {
+                        return Promise.reject(API_ERROR.ORDER_FAILED_TO_UPDATE);
+                    }
+
+                    let _order = orders[orderId];
+                    let replyText = (
+                        '=== 支付成功 ===\n' +
+                        '感謝您！'
+                    );
+
+                    if (_order.isInvoiceIssued && _order.invoiceNumber) {
+                        replyText += (
+                            '\n\n已為你開立電子發票: ' + _order.invoiceNumber +
+                            '\n如需索取紙本，請留言。'
+                        );
+                    }
+                    return this._replyToConsumer(order.app_id, order.consumerUid, replyText);
                 });
             }).then(() => {
                 return res.sendStatus(200);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {string} platformUid
+         * @param {string} replyText
+         */
+        _replyToConsumer(appId, platformUid, replyText) {
+            /** @type {Chatshier.Models.App} */
+            let app;
+            /** @type {string} */
+            let chatroomId;
+            /** @type {Chatshier.Models.Chatroom} */
+            let chatroom;
+
+            let message = {
+                from: 'SYSTEM',
+                type: 'text',
+                text: replyText,
+                messager_id: ''
+            };
+
+            return appsMdl.find(appId).then((apps) => {
+                if (!(apps && apps[appId])) {
+                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                }
+                return Promise.resolve(apps[appId]);
+            }).then((_app) => {
+                app = _app;
+                return botSvc.pushMessage(platformUid, message, void 0, appId, app);
+            }).then(() => {
+                return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false);
+            }).then((appsChatroomsMessagers) => {
+                if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                }
+
+                chatroomId = Object.keys(appsChatroomsMessagers[appId].chatrooms).shift() || '';
+                chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]);
+            }).then((appsChatroomsMessages) => {
+                if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
+                    return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                }
+                return Promise.resolve(appsChatroomsMessages);
+            }).then((appsChatroomsMessages) => {
+                let messages = Object.values(appsChatroomsMessages[appId].chatrooms[chatroomId].messages);
+
+                return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
+                    if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    }
+
+                    let _chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                    let _messagers = _chatroom.messagers;
+                    let recipientUserIds = Object.keys(_messagers).map((messagerId) => {
+                        return _messagers[messagerId].platformUid;
+                    });
+
+                    /** @type {ChatshierChatSocketBody} */
+                    let messagesToSend = {
+                        app_id: appId,
+                        type: app.type,
+                        chatroom_id: chatroomId,
+                        chatroom: chatroom,
+                        senderUid: '',
+                        recipientUid: platformUid,
+                        messages: messages
+                    };
+                    return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
+                });
             });
         }
 
