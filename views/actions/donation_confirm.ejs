@@ -28,7 +28,7 @@
 <body>
     <div class="h-100 swiper-container">
         <div class="swiper-wrapper">
-            <div class="swiper-slide">
+            <div class="swiper-slide" style="opacity: 0;">
                 <div class="pt-3 text-center attention-before" id="attentionBefore">
                     <h4>注意事項</h4>
                 </div>
@@ -57,7 +57,7 @@
                 </div>
             </div>
 
-            <div class="swiper-slide">
+            <div class="swiper-slide" style="opacity: 0;">
                 <div class="pt-3 text-center text-info loading-icon" id="loadingIcon">
                     <i class="fas fa-spinner fa-pulse fa-4x"></i>
                 </div>
@@ -420,7 +420,7 @@
                     $dialogModal.modal({ backdrop: false, show: true });
                 },
                 closeForm: function() {
-                    window.location.replace('about:blank');
+                    document.body.innerHTML = '';
                 },
                 initRequiredRows: function(messager) {
                     $donationForm.find('#payerName').val((messager.namings && messager.namings[window.payload.uid]) || '');
@@ -528,6 +528,7 @@
                     loop: false,
                     allowSlideNext: false
                 });
+                $('.swiper-slide').removeAttr('style');
 
                 var $formSwiper = $(formSwiper.el);
                 $formSwiper.on('click', '.btn-next', function() {

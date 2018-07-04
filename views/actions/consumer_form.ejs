@@ -348,7 +348,7 @@
                     $dialogModal.modal({ backdrop: false, show: true });
                 },
                 closeForm: function() {
-                    window.location.replace('about:blank');
+                    document.body.innerHTML = '';
                 },
                 initRequiredRows: function(messager) {
                     var $birthdayPicker = $consumerForm.find('.birthday-picker');
