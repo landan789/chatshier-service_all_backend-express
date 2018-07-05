@@ -9,6 +9,7 @@ RELEASE release: Not Ready
  * Created: richmenu can set donate option for consumer donation
  * Created: keyword reply support image, imagemap, template message type
  * Created: chatroom, keyword reply, auto replay, greeting support emoji input for text message
+ * Created: compose support text condition
 == Bug Fixes ==
  * Fixed: fix group member remove issue, chatroom messager not remove after group member removed
 

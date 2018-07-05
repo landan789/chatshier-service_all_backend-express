@@ -1,18 +1,242 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
+var ReplyMessageSelector = (function() {
+    var isMobile = ('function' === typeof window.isMobileBrowser) && window.isMobileBrowser();
+    var api = window.restfulAPI;
+
+    /**
+     * @param {HTMLElement} insertAfterElem
+     * @param {string} [appId]
+     * @param {string} [userId]
+     * @param {Chatshier.Models.AppsImagemaps} [appsImagemaps]
+     * @param {Chatshier.Models.AppsTemplates} [appsTemplates]
+     */
+    function ReplyMessageSelector(insertAfterElem, appId, userId, appsImagemaps, appsTemplates) {
+        this.appId = appId || '';
+        this.userId = userId || '';
+
+        /** @type {Chatshier.Models.AppsImagemaps} */
+        this.appsImagemaps = appsImagemaps || {};
+        /** @type {Chatshier.Models.AppsTemplates} */
+        this.appsTemplates = appsTemplates || {};
+
+        /** @type {(replyType: 'text' | 'image' | 'imagemap' | 'template') => any} */
+        this.onReplyItemChange = void 0;
+
+        this.$selectContainer = $('<div class="form-group"></div>');
+        this.$selectContainer.insertAfter(insertAfterElem);
+        this.reset();
+
+        this.$selectContainer.on('click', '.reply-item', this._onClickReplyItem.bind(this));
+    }
+
+    /**
+     * @param {'text' | 'image' | 'imagemap' | 'template'} [replyType='text']
+     */
+    ReplyMessageSelector.prototype.reset = function(replyType) {
+        replyType = replyType || 'text';
+
+        this.$replyContentWrapper = $('<div class="w-100 input-container" id="replyContentWrapper"></div>');
+        this.$selectContainer.html(
+            '<label class="font-weight-bold">回覆內容:</label>' +
+            '<div class="w-100 mb-2 btn-group reply-content-select" id="replyContentSelect">' +
+                '<button type="button" class="btn btn-info reply-item" reply-type="text" data-toggle="tooltip" data-placement="top" title="文字">' +
+                    '<i class="fas fa-text-height fa-2x"></i>' +
+                '</button>' +
+                '<button type="button" class="btn btn-info reply-item" reply-type="image" data-toggle="tooltip" data-placement="top" title="圖像">' +
+                    '<i class="fas fa-image fa-2x"></i>' +
+                '</button>' +
+                '<button type="button" class="btn btn-info reply-item" reply-type="imagemap" data-toggle="tooltip" data-placement="top" title="圖文訊息">' +
+                    '<i class="fas fa-map fa-2x"></i>' +
+                '</button>' +
+                '<button type="button" class="btn btn-info reply-item" reply-type="template" data-toggle="tooltip" data-placement="top" title="模板訊息">' +
+                    '<i class="fas fa-clipboard-list fa-2x"></i>' +
+                '</button>' +
+            '</div>'
+        );
+        this.$selectContainer.append(this.$replyContentWrapper);
+
+        var $replyItem = this.$selectContainer.find('.reply-item[reply-type="' + replyType + '"]');
+        $replyItem.addClass('active').siblings().removeClass('active');
+        return this._onClickReplyItem({ target: $replyItem.get(0) });
+    };
+
+    ReplyMessageSelector.prototype._onClickReplyItem = function(ev) {
+        var $evTarget = $(ev.target);
+        var $contentBtn = $evTarget.hasClass('reply-item') ? $evTarget : $evTarget.parents('.reply-item');
+        $contentBtn.addClass('active').siblings().removeClass('active');
+
+        var appId = this.appId;
+        var userId = this.userId;
+        var replyType = $contentBtn.attr('reply-type');
+
+        return Promise.resolve().then(() => {
+            switch (replyType) {
+                case 'image':
+                    return (
+                        '<button type="button" class="btn btn-light btn-sm btn-border upload-image-btn">' +
+                            '<i class="mr-1 fas fa-cloud-upload-alt fa-fw"></i>' +
+                            '<span class="font-weight-bold">上傳圖像</span>' +
+                        '</button>' +
+                        '<input class="image-ghost d-none" type="file" name="replyImageFile" accept="image/png,image/jpg,image/jpeg" />' +
+                        '<div class="position-relative mt-2 w-100 image-container" style="height: 16rem;">' +
+                            '<img class="image-fit" src="/image/upload.png" alt="" />' +
+                        '</div>'
+                    );
+                case 'imagemap':
+                    return Promise.resolve().then(() => {
+                        if (!this.appsImagemaps[appId]) {
+                            return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
+                                var _appsImagemaps = resJson.data;
+                                this.appsImagemaps[appId] = { imagemaps: {} };
+                                if (!_appsImagemaps[appId]) {
+                                    return this.appsImagemaps[appId].imagemaps;
+                                }
+                                Object.assign(this.appsImagemaps[appId].imagemaps, _appsImagemaps[appId].imagemaps);
+                                return this.appsImagemaps[appId].imagemaps;
+                            });
+                        }
+                        return this.appsImagemaps[appId].imagemaps;
+                    }).then((imagemaps) => {
+                        return (
+                            '<label class="w-100 col-form-label font-weight-bold">' +
+                                '<div class="mb-2 font-weight-bold">選擇已新增的圖文訊息:</div>' +
+                                '<select class="imagemap-select form-control" value="">' +
+                                    '<option value="">未選擇</option>' +
+                                    (() => {
+                                        return Object.keys(imagemaps).map((imagemapId) => {
+                                            var imagemap = imagemaps[imagemapId];
+                                            return '<option value="' + imagemapId + '">' + imagemap.altText + '</option>';
+                                        }).join('');
+                                    })() +
+                                '</select>' +
+                            '</label>'
+                        );
+                    });
+                case 'template':
+                    return Promise.resolve().then(() => {
+                        if (!this.appsTemplates[appId]) {
+                            return api.appsTemplates.findAll(appId, userId).then((resJson) => {
+                                var _appsTemplates = resJson.data;
+                                this.appsTemplates[appId] = { templates: {} };
+                                if (!_appsTemplates[appId]) {
+                                    return this.appsTemplates[appId].templates;
+                                }
+                                Object.assign(this.appsTemplates[appId].templates, _appsTemplates[appId].templates);
+                                return this.appsTemplates[appId].templates;
+                            });
+                        }
+                        return this.appsTemplates[appId].templates;
+                    }).then((templates) => {
+                        return (
+                            '<label class="w-100 col-form-label font-weight-bold">' +
+                                '<div class="mb-2 font-weight-bold">選擇已新增的模板訊息:</div>' +
+                                '<select class="template-select form-control" value="">' +
+                                    '<option value="">未選擇</option>' +
+                                    (() => {
+                                        return Object.keys(templates).map((templateId) => {
+                                            var template = templates[templateId];
+                                            return '<option value="' + templateId + '">' + template.altText + '</option>';
+                                        }).join('');
+                                    })() +
+                                '</select>' +
+                            '</label>'
+                        );
+                    });
+                case 'text':
+                default:
+                    return '<textarea class="form-control message-text" name="messageText" style="resize: vertical" placeholder="在此輸入文字"></textarea>';
+            }
+        }).then((html) => {
+            var $replyContentWrapper = this.$replyContentWrapper;
+            $replyContentWrapper.html(html);
+
+            if (!isMobile && 'text' === replyType) {
+                var $messageText = this.$replyContentWrapper.find('[name="messageText"]');
+                $messageText.emojioneArea({
+                    placeholder: $messageText.attr('placeholder') || '',
+                    searchPlaceholder: '搜尋',
+                    buttonTitle: '',
+                    autocomplete: false
+                });
+                $messageText.data('emojioneArea').setText('');
+            }
+
+            ('function' === typeof this.onReplyItemChange) && this.onReplyItemChange(replyType);
+        });
+    };
+
+    ReplyMessageSelector.prototype.getJSON = function() {
+        var replyType = this.$selectContainer.find('.reply-item.active').attr('reply-type');
+        var replyText = this.$replyContentWrapper.find('[name="messageText"]').val() || '';
+
+        var json = {
+            text: replyText,
+            type: replyType,
+            src: '',
+            originalFilePath: '',
+            imagemap_id: '',
+            template_id: ''
+        };
+
+        return Promise.resolve().then(() => {
+            switch (replyType) {
+                case 'image':
+                    /** @type {HTMLInputElement} */
+                    var replyImageFile = this.$replyContentWrapper.find('input[name="replyImageFile"]').get(0);
+                    var imageFile = replyImageFile.files.item(0);
+                    replyImageFile.value = '';
+
+                    return api.image.uploadFile(this.userId, imageFile).then((resJson) => {
+                        json.src = resJson.data.url;
+                        json.originalFilePath = resJson.data.originalFilePath;
+                        return json;
+                    });
+                case 'imagemap':
+                    json.imagemap_id = this.$replyContentWrapper.find('.imagemap-select').val() || '';
+                    break;
+                case 'template':
+                    json.template_id = this.$replyContentWrapper.find('.template-select').val() || '';
+                    break;
+                case 'text':
+                default:
+                    break;
+            }
+            return json;
+        });
+    };
+
+    ReplyMessageSelector.prototype.getMessageText = function() {
+        return this.$replyContentWrapper.find('[name="messageText"]').val() || '';
+    };
+
+    ReplyMessageSelector.prototype.setMessageText = function(text) {
+        return this.$replyContentWrapper.find('[name="messageText"]').val(text);
+    };
+
+    ReplyMessageSelector.prototype.setImageSrc = function(src) {
+        return this.$replyContentWrapper.find('.image-container img').prop('src', src);
+    };
+
+    ReplyMessageSelector.prototype.setImageMap = function(imagemapId) {
+        return this.$replyContentWrapper.find('.imagemap-select').val(imagemapId);
+    };
+
+    ReplyMessageSelector.prototype.setTemplate = function(templateId) {
+        return this.$replyContentWrapper.find('.template-select').val(templateId);
+    };
+
+    return ReplyMessageSelector;
+})();
+
 (function() {
     var nowSelectAppId = '';
     /** @type {Chatshier.Models.Apps} */
     var apps = {};
-    /** @type {Chatshier.Models.AppsImagemaps} */
-    var appsImagemaps = {};
     /** @type {Chatshier.Models.AppsKeywordreplies} */
     var appsKeywordreplies = {};
-    /** @type {Chatshier.Models.AppsTemplates} */
-    var appsTemplates = {};
 
     var api = window.restfulAPI;
-    var isMobile = 'function' === typeof window.isMobileBrowser && window.isMobileBrowser();
 
     const ICONS = {
         LINE: 'fab fa-line fa-fw line-color',
@@ -65,38 +289,54 @@
 
         var $keywordreplyModal = $('#keywordreplyModal');
         var $appSelector = $keywordreplyModal.find('.modal-body select[name="keywordreplyAppName"]');
+        var replyMessageSelect = new ReplyMessageSelector(document.getElementById('rowOfKeyword'));
+        replyMessageSelect.userId = userId;
+
+        replyMessageSelect.onReplyItemChange = function(replyType) {
+            if (!modalKeywordreply) {
+                return;
+            }
+
+            'text' === replyType && modalKeywordreply.text && replyMessageSelect.setMessageText(modalKeywordreply.text);
+            'image' === replyType && modalKeywordreply.src && replyMessageSelect.setImageSrc(modalKeywordreply.src);
+            'imagemap' === replyType && modalKeywordreply.imagemap_id && replyMessageSelect.setImageMap(modalKeywordreply.imagemap_id);
+            'template' === replyType && modalKeywordreply.template_id && replyMessageSelect.setTemplate(modalKeywordreply.template_id);
+        };
 
         $keywordreplyModal.find('[data-toggle="tooltip"]').tooltip();
+        $appSelector.on('change', function() {
+            var modalAppId = $appSelector.val();
+            replyMessageSelect.appId = modalAppId;
+            replyMessageSelect.reset();
+        });
 
         // ==========
         // 設定關鍵字新增 modal 相關 element 與事件
         $keywordreplyModal.on('show.bs.modal', function(ev) {
             var $relatedBtn = $(ev.relatedTarget);
-
-            // 新增 modal 即將顯示事件發生時，將 App 清單更新
-            $appSelector.empty();
-            for (var _appId in apps) {
-                var app = apps[_appId];
-                $appSelector.append('<option value="' + _appId + '">' + app.name + '</option>');
-            }
-
             var $keywordreplyForm = $keywordreplyModal.find('.modal-body form');
             var $isDraftCbx = $keywordreplyForm.find('input[name="keywordreplyIsDraft"]');
 
             if ($relatedBtn.hasClass('insert-btn')) {
+                // 新增 modal 即將顯示事件發生時，將 App 清單更新
+                $appSelector.empty();
+                for (var _appId in apps) {
+                    var app = apps[_appId];
+                    $appSelector.append('<option value="' + _appId + '">' + app.name + '</option>');
+                }
+
                 modalAppId = nowSelectAppId;
                 modalKeywordreplyId = modalKeywordreply = void 0;
                 $appSelector.val(modalAppId);
+                $appSelector.parents('.form-group').removeClass('d-none');
 
                 $keywordreplyForm.find('input[name="keywordreplyKeyword"]').val('');
                 $keywordreplyForm.find('textarea[name="keywordreplyText"]').val('');
                 $isDraftCbx.prop('checked', false);
                 $isDraftCbx.parents('.form-group').removeClass('d-none');
 
-                var $replyContentSelect = $keywordreplyModal.find('#replyContentSelect');
-                var $textReplyItem = $replyContentSelect.find('.reply-item[reply-type="text"]');
-                $textReplyItem.addClass('active').siblings().removeClass('active');
-                $textReplyItem.trigger('click');
+                replyMessageSelect.appId = modalAppId;
+                replyMessageSelect.reset('text');
 
                 $keywordreplyModal.find('#insertSubmitBtn').removeClass('d-none');
                 $keywordreplyModal.find('#updateSubmitBtn').addClass('d-none');
@@ -110,6 +350,7 @@
             modalKeywordreplyId = $targetRow.attr('keywordreply-id');
             modalKeywordreply = appsKeywordreplies[modalAppId].keywordreplies[modalKeywordreplyId];
             $appSelector.val(modalAppId);
+            $appSelector.parents('.form-group').addClass('d-none');
 
             var keywordreply = modalKeywordreply;
             $keywordreplyForm.find('input[name="keywordreplyKeyword"]').val(keywordreply.keyword);
@@ -123,9 +364,8 @@
                 $isDraftCbx.parents('.form-group').addClass('d-none');
             }
 
-            var $replyItem = $keywordreplyForm.find('#replyContentSelect .reply-item[reply-type="' + keywordreply.type + '"]');
-            $replyItem.addClass('active').siblings().removeClass('active');
-            $replyItem.trigger('click');
+            replyMessageSelect.appId = modalAppId;
+            replyMessageSelect.reset(keywordreply.type);
 
             $keywordreplyModal.find('#updateSubmitBtn').removeClass('d-none');
             $keywordreplyModal.find('#insertSubmitBtn').addClass('d-none');
@@ -144,127 +384,6 @@
             $fileInput.trigger('click');
         });
 
-        $keywordreplyModal.on('click', '#replyContentSelect .reply-item', function() {
-            var $contentBtn = $(this);
-            $contentBtn.addClass('active').siblings().removeClass('active');
-
-            var appId = $appSelector.val();
-            var replyType = $contentBtn.attr('reply-type');
-
-            return Promise.resolve().then(() => {
-                switch (replyType) {
-                    case 'image':
-                        return (
-                            '<button type="button" class="btn btn-light btn-sm btn-border upload-image-btn">' +
-                                '<i class="fas fa-upload fa-fw"></i>' +
-                                '<span class="font-weight-bold">上傳圖像</span>' +
-                            '</button>' +
-                            '<input class="image-ghost d-none" type="file" name="replyImageFile" accept="image/png,image/jpg,image/jpeg" />' +
-                            '<div class="position-relative mt-2 w-100 image-container" style="height: 16rem;">' +
-                                '<img class="image-fit" src="/image/upload.png" alt="" />' +
-                            '</div>'
-                        );
-                    case 'imagemap':
-                        return Promise.resolve().then(() => {
-                            if (!appsImagemaps[appId]) {
-                                return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
-                                    var _appsImagemaps = resJson.data;
-                                    appsImagemaps[appId] = { imagemaps: {} };
-                                    if (!_appsImagemaps[appId]) {
-                                        return appsImagemaps[appId].imagemaps;
-                                    }
-                                    Object.assign(appsImagemaps[appId].imagemaps, _appsImagemaps[appId].imagemaps);
-                                    return appsImagemaps[appId].imagemaps;
-                                });
-                            }
-                            return appsImagemaps[appId].imagemaps;
-                        }).then((imagemaps) => {
-                            return (
-                                '<label class="w-100 col-form-label font-weight-bold">' +
-                                    '<div class="mb-2 font-weight-bold">選擇已新增的圖文訊息:</div>' +
-                                    '<select class="imagemap-select form-control" value="">' +
-                                        '<option value="">未選擇</option>' +
-                                        (function() {
-                                            return Object.keys(imagemaps).map((imagemapId) => {
-                                                var imagemap = imagemaps[imagemapId];
-                                                return '<option value="' + imagemapId + '">' + imagemap.altText + '</option>';
-                                            }).join('');
-                                        })() +
-                                    '</select>' +
-                                '</label>'
-                            );
-                        });
-                    case 'template':
-                        return Promise.resolve().then(() => {
-                            if (!appsTemplates[appId]) {
-                                return api.appsTemplates.findAll(appId, userId).then((resJson) => {
-                                    var _appsTemplates = resJson.data;
-                                    appsTemplates[appId] = { templates: {} };
-                                    if (!_appsTemplates[appId]) {
-                                        return appsTemplates[appId].templates;
-                                    }
-                                    Object.assign(appsTemplates[appId].templates, _appsTemplates[appId].templates);
-                                    return appsTemplates[appId].templates;
-                                });
-                            }
-                            return appsTemplates[appId].templates;
-                        }).then((templates) => {
-                            return (
-                                '<label class="w-100 col-form-label font-weight-bold">' +
-                                    '<div class="mb-2 font-weight-bold">選擇已新增的模板訊息:</div>' +
-                                    '<select class="template-select form-control" value="">' +
-                                        '<option value="">未選擇</option>' +
-                                        (function() {
-                                            return Object.keys(templates).map((templateId) => {
-                                                var template = templates[templateId];
-                                                return '<option value="' + templateId + '">' + template.altText + '</option>';
-                                            }).join('');
-                                        })() +
-                                    '</select>' +
-                                '</label>'
-                            );
-                        });
-                    case 'text':
-                    default:
-                        return '<textarea class="form-control keywordreply-text" name="keywordreplyText" style="resize: vertical" placeholder="在此輸入文字"></textarea>';
-                }
-            }).then((html) => {
-                var $replyContentWrapper = $keywordreplyModal.find('#replyContentWrapper');
-                $replyContentWrapper.html(html);
-
-                if (!isMobile && 'text' === replyType) {
-                    let $keywordreplyText = $replyContentWrapper.find('[name="keywordreplyText"]');
-                    $keywordreplyText.emojioneArea({
-                        placeholder: $keywordreplyText.attr('placeholder') || '',
-                        searchPlaceholder: '搜尋',
-                        buttonTitle: '',
-                        autocomplete: false
-                    });
-                    $keywordreplyText.data('emojioneArea').setText('');
-                }
-
-                if (!modalKeywordreply) {
-                    return;
-                }
-
-                if (modalKeywordreply.text) {
-                    $replyContentWrapper.find('.keywordreply-text').val(modalKeywordreply.text);
-                }
-
-                if (modalKeywordreply.src) {
-                    $replyContentWrapper.find('.image-container img').prop('src', modalKeywordreply.src);
-                }
-
-                if (modalKeywordreply.imagemap_id) {
-                    $replyContentWrapper.find('.imagemap-select').val(modalKeywordreply.imagemap_id);
-                }
-
-                if (modalKeywordreply.template_id) {
-                    $replyContentWrapper.find('.template-select').val(modalKeywordreply.template_id);
-                }
-            });
-        });
-
         $keywordreplyModal.on('click', '#insertSubmitBtn', insertKeywordreply);
         $keywordreplyModal.on('click', '#updateSubmitBtn', updateKeywordreply);
         $keywordreplyModal.on('change', '[name="replyImageFile"]', loadImageForPreview);
@@ -276,7 +395,17 @@
             var appId = $appSelector.val();
             var filePath = '';
 
-            return getModalKeywordreply(appId).then((keywordreply) => {
+            return replyMessageSelect.getJSON().then((json) => {
+                var keyword = $keywordreplyModal.find('input[name="keywordreplyKeyword"]').val() || '';
+                var isDraft = $keywordreplyModal.find('input[name="keywordreplyIsDraft"]').prop('checked');
+
+                var keywordreply = {
+                    keyword: keyword,
+                    subKeywords: [],
+                    status: !isDraft
+                };
+                Object.assign(keywordreply, json);
+
                 filePath = keywordreply.originalFilePath;
                 var postKeywordreply = Object.assign({}, keywordreply);
                 delete postKeywordreply.originalFilePath;
@@ -332,9 +461,17 @@
             var keywordreplyId = modalKeywordreplyId;
             var filePath = '';
 
-            return getModalKeywordreply(appId).then((keywordreply) => {
-                filePath = keywordreply.originalFilePath;
-                var putKeywordreply = Object.assign({}, keywordreply);
+            return replyMessageSelect.getJSON().then((json) => {
+                var keyword = $keywordreplyModal.find('input[name="keywordreplyKeyword"]').val() || '';
+                var isDraft = $keywordreplyModal.find('input[name="keywordreplyIsDraft"]').prop('checked');
+
+                filePath = json.originalFilePath;
+                var putKeywordreply = {
+                    keyword: keyword,
+                    subKeywords: [],
+                    status: !isDraft
+                };
+                Object.assign(putKeywordreply, json);
                 delete putKeywordreply.originalFilePath;
 
                 return api.appsKeywordreplies.update(appId, keywordreplyId, userId, putKeywordreply);
@@ -382,48 +519,6 @@
                 $previewImage.prop('src', imgBase64);
             }).catch(() => {
                 return $.notify('載入失敗', { type: 'danger' });
-            });
-        }
-
-        function getModalKeywordreply() {
-            var keyword = $keywordreplyModal.find('input[name="keywordreplyKeyword"]').val() || '';
-            var isDraft = $keywordreplyModal.find('input[name="keywordreplyIsDraft"]').prop('checked');
-            var replyType = $keywordreplyModal.find('#replyContentSelect .reply-item.active').attr('reply-type');
-            var replyText = $keywordreplyModal.find('textarea[name="keywordreplyText"]').val() || '';
-
-            var keywordreply = {
-                keyword: keyword,
-                subKeywords: [],
-                text: replyText,
-                type: replyType,
-                status: !isDraft,
-                originalFilePath: ''
-            };
-
-            return Promise.resolve().then(() => {
-                switch (replyType) {
-                    case 'image':
-                        /** @type {HTMLInputElement} */
-                        var replyImageFile = $keywordreplyModal.find('input[name="replyImageFile"]').get(0);
-                        var imageFile = replyImageFile.files.item(0);
-                        replyImageFile.value = '';
-
-                        return api.image.uploadFile(userId, imageFile).then((resJson) => {
-                            keywordreply.src = resJson.data.url;
-                            keywordreply.originalFilePath = resJson.data.originalFilePath;
-                            return keywordreply;
-                        });
-                    case 'imagemap':
-                        keywordreply.imagemap_id = $keywordreplyModal.find('.imagemap-select').val();
-                        break;
-                    case 'template':
-                        keywordreply.template_id = $keywordreplyModal.find('.template-select').val();
-                        break;
-                    case 'text':
-                    default:
-                        break;
-                }
-                return keywordreply;
             });
         }
     })();
