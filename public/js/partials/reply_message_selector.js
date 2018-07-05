@@ -7,19 +7,23 @@ window.ReplyMessageSelector = (function() {
     class ReplyMessageSelector {
         /**
          * @param {HTMLElement} insertAfterElem
-         * @param {string} [appId]
-         * @param {string} [userId]
-         * @param {Chatshier.Models.AppsImagemaps} [appsImagemaps]
-         * @param {Chatshier.Models.AppsTemplates} [appsTemplates]
+         * @typedef {Object} SelectorOptions
+         * @property {boolean} [isLabelHide]
+         * @property {boolean} [isRemoveButtonShow]
+         * @property {string} [appId]
+         * @property {string} [userId]
+         * @property {Chatshier.Models.AppsImagemaps} [appsImagemaps]
+         * @property {Chatshier.Models.AppsTemplates} [appsTemplates]
+         * @param {SelectorOptions} [options]
          */
-        constructor(insertAfterElem, appId, userId, appsImagemaps, appsTemplates) {
-            this.appId = appId || '';
-            this.userId = userId || '';
-
-            /** @type {Chatshier.Models.AppsImagemaps} */
-            this.appsImagemaps = appsImagemaps || {};
-            /** @type {Chatshier.Models.AppsTemplates} */
-            this.appsTemplates = appsTemplates || {};
+        constructor(insertAfterElem, options) {
+            options = options || {};
+            this.isLabelHide = !!options.isLabelHide;
+            this.isRemoveButtonShow = !!options.isRemoveButtonShow;
+            this.appId = options.appId || '';
+            this.userId = options.userId || '';
+            this.appsImagemaps = options.appsImagemaps || {};
+            this.appsTemplates = options.appsTemplates || {};
 
             /** @type {(replyType: 'text' | 'image' | 'imagemap' | 'template') => any} */
             this.onReplyItemChange = void 0;
@@ -35,6 +39,14 @@ window.ReplyMessageSelector = (function() {
                 $fileInput.trigger('click');
             });
             this.$selectContainer.on('change', '[name="replyImageFile"]', this._loadImageForPreview.bind(this));
+            this.$selectContainer.on('click', '.btn-remove', this.destroy.bind(this));
+        }
+
+        destroy() {
+            this.$replyContentWrapper.remove();
+            this.$selectContainer.remove();
+            this.$selectContainer = this.$replyContentWrapper = this.onReplyItemChange =
+            this.appsImagemaps = this.appsTemplates = this.appId = this.userId = void 0;
         }
 
         /**
@@ -42,23 +54,33 @@ window.ReplyMessageSelector = (function() {
          */
         reset(replyType) {
             replyType = replyType || 'text';
+            if (!this.$selectContainer) {
+                return Promise.resolve();
+            }
 
             this.$replyContentWrapper = $('<div class="w-100 input-container" id="replyContentWrapper"></div>');
             this.$selectContainer.html(
-                '<label class="font-weight-bold">回覆內容:</label>' +
-                '<div class="w-100 mb-2 btn-group reply-content-select" id="replyContentSelect">' +
-                    '<button type="button" class="btn btn-info reply-item" reply-type="text" data-toggle="tooltip" data-placement="top" title="文字">' +
-                        '<i class="fas fa-text-height fa-2x"></i>' +
-                    '</button>' +
-                    '<button type="button" class="btn btn-info reply-item" reply-type="image" data-toggle="tooltip" data-placement="top" title="圖像">' +
-                        '<i class="fas fa-image fa-2x"></i>' +
-                    '</button>' +
-                    '<button type="button" class="btn btn-info reply-item" reply-type="imagemap" data-toggle="tooltip" data-placement="top" title="圖文訊息">' +
-                        '<i class="fas fa-map fa-2x"></i>' +
-                    '</button>' +
-                    '<button type="button" class="btn btn-info reply-item" reply-type="template" data-toggle="tooltip" data-placement="top" title="模板訊息">' +
-                        '<i class="fas fa-clipboard-list fa-2x"></i>' +
-                    '</button>' +
+                (this.isLabelHide ? '' : '<label class="font-weight-bold">回覆內容:</label>') +
+                '<div class="w-100 d-flex flex-nowrap flex-row align-items-center mb-2">' +
+                    '<div class="w-100 btn-group reply-content-select" id="replyContentSelect">' +
+                        '<button type="button" class="btn btn-info reply-item" reply-type="text" data-toggle="tooltip" data-placement="top" title="文字">' +
+                            '<i class="fas fa-text-height fa-2x"></i>' +
+                        '</button>' +
+                        '<button type="button" class="btn btn-info reply-item" reply-type="image" data-toggle="tooltip" data-placement="top" title="圖像">' +
+                            '<i class="fas fa-image fa-2x"></i>' +
+                        '</button>' +
+                        '<button type="button" class="btn btn-info reply-item" reply-type="imagemap" data-toggle="tooltip" data-placement="top" title="圖文訊息">' +
+                            '<i class="fas fa-map fa-2x"></i>' +
+                        '</button>' +
+                        '<button type="button" class="btn btn-info reply-item" reply-type="template" data-toggle="tooltip" data-placement="top" title="模板訊息">' +
+                            '<i class="fas fa-clipboard-list fa-2x"></i>' +
+                        '</button>' +
+                    '</div>' +
+                    (this.isRemoveButtonShow ? '<div class="btn-group">' +
+                        '<button type="button" class="btn btn-outline-danger btn-sm btn-remove" data-toggle="tooltip" data-placement="top" title="刪除" style="border-radius: 50%;">' +
+                            '<i class="fas fa-times"></i>' +
+                        '</button>' +
+                    '</div>' : '') +
                 '</div>'
             );
             this.$selectContainer.append(this.$replyContentWrapper);
@@ -70,6 +92,10 @@ window.ReplyMessageSelector = (function() {
         }
 
         getJSON() {
+            if (!this.$selectContainer) {
+                return {};
+            }
+
             let replyType = this.$selectContainer.find('.reply-item.active').attr('reply-type');
             let replyText = this.$replyContentWrapper.find('[name="messageText"]').val() || '';
             let replySrc = this.$replyContentWrapper.find('.image-container img').prop('src') || '';
@@ -115,22 +141,37 @@ window.ReplyMessageSelector = (function() {
         }
 
         getMessageText() {
+            if (!this.$replyContentWrapper) {
+                return '';
+            }
             return this.$replyContentWrapper.find('[name="messageText"]').val() || '';
         }
 
         setMessageText(text) {
+            if (!this.$replyContentWrapper) {
+                return;
+            }
             return this.$replyContentWrapper.find('[name="messageText"]').val(text);
         }
 
         setImageSrc(src) {
+            if (!this.$replyContentWrapper) {
+                return;
+            }
             return this.$replyContentWrapper.find('.image-container img').prop('src', src);
         }
 
         setImageMap(imagemapId) {
+            if (!this.$replyContentWrapper) {
+                return;
+            }
             return this.$replyContentWrapper.find('.imagemap-select').val(imagemapId);
         }
 
         setTemplate(templateId) {
+            if (!this.$replyContentWrapper) {
+                return;
+            }
             return this.$replyContentWrapper.find('.template-select').val(templateId);
         }
 
@@ -254,7 +295,7 @@ window.ReplyMessageSelector = (function() {
                 let $previewImage = $previewImageContainer.find('img');
                 $previewImage.prop('src', imgBase64 || '');
             }).catch(() => {
-                return $.notify('載入失敗', { type: 'danger' });
+                return $.notify('圖像載入失敗', { type: 'danger' });
             });
         }
     }
