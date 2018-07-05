@@ -4,13 +4,9 @@ declare module Chatshier {
             [platformUid: string]: Consumer
         }
 
-        interface Consumer {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
+        interface Consumer extends BaseProperty {
             type: 'LINE' | 'FACEBOOK' | 'WECHAT',
             platformUid: string,
-            isDeleted: boolean,
             name: string,
             photo: string,
             photoOriginal: string

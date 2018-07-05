@@ -25,9 +25,10 @@ module.exports = (function() {
 
     const AutorepliesSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
-        'endedTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'startedTime': {type: Date, default: Date.now()},
+        'endedTime': {type: Date, default: Date.now()},
         'timezoneOffset': {type: Number, default: 0},
         'periods': [{
             'days': {type: Array, default: []},
@@ -37,7 +38,9 @@ module.exports = (function() {
         'text': {type: String, default: ''},
         'title': {type: String, default: ''},
         'type': {type: String, default: 'text'},
-        'updatedTime': {type: Date, default: Date.now()}
+        'src': {type: String, default: ''},
+        'template_id': {type: String, default: ''},
+        'imagemap_id': {type: String, default: ''}
     });
 
     const ChatroomsSchema = new Schema({

@@ -10,11 +10,7 @@ declare module Chatshier {
             [fieldId: string]: Field
         }
 
-        interface Field {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Field extends BaseProperty {
             text: string,
             alias: string,
             type: 'SYSTEM' | 'DEFAULT' | 'CUSTOM',

@@ -10,10 +10,7 @@ declare module Chatshier {
             [GreetingId: string]: Greeting
         }
 
-        interface Greeting {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
+        interface Greeting extends BaseProperty {
             text: string,
             type: 'text'
         }

@@ -10,11 +10,7 @@ declare module Chatshier {
             [groupMemberId: string]: Member
         }
 
-        interface Member {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Member extends BaseProperty {
             status: boolean,
             type: string,
             user_id: string

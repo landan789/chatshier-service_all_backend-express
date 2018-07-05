@@ -235,39 +235,7 @@ module.exports = (function() {
                     return _keywordreplies;
                 });
             })).then(() => {
-                return Promise.all(Object.keys(keywordreplies).map((keywordreplyId) => {
-                    let keywordreply = keywordreplies[keywordreplyId];
-                    switch (keywordreply.type) {
-                        case 'template':
-                            let templateId = keywordreply.template_id;
-                            return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
-                                // 此關鍵字回覆的模板訊息可能已被刪除或找不到，因此刪除回復訊息
-                                if (!(appsTemplates && appsTemplates[appId])) {
-                                    delete keywordreplies[keywordreplyId];
-                                    return;
-                                }
-                                let template = appsTemplates[appId].templates[templateId];
-                                Object.assign(keywordreplies[keywordreplyId], template);
-                            });
-                        case 'imagemap':
-                            let imagemapId = keywordreply.imagemap_id;
-                            return appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
-                                // 此關鍵字回覆的圖文訊息可能已被刪除或找不到，因此刪除回復訊息
-                                if (!(appsImagemaps && appsImagemaps[appId])) {
-                                    delete keywordreplies[keywordreplyId];
-                                    return;
-                                }
-                                let imagemap = appsImagemaps[appId].imagemaps[imagemapId];
-                                Object.assign(keywordreplies[keywordreplyId], imagemap);
-                            });
-                        case 'image':
-                        case 'text':
-                        default:
-                            return Promise.resolve();
-                    }
-                }));
-            }).then(() => {
-                return keywordreplies;
+                return this._prepareReplies(appId, keywordreplies);
             });
 
             return Promise.all([
@@ -346,12 +314,15 @@ module.exports = (function() {
                                     }
                                 }
                             }
-
                             return autoreplies;
                         });
                     }).then((autoreplies) => {
+                        return this._prepareReplies(appId, autoreplies);
+                    }).then((_autoreplies) => {
                         return repliedMessages.concat(
-                            Object.keys(autoreplies).map((autoreplyId) => Object.assign({}, autoreplies[autoreplyId], _message))
+                            Object.keys(_autoreplies).map((autoreplyId) => {
+                                return Object.assign({}, _autoreplies[autoreplyId], _message);
+                            })
                         );
                     });
                 }
@@ -378,6 +349,42 @@ module.exports = (function() {
                     return keywordreplies[keywordreplyId];
                 });
                 return Promise.resolve(_keywordreplies);
+            });
+        }
+
+        _prepareReplies(appId, replies) {
+            return Promise.all(Object.keys(replies).map((replyId) => {
+                let reply = replies[replyId];
+                switch (reply.type) {
+                    case 'template':
+                        let templateId = reply.template_id;
+                        return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
+                            // 此關鍵字回覆的模板訊息可能已被刪除或找不到，因此刪除回復訊息
+                            if (!(appsTemplates && appsTemplates[appId])) {
+                                delete replies[replyId];
+                                return;
+                            }
+                            let template = appsTemplates[appId].templates[templateId];
+                            Object.assign(replies[replyId], template);
+                        });
+                    case 'imagemap':
+                        let imagemapId = reply.imagemap_id;
+                        return appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
+                            // 此關鍵字回覆的圖文訊息可能已被刪除或找不到，因此刪除回復訊息
+                            if (!(appsImagemaps && appsImagemaps[appId])) {
+                                delete replies[replyId];
+                                return;
+                            }
+                            let imagemap = appsImagemaps[appId].imagemaps[imagemapId];
+                            Object.assign(replies[replyId], imagemap);
+                        });
+                    case 'image':
+                    case 'text':
+                    default:
+                        return Promise.resolve();
+                }
+            })).then(() => {
+                return replies;
             });
         }
     }

@@ -10,11 +10,7 @@ declare module Chatshier {
             [composeId: string]: Compose
         }
 
-        interface Compose {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Compose extends BaseProperty {
             text: string,
             src: string,
             type: 'text',

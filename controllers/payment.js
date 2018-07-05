@@ -353,7 +353,8 @@ module.exports = (function() {
         }
 
         _retrieveServerAddr(req) {
-            let serverAddr = req.protocol + '://' + req.hostname + (req.subdomains.includes('fea') ? ':' + chatshierCfg.API.PORT : '');
+            // let serverAddr = req.protocol + '://' + req.hostname + (req.subdomains.includes('fea') ? ':' + chatshierCfg.API.PORT : '');
+            let serverAddr = 'https://3bd160b3.ngrok.io';
             return serverAddr;
         }
 

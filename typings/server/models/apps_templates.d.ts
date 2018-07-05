@@ -10,11 +10,7 @@ declare module Chatshier {
             [templateId: string]: Template
         }
 
-        interface Template {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Template extends BaseProperty {
             altText: string,
             type: 'template',
             template: {

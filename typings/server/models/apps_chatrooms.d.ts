@@ -10,11 +10,7 @@ declare module Chatshier {
             [chatroomId: string]: Chatroom
         }
 
-        interface Chatroom {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Chatroom extends BaseProperty {
             name: string,
             platformGroupId: string,
             platformGroupType: string,
@@ -26,10 +22,7 @@ declare module Chatshier {
             [messagerId: string]: Messager
         }
 
-        interface Messager {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
+        interface Messager extends BaseProperty {
             type: 'CHATSHIER' | 'LINE' | 'FACEBOOK' | 'WECHAT',
             namings: {
                 [platformUid: string]: string
@@ -45,7 +38,6 @@ declare module Chatshier {
             gender: 'MALE' | 'FEMALE',
             phone: string,
             platformUid: string,
-            isDeleted: boolean,
             lastTime: Date | number,
             chatCount: number,
             unRead: number,
@@ -61,8 +53,8 @@ declare module Chatshier {
 
         interface Message {
             _id: any,
-            from: 'SYSTEM' | 'CHATSHIER' | 'LINE' | 'FACEBOOK' | 'WECHAT',
             isDeleted: boolean,
+            from: 'SYSTEM' | 'CHATSHIER' | 'LINE' | 'FACEBOOK' | 'WECHAT',
             messager_id: string,
             src: string,
             text: string,
