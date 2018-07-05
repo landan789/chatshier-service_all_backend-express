@@ -144,7 +144,7 @@
                     $(ev.target).toggleClass('active');
                     var $periodDays = this.$timeSelectGroup.find('.period-day.active');
                     var daysText = [];
-                    $periodDays.each((i) => daysText.push($periodDays[i].textContent));
+                    $periodDays.each((i, elem) => daysText.push($(elem).textContent));
                     this.$timeSelectGroup.find('#repeatText').text(daysText.length >= 7 ? '全部' : daysText.join(' '));
                 });
 
@@ -157,7 +157,7 @@
                     let period = {
                         days: []
                     };
-                    $periodDays.each((i) => period.days.push($($periodDays[i]).attr('day')));
+                    $periodDays.each((i, elem) => period.days.push($(elem).attr('day')));
 
                     let startTimePickerData = this.$startTimePicker.data('DateTimePicker');
                     let endTimePickerData = this.$endTimePicker.data('DateTimePicker');
@@ -233,16 +233,16 @@
             retrievePeriods() {
                 let periods = [];
                 let $periodItems = this.$periodContainer.find('.period-item');
-                $periodItems.each(function() {
-                    let $periodItem = $(this);
+                $periodItems.each(function(i, elem) {
+                    let $periodItem = $(elem);
                     let period = {
                         days: [],
                         startedTime: $periodItem.find('.period-started-time').text(),
                         endedTime: $periodItem.find('.period-ended-time').text()
                     };
 
-                    $periodItem.find('.day').each(function() {
-                        period.days.push(parseInt($(this).attr('day'), 10));
+                    $periodItem.find('.day').each(function(i, elem) {
+                        period.days.push(parseInt($(elem).attr('day'), 10));
                     });
                     periods.push(period);
                 });

@@ -70,7 +70,11 @@ router.get('/setting', (req, res, next) => {
 });
 
 router.get('/consumer-form', (req, res, next) => {
-    res.render('actions/consumer_form', { title: '顧客資料' + titlePostfix });
+    res.render('actions/consumer_form', { title: '顧客資料' });
+});
+
+router.get('/donation-confirm', (req, res, next) => {
+    res.render('actions/donation_confirm', { title: '捐款確認' });
 });
 
 module.exports = router;

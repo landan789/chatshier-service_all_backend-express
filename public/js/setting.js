@@ -18,26 +18,29 @@
     const PASSWORD_WAS_INCORRECT = '2.2';
     const NEW_PASSWORD_WAS_INCONSISTENT = '2.4';
 
+    const ECPAY = 'ECPAY';
+    const SPGATEWAY = 'SPGATEWAY';
+
     /** @type {Chatshier.Models.Apps} */
-    var apps = {};
+    let apps = {};
     /** @type {Chatshier.Models.AppsFields} */
-    var appsFields = {};
+    let appsFields = {};
     /** @type {Chatshier.Models.Groups} */
-    var groups = {};
+    let groups = {};
     /** @type {Chatshier.Models.Users} */
-    var users = {};
+    let users = {};
 
-    var api = window.restfulAPI;
-    var translate = window.translate;
-    var gClientHlp = window.googleClientHelper;
-    var fbHlp = window.facebookHelper;
-    var transJson = {};
+    let api = window.restfulAPI;
+    let translate = window.translate;
+    let gClientHlp = window.googleClientHelper;
+    let fbHlp = window.facebookHelper;
+    let transJson = {};
 
-    var $settingModal = $('#setting-modal');
+    let $settingModal = $('#setting-modal');
 
-    var userId;
+    let userId;
     try {
-        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        let payload = window.jwt_decode(window.localStorage.getItem('jwt'));
         userId = payload.uid;
     } catch (ex) {
         userId = '';
@@ -53,13 +56,13 @@
     gClientHlp.loadAPI().then(function() {
         return gClientHlp.init(window.chatshier.GOOGLE.CALENDAR);
     }).then(function(isSignedIn) {
-        var $gCalendarRow = $('#gcalendar_row');
+        let $gCalendarRow = $('#gcalendar_row');
         $gCalendarRow.removeClass('d-none');
 
-        var $gCalendarCbx = $gCalendarRow.find('#gcalendar_cbx');
+        let $gCalendarCbx = $gCalendarRow.find('#gcalendar_cbx');
         $gCalendarCbx.prop('checked', isSignedIn);
         $gCalendarCbx.on('change', function(ev) {
-            var elem = ev.target;
+            let elem = ev.target;
             if (elem.checked) {
                 elem.checked = !elem.checked;
                 return gClientHlp.signIn().then(function() {
@@ -87,11 +90,11 @@
     $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
     $(document).on('click', '#changePasswordBtn', function(ev) {
-        var $changePasswordCollapse = $('#changePasswordCollapse');
+        let $changePasswordCollapse = $('#changePasswordCollapse');
         $(ev.target).text($changePasswordCollapse.hasClass('show') ? '展開' : '關閉');
 
         if ($changePasswordCollapse.hasClass('show')) {
-            var $changePasswordForm = $changePasswordCollapse.find('.change-password-form');
+            let $changePasswordForm = $changePasswordCollapse.find('.change-password-form');
             $changePasswordForm.find('[name="password"]').val('');
             $changePasswordForm.find('[name="newPassword"]').val('');
             $changePasswordForm.find('[name="newPasswordCfm"]').val('');
@@ -102,13 +105,13 @@
     $(document).on('submit', '.change-password-form ', function(ev) {
         ev.preventDefault();
 
-        var $changePasswordForm = $(ev.target);
-        var $password = $changePasswordForm.find('[name="password"]');
-        var $newPassword = $changePasswordForm.find('[name="newPassword"]');
-        var $newPasswordCfm = $changePasswordForm.find('[name="newPasswordCfm"]');
-        var password = $password.val();
-        var newPassword = $newPassword.val();
-        var newPasswordCfm = $newPasswordCfm.val();
+        let $changePasswordForm = $(ev.target);
+        let $password = $changePasswordForm.find('[name="password"]');
+        let $newPassword = $changePasswordForm.find('[name="newPassword"]');
+        let $newPasswordCfm = $changePasswordForm.find('[name="newPasswordCfm"]');
+        let password = $password.val();
+        let newPassword = $newPassword.val();
+        let newPasswordCfm = $newPasswordCfm.val();
 
         if (!password) {
             return $.notify('舊密碼不能為空', { type: 'warning' });
@@ -118,13 +121,13 @@
             return $.notify('輸入的新密碼不一致', { type: 'warning' });
         }
 
-        var user = {
+        let user = {
             password: password,
             newPassword: newPassword,
             newPasswordCfm: newPasswordCfm
         };
         return api.sign.changePassword(userId, user).then(function(resJson) {
-            var jwt = resJson.jwt;
+            let jwt = resJson.jwt;
             window.localStorage.setItem('jwt', jwt);
             api.setJWT(jwt);
             window.jwtRefresh();
@@ -258,24 +261,25 @@
 
     // payment modal 處理
     (function() {
-        var $paymentModal = $('#paymentModal');
-        var $paymentSelect = $paymentModal.find('#paymentSelect');
-        var $paymentItemsContainer = $paymentModal.find('#paymentItemsContainer');
+        let $paymentModal = $('#paymentModal');
+        let $paymentSelect = $paymentModal.find('#paymentSelect');
+        let $paymentItemsContainer = $paymentModal.find('#paymentItemsContainer');
 
         /** @type {Chatshier.Models.AppsPayments} */
-        var appsPayments = {};
+        let appsPayments = {};
         /** @type {string} */
-        var selectAppId;
+        let selectAppId;
         /** @type {string} */
-        var paymentId;
+        let paymentId;
 
         $paymentModal.on('show.bs.modal', loadAppPayment);
-        $paymentModal.on('click', '#paymentModalSubmitBtn', insertPayment);
+        $paymentModal.on('submit', '#paymentSettingForm', replacePayment);
         $paymentSelect.on('change', onChangePayment);
+        $paymentItemsContainer.on('change', '#issueInvoiceCbx', appendInvoiceRows);
 
         function loadAppPayment(ev) {
-            var $targetBtn = $(ev.relatedTarget);
-            var appId = $targetBtn.attr('app-id');
+            let $targetBtn = $(ev.relatedTarget);
+            let appId = $targetBtn.attr('app-id');
             selectAppId = appId;
             paymentId = void 0;
 
@@ -285,7 +289,7 @@
             return Promise.resolve().then(function() {
                 if (!appsPayments[appId]) {
                     return api.appsPayments.findAll(appId, userId).then(function(resJson) {
-                        var _appsPayments = resJson.data;
+                        let _appsPayments = resJson.data;
                         if (!_appsPayments[appId]) {
                             return {};
                         }
@@ -301,57 +305,165 @@
                     return;
                 }
 
-                var payment = payments[paymentId];
+                /** @type {Chatshier.Models.Payment} */
+                let payment = payments[paymentId];
                 $paymentSelect.val(payment.type);
                 onChangePayment();
 
                 $paymentItemsContainer.find('[name="paymentMerchantId"]').val(payment.merchantId);
                 $paymentItemsContainer.find('[name="paymentHashKey"]').val(payment.hashKey);
                 $paymentItemsContainer.find('[name="paymentHashIV"]').val(payment.hashIV);
+
+                let $issueInvoiceCbx = $paymentItemsContainer.find('[name="canIssueInvoice"]');
+                $issueInvoiceCbx.prop('checked', !!payment.canIssueInvoice);
+
+                if (payment.canIssueInvoice) {
+                    appendInvoiceRows({ target: $issueInvoiceCbx.get(0) });
+                    $paymentItemsContainer.find('[name="invoiceMerchantId"]').val(payment.invoiceMerchantId);
+                    $paymentItemsContainer.find('[name="invoiceHashKey"]').val(payment.invoiceHashKey);
+                    $paymentItemsContainer.find('[name="invoiceHashIV"]').val(payment.invoiceHashIV);
+                }
             });
         }
 
         function onChangePayment() {
-            var paymentType = $paymentSelect.val();
-
-            switch (paymentType) {
-                case 'ECPay':
-                case 'Spgateway':
-                    $paymentItemsContainer.html(
+            let $paymentElems = $(
+                '<label class="col-form-label font-weight-bold">交易商店設定</label>' +
+                '<div class="card">' +
+                    '<div class="card-body">' +
                         '<div class="form-group">' +
                             '<label class="col-form-label font-weight-bold">商店代號:</label>' +
                             '<div class="input-container">' +
-                                '<input class="form-control" type="text" name="paymentMerchantId" placeholder="在此貼上 商店代號" />' +
+                                '<input class="form-control" type="text" name="paymentMerchantId" placeholder="在此貼上 商店代號" required />' +
                             '</div>' +
                         '</div>' +
                         '<div class="form-group">' +
-                            '<label class="col-form-label font-weight-bold">Hash Key:</label>' +
+                            '<label class="col-form-label font-weight-bold">金流服務 Hash Key:</label>' +
                             '<div class="input-container">' +
-                                '<input class="form-control" type="text" name="paymentHashKey" placeholder="在此貼上 Hash Key" />' +
+                                '<input class="form-control" type="text" name="paymentHashKey" placeholder="在此貼上 Hash Key" required />' +
                             '</div>' +
                         '</div>' +
                         '<div class="form-group">' +
-                            '<label class="col-form-label font-weight-bold">Hash IV:</label>' +
+                            '<label class="col-form-label font-weight-bold">金流服務 Hash IV:</label>' +
                             '<div class="input-container">' +
-                                '<input class="form-control" type="text" name="paymentHashIV" placeholder="在此貼上 Hash IV" />' +
+                                '<input class="form-control" type="text" name="paymentHashIV" placeholder="在此貼上 Hash IV" required />' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="mt-3 form-group">' +
+                    '<div class="form-check">' +
+                        '<input class="form-check-input" type="checkbox" name="canIssueInvoice" id="issueInvoiceCbx" />' +
+                        '<label class="form-check-label" for="issueInvoiceCbx">具有開立發票之服務</label>' +
+                    '</div>' +
+                '</div>'
+            );
+
+            $paymentItemsContainer.empty().append($paymentElems);
+        }
+
+        function appendInvoiceRows(ev) {
+            let paymentType = $paymentSelect.val();
+            let $targetCbx = $(ev.target);
+            let $rowOfCbx = $targetCbx.parents('.form-group');
+
+            if (!$targetCbx.prop('checked')) {
+                $paymentItemsContainer.find('.issue-invoice').remove();
+                return;
+            }
+
+            /** @type {JQuery<Element> | void} */
+            let $issueInvoiceElems;
+            switch (paymentType) {
+                case ECPAY:
+                    $issueInvoiceElems = $(
+                        '<label class="col-form-label font-weight-bold issue-invoice">' +
+                            '<a href="https://www.ecpay.com.tw/Business/invoice" target="_blank">綠界 ECPay 電子發票服務</a>' +
+                        '</label>' +
+                        '<div class="card issue-invoice">' +
+                            '<div class="card-body">' +
+                                '<p class="text-danger small">請確定商店確實具有開立電子發票之服務，否則將無法正常開立發票</p>' +
+                                '<div class="form-group">' +
+                                    '<label class="col-form-label font-weight-bold">電子發票服務 Hash Key:</label>' +
+                                    '<div class="input-container">' +
+                                        '<input class="form-control" type="text" name="invoiceHashKey" placeholder="在此貼上 Hash Key" required />' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="form-group">' +
+                                    '<label class="col-form-label font-weight-bold">電子發票服務 Hash IV:</label>' +
+                                    '<div class="input-container">' +
+                                        '<input class="form-control" type="text" name="invoiceHashIV" placeholder="在此貼上 Hash IV" required/>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>'
+                    );
+                    break;
+                case SPGATEWAY:
+                    $issueInvoiceElems = $(
+                        '<label class="col-form-label font-weight-bold issue-invoice">' +
+                            '<a href="https://inv.pay2go.com/" target="_blank">智付寶 Pay2Go 電子發票服務</a>' +
+                        '</label>' +
+                        '<div class="card issue-invoice">' +
+                            '<div class="card-body">' +
+                                '<p class="text-danger small">請確定商店確實具有開立電子發票之服務，否則將無法正常開立發票</p>' +
+                                '<div class="form-group">' +
+                                    '<label class="col-form-label font-weight-bold">電子發票商店代號:</label>' +
+                                    '<div class="input-container">' +
+                                        '<input class="form-control" type="text" name="invoiceMerchantId" placeholder="在此貼上 商店代號" required />' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="form-group">' +
+                                    '<label class="col-form-label font-weight-bold">電子發票商店 Hash Key:</label>' +
+                                    '<div class="input-container">' +
+                                        '<input class="form-control" type="text" name="invoiceHashKey" placeholder="在此貼上 Hash Key" required />' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="form-group">' +
+                                    '<label class="col-form-label font-weight-bold">電子發票商店 Hash IV:</label>' +
+                                    '<div class="input-container">' +
+                                        '<input class="form-control" type="text" name="invoiceHashIV" placeholder="在此貼上 Hash IV" required/>' +
+                                    '</div>' +
+                                '</div>' +
                             '</div>' +
                         '</div>'
                     );
                     break;
                 default:
-                    $paymentItemsContainer.empty();
                     break;
             }
+
+            $issueInvoiceElems && $issueInvoiceElems.insertAfter($rowOfCbx);
         }
 
-        function insertPayment() {
+        function replacePayment(ev) {
+            ev.preventDefault();
+
             /** @type {Chatshier.Models.Payment} */
-            var newPayment = {
-                type: $paymentSelect.val(),
+            let newPayment = {
+                type: $paymentSelect.val() || '',
                 merchantId: $paymentItemsContainer.find('[name="paymentMerchantId"]').val() || '',
                 hashKey: $paymentItemsContainer.find('[name="paymentHashKey"]').val() || '',
-                hashIV: $paymentItemsContainer.find('[name="paymentHashIV"]').val() || ''
+                hashIV: $paymentItemsContainer.find('[name="paymentHashIV"]').val() || '',
+                canIssueInvoice: $paymentItemsContainer.find('[name="canIssueInvoice"]').prop('checked')
             };
+
+            if (newPayment.canIssueInvoice) {
+                newPayment.invoiceHashKey = $paymentItemsContainer.find('[name="invoiceHashKey"]').val() || '';
+                newPayment.invoiceHashIV = $paymentItemsContainer.find('[name="invoiceHashIV"]').val() || '';
+
+                switch (newPayment.type) {
+                    case ECPAY:
+                        newPayment.invoiceMerchantId = newPayment.merchantId;
+                        break;
+                    case SPGATEWAY:
+                        newPayment.invoiceMerchantId = $paymentItemsContainer.find('[name="invoiceMerchantId"]').val() || '';
+                        break;
+                    default:
+                        newPayment.invoiceMerchantId = '';
+                        break;
+                }
+            }
 
             return Promise.resolve().then(function() {
                 if (paymentId) {
@@ -359,7 +471,7 @@
                 }
                 return api.appsPayments.insert(selectAppId, userId, newPayment);
             }).then(function(resJson) {
-                var _appsPayments = resJson.data;
+                let _appsPayments = resJson.data;
                 if (!appsPayments[selectAppId]) {
                     appsPayments[selectAppId] = { payments: {} };
                 }
@@ -386,14 +498,14 @@
         });
     });
 
-    var $appAddModal = $('#appAddModal');
-    var $groupAddModal = $('#groupAddModal');
+    let $appAddModal = $('#appAddModal');
+    let $groupAddModal = $('#groupAddModal');
 
     $appAddModal.on('click', '#appAddModalSubmitBtn', function(ev) {
-        var $appAddModalSubmitBtn = $(ev.target).attr('disabled', true);
-        var type = $appAddModal.find('#appTypeSelect option:selected').val();
+        let $appAddModalSubmitBtn = $(ev.target).attr('disabled', true);
+        let type = $appAddModal.find('#appTypeSelect option:selected').val();
 
-        var app = {
+        let app = {
             type: type,
             group_id: $appAddModal.find('.modal-body form').attr('group-id'),
             name: $appAddModal.find('[name="appName"]').val(),
@@ -421,7 +533,7 @@
     });
 
     $appAddModal.on('click', '.fb-import-button', function(ev) {
-        var groupId = $(ev.target).parents('.fb-sdk-item').attr('group-id');
+        let groupId = $(ev.target).parents('.fb-sdk-item').attr('group-id');
         return fbHlp.signInForPages().then(function(res) {
             if (!res || (res && res.status !== 'connected')) {
                 return;
@@ -430,11 +542,11 @@
             return fbHlp.getFanPages().then(function(res) {
                 // 取得 fb 用戶的所有可管理的粉絲專頁後
                 // 濾除已經加入的粉絲專頁
-                var fanPages = res.data || [];
+                let fanPages = res.data || [];
                 fanPages = fanPages.filter(function(fanPage) {
-                    var canLink = true;
-                    for (var appId in apps) {
-                        var app = apps[appId];
+                    let canLink = true;
+                    for (let appId in apps) {
+                        let app = apps[appId];
                         if (!(FACEBOOK === app.type && app.group_id === groupId)) {
                             continue;
                         }
@@ -466,7 +578,7 @@
                         $appAddModal.modal('hide');
                     }).then(function() {
                         return fanPages.map(function(fanPages, i) {
-                            var fanPagePic = fanPagePics[i].data;
+                            let fanPagePic = fanPagePics[i].data;
                             return (
                                 '<div class="form-group form-check">' +
                                     '<label class="form-check-label">' +
@@ -479,11 +591,11 @@
                         }).join('');
                     });
                 }).then(function(modalBodyHtml) {
-                    var $selectPagesModal = createModal(modalBodyHtml, '選取連結的粉絲專頁');
+                    let $selectPagesModal = createModal(modalBodyHtml, '選取連結的粉絲專頁');
 
                     return new Promise(function(resolve) {
-                        var $btnSubmit = $selectPagesModal.find('.btn-submit');
-                        var closeModal = function(selectedFanPages) {
+                        let $btnSubmit = $selectPagesModal.find('.btn-submit');
+                        let closeModal = function(selectedFanPages) {
                             $btnSubmit.off('click');
                             $selectPagesModal.off('hide.bs.modal');
                             resolve(selectedFanPages || []);
@@ -497,10 +609,10 @@
                             $selectPagesModal.off('hide.bs.modal');
                             $selectPagesModal.modal('hide');
 
-                            var $checkedPages = $selectPagesModal.find('.form-check-input:checked');
-                            var selectedFanPages = [];
+                            let $checkedPages = $selectPagesModal.find('.form-check-input:checked');
+                            let selectedFanPages = [];
                             $checkedPages.each(function() {
-                                var fanpageIdx = parseInt($(this).val());
+                                let fanpageIdx = parseInt($(this).val());
                                 selectedFanPages.push(fanPages[fanpageIdx]);
                             });
                             closeModal(selectedFanPages);
@@ -514,8 +626,8 @@
                 }
 
                 // 使用者選取完欲連結的粉絲專頁後，將資料轉換為 Chatshier app 資料
-                var appsList = selectedFanPages.map(function(fanPage) {
-                    var app = {
+                let appsList = selectedFanPages.map(function(fanPage) {
+                    let app = {
                         group_id: groupId,
                         type: FACEBOOK,
                         name: fanPage.name,
@@ -524,7 +636,7 @@
                     };
                     return app;
                 });
-                var responses = [];
+                let responses = [];
 
                 // 未處理 bug: 使用 Promise.all 會造成 group 的 app_ids 只會新增一筆
                 function nextRequest(i) {
@@ -532,10 +644,10 @@
                         return Promise.resolve(responses);
                     }
 
-                    var app = appsList[i];
+                    let app = appsList[i];
                     return api.apps.insert(userId, app).then((resJson) => {
-                        var _apps = resJson.data;
-                        for (var appId in _apps) {
+                        let _apps = resJson.data;
+                        for (let appId in _apps) {
                             apps[appId] = _apps[appId];
                             groups[groupId].app_ids.push(appId);
                             generateAppItem(appId, apps[appId]);
@@ -559,12 +671,12 @@
     });
 
     $appAddModal.on('show.bs.modal', function(ev) {
-        var groupId = $(ev.relatedTarget).attr('group-id');
-        var $appAddForm = $appAddModal.find('.modal-body form');
+        let groupId = $(ev.relatedTarget).attr('group-id');
+        let $appAddForm = $appAddModal.find('.modal-body form');
         $appAddForm.attr('group-id', groupId);
         $appAddForm.find('[name="appName"]').val('');
 
-        var itemsHtml = {
+        let itemsHtml = {
             [LINE]: (
                 '<hr class="mt-5 mb-0"/>' +
                 '<div class="form-group">' +
@@ -680,9 +792,9 @@
             )
         };
 
-        var $appTypeSelect = $appAddForm.find('#appTypeSelect');
-        var $appItemsContainer = $appAddForm.find('#appItemsContainer');
-        var selectType = $appTypeSelect.val();
+        let $appTypeSelect = $appAddForm.find('#appTypeSelect');
+        let $appItemsContainer = $appAddForm.find('#appItemsContainer');
+        let selectType = $appTypeSelect.val();
         $appItemsContainer.html(itemsHtml[selectType]);
 
         function appTypeChange(ev) {
@@ -726,7 +838,7 @@
     function findAllApps() {
         return api.apps.findAll(userId).then(function(resJson) {
             apps = resJson.data;
-            for (var appId in apps) {
+            for (let appId in apps) {
                 if (apps[appId].isDeleted || CHATSHIER === apps[appId].type) {
                     continue;
                 }
@@ -739,7 +851,7 @@
     }
 
     function editOneApp(ev) {
-        var appId = $(this).attr('app-id');
+        let appId = $(this).attr('app-id');
 
         return api.apps.findOne(appId, userId).then(function(resJson) {
             let _apps = resJson.data;
@@ -772,10 +884,10 @@
 
     function updateOneApp(appId, appData) {
         return api.apps.update(appId, userId, appData).then(function(resJson) {
-            var _apps = resJson.data;
+            let _apps = resJson.data;
             apps[appId] = _apps[appId];
 
-            var app = apps[appId];
+            let app = apps[appId];
             $('.apps-body .card[app-id="' + appId + '"] .app-name').text(app.name);
 
             $settingModal.modal('hide');
@@ -820,8 +932,8 @@
         return new Promise(function(resolve) {
             $('#textContent').text(textContent);
 
-            var isOK = false;
-            var $dialogModal = $('#dialog_modal');
+            let isOK = false;
+            let $dialogModal = $('#dialog_modal');
 
             $dialogModal.find('.btn-primary').on('click', function() {
                 isOK = true;
@@ -866,8 +978,8 @@
     }
 
     function generateAppItem(appId, app) {
-        var baseWebhookUrl = window.urlConfig.webhookUrl;
-        var itemHtml = (
+        let baseWebhookUrl = window.urlConfig.webhookUrl;
+        let itemHtml = (
             '<div class="card text-dark" app-id="' + appId + '">' +
                 '<div class="card-body">' +
                     (function() {
@@ -899,7 +1011,7 @@
                     })() +
 
                     '<div class="my-3">' +
-                        '<button type="button" class="mr-1 btn btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
+                        '<button type="button" class="mr-1 btn btn-light btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
                             '<i class="fas fa-edit"></i>' +
                         '</button>' +
                         '<button class="ml-1 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
@@ -913,7 +1025,7 @@
                     '</div>' +
 
                     '<div class="mt-3">' +
-                        '<button type="button" class="mr-1 btn btn-border set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
+                        '<button type="button" class="mr-1 btn btn-light btn-border set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
                             '<i class="mr-1 text-warning fas fa-money-check-alt fa-fw"></i>' +
                             '<span>設定金流服務</span>' +
                         '</button>' +
@@ -927,7 +1039,7 @@
     function generateEditAppForm(appId, app) {
         apps[appId] = app;
 
-        var appHtml;
+        let appHtml;
         switch (app.type) {
             case LINE:
                 appHtml =
@@ -1044,7 +1156,7 @@
     function findUserProfile() {
         return api.users.find(userId).then(function(resJson) {
             users = resJson.data;
-            var user = users[userId];
+            let user = users[userId];
 
             $('#prof-id').text(userId);
             $('.user-name .card-title').text(user.name);
@@ -1070,7 +1182,7 @@
             address: address
         };
 
-        var phoneRule = /^09\d{8}$/;
+        let phoneRule = /^09\d{8}$/;
         if (phone && !phone.match(phoneRule)) {
             $settingModal.modal('hide');
             $.notify('手機格式錯誤，應為09XXXXXXXX', {type: 'danger'});
@@ -1102,8 +1214,8 @@
     }
 
     function copyWebhookToClipboard(ev) {
-        var text = ev.target.textContent;
-        var appType = ev.target.getAttribute('app-type');
+        let text = ev.target.textContent;
+        let appType = ev.target.getAttribute('app-type');
 
         // 由於 LINE Develop 的 webhook 設定會自動加上 https://
         // 因此自動去除 https:// 前輟
@@ -1111,7 +1223,7 @@
             text = text.replace(/^https?:\/\//, '');
         }
 
-        var textarea = document.createElement('textarea');
+        let textarea = document.createElement('textarea');
         textarea.value = text;
         textarea.style.position = 'absolute';
         textarea.style.left = '-99999px';
@@ -1141,7 +1253,8 @@
         titleText = titleText || '';
         cancelText = cancelText || '取消';
         submitText = submitText || '確認';
-        var modalHtml = (
+
+        let modalHtml = (
             '<div class="chsr modal fade" id="dynamicModal" tabindex="-1" role="dialog">' +
                 '<div class="modal-dialog" role="document">' +
                     '<div class="modal-content">' +
@@ -1164,11 +1277,11 @@
                 '</div>' +
             '</div>'
         );
-        var $docBody = $(document.body);
+        let $docBody = $(document.body);
         $docBody.append(modalHtml);
         modalHtml = void 0;
 
-        var $dynamicModal = $docBody.find('#dynamicModal');
+        let $dynamicModal = $docBody.find('#dynamicModal');
         $dynamicModal.on('hidden.bs.modal', function() {
             $dynamicModal.off('hidden.bs.modal');
             $dynamicModal.remove();
@@ -1180,12 +1293,12 @@
     // ===============
     // #region 客戶分類條件 Tab 代碼區塊
     (function() {
-        var NEW_TAG_ID_PREFIX = 'temp_field_id';
-        var FIELD_TYPES = api.appsFields.TYPES;
-        var SETS_TYPES = api.appsFields.SETS_TYPES;
+        let NEW_TAG_ID_PREFIX = 'temp_field_id';
+        let FIELD_TYPES = api.appsFields.TYPES;
+        let SETS_TYPES = api.appsFields.SETS_TYPES;
 
-        var fieldPanelCtrl = (function() {
-            var instance = new FieldPanelCtrl();
+        let fieldPanelCtrl = (function() {
+            let instance = new FieldPanelCtrl();
 
             // 宣告用來處理整個客戶分類條件容器的控制類別
             function FieldPanelCtrl() {
@@ -1198,7 +1311,7 @@
              * @param {string} appId
              */
             FieldPanelCtrl.prototype.toggleItem = function(appId) {
-                var fieldCollapseId = appId + '_collapse';
+                let fieldCollapseId = appId + '_collapse';
                 this.$appsFieldsWapper.find('#' + fieldCollapseId).collapse();
             };
 
@@ -1207,8 +1320,8 @@
              * @param {any} app
              */
             FieldPanelCtrl.prototype.addAppItem = function(appId, app) {
-                var _this = this;
-                var fieldCollapseId = appId + '_collapse';
+                let _this = this;
+                let fieldCollapseId = appId + '_collapse';
 
                 _this.$appsFieldsWapper.append(
                     '<div class="app-name collapsed" role="button" data-toggle="collapse" data-parent="#appsFieldsWapper" href="#' + fieldCollapseId + '" aria-expanded="true" aria-controls="' + fieldCollapseId + '">' +
@@ -1226,34 +1339,35 @@
                     '</div>'
                 );
 
-                var $fieldCollapse = _this.$appsFieldsWapper.find('#' + fieldCollapseId);
-                var $fieldBody = $fieldCollapse.find('.field-body');
+                let $fieldCollapse = _this.$appsFieldsWapper.find('#' + fieldCollapseId);
+                let $fieldBody = $fieldCollapse.find('.field-body');
 
                 $fieldCollapse.find('.btn.add-field').on('click', function() {
-                    var tempFieldId = NEW_TAG_ID_PREFIX + Date.now();
+                    let tempFieldId = NEW_TAG_ID_PREFIX + Date.now();
                     _this.addFieldItem(appId, tempFieldId, {
                         text: '新客戶分類條件',
                         type: FIELD_TYPES.CUSTOM,
                         setsType: SETS_TYPES.MULTI_SELECT
                     });
 
-                    var $tempField = $('#' + tempFieldId);
-                    var $profWid = $tempField.parents('.prof-wid');
+                    let $tempField = $('#' + tempFieldId);
+                    let $profWid = $tempField.parents('.prof-wid');
                     $profWid.animate({
                         scrollTop: $tempField.offset().top - $profWid.offset().top + $profWid.scrollTop() - 20
                     }, 300);
                 });
 
                 $fieldCollapse.find('.btn.all-confirm').on('click', function(ev) {
-                    var $fieldRows = $fieldBody.find('.field-content');
-                    var uiFields = {};
+                    let $fieldRows = $fieldBody.find('.field-content');
+                    let uiFields = {};
 
-                    for (var i = 0; i < $fieldRows.length; i++) {
-                        var $row = $($fieldRows[i]);
-                        var data = {
-                            text: ($row.find('.field-name input').val() || '').trim(),
-                            setsType: $row.find('.field-type select option:selected').val(),
-                            order: i
+                    for (let i = 0; i < $fieldRows.length; i++) {
+                        let $row = $($fieldRows[i]);
+                        let data = {
+                            text: ($row.find('[name="fieldName"]').val() || '').trim(),
+                            setsType: $row.find('.field-type select').val(),
+                            order: i,
+                            canShowingOnForm: $row.find('[name="canShowingOnForm"]').prop('checked')
                         };
 
                         if (!data.text) {
@@ -1278,7 +1392,7 @@
                         uiFields[$row.attr('id')] = data;
                     }
 
-                    for (var idx in _this.saveListeners) {
+                    for (let idx in _this.saveListeners) {
                         _this.saveListeners[idx](ev, {
                             appId: appId,
                             uiFields: uiFields
@@ -1293,19 +1407,19 @@
              * @param {*} field
              */
             FieldPanelCtrl.prototype.addFieldItem = function(appId, fieldId, field) {
-                var _this = this;
-                var fieldCollapseId = appId + '_collapse';
-                var $fieldBody = this.$appsFieldsWapper.find('#' + fieldCollapseId + ' .field-body');
+                let _this = this;
+                let fieldCollapseId = appId + '_collapse';
+                let $fieldBody = this.$appsFieldsWapper.find('#' + fieldCollapseId + ' .field-body');
 
-                var generateSetsHtml = function(setsType, setsData) {
+                let generateSetsHtml = function(setsType, setsData) {
                     switch (setsType) {
                         case SETS_TYPES.SELECT:
                         case SETS_TYPES.MULTI_SELECT:
                             return (
                                 '<textarea class= "sets-item form-control" rows="3" columns="10" style="resize: vertical" placeholder="以換行區隔資料">' +
                                     (function(sets) {
-                                        var transStrs = [];
-                                        for (var i in sets) {
+                                        let transStrs = [];
+                                        for (let i in sets) {
                                             transStrs.push(transJson[sets[i]] ? transJson[sets[i]] : (sets[i] || ''));
                                         }
                                         return transStrs;
@@ -1323,13 +1437,13 @@
                     }
                 };
 
-                var fieldText = (transJson[field.text] ? transJson[field.text] : (field.text || ''));
-                var $fieldContent = $(
+                let fieldText = (transJson[field.text] ? transJson[field.text] : (field.text || ''));
+                let $fieldContent = $(
                     '<div class="card m-2 p-2 col-12 col-lg-6 field-content" id="' + fieldId + '">' +
-                        '<div class="form-group row field-item field-name mb-1">' +
+                        '<div class="form-group row field-item mb-1">' +
                             '<label class="col-3 col-form-label">名稱:</label>' +
                             '<div class="col-9 d-flex align-items-center">' +
-                                '<input class="form-control" type="text" placeholder="' + fieldText + '" value="' + fieldText + '" />' +
+                                '<input class="form-control" type="text" name="fieldName" placeholder="' + fieldText + '" value="' + fieldText + '" />' +
                             '</div>' +
                         '</div>' +
                         '<div class="form-group row field-item field-type my-1">' +
@@ -1350,6 +1464,12 @@
                                 generateSetsHtml(field.setsType, field.sets) +
                             '</div>' +
                         '</div>' +
+                        '<div class="form-group row field-item my-1 text-right field-options">' +
+                            '<label class="col-12 col-form-label">' +
+                                '<input class="form-check-input" type="checkbox" name="canShowingOnForm"' + (field.canShowingOnForm ? ' checked="true"' : '') + ' />' +
+                                '是否顯示在顧客表單上' +
+                            '</label>' +
+                        '</div>' +
                         '<div class="field-item field-delete mt-auto mb-1 py-2 w-100 text-right">' +
                             '<button type="button" class="btn btn-danger btn-sm btn-danger field-delete-btn' + (FIELD_TYPES.SYSTEM === field.type ? ' d-none' : '') + '">' +
                                 '<i class="fas fa-times fa-fw"></i>' +
@@ -1360,19 +1480,19 @@
                 );
                 $fieldBody.append($fieldContent);
 
-                var $fieldTypeSelect = $fieldContent.find('.field-type select');
-                $fieldTypeSelect.find('option[value="' + field.setsType + '"]').prop('selected', true);
+                let $fieldTypeSelect = $fieldContent.find('.field-type select');
+                $fieldTypeSelect.val(field.setsType || '');
 
                 if (field.type !== FIELD_TYPES.CUSTOM) {
                     $fieldTypeSelect.prop('disabled', true);
-                    $fieldContent.find('.field-name input').prop('disabled', true);
+                    $fieldContent.find('[name="fieldName"]').prop('disabled', true);
                     $fieldContent.find('.field-sets .sets-item').prop('disabled', true);
                 }
 
                 $fieldTypeSelect.on('change', function(ev) {
-                    var selectedVal = ev.target.value;
-                    var $fieldItem = $(ev.target).parents('.field-item');
-                    var $fieldOptions = $fieldItem.siblings('.field-options');
+                    let selectedVal = ev.target.value;
+                    let $fieldItem = $(ev.target).parents('.field-item');
+                    let $fieldOptions = $fieldItem.siblings('.field-options');
                     if (0 === $fieldOptions.length) {
                         $fieldOptions = $(
                             '<div class="form-group row field-item field-sets my-1 field-options">' +
@@ -1390,7 +1510,7 @@
 
                 $fieldContent.on('click', '.btn.field-delete-btn', function(ev) {
                     $(ev.target).parents('.field-content').remove();
-                    for (var idx in _this.deleteListeners) {
+                    for (let idx in _this.deleteListeners) {
                         _this.deleteListeners[idx]({
                             appId: appId,
                             fieldId: fieldId
@@ -1400,19 +1520,19 @@
             };
 
             FieldPanelCtrl.prototype.onSave = function(handler) {
-                var _this = this;
+                let _this = this;
                 _this.saveListeners.push(handler);
                 return function() {
-                    var idx = _this.saveListeners.indexOf(handler);
+                    let idx = _this.saveListeners.indexOf(handler);
                     idx >= 0 && _this.saveListeners.length > 0 && _this.saveListeners.splice(idx, 1);
                 };
             };
 
             FieldPanelCtrl.prototype.onDelete = function(handler) {
-                var _this = this;
+                let _this = this;
                 _this.deleteListeners.push(handler);
                 return function() {
-                    var idx = _this.deleteListeners.indexOf(handler);
+                    let idx = _this.deleteListeners.indexOf(handler);
                     idx >= 0 && _this.deleteListeners.length > 0 && _this.deleteListeners.splice(idx, 1);
                 };
             };
@@ -1428,7 +1548,7 @@
                 return;
             }
 
-            var firstAppId = '';
+            let firstAppId = '';
             fieldPanelCtrl.$appsFieldsWapper.empty();
             return Promise.all([
                 api.apps.findAll(userId),
@@ -1440,18 +1560,18 @@
                 fieldPanelCtrl.saveListeners.length = 0;
                 fieldPanelCtrl.deleteListeners.length = 0;
 
-                for (var appId in apps) {
-                    var app = apps[appId] || {};
+                for (let appId in apps) {
+                    let app = apps[appId] || {};
                     if (CHATSHIER === app.type) {
                         continue;
                     }
 
-                    var fields = appsFields[appId].fields || {};
+                    let fields = appsFields[appId].fields || {};
                     fieldPanelCtrl.addAppItem(appId, app);
                     firstAppId = firstAppId || appId;
 
                     // 將客戶分類條件資料依照設定的 order 進行排序，根據順序擺放到 UI 上
-                    var fieldIds = Object.keys(fields);
+                    let fieldIds = Object.keys(fields);
                     fieldIds.sort(function(a, b) {
                         let fieldsA = appsFields[appId].fields[a];
                         let fieldsB = appsFields[appId].fields[b];
@@ -1467,9 +1587,9 @@
                         return fieldsA.order - fieldsB.order;
                     });
 
-                    for (var i in fieldIds) {
-                        var fieldId = fieldIds[i];
-                        var field = fields[fieldId];
+                    for (let i in fieldIds) {
+                        let fieldId = fieldIds[i];
+                        let field = fields[fieldId];
                         if (field.isDeleted || 'CUSTOM' !== field.type) {
                             delete fields[fieldId];
                             continue;
@@ -1482,14 +1602,14 @@
                 // 檢查哪些資料需要更新哪些資料需要新增
                 fieldPanelCtrl.onSave(function(ev, args) {
                     $(ev.target).attr('disabled', true);
-                    var fieldsOrg = appsFields[args.appId].fields;
-                    var fieldIds = Object.keys(fieldsOrg);
+                    let fieldsOrg = appsFields[args.appId].fields;
+                    let fieldIds = Object.keys(fieldsOrg);
 
                     /**
                      * 深層比對目標物件中的資料在來源物件中是否具有相同資料
                      */
-                    var fieldHasChanged = function(srcField, destField) {
-                        for (var key in destField) {
+                    let fieldHasChanged = function(srcField, destField) {
+                        for (let key in destField) {
                             // 因為有翻譯文字的關係
                             // 非自定義客戶分類條件的名稱與系統性別的設定不檢查
                             if (('text' === key && FIELD_TYPES.CUSTOM !== srcField.type) ||
@@ -1507,7 +1627,7 @@
                                 return true;
                             }
 
-                            for (var i in destField[key]) {
+                            for (let i in destField[key]) {
                                 if (srcField[key][i] !== destField[key][i]) {
                                     return true;
                                 }
@@ -1517,8 +1637,8 @@
                     };
 
                     return Promise.all(fieldIds.map(function(fieldId) {
-                        var fieldOrg = fieldsOrg[fieldId];
-                        var fieldOnUI = Object.assign({}, args.uiFields[fieldId]);
+                        let fieldOrg = fieldsOrg[fieldId];
+                        let fieldOnUI = Object.assign({}, args.uiFields[fieldId]);
                         delete args.uiFields[fieldId]; // 確認完用的 UI 資料直接刪除，不需再處理
 
                         // 需對照 UI 上目前每個客戶分類條件的順序，更新至對應的客戶分類條件
@@ -1528,6 +1648,7 @@
                                 fieldOrg.text = fieldOnUI.text;
                                 fieldOrg.setsType = fieldOnUI.setsType;
                                 fieldOrg.sets = fieldOnUI.sets;
+                                fieldOrg.canShowingOnForm = fieldOnUI.canShowingOnForm;
                             }
                             fieldOrg.order = fieldOnUI.order;
                             return api.appsFields.update(args.appId, fieldId, userId, fieldOrg).then(function(resJson) {
@@ -1549,18 +1670,19 @@
                                 return Promise.resolve();
                             }
 
-                            var fieldOnUI = args.uiFields[fieldId];
-                            var newField = {
+                            let fieldOnUI = args.uiFields[fieldId];
+                            let newField = {
                                 text: fieldOnUI.text,
                                 type: FIELD_TYPES.CUSTOM,
                                 sets: fieldOnUI.sets,
                                 setsType: fieldOnUI.setsType,
-                                order: fieldOnUI.order
+                                order: fieldOnUI.order,
+                                canShowingOnForm: fieldOnUI.canShowingOnForm
                             };
                             return api.appsFields.insert(args.appId, userId, newField).then(function(resJson) {
                                 // 完成資料庫儲存後，將暫時使用的 fieldId 替換成真正資料庫的 fieldId
-                                var insertFields = resJson.data;
-                                var newFieldId = Object.keys(insertFields[args.appId].fields).shift();
+                                let insertFields = resJson.data;
+                                let newFieldId = Object.keys(insertFields[args.appId].fields).shift();
                                 appsFields[args.appId].fields[newFieldId] = insertFields[args.appId].fields[newFieldId];
                                 $('#' + fieldId + '.field-content').attr('id', newFieldId);
                             });
@@ -1574,7 +1696,7 @@
 
                 // 監聽每行客戶分類條件的刪除事件，刪除時在原始資料上標記刪除
                 fieldPanelCtrl.onDelete(function(ev) {
-                    var field = appsFields[ev.appId].fields[ev.fieldId];
+                    let field = appsFields[ev.appId].fields[ev.fieldId];
                     if (!field) {
                         return;
                     }
@@ -1592,23 +1714,23 @@
     // ===============
     // #region 內部群組代碼區塊
     (function() {
-        var api = window.restfulAPI;
-        var MEMBER_TYPES = api.groupsMembers.TYPES;
-        var searchCache = {};
-        var keyinWaitTimer = null;
+        let api = window.restfulAPI;
+        let MEMBER_TYPES = api.groupsMembers.TYPES;
+        let searchCache = {};
+        let keyinWaitTimer = null;
 
-        var $groupAddModal = $('#groupAddModal');
-        var $groupAddSubmit = $groupAddModal.find('#groupAddSubmit');
-        var $internalGroupPanel = $('#internal-group');
-        var $groupBody = $internalGroupPanel.find('.card-body');
-        var $groupElems = {};
+        let $groupAddModal = $('#groupAddModal');
+        let $groupAddSubmit = $groupAddModal.find('#groupAddSubmit');
+        let $internalGroupPanel = $('#internal-group');
+        let $groupBody = $internalGroupPanel.find('.card-body');
+        let $groupElems = {};
 
         $groupAddModal.on('show.bs.modal', function() {
             // 新增群組 modal 顯示時，清空上一次輸入的名稱
             $groupAddModal.find('input[name="groupAddName"]').val('');
         });
 
-        var groupCtrl = (function() {
+        let groupCtrl = (function() {
             function GroupPanelCtrl() {}
 
             GroupPanelCtrl.prototype.clearAll = function() {
@@ -1623,7 +1745,7 @@
             };
 
             GroupPanelCtrl.prototype.hideCollapseAll = function(excludeId) {
-                for (var groupId in $groupElems) {
+                for (let groupId in $groupElems) {
                     if (excludeId && excludeId === groupId) {
                         continue;
                     }
@@ -1632,7 +1754,7 @@
             };
 
             GroupPanelCtrl.prototype.generateGroupHtml = function(groupId, groupName, member) {
-                var html =
+                let html =
                     '<div group-id="' + groupId + '" class="group-tab" role="tab">' +
                         '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
                             (groupName || '') +
@@ -1712,18 +1834,18 @@
 
             GroupPanelCtrl.prototype.generateMemberHtml = function(memberId, memberUser, member, memberSelf) {
                 // 只有群組成員本人可以確認是否加入群組
-                var canJoin = member.user_id === userId && !member.status;
+                let canJoin = member.user_id === userId && !member.status;
 
                 // 群組擁有者及管理員可以踢掉群組成員
                 // 群組成員可以自行離開群組
                 // 群組擁有者不能離開群組
-                var canDelete =
+                let canDelete =
                     (MEMBER_TYPES.OWNER === memberSelf.type ||
                     MEMBER_TYPES.ADMIN === memberSelf.type ||
                     member.user_id === userId) &&
                     MEMBER_TYPES.OWNER !== member.type;
 
-                var html =
+                let html =
                     '<div class="col-12 m-2 card justify-content-around group-member" member-id="' + memberId + '">' +
                         '<div class="d-flex flex-nowrap align-items-center w-100 user chips">' +
                             '<div class="avatar-container">' +
@@ -1774,23 +1896,23 @@
 
             GroupPanelCtrl.prototype.addGroup = function(groupId, group) {
                 instance.hideCollapseAll(groupId);
-                var members = group.members;
-                var userIds = Object.keys(members).map((memberId) => {
+                let members = group.members;
+                let userIds = Object.keys(members).map((memberId) => {
                     if (!members[memberId].isDeleted) {
                         return members[memberId].user_id;
                     };
                 });
-                var index = userIds.indexOf(userId);
+                let index = userIds.indexOf(userId);
                 if (0 > index) {
                     // return;
                 };
 
-                var memberSelf = members[Object.keys(members)[index]];
+                let memberSelf = members[Object.keys(members)[index]];
                 $groupBody.append(instance.generateGroupHtml(groupId, group.name, memberSelf));
 
                 // #region 每個群組相關事件宣告
                 // 將群組中經常取用的 element 一次抓取出來，方便存取
-                var $collapse = $groupBody.find('.card-collapse#' + groupId);
+                let $collapse = $groupBody.find('.card-collapse#' + groupId);
                 $groupElems[groupId] = {
                     $collapse: $collapse,
                     $groupName: $groupBody.find('.group-name'),
@@ -1811,7 +1933,7 @@
 
                 // 使用者更新群組名稱的事件處理
                 $collapse.on('click', '.group-name .btn-update', function() {
-                    var groupData = {
+                    let groupData = {
                         name: $(this).parent().find('input').val()
                     };
 
@@ -1819,7 +1941,7 @@
                         return;
                     }
 
-                    var $updateButton = $(this);
+                    let $updateButton = $(this);
                     $updateButton.attr('disabled', true);
 
                     return api.groups.update(groupId, userId, groupData).then(function() {
@@ -1848,7 +1970,7 @@
 
                 // 使用者更新群組頭像的事件處理
                 $collapse.on('click', '.file-container .btn-update', function() {
-                    var groupData = {
+                    let groupData = {
                         photo: $groupElems[groupId].groupImgBase64 || ''
                     };
 
@@ -1869,8 +1991,8 @@
                 });
 
                 $collapse.on('click', '.actions .add-button', function() {
-                    var memberEmail = $groupElems[groupId].$memberEmail.val();
-                    var permission = $groupElems[groupId].$permissionText.text();
+                    let memberEmail = $groupElems[groupId].$memberEmail.val();
+                    let permission = $groupElems[groupId].$permissionText.text();
                     if (!memberEmail) {
                         $.notify('請輸入目標成員的 Email', { type: 'warning' });
                         return;
@@ -1879,12 +2001,12 @@
                         return;
                     }
 
-                    var $addButton = $(this);
+                    let $addButton = $(this);
                     $addButton.attr('disabled', true);
 
                     return api.users.find(userId, memberEmail).then(function(resJson) {
-                        var memberUserId = Object.keys(resJson.data).shift();
-                        var postMemberData = {
+                        let memberUserId = Object.keys(resJson.data).shift();
+                        let postMemberData = {
                             type: MEMBER_TYPES[permission],
                             userid: memberUserId
                         };
@@ -1892,8 +2014,8 @@
                         // 成功更新群組成員後，將新成員的資料合併至本地端的群組資料
                         // 並且清除新增成員的 email 欄位
                         return api.groupsMembers.insert(groupId, userId, postMemberData).then(function(resJson) {
-                            var groupMembers = resJson.data[groupId].members;
-                            var groupMemberId = Object.keys(groupMembers).shift();
+                            let groupMembers = resJson.data[groupId].members;
+                            let groupMemberId = Object.keys(groupMembers).shift();
                             groups[groupId].members = Object.assign(groups[groupId].members, groupMembers);
                             return {
                                 groupMemberId: groupMemberId,
@@ -1933,13 +2055,13 @@
 
                 // 選擇圖檔後，將圖像資源載入成 base64 的資料型態
                 $groupElems[groupId].$fileGhost.on('change', function() {
-                    var files = this.files;
+                    let files = this.files;
                     if (files.length) {
                         $groupElems[groupId].$fileName.text(($(this).val()).split('\\').pop());
 
-                        var file = files[0];
+                        let file = files[0];
                         return new Promise(function(resolve, reject) {
-                            var fileReader = new FileReader();
+                            let fileReader = new FileReader();
                             fileReader.onloadend = function() {
                                 resolve(fileReader.result);
                             };
@@ -1979,7 +2101,7 @@
                         return;
                     }
 
-                    var emailPattern = ev.target.value;
+                    let emailPattern = ev.target.value;
                     keyinWaitTimer = window.setTimeout(function() {
                         return Promise.resolve().then(function() {
                             if (searchCache[emailPattern]) {
@@ -1997,7 +2119,7 @@
                             // 將搜尋到的結果存到快取中，相同的搜尋字不需再搜尋兩次
                             searchCache[emailPattern] = searchResults;
 
-                            var typeaheadData = $(ev.target).data('typeahead');
+                            let typeaheadData = $(ev.target).data('typeahead');
                             typeaheadData.setSource(searchResults);
                             typeaheadData.lookup();
                         });
@@ -2006,30 +2128,30 @@
                 // #endregion
 
                 // 將群組內的成員資料載入至畫面上
-                for (var memberId in group.members) {
+                for (let memberId in group.members) {
                     instance.addMemberToList(groupId, memberId, group.members[memberId], memberSelf);
                 }
             };
 
             GroupPanelCtrl.prototype.addMemberToList = function(groupId, memberId, member, memberSelf) {
-                var memberUser = users[member.user_id];
+                let memberUser = users[member.user_id];
                 if (!memberUser) {
                     return;
                 };
 
-                var memberItemHtml = instance.generateMemberHtml(memberId, memberUser, member, memberSelf);
+                let memberItemHtml = instance.generateMemberHtml(memberId, memberUser, member, memberSelf);
                 $groupElems[groupId].$memberList.append(memberItemHtml);
 
-                var $memberRow = $groupElems[groupId].$memberList.find('[member-id="' + memberId + '"]');
-                var $memberPermission = $memberRow.find('.permission-item');
-                var $memberStatus = $memberRow.find('.status');
-                var $memberActions = $memberRow.find('.actions');
+                let $memberRow = $groupElems[groupId].$memberList.find('[member-id="' + memberId + '"]');
+                let $memberPermission = $memberRow.find('.permission-item');
+                let $memberStatus = $memberRow.find('.status');
+                let $memberActions = $memberRow.find('.actions');
 
                 // 使用者點擊群組內的事件處理
                 $memberPermission.on('click', function() {
-                    var $permissionItem = $(this);
-                    var $permissionText = $permissionItem.find('.permission-text');
-                    var wantPermission = {
+                    let $permissionItem = $(this);
+                    let $permissionText = $permissionItem.find('.permission-text');
+                    let wantPermission = {
                         'R': MEMBER_TYPES.READ,
                         'W': MEMBER_TYPES.WRITE,
                         'A': MEMBER_TYPES.ADMIN,
@@ -2047,7 +2169,7 @@
                         return;
                     }
 
-                    var putMemberData = { type: wantPermission };
+                    let putMemberData = { type: wantPermission };
                     return api.groupsMembers.update(groupId, memberId, userId, putMemberData).then(function() {
                         // 成功更新後更新本地端的資料
                         groups[groupId].members[memberId].type = putMemberData.type;
@@ -2062,8 +2184,8 @@
                 });
 
                 $memberActions.on('click', '.btn-join', function() {
-                    var putMemberData = { status: true };
-                    var $self = $(this);
+                    let putMemberData = { status: true };
+                    let $self = $(this);
                     return api.groupsMembers.update(groupId, memberId, userId, putMemberData).then(function() {
                         // 更新 API，加入群組
                         groups[groupId].members[memberId].status = putMemberData.status;
@@ -2116,7 +2238,7 @@
                 });
             };
 
-            var instance = new GroupPanelCtrl();
+            let instance = new GroupPanelCtrl();
             return instance;
         })();
 
@@ -2128,18 +2250,18 @@
             }
 
             $groupAddSubmit.off('click').on('click', function() {
-                var $groupNameElem = $groupAddModal.find('input[name="groupAddName"]');
-                var groupName = $groupNameElem.val();
+                let $groupNameElem = $groupAddModal.find('input[name="groupAddName"]');
+                let groupName = $groupNameElem.val();
                 if (!groupName) {
                     return;
                 }
 
-                var group = {
+                let group = {
                     name: groupName
                 };
 
                 return api.groups.insert(userId, group).then(function(resJson) {
-                    var groupId = Object.keys(resJson.data).shift();
+                    let groupId = Object.keys(resJson.data).shift();
                     groups[groupId] = resJson.data[groupId];
                     groupCtrl.addGroup(groupId, groups[groupId]);
                     groupCtrl.showCollapse(groupId);
@@ -2155,10 +2277,10 @@
             ]).then(function(resJsons) {
                 groups = resJsons[0].data || {};
                 users = resJsons[1].data || {};
-                var firstGroupId = '';
-                for (var groupId in groups) {
+                let firstGroupId = '';
+                for (let groupId in groups) {
                     firstGroupId = firstGroupId || groupId;
-                    var groupData = groups[groupId];
+                    let groupData = groups[groupId];
                     if (groupData.isDeleted) {
                         continue;
                     }

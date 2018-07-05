@@ -62,10 +62,14 @@ module.exports = (function() {
         postOne(req, res) {
             let appId = req.params.appid;
             let postTikeck = {
-                type: req.body.type === undefined ? '' : req.body.type,
-                merchantId: req.body.merchantId === undefined ? '' : req.body.merchantId,
-                hashKey: req.body.hashKey === undefined ? '' : req.body.hashKey,
-                hashIV: req.body.hashIV === undefined ? '' : req.body.hashIV
+                type: req.body.type || '',
+                merchantId: req.body.merchantId || '',
+                hashKey: req.body.hashKey || '',
+                hashIV: req.body.hashIV || '',
+                canIssueInvoice: !!req.body.canIssueInvoice,
+                invoiceMerchantId: req.body.invoiceMerchantId || '',
+                invoiceHashKe: req.body.invoiceHashKey || '',
+                invoiceHashIV: req.body.invoiceHashIV || ''
             };
 
             return this.appsRequestVerify(req).then(() => {
@@ -91,10 +95,14 @@ module.exports = (function() {
             let paymentId = req.params.paymentid;
 
             let putTikcket = {};
-            (req.body.type !== undefined) && (putTikcket.type = req.body.type);
-            (req.body.merchantId !== undefined) && (putTikcket.merchantId = req.body.merchantId);
-            (req.body.hashKey !== undefined) && (putTikcket.hashKey = req.body.hashKey);
-            (req.body.hashIV !== undefined) && (putTikcket.hashIV = req.body.hashIV);
+            ('string' === typeof req.body.type) && (putTikcket.type = req.body.type);
+            ('string' === typeof req.body.merchantId) && (putTikcket.merchantId = req.body.merchantId);
+            ('string' === typeof req.body.hashKey) && (putTikcket.hashKey = req.body.hashKey);
+            ('string' === typeof req.body.hashIV) && (putTikcket.hashIV = req.body.hashIV);
+            (undefined !== req.body.canIssueInvoice) && (putTikcket.canIssueInvoice = !!req.body.canIssueInvoice);
+            ('string' === typeof req.body.invoiceMerchantId) && (putTikcket.invoiceMerchantId = req.body.invoiceMerchantId);
+            ('string' === typeof req.body.invoiceHashKey) && (putTikcket.invoiceHashKey = req.body.invoiceHashKey);
+            ('string' === typeof req.body.invoiceHashIV) && (putTikcket.invoiceHashIV = req.body.invoiceHashIV);
 
             return this.appsRequestVerify(req).then(() => {
                 if (!paymentId) {

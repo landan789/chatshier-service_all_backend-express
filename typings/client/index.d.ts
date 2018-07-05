@@ -3,6 +3,7 @@
 /// <reference path='./helpers.d.ts' />
 
 /// <reference path='../server/helpers/socket.d.ts' />
+
 /// <reference path='../server/models/apps_autoreplies.d.ts' />
 /// <reference path='../server/models/apps_chatrooms.d.ts' />
 /// <reference path='../server/models/apps_composes.d.ts' />
@@ -20,3 +21,5 @@
 /// <reference path='../server/models/groups_members.d.ts' />
 /// <reference path='../server/models/groups.d.ts' />
 /// <reference path='../server/models/users.d.ts' />
+
+/// <reference path='../server/controllers/payment.d.ts' />

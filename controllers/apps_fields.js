@@ -41,17 +41,18 @@ module.exports = (function() {
             let appId = req.params.appid;
 
             // 建立並過濾用戶端傳過來的資料
-            let postTagData = {
+            let postField = {
                 text: req.body.text || '',
                 type: req.body.type || appsFieldsMdl.FieldsTypes.CUSTOM,
                 sets: req.body.sets || [''],
                 setsType: req.body.setsType ? req.body.setsType : 0,
-                order: req.body.order ? req.body.order : 0
+                order: req.body.order ? req.body.order : 0,
+                canShowingOnForm: !!req.body.canShowingOnForm
             };
 
             return this.appsRequestVerify(req).then(() => {
                 // 1. 將 field 資料插入至指定 appId 中
-                return appsFieldsMdl.insert(appId, postTagData).then((appsFields) => {
+                return appsFieldsMdl.insert(appId, postField).then((appsFields) => {
                     if (!(appsFields && appsFields[appId])) {
                         return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_INSERT);
                     }
@@ -73,21 +74,16 @@ module.exports = (function() {
             let fieldId = req.params.fieldid;
 
             // 建立並過濾用戶端傳過來的資料
-            let putTagData = {
-                type: req.body.type || appsFieldsMdl.FieldsTypes.CUSTOM,
-                order: req.body.order ? req.body.order : 0
-            };
-
-            // 欲更新的資料只有是自定義型態才可變更名稱及資料
-            if (appsFieldsMdl.FieldsTypes.CUSTOM === putTagData.type) {
-                putTagData.text = req.body.text || '';
-                putTagData.sets = req.body.sets || [''];
-                putTagData.setsType = req.body.setsType ? req.body.setsType : 0;
-            }
+            let putField = {};
+            ('number' === typeof req.body.order) && (putField.order = req.body.order);
+            ('string' === typeof req.body.text) && (putField.text = req.body.text);
+            (req.body.sets instanceof Array) && (putField.sets = req.body.sets);
+            ('string' === typeof req.body.setsType) && (putField.setsType = req.body.setsType);
+            ('boolean' === typeof req.body.canShowingOnForm) && (putField.canShowingOnForm = req.body.canShowingOnForm);
 
             return this.appsRequestVerify(req).then(() => {
                 // 1. 將 field 資料更新至指定 appId 中
-                return appsFieldsMdl.update(appId, fieldId, putTagData).then((appsFields) => {
+                return appsFieldsMdl.update(appId, fieldId, putField).then((appsFields) => {
                     if (!(appsFields && appsFields[appId])) {
                         return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_UPDATE);
                     }

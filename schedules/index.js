@@ -84,7 +84,7 @@ let jobProcess = () => {
                             return Promise.all(chatroomIds.map((chatroomId) => {
                                 return Promise.all(messages.map((message) => {
                                     console.log('[database] insert each message to chatroom - ' + chatroomId);
-                                    return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
+                                    return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]).then((appsChatroomsMessages) => {
                                         if (!appsChatroomsMessages) {
                                             return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
                                         }

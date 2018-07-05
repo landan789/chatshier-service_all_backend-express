@@ -51,14 +51,14 @@
         TEMPLATE: 'template',
         RICHMENU: 'richmenu',
         CONSUMER_FORM: 'consumerForm',
-        DONATE: 'donate'
+        DONATION: 'donation'
     });
 
     const POSTBACK_DATA_TYPES = Object.freeze({
         CHANGE_RICHMENU: 'CHANGE_RICHMENU',
         SEND_TEMPLATE: 'SEND_TEMPLATE',
         SEND_CONSUMER_FORM: 'SEND_CONSUMER_FORM',
-        SEND_DONATE_OPTIONS: 'SEND_DONATE_OPTIONS'
+        PAYMENT_CONFIRM: 'PAYMENT_CONFIRM'
     });
 
     elementHide($('.action-input'));
@@ -94,6 +94,7 @@
             if ('add-btn' === $relatedBtn.attr('id')) {
                 $appSelector.val(nowSelectAppId);
                 $appSelector.parents('.form-group').removeClass('d-none');
+                $modal.find('#richmenuId').val('');
                 return;
             }
 
@@ -103,6 +104,7 @@
             let richmenuId = $richmenuRow.attr('id');
             let src;
             $appSelector.val(appId);
+            $modal.find('#richmenuId').val(richmenuId);
 
             elementHide($('#modal-save'));
             elementShow($('#modal-update-save'));
@@ -145,9 +147,9 @@
 
                 $boxes.each(function(i) {
                     let $box = $($boxes[i]);
-                    let action = areas[i].action;
+                    let action = areas[i].action || {};
                     let actionType = '';
-                    let actionData = action.data ? JSON.parse(action.data) : {};
+                    let actionData = 'string' === typeof action.data && action.data.startsWith('{') ? JSON.parse(action.data) : {};
 
                     switch (action.type) {
                         case 'postback':
@@ -162,12 +164,8 @@
                                 actionType = ACTION_TYPES.TEMPLATE;
                             } else if (POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM === actionJson.action) {
                                 actionType = ACTION_TYPES.CONSUMER_FORM;
-                            } else if (POSTBACK_DATA_TYPES.SEND_DONATE_OPTIONS === actionJson.action) {
-                                actionType = ACTION_TYPES.DONATE;
-                                let donateAmounts = actionData.context ? actionData.context.donateAmounts || [] : [];
-                                for (let i in donateAmounts) {
-                                    actionData['donateAmount' + i] = donateAmounts[i];
-                                }
+                            } else if (POSTBACK_DATA_TYPES.PAYMENT_CONFIRM === actionJson.action) {
+                                actionType = ACTION_TYPES.DONATION;
                             }
                             break;
                         case 'uri':
@@ -286,13 +284,13 @@
                             '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.TEMPLATE + '" data-toggle="tooltip" data-placement="top" title="發送指定模板訊息">' +
                                 '<i class="fas fa-clipboard-list fa-2x"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.RICHMENU + '" data-toggle="tooltip" data-placement="top" title="切換已啟用的圖文選單">' +
+                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.RICHMENU + '" data-toggle="tooltip" data-placement="top" title="切換圖文選單">' +
                                 '<i class="fas fa-exchange-alt fa-2x"></i>' +
                             '</button>' +
                             '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.CONSUMER_FORM + '" data-toggle="tooltip" data-placement="top" title="要求填寫個人資料">' +
                                 '<i class="fas fa-id-badge fa-2x"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.DONATE + '" data-toggle="tooltip" data-placement="top" title="小額捐款功能">' +
+                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.DONATION + '" data-toggle="tooltip" data-placement="top" title="捐款功能">' +
                                 '<i class="fas fas fa-donate fa-2x"></i>' +
                             '</button>' +
                         '</div>' +
@@ -433,11 +431,15 @@
                             }
                             return appsRichmenus[appId].richmenus;
                         }).then((richmenus) => {
+                            var currentRichmenuId = $modal.find('#richmenuId').val();
                             return (
+                                '<label class="w-100 font-weight-bold col-form-label">' +
+                                    '<span class="text-danger">提醒: 目標圖文選單必須啟用，否則此功能將無作用</span>' +
+                                '</label>' +
                                 '<select class="form-control content-input action-data" action-property="richmenuId" value="">' +
                                     '<option value="" disabled selected>-- 請選擇目標圖文選單 --</option>' +
                                     (function() {
-                                        let richmenuIds = Object.keys(richmenus).filter((richmenuId) => richmenus[richmenuId].isActivated);
+                                        let richmenuIds = Object.keys(richmenus).filter((richmenuId) => richmenuId !== currentRichmenuId);
                                         return richmenuIds.map((richmenuId) => {
                                             return '<option value="' + richmenuId + '">' + richmenus[richmenuId].chatBarText + '</option>';
                                         }).join('');
@@ -445,22 +447,10 @@
                                 '</select>'
                             );
                         });
-                    case ACTION_TYPES.DONATE:
+                    case ACTION_TYPES.DONATION:
                         return (
                             '<label class="w-100 font-weight-bold col-form-label">' +
                                 '<span class="text-danger">提醒: 機器人必須完成金流設定，否則此功能將無作用</span>' +
-                            '</label>' +
-                            '<label class="w-100 font-weight-bold col-form-label">' +
-                                '<span>金額選項一:</span>' +
-                                '<input class="form-control content-input action-data" action-property="donateAmount0" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
-                            '</label>' +
-                            '<label class="w-100 font-weight-bold col-form-label">' +
-                                '<span>金額選項二:</span>' +
-                                '<input class="form-control content-input action-data" action-property="donateAmount1" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
-                            '</label>' +
-                            '<label class="w-100 font-weight-bold col-form-label">' +
-                                '<span>金額選項三:</span>' +
-                                '<input class="form-control content-input action-data" action-property="donateAmount2" type="number" min="100" max="30000" step="100" placeholder="100 ~ 30000" />' +
                             '</label>'
                         );
                     case ACTION_TYPES.CONSUMER_FORM:
@@ -502,12 +492,8 @@
                     case ACTION_TYPES.RICHMENU:
                         $actionData.val(actionData.richmenuId || '');
                         break;
-                    case ACTION_TYPES.DONATE:
-                        for (let i = 0; i <= 2; i++) {
-                            $actionData.get(i).value = actionData['donateAmount' + i] || '';
-                        }
-                        break;
                     case ACTION_TYPES.CONSUMER_FORM:
+                    case ACTION_TYPES.DONATION:
                     default:
                         break;
                 }
@@ -802,17 +788,10 @@
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(userFormData);
                     break;
-                case ACTION_TYPES.DONATE:
+                case ACTION_TYPES.DONATION:
                     let donateData = {
-                        action: POSTBACK_DATA_TYPES.SEND_DONATE_OPTIONS,
-                        context: {
-                            donateAmounts: [],
-                            currency: 'TWD'
-                        }
+                        action: POSTBACK_DATA_TYPES.PAYMENT_CONFIRM
                     };
-                    actionData.donateAmount0 && donateData.context.donateAmounts.push(actionData.donateAmount0);
-                    actionData.donateAmount1 && donateData.context.donateAmounts.push(actionData.donateAmount1);
-                    actionData.donateAmount2 && donateData.context.donateAmounts.push(actionData.donateAmount2);
                     richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(donateData);
                     break;
@@ -1083,8 +1062,8 @@
                     return '發送模板';
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM) >= 0) {
                     return '要求填寫個人資料';
-                } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_DONATE_OPTIONS) >= 0) {
-                    return '小額捐款功能';
+                } else if (actionData.indexOf(POSTBACK_DATA_TYPES.PAYMENT_CONFIRM) >= 0) {
+                    return '捐款功能';
                 }
                 return '未設定';
             case 'uri':

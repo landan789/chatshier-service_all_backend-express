@@ -104,7 +104,7 @@ function init(server) {
                     }).then(() => {
                         delete message.fileName;
                         delete message.duration;
-                        return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
+                        return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]).then((appsChatroomsMessages) => {
                             if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
                                 return Promise.reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
                             }
@@ -264,7 +264,7 @@ function init(server) {
                         })).then(() => {
                             return Promise.all(chatroomIds.map((chatroomId) => {
                                 return Promise.all(messages.map((message) => {
-                                    return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
+                                    return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]).then((appsChatroomsMessages) => {
                                         if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
                                             return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
                                         };

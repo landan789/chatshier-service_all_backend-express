@@ -178,7 +178,8 @@ module.exports = (function() {
         'order': {type: Number, default: 0},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false}
+        'isDeleted': {type: Boolean, default: false},
+        'canShowingOnForm': {type: Boolean, default: false}
     });
 
     const TicketsSchema = new Schema({
@@ -200,7 +201,11 @@ module.exports = (function() {
         'type': {type: String, default: ''},
         'merchantId': {type: String, default: ''},
         'hashKey': {type: String, default: ''},
-        'hashIV': {type: String, default: ''}
+        'hashIV': {type: String, default: ''},
+        'canIssueInvoice': {type: Boolean, default: false},
+        'invoiceMerchantId': {type: String, default: ''},
+        'invoiceHashKey': {type: String, default: ''},
+        'invoiceHashIV': {type: String, default: ''}
     });
 
     const AppsSchema = new Schema({
@@ -298,14 +303,21 @@ module.exports = (function() {
         'commodities': [{
             'commodity_id': {type: String, default: ''},
             'name': {type: String, default: ''},
-            'description': {type: String, default: ''}
+            'description': {type: String, default: ''},
+            'count': {type: Number, default: 0},
+            'unitPrice': {type: Number, default: 0},
+            'unit': {type: String, default: ''},
+            'remark': {type: String, default: ''}
         }],
         'tradeId': {type: String, default: ''},
         'tradeDate': {type: Date, default: Date.now()},
         'tradeAmount': {type: Number, default: 0},
         'tradeDescription': {type: String, default: ''},
         'isPaid': {type: Boolean, default: false},
+        'isInvoiceIssued': {type: Boolean, default: false},
         'invoiceId': {type: String, default: ''},
+        'invoiceNumber': {type: String, default: ''},
+        'invoiceRandomNumber': {type: String, default: ''},
         'taxId': {type: String, default: ''},
         'consumerUid': {type: String, default: ''},
         'payerName': {type: String, default: ''},

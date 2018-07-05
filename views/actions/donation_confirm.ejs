@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <% include ../partials/meta_tags.ejs %>
+    <% include ../partials/favicon.ejs %>
+    <title><%= title %></title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.3.3/css/swiper.min.css">
+    <style>
+        html {
+            height: 100%; }
+        body {
+            height: 100%;
+            background-color: #eefdff;
+            background: linear-gradient(to bottom, #eefdff 0%, #d2ecf3 100%); }
+        .data-container, .buttons-container {
+            max-width: 30rem; }
+        .swiper-slide {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="h-100 swiper-container">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide" style="opacity: 0;">
+                <div class="pt-3 text-center attention-before" id="attentionBefore">
+                    <h4>注意事項</h4>
+                </div>
+    
+                <div class="mx-3 card card-body">
+                    <p style="white-space: pre-line">
+                        ✿ 捐款注意事項：
+    
+                        ● 請遵守<a href="http://law.moj.gov.tw/LawClass/LawAll.aspx?PCode=D0020049" target="_blank" alt="">《政治獻金法》</a>之規範，違反者所捐之款項將依法繳交國庫。
+    
+                        ● 捐款人應為年滿 20 歲之具選舉權的本國人；任何人不得以本人以外之名義捐贈。
+    
+                        ● 捐贈資料請務必填寫完整（真實姓名、身份證字號、戶籍地址、聯絡電話、收據寄送地址）。若不完整將直接列屬匿名捐贈，無法寄發收據。若匿名捐贈超過 1 萬元，須依法繳交國庫。
+    
+                        ● 捐款人對同一擬參選人每年捐贈上限不得超過新臺幣 10 萬元、對不同擬參選人每年捐贈上限不得超過20萬元。若有超過部分，須依法繳交國庫。
+    
+                        ● 其它規定請參閱<a href="http://law.moj.gov.tw/LawClass/LawAll.aspx?PCode=D0020049" target="_blank" alt="">《政治獻金法》</a>或<a href="https://sunshine.cy.gov.tw/GipOpenWeb/wSite/ct?xItem=4912&ctNode=280&mp=2" target="_blank" alt="">「監察院陽光法案主題網 政治獻金問答集」</a>
+                    </p>
+                </div>
+    
+                <div class="w-100 my-3 mx-auto px-3 text-right buttons-container">
+                    <button type="button" class="btn btn-info btn-block btn-next">
+                        <i class="fas fa-check fa-fw"></i>
+                        <span>我知道了</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="swiper-slide" style="opacity: 0;">
+                <div class="pt-3 text-center text-info loading-icon" id="loadingIcon">
+                    <i class="fas fa-spinner fa-pulse fa-4x"></i>
+                </div>
+
+                <div class="pt-3 text-center page-title d-none" id="pageTitle">
+                    <h4>捐款確認</h4>
+                </div>
+            
+                <form class="flex-column align-items-center donation-form d-none" id="donationForm">
+                    <div class="w-100 mt-3 mx-auto px-3 data-container">
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="mr-1 text-danger">*</span>
+                                <span>捐款金額</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="btn-group flex-wrap">
+                                    <button class="btn btn-light btn-amount" type="button" data-amount="500">500 元</button>
+                                    <button class="btn btn-light btn-amount" type="button" data-amount="1000">1,000 元</button>
+                                    <button class="btn btn-light btn-amount" type="button" data-amount="3000">3,000 元</button>
+                                    <button class="btn btn-light btn-amount" type="button" data-amount="5000">5,000 元</button>
+                                    <button class="btn btn-light btn-amount" type="button" data-amount="10000">10,000 元</button>
+                                </div>
+
+                                <div class="mt-3 input-container">
+                                    <input class="form-control"
+                                        type="number"
+                                        id="donateAmount"
+                                        placeholder="自行輸入金額 100 ~ 100,000 元"
+                                        min="100"
+                                        max="100000"
+                                        maxlength="6"
+                                        step="1"
+                                        required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <span>捐款人基本資料</span>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="row form-group">
+                                    <label class="col-12 col-sm-3 font-weight-bold control-label" for="payerName">
+                                        <span class="mr-1 text-danger">*</span>
+                                        <span>捐款人姓名:</span>
+                                    </label>
+                                    <div class="col-12 col-sm-9">
+                                        <input class="form-control"
+                                            type="text" 
+                                            id="payerName"
+                                            name="payerName"
+                                            placeholder="請填寫真實姓名"
+                                            minlength="1"
+                                            maxlength="50"
+                                            required />
+                                    </div>
+                                </div>
+                    
+                                <div class="row form-group">
+                                    <label class="col-12 col-sm-3 font-weight-bold control-label" for="payerEmail">
+                                        <span class="mr-1 text-danger">*</span>
+                                        <span>Email:</span>
+                                    </label>
+                                    <div class="col-12 col-sm-9">
+                                        <input class="form-control"
+                                            type="email"
+                                            id="payerEmail"
+                                            name="payerEmail"
+                                            placeholder="ex: donation@example.com"
+                                            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$"
+                                            required />
+                                    </div>
+                                </div>
+                    
+                                <div class="row form-group">
+                                    <label class="col-12 col-sm-3 font-weight-bold control-label" for="payerPhone">
+                                        <span class="mr-1 text-danger">*</span>
+                                        <span>聯絡電話:</span>
+                                    </label>
+                                    <div class="col-12 col-sm-9">
+                                        <input class="form-control"
+                                            type="tel"
+                                            id="payerPhone"
+                                            name="payerPhone"
+                                            placeholder="ex: 0987123456"
+                                            pattern="^0\d{9,}$"
+                                            minlength="10"
+                                            maxlength="10"
+                                            required />
+                                    </div>
+                                </div>
+
+                                <div class="row form-group payer-address">
+                                    <label class="col-12 col-sm-3 font-weight-bold control-label" for="payerAddress">
+                                        <span class="mr-1 text-danger">*</span>
+                                        <span>地址:</span>
+                                    </label>
+                                    <div class="col-12 col-sm-9">
+                                        <div class="d-flex tw-zipcode" id="twZipcode"></div>
+                                        <input class="mt-2 form-control"
+                                            type="text"
+                                            id="payerAddress"
+                                            name="payerAddress"
+                                            placeholder="地址"
+                                            required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-100 p-3 text-center buttons-container">
+                        <button class="btn btn-primary btn-block btn-submit" type="submit">前往支付平台</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <% include ./dialog.ejs %>
+    <% include ./require_js.ejs %>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.3.3/js/swiper.min.js"></script>
+
+    <script>
+        !window.urlConfig && (window.urlConfig = {});
+        !window.urlConfig.apiUrl && (window.urlConfig.apiUrl = window.location.origin);
+
+        window.urlParams = (function getUrlParams() {
+            var pl = /\+/g;
+            var search = /([^&=]+)=?([^&]*)/g;
+            var query = window.location.search.substring(1);
+
+            function decode(s) {
+                return decodeURIComponent(s.replace(pl, ' '));
+            }
+
+            var match;
+            var urlParams = {};
+            while (match = search.exec(query)) {
+                urlParams[decode(match[1])] = decode(match[2]);
+            }
+            return urlParams;
+        })();
+
+        try {
+            window.payload = window.jwt_decode(window.urlParams.t);
+        } catch (ex) {
+            window.payload = null;
+        }
+
+        window.methods = (function() {
+            var $dialogModal = $('#dialogModal');
+            var $dialogText = $dialogModal.find('#textContent');
+            var $donationForm = $('#donationForm');
+
+            function appendInvoiceRow() {
+                var $invoiceRow = $(
+                    '<div class="card invoice-row" id="invoiceRow">' +
+                        '<div class="card-header">' +
+                            '<span>收據資料</span>' +
+                        '</div>' +
+                        '<div class="card-body">' +
+                            '<div class="row form-group">' +
+                                '<label class="col-12 col-sm-3 font-weight-bold control-label" for="taxId">' +
+                                    '<span>統一編號:</span>' +
+                                '</label>' +
+                                '<div class="col-12 col-sm-9">' +
+                                    '<input class="form-control"' +
+                                        'type="text"' +
+                                        'id="taxId"' +
+                                        'name="taxId"' +
+                                        'placeholder="請輸入統一編號"' +
+                                        'minlength="8"' +
+                                        'maxlength="8" />' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>'
+                );
+                $donationForm.find('.data-container').append($invoiceRow);
+            }
+
+            /**
+             * 台灣公司統一編號驗證判斷
+             * @param {string} taxId
+             */
+            function taxIdValidationForTW(taxId) {
+                // 共 8 位，全部為數字型態
+                var atLeast8Digits = /^\d{8}$/;
+                if (!atLeast8Digits.test(taxId)) {
+                    return false;
+                }
+
+                // 各數字分別乘以 1,2,1,2,1,2,4,1
+                // 例：統一編號為 53212539
+                //
+                // Step1 將統編每位數乘以一個固定數字固定值
+                //   5   3   2   1   2   5   3   9
+                // x 1   2   1   2   1   2   4   1
+                // ================================
+                //   5   6   2   2   2  10  12   9
+
+                var numArray = [1, 2, 1, 2, 1, 2, 4, 1];
+                var sum = taxId.split('').reduce(function(output, taxIdChat, i) {
+                    var n = parseInt(taxIdChat, 10) * numArray[i];
+
+                    // Step2 將所得值取出十位數及個位數
+                    // 十位數 個位數
+                    //   0      5
+                    //   0      6
+                    //   0      2
+                    //   0      2
+                    //   0      2
+                    //   1      0
+                    //   1      2
+                    //   0      9
+                    //
+                    // 並將十位數與個位數全部結果值加總
+                    output += Math.floor(n / 10) + (n % 10);
+                    return output;
+                }, 0);
+
+                // Step3 判斷結果
+                // 第一種: 加總值取 10 的餘數為 0
+                // 第二種: 加總值取 10 的餘數等於 9 而且統編的倒數第 2 位為 7
+                return 0 === sum % 10 || (9 === sum % 10 && 7 === parseInt(taxId.charAt(taxId.length - 2), 10));
+            }
+
+            /**
+             * 台灣身分證字號驗證
+             * @param {string} identity
+             */
+            function idValidationForTW(identity) {
+                identity = identity.toUpperCase();
+
+                if (10 !== identity.length) {
+                    return false;
+                }
+
+                var firstChatTab = 'ABCDEFGHJKLMNPQRSTUVXYWZIO';
+                var i = firstChatTab.indexOf(identity.charAt(0));
+                if (-1 === i) {
+                    return false;
+                }
+
+                var array1 = [1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3];
+                var array2 = [0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5];
+                var mux = [9,8,7,6,5,4,3,2,1,1];
+                var sum = array1[i] + (array2[i] * 9);
+
+                for (i = 1; i < 10; i++) {
+                    var v = parseInt(identity.charAt(i));
+                    if (isNaN(v)) {
+                        return false;
+                    }
+                    sum += v * mux[i];
+                }
+
+                if (0 !== sum % 10) {
+                    return false;
+                }
+                return true;
+            }
+
+            return {
+                getRequiredData: function(cb) {
+                    $.ajax({
+                        url: window.urlConfig.apiUrl + '/api/database/consumers-form/apps/' + window.urlParams.aid + '/consumers/' + window.payload.uid,
+                        type: 'GET',
+                        cache: false,
+                        dataType: 'json',
+                        headers: {
+                            Authorization: window.urlParams.t,
+                        },
+                        success: function(res) {
+                            cb && cb(void 0, res);
+                        },
+                        error: function(err) {
+                            console.error(err);
+                            cb && cb(err);
+                        }
+                    });
+                },
+                postPayment: function(params, cb) {
+                    $.ajax({
+                        url: window.urlConfig.apiUrl + '/payment/submit?aid=' + window.urlParams.aid + '&cid=' + window.payload.uid,
+                        type: 'POST',
+                        data: JSON.stringify(params),
+                        dataType: 'html',
+                        cache: false,
+                        headers: {
+                            'Authorization': window.urlParams.t,
+                            'Content-Type': 'application/json'
+                        },
+                        success: function(res) {
+                            cb && cb(void 0, res);
+                        },
+                        error: function(err) {
+                            console.error(err);
+                            cb && cb(err);
+                        }
+                    });
+                },
+                submitForm: function(cb) {
+                    var amount = parseInt($donationForm.find('#donateAmount').val());
+
+                    var payerName = $donationForm.find('#payerName').val();
+                    var payerEmail = $donationForm.find('#payerEmail').val() || '';
+                    var payerPhone = $donationForm.find('#payerPhone').val();
+                    var payerCounty = $donationForm.find('.payer-address select[name="county"]').val() || '';
+                    var payerDistrict = $donationForm.find('.payer-address select[name="district"]').val() || '';
+                    var payerAddress = payerCounty + payerDistrict + ($donationForm.find('.payer-address [name="payerAddress"]').val() || '');
+
+                    var hasRequestInvoice = 'YES' === $donationForm.find('.btn-invoice.active').data('invoice');
+
+                    /** @type {Chatshier.Controllers.PaymentSubmit} */
+                    var paymentParam = {
+                        tradeDescription: '捐款',
+                        itemName: '捐款 ' + amount + ' 元',
+                        itemCount: 1,
+                        itemUnitPrice: amount,
+                        itemUnit: '次',
+                        itemRemark: '',
+                        amount: amount,
+                        payerName: payerName,
+                        payerEmail: payerEmail,
+                        payerPhone: payerPhone,
+                        payerAddress: payerAddress,
+                        hasRequestInvoice: hasRequestInvoice
+                    };
+
+                    if (hasRequestInvoice) {
+                        paymentParam.taxId = $donationForm.find('#taxId').val() || '';
+                    }
+
+                    window.methods.postPayment(paymentParam, cb);
+                },
+                showDialog: function(textContent, noCancel, cb) {
+                    var isOK = false;
+                    $dialogText.text(textContent)
+
+                    if (noCancel) {
+                        $dialogModal.find('.btn-secondary').addClass('d-none');
+                    } else {
+                        $dialogModal.find('.btn-secondary').removeClass('d-none');
+                    }
+
+                    $dialogModal.find('.btn-primary').off('click').on('click', function() {
+                        isOK = true;
+                        $dialogModal.modal('hide');
+                    });
+
+                    $dialogModal.off('hidden.bs.modal').on('hidden.bs.modal', function() {
+                        ('function' === typeof cb) && cb(isOK);
+                    });
+
+                    $dialogModal.modal({ backdrop: false, show: true });
+                },
+                closeForm: function() {
+                    document.body.innerHTML = '';
+                },
+                initRequiredRows: function(messager) {
+                    $donationForm.find('#payerName').val((messager.namings && messager.namings[window.payload.uid]) || '');
+                    $donationForm.find('#payerEmail').val(messager.email || '');
+                    $donationForm.find('#payerPhone').val(messager.phone || '');
+                    var $twZipcode = $donationForm.find('#twZipcode');
+                    $twZipcode.twzipcode({
+                        zipcodeIntoDistrict: false,
+                        zipcodeSel: '',
+                        countySel: messager.county || '',
+                        districtSel: messager.district || '',
+                        css: ['form-control col-xs-6', 'form-control col-xs-6', 'd-none']
+                    });
+                    $twZipcode.find('.payer-address [name="county"]').attr('required', '');
+                    $twZipcode.find('.payer-address [name="district"]').attr('required', '');
+                    $donationForm.find('.payer-address [name="payerAddress"]').val((messager.address || '').replace(messager.county, '').replace(messager.district, ''));
+
+                    if (window.urlParams && '1' === window.urlParams.cii) {
+                        $donationForm.find('.data-container').append(
+                            '<div class="card">' +
+                                '<div class="card-header">' +
+                                    '<span>收據</span>' +
+                                '</div>' +
+                                '<div class="card-body">' +
+                                    '<button class="btn btn-light btn-invoice active" type="button" data-invoice="YES">需要</button>' +
+                                    '<button class="btn btn-light btn-invoice" type="button" data-invoice="NO">不需要</button>' +
+                                '</div>' +
+                            '</div>'
+                        );
+                        appendInvoiceRow();
+                    }
+
+                    $('#loadingIcon').remove();
+                    $('#pageTitle').removeClass('d-none');
+                    $donationForm.removeClass('d-none').addClass('d-flex');
+                },
+                initEvents: function() {
+                    $donationForm.on('click', '.btn-amount', function(ev) {
+                        var $targetBtn = $(ev.target);
+                        $donationForm.find('#donateAmount').val($targetBtn.data('amount'));
+                    });
+
+                    $donationForm.on('click', '.btn-invoice', function(ev) {
+                        var $targetBtn = $(ev.target);
+                        $targetBtn.addClass('active').siblings().removeClass('active');
+
+                        if ('YES' === $targetBtn.data('invoice')) {
+                            appendInvoiceRow();
+                        } else {
+                            $donationForm.find('.data-container .invoice-row').remove();
+                        }
+                    });
+
+                    $donationForm.on('submit', function(ev) {
+                        ev.preventDefault();
+
+                        var hasRequestInvoice = 'YES' === $donationForm.find('.btn-invoice.active').data('invoice');
+                        if (hasRequestInvoice) {
+                            var taxId = $donationForm.find('#taxId').val();
+                            if (taxId && !idValidationForTW(taxId)) {
+                                return methods.showDialog('請填入正確的統一編號格式', true);
+                            }
+                        }
+
+                        methods.showDialog('資料填寫無誤，確定送出嗎？', false, function(isOK) {
+                            if (!isOK) {
+                                return;
+                            }
+                            
+                            $donationForm.find('.btn-submit').attr('disabled', true);
+                            methods.submitForm(function(err, plainHtml) {
+                                if (err) {
+                                    methods.showDialog('發生錯誤！請聯絡客服人員', true);
+                                    $donationForm.find('.btn-submit').removeAttr('disabled');
+                                    return;
+                                }
+
+                                var $paymentForm = $(plainHtml).addClass('d-none');
+                                $(document.body).append($paymentForm);
+                                $paymentForm.submit();
+                            });
+                        });
+                    });
+                }
+            };
+        })();
+    </script>
+
+    <script>
+        (function() {
+            var methods = window.methods;
+
+            if (!window.urlParams.aid || !(window.payload && window.payload.uid) || (window.payload && window.payload.exp < Date.now())) {
+                $('.swiper-container').remove();
+                methods.showDialog('此連結已無效！請關閉頁面，重新操作', true, methods.closeForm);
+                return;
+            }
+
+            $(document).ready(initialForm);
+            function initialForm() {
+                var $dialogModal = $('#dialogModal')
+                var $donationForm = $('#donationForm');
+
+                var formSwiper = new Swiper('.swiper-container', {
+                    loop: false,
+                    allowSlideNext: false
+                });
+                $('.swiper-slide').removeAttr('style');
+
+                var $formSwiper = $(formSwiper.el);
+                $formSwiper.on('click', '.btn-next', function() {
+                    $formSwiper.off('click', '.btn-next');
+                    formSwiper.allowSlideNext = true;
+                    formSwiper.allowSlidePrev = false;
+                    formSwiper.slideNext();
+
+                    methods.getRequiredData(function(err, resJson) {
+                        $('#loadingIcon').remove();
+                        if (err) {
+                            methods.showDialog('資料載入失敗！請聯絡客服人員', true, methods.closeForm);
+                            return;
+                        }
+
+                        var messager = resJson.data && (resJson.data.messager || {});
+                        methods.initRequiredRows(messager);
+                        methods.initEvents();
+                    });
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>

@@ -892,184 +892,191 @@ module.exports = (function() {
         /**
          * @param {string} recipientUid
          * @param {any} message
-         * @param {Buffer} srcBuffer
+         * @param {Buffer} [srcBuffer]
          * @param {string} appId
-         * @param {Chatshier.Models.App} app
+         * @param {Chatshier.Models.App} [app]
          */
         pushMessage(recipientUid, message, srcBuffer, appId, app) {
-            let bot = this.bots[appId];
-            switch (app.type) {
-                case LINE:
-                    let messages = [];
-                    if ('text' === message.type) {
-                        messages.push({
-                            type: message.type,
-                            text: message.text
-                        });
-                    }
+            return this._protectApps(appId, app).then((_app) => {
+                app = _app;
+                return this._protectBot(appId, app);
+            }).then((_bot) => {
+                let bot = _bot;
+                let appType = app ? app.type : '';
 
-                    if ('image' === message.type) {
-                        messages.push({
-                            type: message.type,
-                            previewImageUrl: message.src,
-                            originalContentUrl: message.src
-                        });
-                    }
-
-                    if ('audio' === message.type) {
-                        messages.push({
-                            type: message.type,
-                            duration: message.duration ? message.duration : 240000,
-                            originalContentUrl: message.src
-                        });
-                    }
-
-                    if ('video' === message.type) {
-                        messages.push({
-                            type: message.type,
-                            previewImageUrl: chatshierCfg.LINE.PREVIEW_IMAGE_URL,
-                            originalContentUrl: message.src
-                        });
-                    }
-
-                    if ('sticker' === message.type) {
-                        let stickerStr = message.text;
-                        messages.push({
-                            type: message.type,
-                            stickerId: stickerStr.substr(stickerStr.lastIndexOf(' ')),
-                            packageId: stickerStr.substr(stickerStr.indexOf(' '))
-                        });
-                    }
-
-                    if ('file' === message.type) {
-                        let textSplits = message.text.split('\n');
-                        let fileTitle = textSplits.shift();
-
-                        messages.push({
-                            type: 'text',
-                            text: message.text
-                        }, {
-                            type: 'imagemap',
-                            baseUrl: chatshierCfg.LINE.DOWNLOAD_IMAGE_URL,
-                            altText: fileTitle,
-                            baseSize: {
-                                height: 1040,
-                                width: 1040
-                            },
-                            actions: [{
-                                type: 'uri',
-                                linkUri: message.src,
-                                area: {
-                                    x: 0,
-                                    y: 0,
-                                    width: 1040,
-                                    height: 1040
-                                }
-                            }]
-                        });
-                    }
-
-                    if ('imagemap' === message.type) {
-                        messages.push({
-                            type: message.type,
-                            baseUrl: message.baseUrl,
-                            altText: message.altText,
-                            baseSize: message.baseSize,
-                            actions: message.actions
-                        });
-                    }
-
-                    return bot.pushMessage(recipientUid, messages);
-                case FACEBOOK:
-                    if ('text' === message.type) {
-                        return bot.sendTextMessage(recipientUid, message.text);
-                    }
-
-                    if ('image' === message.type) {
-                        return bot.sendImageMessage(recipientUid, message.src, true);
-                    }
-
-                    if ('audio' === message.type) {
-                        return bot.sendAudioMessage(recipientUid, message.src, true);
-                    }
-
-                    if ('video' === message.type) {
-                        return bot.sendVideoMessage(recipientUid, message.src, true);
-                    }
-
-                    if ('file' === message.type) {
-                        return bot.sendFileMessage(recipientUid, message.src, true);
-                    }
-                    return bot.sendTextMessage(recipientUid, message.text);
-                case WECHAT:
-                    return Promise.resolve().then(() => {
-                        if (message.src && srcBuffer) {
-                            // wechat 在傳送多媒體資源時，必須先將資源上傳至 wechat 伺服器
-                            // 成功上傳後會取得 media_id, 使用此 ID 來發送多媒體訊息
-                            // 暫時性的多媒體檔案只會在 wechat 伺服器裡存在 3 天後就會被 wechat 刪除
-                            return new Promise((resolve, reject) => {
-                                bot.getToken((err, token) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
-                                    }
-                                    resolve(token);
-                                });
-                            }).then((token) => {
-                                let filename = message.src.split('/').pop();
-                                let mediaType = message.type;
-                                if ('audio' === mediaType) {
-                                    mediaType = 'voice';
-                                }
-                                return wechatSvc.uploadMedia(mediaType, srcBuffer, filename, token.accessToken);
+                switch (appType) {
+                    case LINE:
+                        let messages = [];
+                        if ('text' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                text: message.text
                             });
                         }
-                    }).then((mediaResult) => {
-                        return new Promise((resolve, reject) => {
-                            if (!mediaResult) {
-                                bot.sendText(recipientUid, message.text, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
-                                    }
-                                    resolve(result);
-                                });
-                                return;
-                            }
 
-                            if ('image' === message.type) {
-                                bot.sendImage(recipientUid, mediaResult.media_id, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
+                        if ('image' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                previewImageUrl: message.src,
+                                originalContentUrl: message.src
+                            });
+                        }
+
+                        if ('audio' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                duration: message.duration ? message.duration : 240000,
+                                originalContentUrl: message.src
+                            });
+                        }
+
+                        if ('video' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                previewImageUrl: chatshierCfg.LINE.PREVIEW_IMAGE_URL,
+                                originalContentUrl: message.src
+                            });
+                        }
+
+                        if ('sticker' === message.type) {
+                            let stickerStr = message.text;
+                            messages.push({
+                                type: message.type,
+                                stickerId: stickerStr.substr(stickerStr.lastIndexOf(' ')),
+                                packageId: stickerStr.substr(stickerStr.indexOf(' '))
+                            });
+                        }
+
+                        if ('file' === message.type) {
+                            let textSplits = message.text.split('\n');
+                            let fileTitle = textSplits.shift();
+
+                            messages.push({
+                                type: 'text',
+                                text: message.text
+                            }, {
+                                type: 'imagemap',
+                                baseUrl: chatshierCfg.LINE.DOWNLOAD_IMAGE_URL,
+                                altText: fileTitle,
+                                baseSize: {
+                                    height: 1040,
+                                    width: 1040
+                                },
+                                actions: [{
+                                    type: 'uri',
+                                    linkUri: message.src,
+                                    area: {
+                                        x: 0,
+                                        y: 0,
+                                        width: 1040,
+                                        height: 1040
                                     }
-                                    resolve();
-                                });
-                                return;
-                            } else if ('audio' === message.type) {
-                                bot.sendVoice(recipientUid, mediaResult.media_id, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
+                                }]
+                            });
+                        }
+
+                        if ('imagemap' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                baseUrl: message.baseUrl,
+                                altText: message.altText,
+                                baseSize: message.baseSize,
+                                actions: message.actions
+                            });
+                        }
+
+                        return bot.pushMessage(recipientUid, messages);
+                    case FACEBOOK:
+                        if ('text' === message.type) {
+                            return bot.sendTextMessage(recipientUid, message.text);
+                        }
+
+                        if ('image' === message.type) {
+                            return bot.sendImageMessage(recipientUid, message.src, true);
+                        }
+
+                        if ('audio' === message.type) {
+                            return bot.sendAudioMessage(recipientUid, message.src, true);
+                        }
+
+                        if ('video' === message.type) {
+                            return bot.sendVideoMessage(recipientUid, message.src, true);
+                        }
+
+                        if ('file' === message.type) {
+                            return bot.sendFileMessage(recipientUid, message.src, true);
+                        }
+                        return bot.sendTextMessage(recipientUid, message.text);
+                    case WECHAT:
+                        return Promise.resolve().then(() => {
+                            if (message.src && srcBuffer) {
+                                // wechat 在傳送多媒體資源時，必須先將資源上傳至 wechat 伺服器
+                                // 成功上傳後會取得 media_id, 使用此 ID 來發送多媒體訊息
+                                // 暫時性的多媒體檔案只會在 wechat 伺服器裡存在 3 天後就會被 wechat 刪除
+                                return new Promise((resolve, reject) => {
+                                    bot.getToken((err, token) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve(token);
+                                    });
+                                }).then((token) => {
+                                    let filename = message.src.split('/').pop();
+                                    let mediaType = message.type;
+                                    if ('audio' === mediaType) {
+                                        mediaType = 'voice';
                                     }
-                                    resolve();
+                                    return wechatSvc.uploadMedia(mediaType, srcBuffer, filename, token.accessToken);
                                 });
-                                return;
-                            } else if ('video' === message.type) {
-                                bot.sendVideo(recipientUid, mediaResult.media_id, mediaResult.thumb_media_id, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
-                                    }
-                                    resolve();
-                                });
-                                return;
-                            };
+                            }
+                        }).then((mediaResult) => {
+                            return new Promise((resolve, reject) => {
+                                if (!mediaResult) {
+                                    bot.sendText(recipientUid, message.text, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve(result);
+                                    });
+                                    return;
+                                }
+
+                                if ('image' === message.type) {
+                                    bot.sendImage(recipientUid, mediaResult.media_id, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve();
+                                    });
+                                    return;
+                                } else if ('audio' === message.type) {
+                                    bot.sendVoice(recipientUid, mediaResult.media_id, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve();
+                                    });
+                                    return;
+                                } else if ('video' === message.type) {
+                                    bot.sendVideo(recipientUid, mediaResult.media_id, mediaResult.thumb_media_id, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve();
+                                    });
+                                    return;
+                                };
+                            });
                         });
-                    });
-                default:
-                    return Promise.resolve();
-            }
+                    default:
+                        return Promise.resolve();
+                }
+            });
         }
 
         /**

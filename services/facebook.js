@@ -74,14 +74,13 @@ module.exports = (function() {
                         (res.headers['Content-Type'] && res.headers['Content-Type'].includes('application/json')) ||
                         (res.headers['content-type'] && res.headers['content-type'].includes('application/json')) ||
                         ('string' === typeof body && body.length > 0 &&
-                        (('{' === body[0] && '}' === body[body.length - 1]) || ('[' === body[0] && ']' === body[body.length - 1])));
-                    
+                        ((body.startsWith('{') && body.endsWith('}')) || (body.startsWith('[') && body.endsWith(']'))));
+
                     body = canParseJSON && 'string' === typeof body ? JSON.parse(body) : body;
 
                     if (error || res.statusCode >= 300) {
                         return reject(body);
                     }
-
                     resolve(body);
                 });
             });

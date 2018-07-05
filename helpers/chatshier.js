@@ -17,10 +17,19 @@ module.exports = (function() {
     const FACEBOOK = 'FACEBOOK';
     const SYSTEM = 'SYSTEM';
 
-    const PAYMENT_LOGOS = {
-        ECPay: 'https://www.ecpay.com.tw/Content/Themes/WebStyle20131201/images/header_logo.png',
-        Spgateway: 'https://www.spgateway.com/ud/img/logo.png'
-    };
+    // const ECPAY = 'ECPAY';
+    // const SPGATEWAY = 'SPGATEWAY';
+    // const PAYMENT_LOGOS = {
+    //     [ECPAY]: 'https://www.ecpay.com.tw/Content/Themes/WebStyle20131201/images/header_logo.png',
+    //     [SPGATEWAY]: 'https://www.spgateway.com/ud/img/logo.png'
+    // };
+
+    const POSTBACK_ACTIONS = Object.freeze({
+        CHANGE_RICHMENU: 'CHANGE_RICHMENU',
+        SEND_TEMPLATE: 'SEND_TEMPLATE',
+        SEND_CONSUMER_FORM: 'SEND_CONSUMER_FORM',
+        PAYMENT_CONFIRM: 'PAYMENT_CONFIRM'
+    });
 
     class ChatshierHelp {
         /**
@@ -49,13 +58,12 @@ module.exports = (function() {
 
                     /** @type {Webhook.Chatshier.PostbackData} */
                     let dataJson = JSON.parse(postback.data);
-                    let context = dataJson.context;
                     let serverAddr = webhookInfo.serverAddress;
                     let platformUid = webhookInfo.platformUid;
                     let url = serverAddr;
 
                     switch (dataJson.action) {
-                        case 'CHANGE_RICHMENU':
+                        case POSTBACK_ACTIONS.CHANGE_RICHMENU:
                             let richmenuId = dataJson.richmenuId || '';
                             let richmenuPromise = appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
                                 if (!(appsRichmenus && appsRichmenus[appId])) {
@@ -73,7 +81,7 @@ module.exports = (function() {
                             });
                             promises.push(richmenuPromise);
                             break;
-                        case 'SEND_TEMPLATE':
+                        case POSTBACK_ACTIONS.SEND_TEMPLATE:
                             let templateId = dataJson.templateId || '';
                             let templatePromise = appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
                                 if (!(appsTemplates && appsTemplates[appId])) {
@@ -90,7 +98,7 @@ module.exports = (function() {
                             });
                             promises.push(templatePromise);
                             break;
-                        case 'SEND_CONSUMER_FORM':
+                        case POSTBACK_ACTIONS.SEND_CONSUMER_FORM:
                             let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
                             url += '/consumer-form?aid=' + appId + '&t=' + token;
 
@@ -110,84 +118,8 @@ module.exports = (function() {
                             };
                             repliedMessages.push(formMessage);
                             break;
-                        case 'SEND_DONATE_OPTIONS':
-                            let donateMessage = {
-                                type: 'template',
-                                altText: '小額捐款金額選項',
-                                template: {
-                                    type: 'buttons',
-                                    imageSize: 'contain',
-                                    text: '點擊以下金額進行捐款動作',
-                                    /** @type {Chatshier.Models.TemplateAction[]} */
-                                    actions: []
-                                }
-                            };
-
-                            let donatePromise = appsPaymentsMdl.find(appId).then((appsPayments) => {
-                                if (!(appsPayments && appsPayments[appId])) {
-                                    return;
-                                }
-
-                                // 此 app 尚未設定任何金流服務，不處理此 postback
-                                let payment = Object.values(appsPayments[appId].payments).shift();
-                                if (!(payment && payment.type)) {
-                                    return;
-                                }
-
-                                PAYMENT_LOGOS[payment.type] && (donateMessage.template.thumbnailImageUrl = PAYMENT_LOGOS[payment.type]);
-                                switch (payment.type) {
-                                    case 'ECPay':
-                                        donateMessage.template.title = '綠界科技 ' + payment.type;
-                                        break;
-                                    case 'Spgateway':
-                                        donateMessage.template.title = '智付通 ' + payment.type;
-                                        break;
-                                    default:
-                                        break;
-                                }
-
-                                let donateAmounts = context ? context.donateAmounts || [] : [];
-                                for (let i in donateAmounts) {
-                                    let amount = donateAmounts[i] + ' ' + (context ? context.currency : '');
-                                    let _context = {
-                                        altText: '捐款確認',
-                                        templateText: '進行捐款 ' + amount
-                                    };
-
-                                    switch (payment.type) {
-                                        case 'ECPay':
-                                        case 'Spgateway':
-                                            _context.paymentId = payment._id;
-                                            _context.TotalAmount = donateAmounts[i];
-                                            _context.TradeDesc = '小額捐款';
-                                            _context.ItemName = '小額捐款 ' + amount;
-                                            break;
-                                        default:
-                                            break;
-                                    }
-
-                                    let postbackData = {
-                                        action: 'CONFIRM_PAYMENT',
-                                        context: _context
-                                    };
-
-                                    donateMessage.template.actions.push({
-                                        type: 'postback',
-                                        label: amount,
-                                        data: JSON.stringify(postbackData)
-                                    });
-                                }
-                                repliedMessages.push(donateMessage);
-                            });
-                            promises.push(donatePromise);
-                            break;
-                        case 'CONFIRM_PAYMENT':
-                            let paymentId = (context && context.paymentId) || '';
-                            if (!paymentId) {
-                                break;
-                            }
-
-                            // 當 consumer 確認付款時，檢查此 consumer 是否已經填寫完個人基本資料
+                        case POSTBACK_ACTIONS.PAYMENT_CONFIRM:
+                            // 當 consumer 付款時，檢查此 consumer 是否已經填寫完個人基本資料
                             // 如果沒有填寫完基本資料，則發送填寫基本資料模板給使用者
                             let confirmPromise = appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid).then((appsChatroomsMessagers) => {
                                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
@@ -198,13 +130,14 @@ module.exports = (function() {
                                 let chatroomId = Object.keys(chatrooms).shift() || '';
                                 let messager = chatrooms[chatroomId].messagers[platformUid];
 
-                                let isFinishProfile = (
+                                let hasFinishProfile = (
                                     messager.namings && messager.namings[platformUid] &&
                                     messager.email &&
-                                    messager.phone
+                                    messager.phone &&
+                                    messager.address
                                 );
 
-                                if (!isFinishProfile) {
+                                if (!hasFinishProfile) {
                                     let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
                                     url += '/consumer-form?aid=' + appId + '&t=' + token;
 
@@ -231,57 +164,38 @@ module.exports = (function() {
                                     return;
                                 }
 
-                                return appsPaymentsMdl.find(appId, paymentId).then((appsPayments) => {
+                                return appsPaymentsMdl.find(appId).then((appsPayments) => {
                                     if (!(appsPayments && appsPayments[appId])) {
-                                        return;
+                                        return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
                                     }
-
-                                    let payment = appsPayments[appId].payments[paymentId];
-                                    if (!(payment && payment.type)) {
-                                        return;
-                                    }
-
-                                    let url = serverAddr + '/payment/' + payment.type.toLowerCase();
-                                    switch (payment.type) {
-                                        case 'ECPay':
-                                            url += '/aio-check-out-all?';
-                                            break;
-                                        case 'Spgateway':
-                                            url += '/multi-payment-gateway?';
-                                            break;
-                                        default:
-                                            break;
-                                    }
-
-                                    url += (
-                                        'aid=' + appId + '&' +
-                                        'cid=' + platformUid + '&' +
-                                        'pid=' + (context ? context.paymentId : '') + '&' +
-                                        'amount=' + encodeURIComponent(context ? context.TotalAmount || '' : '') + '&' +
-                                        'desc=' + encodeURIComponent(context ? context.TradeDesc || '' : '') + '&' +
-                                        'iname=' + encodeURIComponent(context ? context.ItemName || '' : '') + '&' +
-                                        'ts=' + Date.now()
-                                    );
-
-                                    let confirmMessage = {
-                                        type: 'template',
-                                        altText: context && context.altText,
-                                        template: {
-                                            type: 'confirm',
-                                            text: context && context.templateText,
-                                            actions: [{
-                                                type: 'uri',
-                                                label: '是',
-                                                uri: url
-                                            }, {
-                                                type: 'postback',
-                                                label: '否',
-                                                data: JSON.stringify({ action: 'CANCEL_PAYMENT' })
-                                            }]
-                                        }
-                                    };
-                                    repliedMessages.push(confirmMessage);
+                                    return Promise.resolve(Object.values(appsPayments[appId].payments).shift());
                                 });
+                            }).then((payment) => {
+                                if (!payment) {
+                                    return;
+                                }
+
+                                let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+                                url += '/donation-confirm?aid=' + appId + '&t=' + token;
+                                if (payment.canIssueInvoice) {
+                                    url += '&cii=1';
+                                }
+
+                                let linkMessage = {
+                                    type: 'template',
+                                    altText: '捐款連結訊息',
+                                    template: {
+                                        type: 'buttons',
+                                        title: '捐款連結',
+                                        text: '開啟以下連結前往捐款資料確認',
+                                        actions: [{
+                                            type: 'uri',
+                                            label: '按此開啟',
+                                            uri: url
+                                        }]
+                                    }
+                                };
+                                repliedMessages.push(linkMessage);
                             });
                             promises.push(confirmPromise);
                             break;
