@@ -214,6 +214,8 @@ module.exports = (function() {
                     return appsGreetingsMdl.findGreetings(appId);
                 }
                 return Promise.resolve({});
+            }).then((greetings) => {
+                return this._prepareReplies(appId, greetings);
             });
 
             /** @type {Chatshier.Models.Keywordreplies} */

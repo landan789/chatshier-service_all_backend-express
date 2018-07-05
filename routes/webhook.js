@@ -26,6 +26,7 @@ const router = express.Router();
 const LINE = 'LINE';
 const FACEBOOK = 'FACEBOOK';
 const CHATSHIER = 'CHATSHIER';
+const SYSTEM = 'SYSTEM';
 
 const SKIP_PROCESS_APP = 'SKIP_PROCESS_APP';
 
@@ -404,7 +405,9 @@ router.post('/:webhookid', (req, res, next) => {
                     }
                     _messages = messages;
                     let messageId = Object.keys(messages).shift() || '';
-                    if (webhookChatroomId && messageId && messages[messageId] && messages[messageId].src.includes(storageHlp.sharedLinkPrefix)) {
+                    if (webhookChatroomId && messageId &&
+                        messages[messageId] && messages[messageId].src.includes(storageHlp.sharedLinkPrefix) &&
+                        SYSTEM !== messages[messageId].from) {
                         toPath = `/apps/${appId}/chatrooms/${webhookChatroomId}/messages/${messageId}/src${fromPath}`;
                         return storageHlp.filesMoveV2(fromPath, toPath);
                     }

@@ -62,6 +62,7 @@ window.ReplyMessageSelector = (function() {
                 '</div>'
             );
             this.$selectContainer.append(this.$replyContentWrapper);
+            this.$selectContainer.find('[data-toggle="tooltip"]').tooltip();
 
             let $replyItem = this.$selectContainer.find('.reply-item[reply-type="' + replyType + '"]');
             $replyItem.addClass('active').siblings().removeClass('active');

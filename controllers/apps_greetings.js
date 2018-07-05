@@ -65,11 +65,12 @@ module.exports = (function() {
 
         postOne(req, res) {
             let appId = req.params.appid;
-            let type = req.body.type;
-            let text = req.body.text;
             let postGreeting = {
-                type: type,
-                text: text
+                type: req.body.type || '',
+                text: req.body.text || '',
+                src: req.body.src || '',
+                template_id: req.body.template_id || '',
+                imagemap_id: req.body.imagemap_id || ''
             };
 
             return this.appsRequestVerify(req).then(() => {
@@ -93,13 +94,13 @@ module.exports = (function() {
         putOne(req, res) {
             let appId = req.params.appid;
             let greetingId = req.params.greetingid;
-            let type = req.body.type;
-            let text = req.body.text;
 
-            let putGreeting = {
-                type,
-                text
-            };
+            let putGreeting = {};
+            ('string' === typeof req.body.type) && (putGreeting.type = req.body.type);
+            ('string' === typeof req.body.text) && (putGreeting.text = req.body.text);
+            ('string' === typeof req.body.src) && (putGreeting.src = req.body.src);
+            ('string' === typeof req.body.template_id) && (putGreeting.template_id = req.body.template_id);
+            ('string' === typeof req.body.imagemap_id) && (putGreeting.imagemap_id = req.body.imagemap_id);
 
             return this.appsRequestVerify(req).then(() => {
                 if (!greetingId) {

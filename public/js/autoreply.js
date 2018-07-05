@@ -298,7 +298,7 @@ let PeriodComponent = (function() {
 
         let periodCmp = new PeriodComponent($autoreplyModal);
         let ReplyMessageSelector = window.ReplyMessageSelector;
-        let replyMessageSelect = new ReplyMessageSelector(document.getElementById('rowOfPeriod'));
+        let replyMessageSelect = new ReplyMessageSelector($autoreplyModal.find('#rowOfPeriod').get(0));
         replyMessageSelect.userId = userId;
 
         replyMessageSelect.onReplyItemChange = function(replyType) {

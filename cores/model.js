@@ -123,7 +123,10 @@ module.exports = (function() {
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
-        'createdTime': {type: Date, default: Date.now()}
+        'createdTime': {type: Date, default: Date.now()},
+        'src': {type: String, default: ''},
+        'template_id': {type: String, default: ''},
+        'imagemap_id': {type: String, default: ''}
     });
 
     const TemplatesSchema = new Schema({

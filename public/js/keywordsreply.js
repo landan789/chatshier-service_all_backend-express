@@ -53,17 +53,17 @@
     $jqDoc.on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
     (function() {
-        let modalAppId;
-        let modalKeywordreplyId;
-        /** @type {Chatshier.Models.Keywordreply} */
-        let modalKeywordreply;
-
         let $keywordreplyModal = $('#keywordreplyModal');
         let $modalAppSelect = $keywordreplyModal.find('.modal-body select[name="keywordreplyAppName"]');
 
         let ReplyMessageSelector = window.ReplyMessageSelector;
-        let replyMessageSelect = new ReplyMessageSelector(document.getElementById('rowOfKeyword'));
+        let replyMessageSelect = new ReplyMessageSelector($keywordreplyModal.find('#rowOfKeyword').get(0));
         replyMessageSelect.userId = userId;
+
+        let modalAppId;
+        let modalKeywordreplyId;
+        /** @type {Chatshier.Models.Keywordreply} */
+        let modalKeywordreply;
 
         replyMessageSelect.onReplyItemChange = function(replyType) {
             if (!modalKeywordreply) {
@@ -76,7 +76,6 @@
             'template' === replyType && modalKeywordreply.template_id && replyMessageSelect.setTemplate(modalKeywordreply.template_id);
         };
 
-        $keywordreplyModal.find('[data-toggle="tooltip"]').tooltip();
         $modalAppSelect.on('change', function() {
             replyMessageSelect.appId = modalAppId = $modalAppSelect.val();
             replyMessageSelect.reset();
