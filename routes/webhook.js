@@ -337,7 +337,7 @@ router.post('/:webhookid', (req, res, next) => {
                     // 待訊息回覆後直接做 http response
                     return botSvc.replyMessage(res, platformUid, replyToken, repliedMessages, appId, app);
                 }).then(() => {
-                    return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
+                    return chatshierHlp.getKeywordreplies(receivedMessages, appId);
                 }).then((keywordreplies) => {
                     return Promise.all(keywordreplies.map((keywordreply) => {
                         return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);

@@ -301,15 +301,15 @@ let PeriodComponent = (function() {
         let replyMessageSelect = new ReplyMessageSelector($autoreplyModal.find('#rowOfPeriod').get(0));
         replyMessageSelect.userId = userId;
 
-        replyMessageSelect.onReplyItemChange = function(replyType) {
+        replyMessageSelect.onReplyItemChange = (replyType, _selector) => {
             if (!modalAutoreply) {
                 return;
             }
 
-            'text' === replyType && modalAutoreply.text && replyMessageSelect.setMessageText(modalAutoreply.text);
-            'image' === replyType && modalAutoreply.src && replyMessageSelect.setImageSrc(modalAutoreply.src);
-            'imagemap' === replyType && modalAutoreply.imagemap_id && replyMessageSelect.setImageMap(modalAutoreply.imagemap_id);
-            'template' === replyType && modalAutoreply.template_id && replyMessageSelect.setTemplate(modalAutoreply.template_id);
+            'text' === replyType && modalAutoreply.text && _selector.setMessageText(modalAutoreply.text);
+            'image' === replyType && modalAutoreply.src && _selector.setImageSrc(modalAutoreply.src);
+            'imagemap' === replyType && modalAutoreply.imagemap_id && _selector.setImageMap(modalAutoreply.imagemap_id);
+            'template' === replyType && modalAutoreply.template_id && _selector.setTemplate(modalAutoreply.template_id);
         };
 
         let $autoreplySdtInput = $autoreplySdtPicker.find('input[name="startDatetime"]');
@@ -344,6 +344,10 @@ let PeriodComponent = (function() {
         $modalAppSelect.on('change', function() {
             replyMessageSelect.appId = modalAppId = $modalAppSelect.val();
             replyMessageSelect.reset();
+
+            let shouldShow = 'FACEBOOK' !== apps[modalAppId].type;
+            replyMessageSelect.toggleImageMap(shouldShow);
+            replyMessageSelect.toggleTemplate(shouldShow);
         });
 
         function showPeriodElem() {

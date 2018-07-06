@@ -215,7 +215,7 @@ module.exports = (function() {
                 }
                 return Promise.resolve({});
             }).then((greetings) => {
-                return this._prepareReplies(appId, greetings);
+                return this.prepareReplies(appId, greetings);
             });
 
             /** @type {Chatshier.Models.Keywordreplies} */
@@ -237,7 +237,7 @@ module.exports = (function() {
                     return _keywordreplies;
                 });
             })).then(() => {
-                return this._prepareReplies(appId, keywordreplies);
+                return this.prepareReplies(appId, keywordreplies);
             });
 
             return Promise.all([
@@ -319,7 +319,7 @@ module.exports = (function() {
                             return autoreplies;
                         });
                     }).then((autoreplies) => {
-                        return this._prepareReplies(appId, autoreplies);
+                        return this.prepareReplies(appId, autoreplies);
                     }).then((_autoreplies) => {
                         return repliedMessages.concat(
                             Object.keys(_autoreplies).map((autoreplyId) => {
@@ -332,7 +332,7 @@ module.exports = (function() {
             });
         }
 
-        getKeywordreplies(messages, appId, app) {
+        getKeywordreplies(messages, appId) {
             let keywordreplies = {};
             return Promise.all(messages.map((message) => {
                 let eventType = message.eventType || message.type;
@@ -354,11 +354,18 @@ module.exports = (function() {
             });
         }
 
-        _prepareReplies(appId, replies) {
+        /**
+         * @param {string} appId
+         * @param {any} replies
+         */
+        prepareReplies(appId, replies) {
             return Promise.all(Object.keys(replies).map((replyId) => {
                 let reply = replies[replyId];
                 switch (reply.type) {
                     case 'template':
+                        if (reply.template) {
+                            return Promise.resolve();
+                        }
                         let templateId = reply.template_id;
                         return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
                             // 此關鍵字回覆的模板訊息可能已被刪除或找不到，因此刪除回復訊息
@@ -370,6 +377,9 @@ module.exports = (function() {
                             Object.assign(replies[replyId], template);
                         });
                     case 'imagemap':
+                        if (reply.baseUrl) {
+                            return Promise.resolve();
+                        }
                         let imagemapId = reply.imagemap_id;
                         return appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
                             // 此關鍵字回覆的圖文訊息可能已被刪除或找不到，因此刪除回復訊息

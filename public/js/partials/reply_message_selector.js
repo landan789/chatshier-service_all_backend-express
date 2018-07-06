@@ -25,10 +25,18 @@ window.ReplyMessageSelector = (function() {
             this.appsImagemaps = options.appsImagemaps || {};
             this.appsTemplates = options.appsTemplates || {};
 
-            /** @type {(replyType: 'text' | 'image' | 'imagemap' | 'template') => any} */
+            /** @type {(replyType: 'text' | 'image' | 'imagemap' | 'template', selector: ReplyMessageSelector) => any} */
             this.onReplyItemChange = void 0;
 
-            this.$selectContainer = $('<div class="form-group"></div>');
+            /** @type {(selector: ReplyMessageSelector) => any} */
+            this.onDestroy = void 0;
+
+            this.$selectContainer = $('<div class="card form-group"></div>');
+            if (!this.isLabelHide) {
+                let $containerLabel = $('<label class="font-weight-bold">回覆內容:</label>');
+                $containerLabel.insertAfter(insertAfterElem);
+                insertAfterElem = $containerLabel.get(0);
+            }
             this.$selectContainer.insertAfter(insertAfterElem);
             this.reset();
 
@@ -42,11 +50,18 @@ window.ReplyMessageSelector = (function() {
             this.$selectContainer.on('click', '.btn-remove', this.destroy.bind(this));
         }
 
+        get containerElement() {
+            return this.$selectContainer && this.$selectContainer.get(0);
+        }
+
         destroy() {
             this.$replyContentWrapper.remove();
             this.$selectContainer.remove();
-            this.$selectContainer = this.$replyContentWrapper = this.onReplyItemChange =
+            this.$selectContainer = this.$replyContentWrapper =
             this.appsImagemaps = this.appsTemplates = this.appId = this.userId = void 0;
+
+            ('function' === typeof this.onDestroy) && this.onDestroy(this);
+            this.onReplyItemChange = this.onDestroy = void 0;
         }
 
         /**
@@ -58,26 +73,25 @@ window.ReplyMessageSelector = (function() {
                 return Promise.resolve();
             }
 
-            this.$replyContentWrapper = $('<div class="w-100 input-container" id="replyContentWrapper"></div>');
+            this.$replyContentWrapper = $('<div class="w-100 card-body" id="replyContentWrapper"></div>');
             this.$selectContainer.html(
-                (this.isLabelHide ? '' : '<label class="font-weight-bold">回覆內容:</label>') +
-                '<div class="w-100 d-flex flex-nowrap flex-row align-items-center mb-2">' +
+                '<div class="w-100 p-2 card-header d-flex align-items-center">' +
                     '<div class="w-100 btn-group reply-content-select" id="replyContentSelect">' +
-                        '<button type="button" class="btn btn-info reply-item" reply-type="text" data-toggle="tooltip" data-placement="top" title="文字">' +
-                            '<i class="fas fa-text-height fa-2x"></i>' +
+                        '<button type="button" class="btn btn-light reply-item" reply-type="text" data-toggle="tooltip" data-placement="top" title="文字">' +
+                            '<i class="fas fa-text-height"></i>' +
                         '</button>' +
-                        '<button type="button" class="btn btn-info reply-item" reply-type="image" data-toggle="tooltip" data-placement="top" title="圖像">' +
-                            '<i class="fas fa-image fa-2x"></i>' +
+                        '<button type="button" class="btn btn-light reply-item" reply-type="image" data-toggle="tooltip" data-placement="top" title="圖像">' +
+                            '<i class="fas fa-image"></i>' +
                         '</button>' +
-                        '<button type="button" class="btn btn-info reply-item" reply-type="imagemap" data-toggle="tooltip" data-placement="top" title="圖文訊息">' +
-                            '<i class="fas fa-map fa-2x"></i>' +
+                        '<button type="button" class="btn btn-light reply-item" reply-type="imagemap" data-toggle="tooltip" data-placement="top" title="圖文訊息">' +
+                            '<i class="fas fa-map"></i>' +
                         '</button>' +
-                        '<button type="button" class="btn btn-info reply-item" reply-type="template" data-toggle="tooltip" data-placement="top" title="模板訊息">' +
-                            '<i class="fas fa-clipboard-list fa-2x"></i>' +
+                        '<button type="button" class="btn btn-light reply-item" reply-type="template" data-toggle="tooltip" data-placement="top" title="模板訊息">' +
+                            '<i class="fas fa-clipboard-list"></i>' +
                         '</button>' +
                     '</div>' +
                     (this.isRemoveButtonShow ? '<div class="btn-group">' +
-                        '<button type="button" class="btn btn-outline-danger btn-sm btn-remove" data-toggle="tooltip" data-placement="top" title="刪除" style="border-radius: 50%;">' +
+                        '<button type="button" class="btn btn-outline-danger btn-sm btn-remove" style="width: 2rem; height: 2rem; border-radius: 50%;">' +
                             '<i class="fas fa-times"></i>' +
                         '</button>' +
                     '</div>' : '') +
@@ -93,11 +107,14 @@ window.ReplyMessageSelector = (function() {
 
         getJSON() {
             if (!this.$selectContainer) {
-                return {};
+                return Promise.resolve({});
             }
 
             let replyType = this.$selectContainer.find('.reply-item.active').attr('reply-type');
-            let replyText = this.$replyContentWrapper.find('[name="messageText"]').val() || '';
+
+            let $messageText = this.$replyContentWrapper.find('[name="messageText"]');
+            let emojioneAreaData = $messageText.data('emojioneArea');
+            let replyText = emojioneAreaData ? emojioneAreaData.getText() || '' : '';
             let replySrc = this.$replyContentWrapper.find('.image-container img').prop('src') || '';
 
             let json = {
@@ -151,7 +168,11 @@ window.ReplyMessageSelector = (function() {
             if (!this.$replyContentWrapper) {
                 return;
             }
-            return this.$replyContentWrapper.find('[name="messageText"]').val(text);
+
+            let $messageText = this.$replyContentWrapper.find('[name="messageText"]');
+            let emojioneAreaData = $messageText.data('emojioneArea');
+            emojioneAreaData.setText(text);
+            return emojioneAreaData;
         }
 
         setImageSrc(src) {
@@ -173,6 +194,36 @@ window.ReplyMessageSelector = (function() {
                 return;
             }
             return this.$replyContentWrapper.find('.template-select').val(templateId);
+        }
+
+        toggleImageMap(shouldShow) {
+            let $imagemapBtn = this.$selectContainer.find('.btn[reply-type="imagemap"]');
+            if (undefined === shouldShow) {
+                $imagemapBtn.toggleClass('d-none');
+            } else {
+                shouldShow ? $imagemapBtn.removeClass('d-none') : $imagemapBtn.addClass('d-none');
+            }
+
+            if ($imagemapBtn.hasClass('active')) {
+                let $replyItem = this.$selectContainer.find('.reply-item[reply-type="text"]');
+                $replyItem.addClass('active').siblings().removeClass('active');
+                return this._onClickReplyItem({ target: $replyItem.get(0) });
+            }
+        }
+
+        toggleTemplate(shouldShow) {
+            let $templateBtn = this.$selectContainer.find('.btn[reply-type="template"]');
+            if (undefined === shouldShow) {
+                $templateBtn.toggleClass('d-none');
+            } else {
+                shouldShow ? $templateBtn.removeClass('d-none') : $templateBtn.addClass('d-none');
+            }
+
+            if ($templateBtn.hasClass('active')) {
+                let $replyItem = this.$selectContainer.find('.reply-item[reply-type="text"]');
+                $replyItem.addClass('active').siblings().removeClass('active');
+                return this._onClickReplyItem({ target: $replyItem.get(0) });
+            }
         }
 
         _onClickReplyItem(ev) {
@@ -214,6 +265,7 @@ window.ReplyMessageSelector = (function() {
                         }).then((imagemaps) => {
                             return (
                                 '<label class="w-100 col-form-label font-weight-bold">' +
+                                    (this.isFacebookAlertShow ? '<p class="text-danger small facebook-warning">Facebook 的用戶尚未支援圖文訊息</p>' : '') +
                                     '<div class="mb-2 font-weight-bold">選擇已新增的圖文訊息:</div>' +
                                     '<select class="imagemap-select form-control" value="">' +
                                         '<option value="">未選擇</option>' +
@@ -244,6 +296,7 @@ window.ReplyMessageSelector = (function() {
                         }).then((templates) => {
                             return (
                                 '<label class="w-100 col-form-label font-weight-bold">' +
+                                    (this.isFacebookAlertShow ? '<p class="text-danger small facebook-warning">Facebook 的用戶尚未支援到模板訊息</p>' : '') +
                                     '<div class="mb-2 font-weight-bold">選擇已新增的模板訊息:</div>' +
                                     '<select class="template-select form-control" value="">' +
                                         '<option value="">未選擇</option>' +
@@ -265,18 +318,25 @@ window.ReplyMessageSelector = (function() {
                 let $replyContentWrapper = this.$replyContentWrapper;
                 $replyContentWrapper.html(html);
 
-                if (!isMobile && 'text' === replyType) {
-                    let $messageText = this.$replyContentWrapper.find('[name="messageText"]');
-                    $messageText.emojioneArea({
-                        placeholder: $messageText.attr('placeholder') || '',
-                        searchPlaceholder: '搜尋',
-                        buttonTitle: '',
-                        autocomplete: false
-                    });
-                    $messageText.data('emojioneArea').setText('');
-                }
+                if ('text' === replyType) {
+                    $replyContentWrapper.addClass('p-0');
 
-                ('function' === typeof this.onReplyItemChange) && this.onReplyItemChange(replyType);
+                    if (!isMobile) {
+                        let $messageText = $replyContentWrapper.find('[name="messageText"]');
+                        $messageText.emojioneArea({
+                            placeholder: $messageText.attr('placeholder') || '',
+                            searchPlaceholder: '搜尋',
+                            buttonTitle: '',
+                            autocomplete: false
+                        });
+
+                        let emojioneAreaData = $messageText.data('emojioneArea');
+                        emojioneAreaData.setText('');
+                    }
+                } else {
+                    $replyContentWrapper.removeClass('p-0');
+                }
+                ('function' === typeof this.onReplyItemChange) && this.onReplyItemChange(replyType, this);
             });
         }
 

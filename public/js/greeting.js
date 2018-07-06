@@ -42,20 +42,24 @@
         /** @type {Chatshier.Models.Greeting} */
         let modalGreeting;
 
-        replyMessageSelect.onReplyItemChange = function(replyType) {
+        replyMessageSelect.onReplyItemChange = (replyType, _selector) => {
             if (!modalGreeting) {
                 return;
             }
 
-            'text' === replyType && modalGreeting.text && replyMessageSelect.setMessageText(modalGreeting.text);
-            'image' === replyType && modalGreeting.src && replyMessageSelect.setImageSrc(modalGreeting.src);
-            'imagemap' === replyType && modalGreeting.imagemap_id && replyMessageSelect.setImageMap(modalGreeting.imagemap_id);
-            'template' === replyType && modalGreeting.template_id && replyMessageSelect.setTemplate(modalGreeting.template_id);
+            'text' === replyType && modalGreeting.text && _selector.setMessageText(modalGreeting.text);
+            'image' === replyType && modalGreeting.src && _selector.setImageSrc(modalGreeting.src);
+            'imagemap' === replyType && modalGreeting.imagemap_id && _selector.setImageMap(modalGreeting.imagemap_id);
+            'template' === replyType && modalGreeting.template_id && _selector.setTemplate(modalGreeting.template_id);
         };
 
         $modalAppSelect.on('change', function() {
             replyMessageSelect.appId = modalAppId = $modalAppSelect.val();
             replyMessageSelect.reset();
+
+            let shouldShow = 'FACEBOOK' !== apps[modalAppId].type;
+            replyMessageSelect.toggleImageMap(shouldShow);
+            replyMessageSelect.toggleTemplate(shouldShow);
         });
 
         $greetingModal.on('show.bs.modal', function(ev) {

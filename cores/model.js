@@ -115,7 +115,9 @@ module.exports = (function() {
             'field_id': {type: String, default: ''}
         }],
         'status': {type: Boolean, default: false}, // false 為草稿，true 為開放
-        'time': {type: Date, default: Date.now() - 60000} // 立刻群發後讓訊息變成歷史訊息
+        'time': {type: Date, default: Date.now() - 60000}, // 立刻群發後讓訊息變成歷史訊息
+        'template_id': {type: String, default: ''},
+        'imagemap_id': {type: String, default: ''}
     }, { minimize: false });
 
     const GreetingsSchema = new Schema({

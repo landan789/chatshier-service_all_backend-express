@@ -3,6 +3,7 @@ const socketIO = require('socket.io');
 const storageHlp = require('../helpers/storage');
 const socketHlp = require('../helpers/socket');
 const composeHlp = require('../helpers/compose');
+const chatshierHlp = require('../helpers/chatshier');
 const botSvc = require('../services/bot');
 
 const appsMdl = require('../models/apps');
@@ -226,16 +227,12 @@ function init(server) {
             /** @type {any[]} */
             let conditions = data.conditions || [];
 
-            let messages = composes.map((compose) => {
-                let message = {
+            composes = composes.map((compose) => {
+                let _compose = {
                     from: SYSTEM,
-                    messager_id: '',
-                    text: compose.text,
-                    type: compose.type || 'text',
-                    time: compose.time,
-                    src: compose.src || ''
+                    messager_id: ''
                 };
-                return message;
+                return Object.assign(_compose, compose);
             });
 
             return Promise.all(appIds.map((appId) => {
@@ -243,8 +240,12 @@ function init(server) {
                     if (!(apps && apps[appId])) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                     }
-                    return Promise.resolve(apps[appId]);
-                }).then((app) => {
+
+                    return Promise.all([
+                        apps[appId],
+                        chatshierHlp.prepareReplies(appId, composes)
+                    ]);
+                }).then(([ app, messages ]) => {
                     return composeHlp.findAvailableMessagers(conditions, appId).then((appsChatroomsMessagers) => {
                         if (!appsChatroomsMessagers[appId]) {
                             return Promise.resolve([]);

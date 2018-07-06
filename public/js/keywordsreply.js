@@ -65,25 +65,40 @@
         /** @type {Chatshier.Models.Keywordreply} */
         let modalKeywordreply;
 
-        replyMessageSelect.onReplyItemChange = function(replyType) {
+        replyMessageSelect.onReplyItemChange = (replyType, _selector) => {
             if (!modalKeywordreply) {
                 return;
             }
 
-            'text' === replyType && modalKeywordreply.text && replyMessageSelect.setMessageText(modalKeywordreply.text);
-            'image' === replyType && modalKeywordreply.src && replyMessageSelect.setImageSrc(modalKeywordreply.src);
-            'imagemap' === replyType && modalKeywordreply.imagemap_id && replyMessageSelect.setImageMap(modalKeywordreply.imagemap_id);
-            'template' === replyType && modalKeywordreply.template_id && replyMessageSelect.setTemplate(modalKeywordreply.template_id);
+            'text' === replyType && modalKeywordreply.text && _selector.setMessageText(modalKeywordreply.text);
+            'image' === replyType && modalKeywordreply.src && _selector.setImageSrc(modalKeywordreply.src);
+            'imagemap' === replyType && modalKeywordreply.imagemap_id && _selector.setImageMap(modalKeywordreply.imagemap_id);
+            'template' === replyType && modalKeywordreply.template_id && _selector.setTemplate(modalKeywordreply.template_id);
         };
 
         $modalAppSelect.on('change', function() {
             replyMessageSelect.appId = modalAppId = $modalAppSelect.val();
             replyMessageSelect.reset();
+
+            let shouldShow = 'FACEBOOK' !== apps[modalAppId].type;
+            replyMessageSelect.toggleImageMap(shouldShow);
+            replyMessageSelect.toggleTemplate(shouldShow);
         });
 
         // ==========
         // 設定關鍵字新增 modal 相關 element 與事件
-        $keywordreplyModal.on('show.bs.modal', function(ev) {
+        $keywordreplyModal.on('show.bs.modal', initKeywordreplyModal);
+        $keywordreplyModal.on('hide.bs.modal', function() {
+            let modalAppId = $modalAppSelect.val();
+            if (nowSelectAppId !== modalAppId) {
+                $appDropdown.find('#' + modalAppId).trigger('click');
+            }
+        });
+
+        $keywordreplyModal.on('click', '#insertSubmitBtn', insertKeywordreply);
+        $keywordreplyModal.on('click', '#updateSubmitBtn', updateKeywordreply);
+
+        function initKeywordreplyModal(ev) {
             let $relatedBtn = $(ev.relatedTarget);
             let $keywordreplyForm = $keywordreplyModal.find('.modal-body form');
             let $isDraftCbx = $keywordreplyForm.find('input[name="keywordreplyIsDraft"]');
@@ -140,17 +155,7 @@
 
             $keywordreplyModal.find('#updateSubmitBtn').removeClass('d-none');
             $keywordreplyModal.find('#insertSubmitBtn').addClass('d-none');
-        });
-
-        $keywordreplyModal.on('hide.bs.modal', function() {
-            let modalAppId = $modalAppSelect.val();
-            if (nowSelectAppId !== modalAppId) {
-                $appDropdown.find('#' + modalAppId).trigger('click');
-            }
-        });
-
-        $keywordreplyModal.on('click', '#insertSubmitBtn', insertKeywordreply);
-        $keywordreplyModal.on('click', '#updateSubmitBtn', updateKeywordreply);
+        }
 
         function insertKeywordreply() {
             let $insertSubmitBtn = $keywordreplyModal.find('#insertSubmitBtn');
@@ -159,17 +164,17 @@
             let appId = $modalAppSelect.val();
             let filePath = '';
 
-            return replyMessageSelect.getJSON().then((json) => {
+            return replyMessageSelect.getJSON().then((message) => {
                 let keyword = $keywordreplyModal.find('input[name="keywordreplyKeyword"]').val() || '';
                 let isDraft = $keywordreplyModal.find('input[name="keywordreplyIsDraft"]').prop('checked');
 
-                filePath = json.originalFilePath;
+                filePath = message.originalFilePath;
                 let keywordreply = {
                     keyword: keyword,
                     subKeywords: [],
                     status: !isDraft
                 };
-                let postKeywordreply = Object.assign({}, keywordreply, json);
+                let postKeywordreply = Object.assign({}, keywordreply, message);
                 delete postKeywordreply.originalFilePath;
 
                 // ==========
@@ -222,17 +227,17 @@
             let keywordreplyId = modalKeywordreplyId;
             let filePath = '';
 
-            return replyMessageSelect.getJSON().then((json) => {
+            return replyMessageSelect.getJSON().then((message) => {
                 let keyword = $keywordreplyModal.find('input[name="keywordreplyKeyword"]').val() || '';
                 let isDraft = $keywordreplyModal.find('input[name="keywordreplyIsDraft"]').prop('checked');
 
-                filePath = json.originalFilePath;
+                filePath = message.originalFilePath;
                 let putKeywordreply = {
                     keyword: keyword,
                     subKeywords: [],
                     status: !isDraft
                 };
-                Object.assign(putKeywordreply, json);
+                Object.assign(putKeywordreply, message);
                 delete putKeywordreply.originalFilePath;
 
                 return api.appsKeywordreplies.update(appId, keywordreplyId, userId, putKeywordreply);
