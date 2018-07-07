@@ -28,9 +28,6 @@ window.ReplyMessageSelector = (function() {
             /** @type {(replyType: 'text' | 'image' | 'imagemap' | 'template', selector: ReplyMessageSelector) => any} */
             this.onReplyItemChange = void 0;
 
-            /** @type {(selector: ReplyMessageSelector) => any} */
-            this.onDestroy = void 0;
-
             this.$selectContainer = $('<div class="card form-group"></div>');
             if (!this.isLabelHide) {
                 let $containerLabel = $('<label class="font-weight-bold">回覆內容:</label>');
@@ -58,10 +55,8 @@ window.ReplyMessageSelector = (function() {
             this.$replyContentWrapper.remove();
             this.$selectContainer.remove();
             this.$selectContainer = this.$replyContentWrapper =
-            this.appsImagemaps = this.appsTemplates = this.appId = this.userId = void 0;
-
-            ('function' === typeof this.onDestroy) && this.onDestroy(this);
-            this.onReplyItemChange = this.onDestroy = void 0;
+            this.appsImagemaps = this.appsTemplates = this.appId = this.userId =
+            this.onReplyItemChange = void 0;
         }
 
         /**

@@ -771,8 +771,12 @@ const ConditionSelector = (function() {
             conditionSelector.allTags = allTags;
             conditionSelector.$conditionContainer.empty();
 
-            composeContents.forEach((composeContent) => composeContent.destroy());
-            addComposeContent();
+            while (composeContents.length > 1) {
+                let composeContent = composeContents.pop();
+                composeContent.destroy();
+                composeContent = void 0;
+            }
+            0 === composeContents.length && addComposeContent();
 
             let composesDtPickerData = $composesDtPicker.data('DateTimePicker');
             let $saveAsDraftBtn = $composeModal.find('#saveAsDraftBtn');
@@ -937,51 +941,45 @@ const ConditionSelector = (function() {
                     return _compose;
                 });
             })).then((composes) => {
-                return Promise.resolve().then(() => {
-                    if (isSendNow && !isDraft) {
-                        return showDialog('將會發送給所有用戶，你確定嗎？');
-                    }
-                    return true;
-                }).then((isOK) => {
-                    if (!isOK) {
-                        return Promise.reject(new Error('USER_CANCEL'));
+                if (isSendNow && !isDraft && !window.confirm('將會發送給所有用戶，你確定嗎？')) {
+                    return Promise.reject(new Error('USER_CANCEL'));
+                }
+
+                let nextRequest = function(i) {
+                    if (i >= appIds.length) {
+                        return Promise.resolve();
                     }
 
-                    let nextRequest = function(i) {
-                        if (i >= appIds.length) {
-                            return Promise.resolve();
-                        }
-
-                        let appId = appIds[i];
-                        return Promise.all(composes.map((compose, i) => {
-                            let _modalComposeId = modalComposeId;
-                            return Promise.resolve().then(() => {
-                                if (_modalComposeId) {
-                                    return api.appsComposes.update(appId, _modalComposeId, userId, compose);
-                                }
-                                return api.appsComposes.insert(appId, userId, compose).then((resJson) => {
-                                    let _appsComposes = resJson.data;
-                                    _modalComposeId = Object.keys(_appsComposes[appId].composes).shift() || '';
-                                    return resJson;
-                                });
-                            }).then((resJson) => {
+                    let appId = appIds[i];
+                    return Promise.all(composes.map((compose, i) => {
+                        let _modalComposeId = modalComposeId;
+                        return Promise.resolve().then(() => {
+                            if (_modalComposeId) {
+                                return api.appsComposes.update(appId, _modalComposeId, userId, compose);
+                            }
+                            return api.appsComposes.insert(appId, userId, compose).then((resJson) => {
                                 let _appsComposes = resJson.data;
-                                !appsComposes[appId] && (appsComposes[appId] = { composes: {} });
-                                Object.assign(appsComposes[appId].composes, _appsComposes[appId].composes);
-
-                                if (imageFilePaths[i] && _modalComposeId) {
-                                    let fileName = imageFilePaths[i].split('/').pop();
-                                    let toPath = '/apps/' + appId + '/composes/' + _modalComposeId + '/src/' + fileName;
-                                    return api.image.moveFile(userId, imageFilePaths[i], toPath).then(() => resJson);
-                                }
+                                _modalComposeId = Object.keys(_appsComposes[appId].composes).shift() || '';
                                 return resJson;
                             });
-                        })).then(() => {
-                            return nextRequest(i + 1);
+                        }).then((resJson) => {
+                            let _appsComposes = resJson.data;
+                            !appsComposes[appId] && (appsComposes[appId] = { composes: {} });
+                            Object.assign(appsComposes[appId].composes, _appsComposes[appId].composes);
+
+                            if (imageFilePaths[i] && _modalComposeId) {
+                                let fileName = imageFilePaths[i].split('/').pop();
+                                let toPath = '/apps/' + appId + '/composes/' + _modalComposeId + '/src/' + fileName;
+                                return api.image.moveFile(userId, imageFilePaths[i], toPath).then(() => resJson);
+                            }
+                            return resJson;
                         });
-                    };
-                    return nextRequest(0);
-                }).then(() => {
+                    })).then(() => {
+                        return nextRequest(i + 1);
+                    });
+                };
+
+                return nextRequest(0).then(() => {
                     if (isDraft || isReserveSend) {
                         return;
                     }
@@ -1066,10 +1064,6 @@ const ConditionSelector = (function() {
                 'template' === replyType && modalCompose.template_id && _selector.setTemplate(modalCompose.template_id);
             };
 
-            replyMessageSelect.onDestroy = (_replyMessageSelect) => {
-                let idx = composeContents.indexOf(_replyMessageSelect);
-                composeContents.splice(idx, 1);
-            };
             composeContents.push(replyMessageSelect);
         }
     })();
@@ -1251,15 +1245,13 @@ const ConditionSelector = (function() {
             let isOK = false;
             let $dialogModal = $('#dialog_modal');
 
-            $dialogModal.find('.btn-primary').on('click', function() {
+            $dialogModal.off('click', '.btn-primary').on('click', '.btn-primary', function() {
                 isOK = true;
-                resolve(isOK);
                 $dialogModal.modal('hide');
             });
 
-            $dialogModal.find('.btn-secondary').on('click', function() {
+            $dialogModal.off('hidden.bs.modal').on('hidden.bs.modal', function() {
                 resolve(isOK);
-                $dialogModal.modal('hide');
             });
 
             $dialogModal.modal({ backdrop: false, show: true });
