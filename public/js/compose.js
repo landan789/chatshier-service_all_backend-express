@@ -872,9 +872,16 @@ const ConditionSelector = (function() {
             });
 
             for (let i in composeContents) {
-                composeContents[i].isFacebookAlertShow = isIncludeFacebook;
-                composeContents[i].toggleImageMap(!isIncludeFacebook);
-                composeContents[i].toggleTemplate(!isIncludeFacebook);
+                let content = composeContents[i];
+                // 目前 Facebook 無法實作圖文訊息及模板訊息的發送
+                // 會顯示警告訊息告知 Facebook 無法收到圖文訊息及模板訊息的發送
+                content.isFacebookAlertShow = isIncludeFacebook;
+                // 由於每個機器人都各自設定的圖文訊息及模板訊息
+                // 因此當要發送給多個機器人時，目前暫無法選擇各自的圖文訊息去發送
+                // TODO: 每個機器人可選擇各自的圖文訊息或模板訊息去發送
+                content.toggleImageMap(!isIncludeFacebook && 1 === appIds.length);
+                content.toggleTemplate(!isIncludeFacebook && 1 === appIds.length);
+                content.appId = appIds[appIds.length - 1];
             }
 
             conditionSelector.appIds = appIds;
@@ -1038,11 +1045,6 @@ const ConditionSelector = (function() {
                 return;
             }
 
-            let options = {
-                isLabelHide: true,
-                isRemoveButtonShow: composeContents.length > 0
-            };
-
             let insertAfterElem;
             if (0 === composeContents.length) {
                 insertAfterElem = $composeModal.find('#rowOfComposeContent').get(0);
@@ -1050,20 +1052,30 @@ const ConditionSelector = (function() {
                 insertAfterElem = composeContents[composeContents.length - 1].containerElement;
             }
 
-            let replyMessageSelect = new ReplyMessageSelector(insertAfterElem, options);
-            replyMessageSelect.userId = userId;
+            let options = {
+                isLabelHide: true,
+                isRemoveButtonShow: composeContents.length > 0,
+                userId: userId,
+                onReplyItemChange: (replyType, _selector) => {
+                    if (!modalCompose) {
+                        return;
+                    }
 
-            replyMessageSelect.onReplyItemChange = (replyType, _selector) => {
-                if (!modalCompose) {
-                    return;
+                    'text' === replyType && modalCompose.text && _selector.setMessageText(modalCompose.text);
+                    'image' === replyType && modalCompose.src && _selector.setImageSrc(modalCompose.src);
+                    'imagemap' === replyType && modalCompose.imagemap_id && _selector.setImageMap(modalCompose.imagemap_id);
+                    'template' === replyType && modalCompose.template_id && _selector.setTemplate(modalCompose.template_id);
                 }
-
-                'text' === replyType && modalCompose.text && _selector.setMessageText(modalCompose.text);
-                'image' === replyType && modalCompose.src && _selector.setImageSrc(modalCompose.src);
-                'imagemap' === replyType && modalCompose.imagemap_id && _selector.setImageMap(modalCompose.imagemap_id);
-                'template' === replyType && modalCompose.template_id && _selector.setTemplate(modalCompose.template_id);
             };
 
+            if (composeContents.length >= 1) {
+                let lastContent = composeContents[composeContents.length - 1];
+                options.appId = lastContent.appId;
+                options.appsImagemaps = lastContent.appsImagemaps;
+                options.appsTemplates = lastContent.appsTemplates;
+            }
+
+            let replyMessageSelect = new ReplyMessageSelector(insertAfterElem, options);
             composeContents.push(replyMessageSelect);
         }
     })();

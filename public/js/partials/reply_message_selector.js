@@ -26,7 +26,7 @@ window.ReplyMessageSelector = (function() {
             this.appsTemplates = options.appsTemplates || {};
 
             /** @type {(replyType: 'text' | 'image' | 'imagemap' | 'template', selector: ReplyMessageSelector) => any} */
-            this.onReplyItemChange = void 0;
+            this.onReplyItemChange = options.onReplyItemChange;
 
             this.$selectContainer = $('<div class="card form-group"></div>');
             if (!this.isLabelHide) {
