@@ -159,6 +159,9 @@ window.ReplyMessageSelector = (function() {
             return this.$replyContentWrapper.find('[name="messageText"]').val() || '';
         }
 
+        /**
+         * @param {string} text
+         */
         setMessageText(text) {
             if (!this.$replyContentWrapper) {
                 return;
@@ -170,13 +173,24 @@ window.ReplyMessageSelector = (function() {
             return emojioneAreaData;
         }
 
+        /**
+         * @param {string} src
+         */
         setImageSrc(src) {
             if (!this.$replyContentWrapper) {
                 return;
             }
-            return this.$replyContentWrapper.find('.image-container img').prop('src', src);
+
+            let $imageContainer = this.$replyContentWrapper.find('.image-container');
+            if (src) {
+                $imageContainer.find('.image-icon-wrapper').remove();
+            }
+            return $imageContainer.find('img').prop('src', src);
         }
 
+        /**
+         * @param {string} imagemapId
+         */
         setImageMap(imagemapId) {
             if (!this.$replyContentWrapper) {
                 return;
@@ -191,6 +205,9 @@ window.ReplyMessageSelector = (function() {
             return this.$replyContentWrapper.find('.template-select').val(templateId);
         }
 
+        /**
+         * @param {boolean} [shouldShow]
+         */
         toggleImageMap(shouldShow) {
             let $imagemapBtn = this.$selectContainer.find('.btn[reply-type="imagemap"]');
             if (undefined === shouldShow) {
@@ -206,6 +223,9 @@ window.ReplyMessageSelector = (function() {
             }
         }
 
+        /**
+         * @param {boolean} [shouldShow]
+         */
         toggleTemplate(shouldShow) {
             let $templateBtn = this.$selectContainer.find('.btn[reply-type="template"]');
             if (undefined === shouldShow) {
@@ -240,7 +260,10 @@ window.ReplyMessageSelector = (function() {
                             '</button>' +
                             '<input class="image-ghost d-none" type="file" name="replyImageFile" accept="image/png,image/jpg,image/jpeg" />' +
                             '<div class="position-relative mt-2 w-100 image-container" style="height: 16rem;">' +
-                                '<img class="image-fit" src="/image/upload.png" alt="" />' +
+                                '<div class="h-100 d-flex align-items-center image-icon-wrapper">' +
+                                    '<i class="m-auto fas fa-image fa-4x text-light"></i>' +
+                                '</div>' +
+                                '<img class="image-fit" src="" alt="" />' +
                             '</div>'
                         );
                     case 'imagemap':
@@ -346,9 +369,7 @@ window.ReplyMessageSelector = (function() {
                 fileReader.onerror = (err) => reject(err);
                 fileReader.readAsDataURL(replyImageFile);
             }).then((imgBase64) => {
-                let $previewImageContainer = $(fileInput).siblings('.image-container');
-                let $previewImage = $previewImageContainer.find('img');
-                $previewImage.prop('src', imgBase64 || '');
+                return this.setImageSrc(imgBase64 || '');
             }).catch(() => {
                 return $.notify('圖像載入失敗', { type: 'danger' });
             });
