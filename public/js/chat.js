@@ -54,7 +54,7 @@
      * @property {string} name
      * @property {string} email
      * @typedef {{ [userId: string]: Agent }} Agents
-     * @type {{ [appId: string]: Agents }}
+     * @type {{ [appId: string]: { agents: Agents } }}
      */
     var appsAgents = {};
 
