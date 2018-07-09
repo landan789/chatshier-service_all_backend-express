@@ -1,12 +1,6 @@
 declare module Chatshier {
     namespace Models {
-        interface GroupsMembers {
-            [groupId: string]: {
-                members: Members
-            }
-        }
-
-        interface Members {
+        interface GroupMembers {
             [groupMemberId: string]: Member
         }
 

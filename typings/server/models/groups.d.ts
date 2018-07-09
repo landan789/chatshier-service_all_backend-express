@@ -6,7 +6,7 @@ declare module Chatshier {
 
         interface Group extends BaseProperty {
             app_ids: string[],
-            members: GroupsMembers,
+            members: GroupMembers,
             name: string
         }
     }
