@@ -10,11 +10,7 @@ declare module Chatshier {
             [imagemapId: string]: Imagemap
         }
 
-        interface Imagemap {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Imagemap extends BaseProperty {
             type: 'imagemap',
             baseUrl: string,
             altText: string,

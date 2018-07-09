@@ -4,16 +4,12 @@ declare module Chatshier {
             [userId: string]: User
         }
 
-        interface User {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
+        interface User extends BaseProperty {
             address: string,
             calendar_ids: string[],
             company: string,
             email: string,
             phone: string,
-            isDeleted: boolean,
             password?: string,
             name: string,
             group_ids: string[]

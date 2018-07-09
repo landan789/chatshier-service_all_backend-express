@@ -4,13 +4,9 @@ declare module Chatshier {
             [groupId: string]: Group
         }
 
-        interface Group {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
+        interface Group extends BaseProperty {
             app_ids: string[],
-            isDeleted: boolean,
-            members: GroupMembers,
+            members: GroupsMembers,
             name: string
         }
     }

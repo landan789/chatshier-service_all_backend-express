@@ -4,11 +4,7 @@ declare module Chatshier {
             [orderId: string]: Order
         }
 
-        interface Order {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Order extends BaseProperty {
             commodities: {
                 commodity_id: string,
                 name: string,

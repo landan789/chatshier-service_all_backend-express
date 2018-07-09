@@ -4,6 +4,7 @@
 
 /// <reference path='../server/helpers/socket.d.ts' />
 
+/// <reference path='../server/models/core.d.ts' />
 /// <reference path='../server/models/apps_autoreplies.d.ts' />
 /// <reference path='../server/models/apps_chatrooms.d.ts' />
 /// <reference path='../server/models/apps_composes.d.ts' />

@@ -1,10 +1,9 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var userId;
-    var nowSelectAppId = '';
-    var apps = {};
-    var appsGreetings = {};
+    let nowSelectAppId = '';
+    let apps = {};
+    let appsGreetings = {};
 
     const ICONS = {
         LINE: 'fab fa-line fa-fw line-color',
@@ -13,169 +12,222 @@
 
     const api = window.restfulAPI;
     const NO_PERMISSION_CODE = '3.16';
-    const isMobile = 'function' === typeof window.isMobileBrowser && window.isMobileBrowser();
-
     const $appDropdown = $('.app-dropdown');
-    const $modal = $('#greeting_modal');
-    const $appSelector = $('.modal-body select[name="greeting-app-name"]');
 
+    let userId;
     try {
-        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        let payload = window.jwt_decode(window.localStorage.getItem('jwt'));
         userId = payload.uid;
     } catch (ex) {
         userId = '';
     }
 
-    $(document).on('click', '#modal-insert-btn', insertGreeting);
-    $(document).on('click', '#modal-update-btn', updateGreeting);
-    $(document).on('click', '#delete-btn', removeGretting);
+    $(document).on('click', '.btn.remove', removeGretting);
     // 停用所有 form 的提交
     $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
-    $modal.on('show.bs.modal', function(ev) {
-        let $relatedBtn = $(ev.relatedTarget);
-        let $modalGreetingId = $('#modal-greeting-id');
-        let $modalGreetingText = $('#modal-greeting-text');
+    // 封裝 modal 的處理
+    (function() {
+        let $greetingModal = $('#greetingModal');
+        $greetingModal.on('click', '#modalInsertBtn', insertGreeting);
+        $greetingModal.on('click', '#modalUpdateBtn', updateGreeting);
 
-        let emojiOptions = {
-            placeholder: $modalGreetingText.attr('placeholder') || '',
-            searchPlaceholder: '搜尋',
-            autocomplete: false,
-            buttonTitle: '',
-            pickerPosition: 'bottom'
+        let $modalAppSelect = $greetingModal.find('#greetingAppId');
+        let ReplyMessageSelector = window.ReplyMessageSelector;
+        let replyMessageSelect = new ReplyMessageSelector($greetingModal.find('#rowOfAppSelect').get(0));
+        replyMessageSelect.userId = userId;
+
+        let modalAppId;
+        let modalGreetingId;
+        /** @type {Chatshier.Models.Greeting} */
+        let modalGreeting;
+
+        replyMessageSelect.onReplyItemChange = (replyType, _selector) => {
+            if (!modalGreeting) {
+                return;
+            }
+
+            'text' === replyType && modalGreeting.text && _selector.setMessageText(modalGreeting.text);
+            'image' === replyType && modalGreeting.src && _selector.setImageSrc(modalGreeting.src);
+            'imagemap' === replyType && modalGreeting.imagemap_id && _selector.setImageMap(modalGreeting.imagemap_id);
+            'template' === replyType && modalGreeting.template_id && _selector.setTemplate(modalGreeting.template_id);
         };
 
-        if ('add-btn' === $relatedBtn.attr('id')) {
-            $appSelector.val(nowSelectAppId);
-            $('#modal-insert-btn').removeClass('d-none');
-            $('#modal-update-btn').addClass('d-none');
+        $modalAppSelect.on('change', function() {
+            replyMessageSelect.appId = modalAppId = $modalAppSelect.val();
+            replyMessageSelect.reset();
 
-            $modalGreetingId.val('');
-            $modalGreetingText.val('');
+            let shouldShow = 'FACEBOOK' !== apps[modalAppId].type;
+            replyMessageSelect.toggleImageMap(shouldShow);
+            replyMessageSelect.toggleTemplate(shouldShow);
+        });
 
-            if (!isMobile) {
-                $modalGreetingText.emojioneArea(emojiOptions);
-                $modalGreetingText.data('emojioneArea').setText('');
+        $greetingModal.on('show.bs.modal', function(ev) {
+            let $relatedBtn = $(ev.relatedTarget);
+            let $modalInsertBtn = $greetingModal.find('#modalInsertBtn');
+            let $modalUpdateBtn = $greetingModal.find('#modalUpdateBtn');
+
+            if ($relatedBtn.hasClass('btn-insert')) {
+                $modalAppSelect.empty();
+                for (let _appId in apps) {
+                    let app = apps[_appId];
+                    $modalAppSelect.append('<option value="' + _appId + '">' + app.name + '</option>');
+                }
+
+                modalAppId = nowSelectAppId;
+                $modalAppSelect.val(nowSelectAppId).parents('.form-group').removeClass('d-none');
+
+                $modalInsertBtn.removeClass('d-none');
+                $modalUpdateBtn.addClass('d-none');
+                return;
             }
-            return;
-        }
 
-        $('#modal-insert-btn').addClass('d-none');
-        $('#modal-update-btn').removeClass('d-none');
+            $modalInsertBtn.addClass('d-none');
+            $modalUpdateBtn.removeClass('d-none');
 
-        let $greetingRow = $relatedBtn.parents('tr');
-        let appId = $greetingRow.attr('rel');
-        let greetingId = $greetingRow.attr('id') || '';
-        let greetingText = appsGreetings[appId].greetings[greetingId].text || '';
-        $appSelector.val(appId);
+            let $greetingRow = $relatedBtn.parents('tr');
+            modalAppId = $greetingRow.attr('app-id') || '';
+            modalGreetingId = $greetingRow.attr('greeting-id') || '';
+            modalGreeting = appsGreetings[modalAppId].greetings[modalGreetingId];
+            $modalAppSelect.val(modalAppId).parents('.form-group').addClass('d-none');
 
-        $(`[name="greeting-app-name"] option[value="${appId}"]`).attr('selected', true);
+            replyMessageSelect.appId = modalAppId;
+            replyMessageSelect.reset(modalGreeting.type);
+        });
 
-        $modalGreetingId.val(greetingId);
-        $modalGreetingText.val(greetingText);
+        $greetingModal.on('hide.bs.modal', function() {
+            let modalAppId = $modalAppSelect.val();
+            if (nowSelectAppId !== modalAppId) {
+                $appDropdown.find('#' + modalAppId).trigger('click');
+            }
+        });
 
-        if (!isMobile) {
-            $modalGreetingText.emojioneArea(emojiOptions);
-            $modalGreetingText.data('emojioneArea').setText(greetingText);
-        }
-    });
+        function insertGreeting() {
+            let appId = modalAppId;
+            let filePath = '';
 
-    $modal.on('hide.bs.modal', function() {
-        let modalAppId = $appSelector.val();
-        if (nowSelectAppId !== modalAppId) {
-            $appDropdown.find('#' + modalAppId).trigger('click');
-        }
-    });
+            let $modalInsertBtn = $greetingModal.find('#modalInsertBtn');
+            $modalInsertBtn.attr('disabled', true);
 
-    function insertGreeting() {
-        let appId = $appSelector.val();
+            return Promise.resolve().then(() => {
+                if (!appsGreetings[appId]) {
+                    return api.appsGreetings.findAll(appId, userId).then((resJson) => {
+                        let _appsGreetings = resJson.data;
+                        appsGreetings[appId] = { greetings: {} };
+                        if (!_appsGreetings[appId]) {
+                            return;
+                        }
+                        Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
+                    });
+                }
+            }).then(() => {
+                if (Object.keys(appsGreetings[appId].greetings).length >= 5) {
+                    $.notify('訊息則數已達上限', { type: 'warning' });
+                    return;
+                }
+                return replyMessageSelect.getJSON();
+            }).then((json) => {
+                if (!json) {
+                    return;
+                }
 
-        return Promise.resolve().then(() => {
-            if (!appsGreetings[appId]) {
-                return api.appsGreetings.findAll(appId, userId).then((resJson) => {
+                if ('text' === json.type && !json.text) {
+                    return $.notify('文字欄位不可空白', { type: 'warning' });
+                } else if ('image' === json.type && !json.src) {
+                    return $.notify('必須上傳回覆圖像', { type: 'warning' });
+                } else if ('imagemap' === json.type && !json.imagemap_id) {
+                    return $.notify('必須設定一個圖文訊息', { type: 'warning' });
+                } else if ('template' === json.type && !json.template_id) {
+                    return $.notify('必須設定一個模板訊息', { type: 'warning' });
+                }
+
+                filePath = json.originalFilePath;
+                let postGreeting = Object.assign({}, json);
+                delete postGreeting.originalFilePath;
+
+                return api.appsGreetings.insert(appId, userId, postGreeting).then(function(resJson) {
                     let _appsGreetings = resJson.data;
-                    appsGreetings[appId] = { greetings: {} };
-                    if (!_appsGreetings[appId]) {
-                        return;
+                    if (!appsGreetings[appId]) {
+                        appsGreetings[appId] = { greetings: {} };
                     }
                     Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
+
+                    let greetingId = Object.keys(appsGreetings[appId].greetings).shift() || '';
+                    if (filePath && greetingId) {
+                        let fileName = filePath.split('/').pop();
+                        let toPath = '/apps/' + appId + '/greetings/' + greetingId + '/src/' + fileName;
+                        return api.image.moveFile(userId, filePath, toPath);
+                    }
+                }).then(() => {
+                    $modalInsertBtn.removeAttr('disabled');
+                    $greetingModal.modal('hide');
+                    $.notify('新增成功', { type: 'success' });
+                    return loadGreetings(appId, userId);
                 });
-            }
-        }).then(() => {
-            if (Object.keys(appsGreetings[appId].greetings).length >= 5) {
-                return $.notify('訊息則數已達上限', { type: 'warning' });
-            }
-
-            let text = $('#modal-greeting-text').val();
-            if (!text) {
-                return $.notify('文字欄位不可空白', { type: 'warning' });
-            }
-
-            let greeting = {
-                type: 'text',
-                text: text
-            };
-
-            return api.appsGreetings.insert(appId, userId, greeting).then(function(resJson) {
-                let _appsGreetings = resJson.data;
-                if (!appsGreetings[appId]) {
-                    appsGreetings[appId] = { greetings: {} };
-                }
-                Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
-
-                $appDropdown.find('#' + appId).trigger('click');
-                $modal.modal('hide');
-                return $.notify('新增成功', { type: 'success' });
             }).catch((err) => {
-                $modal.modal('hide');
-                if (undefined === err.status) {
-                    return $.notify('新增失敗', { type: 'danger' });
-                }
+                $modalInsertBtn.removeAttr('disabled');
                 if (NO_PERMISSION_CODE === err.code) {
-                    return $.notify('無此權限', { type: 'danger' });
+                    $.notify('無此權限', { type: 'danger' });
+                } else {
+                    $.notify('新增失敗', { type: 'danger' });
                 }
-                return $.notify('新增失敗', { type: 'danger' });
             });
-        });
-    }
-
-    function updateGreeting() {
-        let appId = $appSelector.val();
-        let greetingId = $('#modal-greeting-id').val();
-        let text = $('#modal-greeting-text').val();
-        if ('' === text.trim()) {
-            return $.notify('請填入文字內容', { type: 'warning' });
         }
 
-        let greeting = {
-            type: 'text',
-            text
-        };
+        function updateGreeting() {
+            let appId = modalAppId;
+            let greetingId = modalGreetingId;
+            let filePath = '';
 
-        return api.appsGreetings.update(appId, greetingId, userId, greeting).then((resJson) => {
-            let _appsGreetings = resJson.data;
-            Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
+            return replyMessageSelect.getJSON().then((json) => {
+                if (!json) {
+                    return;
+                }
 
-            let greeting = _appsGreetings[appId].greetings[greetingId];
-            $(`#${greetingId}[rel=${appId}]`).find('td:first').text(greeting.text);
-            $modal.modal('hide');
-            return $.notify('修改成功', { type: 'success' });
-        }).catch((resJson) => {
-            if (undefined === resJson.status) {
-                return $.notify('修改失敗', { type: 'danger' });
-            }
-            if (NO_PERMISSION_CODE === resJson.code) {
-                return $.notify('無此權限', { type: 'danger' });
-            }
-            return $.notify('修改失敗', { type: 'danger' });
-        });
-    }
+                if ('text' === json.type && !json.text) {
+                    return $.notify('文字欄位不可空白', { type: 'warning' });
+                } else if ('image' === json.type && !json.src) {
+                    return $.notify('必須上傳回覆圖像', { type: 'warning' });
+                } else if ('imagemap' === json.type && !json.imagemap_id) {
+                    return $.notify('必須設定一個圖文訊息', { type: 'warning' });
+                } else if ('template' === json.type && !json.template_id) {
+                    return $.notify('必須設定一個模板訊息', { type: 'warning' });
+                }
+
+                filePath = json.originalFilePath;
+                let putGreeting = Object.assign({}, modalGreeting, json);
+                delete putGreeting.originalFilePath;
+
+                return api.appsGreetings.update(appId, greetingId, userId, putGreeting).then((resJson) => {
+                    let _appsGreetings = resJson.data;
+                    Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
+
+                    let greetingId = Object.keys(appsGreetings[appId].greetings).shift() || '';
+                    if (filePath && greetingId) {
+                        let fileName = filePath.split('/').pop();
+                        let toPath = '/apps/' + appId + '/greetings/' + greetingId + '/src/' + fileName;
+                        return api.image.moveFile(userId, filePath, toPath);
+                    }
+                }).then(() => {
+                    $greetingModal.modal('hide');
+                    $.notify('修改成功', { type: 'success' });
+                    return loadGreetings(appId, userId);
+                });
+            }).catch((resJson) => {
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                } else {
+                    $.notify('修改失敗', { type: 'danger' });
+                }
+            });
+        }
+    })();
 
     function removeGretting(ev) {
         let $removeBtn = $(this);
         let $greetingRow = $removeBtn.parents('tr');
-        let appId = $greetingRow.attr('rel');
-        let greetingId = $greetingRow.attr('id');
+        let appId = $greetingRow.attr('app-id');
+        let greetingId = $greetingRow.attr('greeting-id');
 
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
@@ -203,8 +255,8 @@
         return new Promise(function(resolve) {
             $('#textContent').text(textContent);
 
-            var isOK = false;
-            var $dialogModal = $('#dialog_modal');
+            let isOK = false;
+            let $dialogModal = $('#dialog_modal');
 
             $dialogModal.find('.btn-primary').on('click', function() {
                 isOK = true;
@@ -232,40 +284,70 @@
     }
 
     function loadGreetings(appId, userId) {
-        $('#MsgCanvas').empty();
+        return Promise.resolve().then(() => {
+            if (!appsGreetings[appId]) {
+                return api.appsGreetings.findAll(appId, userId).then((resJson) => {
+                    let _appsGreetings = resJson.data;
+                    appsGreetings[appId] = { greetings: {} };
+                    if (!_appsGreetings[appId]) {
+                        return appsGreetings[appId].greetings;
+                    }
+                    Object.assign(appsGreetings[appId].greetings, _appsGreetings[appId].greetings);
+                    return appsGreetings[appId].greetings;
+                });
+            }
+            return appsGreetings[appId].greetings;
+        }).then((greetings) => {
+            let $greetingsBody = $('#greetingsBody').empty();
 
-        return api.appsGreetings.findAll(appId, userId).then(function(resJson) {
-            appsGreetings = resJson.data;
+            for (let greetingId in greetings) {
+                let greeting = greetings[greetingId];
 
-            if (appsGreetings && appsGreetings[appId]) {
-                let greeting = appsGreetings[appId].greetings;
-                for (let greetingId in greeting) {
-                    $('table #MsgCanvas').append(
-                        '<tr id="' + greetingId + '" rel="' + appId + '">' +
-                            '<td class="text-pre">' + greeting[greetingId].text + '</td>' +
-                            '<td>' + new Date(greeting[greetingId].createdTime).toLocaleString() + '</td>' +
-                            '<td>' +
-                                '<button type="button" class="mb-1 mr-1 btn btn-light btn-border check" id="edit-btn" data-toggle="modal" data-target="#greeting_modal" aria-hidden="true"><i class="fas fa-edit update"></i></button>' +
-                                '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
-                            '</td>' +
-                        '</tr>'
-                    );
-                }
+                $greetingsBody.append(
+                    '<tr app-id="' + appId + '" greeting-id="' + greetingId + '">' +
+                        (function() {
+                            if ('text' === greeting.type) {
+                                return '<td class="text-pre" data-title="' + greeting.text + '">' + greeting.text + '</td>';
+                            } else if ('image' === greeting.type) {
+                                return (
+                                    '<td class="text-pre">' +
+                                        '<label>圖像</label>' +
+                                        '<div class="position-relative image-container" style="width: 6rem; height: 6rem;">' +
+                                            '<img class="image-fit" src="' + greeting.src + '" alt="" />' +
+                                        '</div>' +
+                                    '</td>'
+                                );
+                            } else if ('imagemap' === greeting.type) {
+                                return '<td class="text-pre" data-title="圖文訊息">圖文訊息</td>';
+                            } else if ('template' === greeting.type) {
+                                return '<td class="text-pre" data-title="模板訊息">模板訊息</td>';
+                            }
+                            return '<td class="text-pre" data-title=""></td>';
+                        })() +
+                        '<td>' + new Date(greetings[greetingId].createdTime).toLocaleString() + '</td>' +
+                        '<td>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-light btn-border update" data-toggle="modal" data-target="#greetingModal" aria-hidden="true">' +
+                                '<i class="fas fa-edit"></i>' +
+                            '</button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-danger remove">' +
+                                '<i class="fas fa-trash-alt"></i>' +
+                            '</button>' +
+                        '</td>' +
+                    '</tr>'
+                );
             }
         });
     }
 
     return api.apps.findAll(userId).then(function(respJson) {
         apps = respJson.data;
-
-        var $dropdownMenu = $appDropdown.find('.dropdown-menu');
-        $appSelector.empty();
+        let $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         // 必須把訊息資料結構轉換為 chart 使用的陣列結構
         // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
-        for (var appId in apps) {
-            var app = apps[appId];
+        for (let appId in apps) {
+            let app = apps[appId];
             if (app.isDeleted ||
                 app.type !== api.apps.TYPES.LINE) {
                 delete apps[appId];
@@ -278,7 +360,6 @@
                     app.name +
                 '</a>'
             );
-            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
             if (!nowSelectAppId) {
@@ -287,9 +368,9 @@
         }
 
         if (nowSelectAppId) {
-            $('#add-btn').removeAttr('app-id').attr('app-id', nowSelectAppId);
+            let $insertBtn = $('#insertBtn');
+            $insertBtn.attr('app-id', nowSelectAppId).removeAttr('disabled');
             $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
-            $(document).find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
             return loadGreetings(nowSelectAppId, userId);
         }
     });

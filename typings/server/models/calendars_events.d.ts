@@ -4,11 +4,7 @@ declare module Chatshier {
             [calendarId: string]: Calendar
         }
 
-        interface Calendar {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Calendar extends BaseProperty {
             events: CalendarEvents
         }
 
@@ -16,15 +12,11 @@ declare module Chatshier {
             [eventId: string]: CalendarEvent
         }
 
-        interface CalendarEvent {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
+        interface CalendarEvent extends BaseProperty {
             description: string,
             startedTime: Date | number,
             endedTime: Date | number,
             isAllDay: boolean,
-            isDeleted: boolean,
             title: string
         }
     }

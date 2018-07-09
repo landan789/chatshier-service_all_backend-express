@@ -10,18 +10,12 @@ declare module Chatshier {
             [autoreplyId: string]: Autoreply
         }
 
-        interface Autoreply {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
+        interface Autoreply extends BaseProperty, Reply {
             endedTime: Date | number,
-            isDeleted: boolean,
             startedTime: Date | number,
             timezoneOffset: number,
             periods: AutoreplyPeriod[],
-            text: string,
             title: string,
-            type: 'text',
         }
 
         interface AutoreplyPeriod {

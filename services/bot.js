@@ -1093,8 +1093,14 @@ module.exports = (function() {
 
                 switch (app.type) {
                     case LINE:
+                        /**
+                         * @param {string[]} _recipientUids
+                         * @param {any[]} messages
+                         */
                         _multicast = (_recipientUids, messages) => {
+                            /** @type {any[][]} */
                             let multicasts = [];
+
                             // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
                             while (messages.length > 5) {
                                 multicasts.push(messages.splice(0, 5));
@@ -1104,8 +1110,14 @@ module.exports = (function() {
                             let nextPromise = (i) => {
                                 if (i >= multicasts.length) {
                                     return Promise.resolve();
-                                };
-                                let messages = multicasts[i];
+                                }
+
+                                let messages = multicasts[i].map((message) => {
+                                    if ('image' === message.type) {
+                                        message.previewImageUrl = message.originalContentUrl = message.src;
+                                    }
+                                    return message;
+                                });
                                 return bot.multicast(_recipientUids, messages).then(() => {
                                     return nextPromise(i + 1);
                                 });
@@ -1114,15 +1126,27 @@ module.exports = (function() {
                         };
                         return _multicast(recipientUids, messages);
                     case FACEBOOK:
-                        _multicast = (messagerIds, messages) => {
-                            return Promise.all(messagerIds.map((messagerId) => {
+                        /**
+                         * @param {string[]} _recipientUids
+                         * @param {any[]} messages
+                         */
+                        _multicast = (_recipientUids, messages) => {
+                            return Promise.all(_recipientUids.map((recipientUid) => {
                                 let nextPromise = (i) => {
                                     if (i >= messages.length) {
                                         return Promise.resolve();
                                     };
 
                                     let message = messages[i];
-                                    return bot.sendTextMessage(messagerId, message.text).then(() => {
+                                    return Promise.resolve().then(() => {
+                                        if ('text' === message.type) {
+                                            return bot.sendTextMessage(recipientUid, message.text);
+                                        }
+
+                                        if ('image' === message.type) {
+                                            return bot.sendImageMessage(recipientUid, message.src, true);
+                                        }
+                                    }).then(() => {
                                         return nextPromise(i + 1);
                                     });
                                 };

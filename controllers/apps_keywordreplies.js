@@ -68,9 +68,9 @@ module.exports = (function() {
                 type: req.body.type || '',
                 text: req.body.text || '',
                 status: !!req.body.status,
+                src: req.body.src || '',
                 template_id: req.body.template_id || '',
-                imagemap_id: req.body.imagemap_id || '',
-                src: req.body.src || ''
+                imagemap_id: req.body.imagemap_id || ''
             };
 
             return this.appsRequestVerify(req).then(() => {

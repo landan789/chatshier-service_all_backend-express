@@ -10,11 +10,7 @@ declare module Chatshier {
             [paymentId: string]: Payment
         }
 
-        interface Payment {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Payment extends BaseProperty {
             type: 'ECPAY' | 'SPGATEWAY',
             merchantId: string,
             hashKey: string,
