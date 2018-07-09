@@ -1,8 +1,6 @@
 module.exports = (function() {
-    // const ECPayPayment = require('ecpay_payment_nodejs');
-    // const ECPayInvoice = require('ecpay_invoice_nodejs');
-    const ECPayPayment = require('../third_party/ecpay_payment_nodejs');
-    const ECPayInvoice = require('../third_party/ecpay_invoice_nodejs');
+    const ECPayPayment = require('ecpay_payment_nodejs');
+    const ECPayInvoice = require('ecpay_invoice_nodejs');
 
     const ecpayPayment = new ECPayPayment();
     const ecpayInvoice = new ECPayInvoice();
