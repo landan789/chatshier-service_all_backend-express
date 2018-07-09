@@ -91,7 +91,7 @@ module.exports = (function() {
         encryptJsonToStr(json, hashKey, hashIV) {
             let payloadQuery = this._jsonToQueryString(json);
             payloadQuery = this._appendPadding(payloadQuery);
-            let encryptStr = cipherHlp.aesEncrypt(payloadQuery, hashKey, hashIV, 'aes-256-cbc');
+            let encryptStr = cipherHlp.aesEncrypt(payloadQuery, hashKey, hashIV, 'aes-256-cbc', true);
             return encryptStr;
         }
 
@@ -138,6 +138,7 @@ module.exports = (function() {
          * @param {string} merchantId
          * @param {string} hashKey
          * @param {string} hashIV
+         * @returns {Promise<Spgateway.Pay2Go.IssueResponseResult>}
          */
         issueInvoice(order, merchantId, hashKey, hashIV) {
             /** @type {Spgateway.Pay2Go.InvoicePostData} */
@@ -149,7 +150,6 @@ module.exports = (function() {
                 Status: '1',
                 Category: order.taxId ? 'B2B' : 'B2C',
                 BuyerName: order.payerName,
-                BuyerUBN: order.taxId ? order.taxId : void 0,
                 BuyerAddress: order.payerAddress,
                 BuyerEmail: order.payerEmail,
                 PrintFlag: 'Y',
@@ -165,6 +165,7 @@ module.exports = (function() {
                 ItemPrice: order.commodities.map((commodity) => commodity.unitPrice).join('|'),
                 ItemAmt: order.commodities.map((commodity) => commodity.count * commodity.unitPrice).join('|')
             };
+            order.taxId && (postData.BuyerUBN = order.taxId);
             let encryptStr = this.encryptJsonToStr(postData, hashKey, hashIV);
 
             /** @type {Spgateway.Pay2Go.InvoicePostParams} */
@@ -184,9 +185,27 @@ module.exports = (function() {
                 let invoiceRes = resJson;
 
                 if ('SUCCESS' !== invoiceRes.Status) {
+                    // 智付寶錯誤代碼 LIB10001 - '已無任何本期(4)字軌資料可使用，請確認'
+                    // 代表 Pay2Go 電子發票服務平台已經無法即時開立發票，已無可開立張數
+                    // 此時將 Status 設為 '0' 代表將此發票建立但等待手動開立
+                    if ('LIB10001' === invoiceRes.Status) {
+                        postData.MerchantOrderNo = cipherHlp.generateRandomHex(30);
+                        postData.Status = '0';
+                        invoiceParams.PostData_ = this.encryptJsonToStr(postData, hashKey, hashIV);
+                        options.formData = invoiceParams;
+
+                        return this._sendRequest(options).then((_resJson) => {
+                            /** @type {Spgateway.Pay2Go.IssueInvoiceResponse} */
+                            invoiceRes = _resJson;
+                            if ('SUCCESS' !== invoiceRes.Status) {
+                                return Promise.reject(new Error(invoiceRes.Message));
+                            }
+                            return Promise.resolve(JSON.parse(invoiceRes.Result));
+                        });
+                    }
                     return Promise.reject(new Error(invoiceRes.Message));
                 }
-                return Promise.resolve(invoiceRes.Result);
+                return Promise.resolve(JSON.parse(invoiceRes.Result));
             });
         }
 
