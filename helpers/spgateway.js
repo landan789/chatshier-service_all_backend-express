@@ -5,15 +5,15 @@ module.exports = (function() {
     const cipherHlp = require('./cipher');
 
     const TEST = 'TEST';
-    const PRODUTION = 'PRODUTION';
+    const PRODUCTION = 'PRODUCTION';
     const PAYMENT_ENDPOINT = {
         [TEST]: 'https://ccore.spgateway.com/MPG/mpg_gateway',
-        [PRODUTION]: 'https://core.spgateway.com/MPG/mpg_gateway'
+        [PRODUCTION]: 'https://core.spgateway.com/MPG/mpg_gateway'
     };
 
     const INVOICE_ENDPOINT = {
         [TEST]: 'https://cinv.pay2go.com/API/invoice_issue',
-        [PRODUTION]: 'https://inv.pay2go.com/API/invoice_issue'
+        [PRODUCTION]: 'https://inv.pay2go.com/API/invoice_issue'
     };
 
     class SpgatewayHelper {
@@ -22,7 +22,7 @@ module.exports = (function() {
         }
 
         /**
-         * @param {'TEST' | 'PRODUTION'} value
+         * @param {'TEST' | 'PRODUCTION'} value
          */
         set mode(value) {
             this._mode = value;
@@ -256,7 +256,7 @@ module.exports = (function() {
     }
 
     SpgatewayHelper.TEST = TEST;
-    SpgatewayHelper.PRODUTION = PRODUTION;
+    SpgatewayHelper.PRODUCTION = PRODUCTION;
 
     return new SpgatewayHelper();
 })();
