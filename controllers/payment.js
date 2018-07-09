@@ -70,7 +70,7 @@ module.exports = (function() {
 
                 let paymentId = Object.keys(appsPayments[appId].payments).shift() || '';
                 let payment = appsPayments[appId].payments[paymentId];
-                let serverAddr = this._retrieveServerAddr(req);
+                let serverAddr = 'https://' + req.hostname;
 
                 let plainHtml = '';
                 switch (payment.type) {
@@ -235,38 +235,43 @@ module.exports = (function() {
                 if (!(order && order.invoiceId)) {
                     return Promise.resolve(void 0);
                 }
+                !res.headersSent && res.sendStatus(200);
+
+                let orderId = order._id;
+                let appId = order.app_id;
+                let consumerUid = order.consumerUid;
+                let replyText = (
+                    '=== 支付成功 ===\n' +
+                    '感謝您！'
+                );
 
                 // 智付通 Spgateway 的電子發票是獨立開來的，使用 智付寶 Pay2Go 電子發票平台
                 // 因此在智付通支付完成後，必須再使用 Pay2Go 的電子發票 API 來開立發票
-                let orderId = order._id;
                 return spgatewayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then((invoice) => {
                     let putOrder = {
                         isInvoiceIssued: true,
                         invoiceNumber: invoice.InvoiceNumber,
-                        invoiceRandomNumber: invoice.RandomNum
+                        invoiceRandomNumber: invoice.RandomNum,
+                        invoiceId: invoice.MerchantOrderNo
                     };
-                    return ordersMdl.update(orderId, putOrder);
-                }).then((orders) => {
-                    if (!(orders && orders[orderId])) {
-                        return Promise.reject(API_ERROR.ORDER_FAILED_TO_UPDATE);
-                    }
 
-                    let _order = orders[orderId];
-                    let replyText = (
-                        '=== 支付成功 ===\n' +
-                        '感謝您！'
-                    );
-
-                    if (_order.isInvoiceIssued && _order.invoiceNumber) {
+                    return ordersMdl.update(orderId, putOrder).then((orders) => {
+                        if (!(orders && orders[orderId])) {
+                            return Promise.reject(API_ERROR.ORDER_FAILED_TO_UPDATE);
+                        }
+                        return Promise.resolve(orders[orderId]);
+                    });
+                }).catch((err) => {
+                    console.error(err);
+                }).then((_order) => {
+                    if (_order && _order.isInvoiceIssued && _order.invoiceNumber) {
                         replyText += (
                             '\n\n已為你開立電子發票: ' + _order.invoiceNumber +
                             '\n如需索取紙本，請留言。'
                         );
                     }
-                    return this._replyToConsumer(order.app_id, order.consumerUid, replyText);
+                    return this._replyToConsumer(appId, consumerUid, replyText);
                 });
-            }).then(() => {
-                return res.sendStatus(200);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -350,11 +355,6 @@ module.exports = (function() {
                 body: req.body
             };
             return paymentsLog.start(paymentNotify);
-        }
-
-        _retrieveServerAddr(req) {
-            let serverAddr = 'https://' + req.hostname + (req.subdomains.includes('fea') ? ':' + chatshierCfg.API.PORT : '');
-            return serverAddr;
         }
 
         /**

@@ -28,11 +28,12 @@ module.exports = (function() {
          * @param {string} key
          * @param {string} iv
          * @param {string} [algorithm='aes-256-cbc']
+         * @param {boolean} [shouldAppendFinal=false]
          */
-        aesEncrypt(plainText, key, iv, algorithm = 'aes-256-cbc') {
+        aesEncrypt(plainText, key, iv, algorithm = 'aes-256-cbc', shouldAppendFinal = false) {
             let encipher = crypto.createCipheriv(algorithm, key, iv);
             let encrypted = encipher.update(plainText, 'utf8', 'hex');
-            return encrypted;
+            return encrypted + (shouldAppendFinal ? encipher.final('hex') : '');
         }
 
         /**

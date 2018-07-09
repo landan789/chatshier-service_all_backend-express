@@ -68,7 +68,7 @@ module.exports = (function() {
                 hashIV: req.body.hashIV || '',
                 canIssueInvoice: !!req.body.canIssueInvoice,
                 invoiceMerchantId: req.body.invoiceMerchantId || '',
-                invoiceHashKe: req.body.invoiceHashKey || '',
+                invoiceHashKey: req.body.invoiceHashKey || '',
                 invoiceHashIV: req.body.invoiceHashIV || ''
             };
 
