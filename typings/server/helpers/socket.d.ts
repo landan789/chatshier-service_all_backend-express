@@ -1,11 +1,11 @@
 interface ChatshierChatSocketBody {
     app_id: string,
+    type: string,
     chatroom_id: string,
+    chatroom?: Chatshier.Models.Chatroom,
     senderUid: string,
     recipientUid: string,
-    type: string,
-    chatroom?: any,
-    consumers?: any,
+    consumers?: Chatshier.Models.Consumers,
     messages: ChatshierMessage[]
 }
 

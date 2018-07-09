@@ -148,6 +148,7 @@ router.post('/:webhookid', (req, res, next) => {
                 let _messages;
 
                 let webhookChatroomId = '';
+                /** @type {Chatshier.Models.Consumers} */
                 let consumers = {};
 
                 let webhookInfo = botSvc.retrieveWebhookInfo(req, app);
