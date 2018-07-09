@@ -86,7 +86,7 @@ window.ReplyMessageSelector = (function() {
                         '</button>' +
                     '</div>' +
                     (this.isRemoveButtonShow ? '<div class="btn-group">' +
-                        '<button type="button" class="btn btn-outline-danger btn-sm btn-remove" style="width: 2rem; height: 2rem; border-radius: 50%;">' +
+                        '<button type="button" class="btn btn-light btn-sm btn-remove" style="width: 2rem; height: 2rem; border-radius: 50%;">' +
                             '<i class="fas fa-times"></i>' +
                         '</button>' +
                     '</div>' : '') +
