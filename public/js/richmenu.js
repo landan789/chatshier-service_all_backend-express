@@ -272,26 +272,26 @@
                     '<div class="w-100 form-group">' +
                         '<label class="col-form-label font-weight-bold">設定執行動作:</label>' +
                         '<div class="w-100 btn-group action-select" role="group" action-type="">' +
-                            '<button type="button" class="btn btn-info action-item" action-type="" data-toggle="tooltip" data-placement="top" title="不設定">' +
-                                '<i class="fas fa-times fa-2x"></i>' +
+                            '<button type="button" class="btn btn-light action-item" action-type="" data-toggle="tooltip" data-placement="top" title="不設定">' +
+                                '<i class="fas fa-times"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.TEXT + '" data-toggle="tooltip" data-placement="top" title="發出固定文字訊息">' +
-                                '<i class="fas fa-text-height fa-2x"></i>' +
+                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.TEXT + '" data-toggle="tooltip" data-placement="top" title="發出固定文字訊息">' +
+                                '<i class="fas fa-text-height"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.URI + '" data-toggle="tooltip" data-placement="top" title="前往指定連結">' +
-                                '<i class="fas fa-link fa-2x"></i>' +
+                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.URI + '" data-toggle="tooltip" data-placement="top" title="前往指定連結">' +
+                                '<i class="fas fa-link"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.TEMPLATE + '" data-toggle="tooltip" data-placement="top" title="發送指定模板訊息">' +
-                                '<i class="fas fa-clipboard-list fa-2x"></i>' +
+                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.TEMPLATE + '" data-toggle="tooltip" data-placement="top" title="發送指定模板訊息">' +
+                                '<i class="fas fa-clipboard-list"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.RICHMENU + '" data-toggle="tooltip" data-placement="top" title="切換圖文選單">' +
-                                '<i class="fas fa-exchange-alt fa-2x"></i>' +
+                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.RICHMENU + '" data-toggle="tooltip" data-placement="top" title="切換圖文選單">' +
+                                '<i class="fas fa-exchange-alt"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.CONSUMER_FORM + '" data-toggle="tooltip" data-placement="top" title="要求填寫個人資料">' +
-                                '<i class="fas fa-id-badge fa-2x"></i>' +
+                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.CONSUMER_FORM + '" data-toggle="tooltip" data-placement="top" title="要求填寫個人資料">' +
+                                '<i class="fas fa-id-badge"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-info action-item" action-type="' + ACTION_TYPES.DONATION + '" data-toggle="tooltip" data-placement="top" title="捐款功能">' +
-                                '<i class="fas fas fa-donate fa-2x"></i>' +
+                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.DONATION + '" data-toggle="tooltip" data-placement="top" title="捐款功能">' +
+                                '<i class="fas fas fa-donate"></i>' +
                             '</button>' +
                         '</div>' +
                     '</div>' +
