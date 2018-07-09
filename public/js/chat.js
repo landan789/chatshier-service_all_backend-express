@@ -46,8 +46,17 @@
         userId = '';
     }
 
-    var appsAgents = {};
+    /** @type {string[]} */
     var chatroomList = [];
+
+    /**
+     * @typedef {Object} Agent
+     * @property {string} name
+     * @property {string} email
+     * @typedef {{ [userId: string]: Agent }} Agents
+     * @type {{ [appId: string]: Agents }}
+     */
+    var appsAgents = {};
 
     /** @type {Chatshier.Models.Apps} */
     var apps = {};
@@ -78,36 +87,37 @@
         transJson = Object.assign(transJson, json);
     });
 
-    // wechat 的預設表情符號並不是依照 unicode 編碼，傳過來的訊息是依照 wechat 自家的特殊符號編碼而定
-    // 因此要解析 wechat 的表情符號必須進行轉換
-    // 1. 使用正規表達式檢測文字內是否含有 wechat 的表情符號
-    // 2. 將 wechat 表情符號的編碼根據對照表進行轉換
-    var wechatEmojiRegex = new RegExp("/::\\)|/::~|/::B|/::\\||/:8-\\)|/::<|/::$|/::X|/::Z|/::'\\(|/::-\\||/::@|/::P|/::D|/::O|/::\\(|/::\\+|/:--b|/::Q|/::T|/:,@P|/:,@-D|/::d|/:,@o|/::g|/:\\|-\\)|/::!|/::L|/::>|/::,@|/:,@f|/::-S|/:\\?|/:,@x|/:,@@|/::8|/:,@!|/:!!!|/:xx|/:bye|/:wipe|/:dig|/:handclap|/:&-\\(|/:B-\\)|/:<@|/:@>|/::-O|/:>-\\||/:P-\\(|/::'\\||/:X-\\)|/::\\*|/:@x|/:8\\*|/:pd|/:<W>|/:beer|/:basketb|/:oo|/:coffee|/:eat|/:pig|/:rose|/:fade|/:showlove|/:heart|/:break|/:cake|/:li|/:bome|/:kn|/:footb|/:ladybug|/:shit|/:moon|/:sun|/:gift|/:hug|/:strong|/:weak|/:share|/:v|/:@\\)|/:jj|/:@@|/:bad|/:lvu|/:no|/:ok|/:love|/:<L>|/:jump|/:shake|/:<O>|/:circle|/:kotow|/:turn|/:skip|/:oY|/:#-0|/:hiphot|/:kiss|/:<&|/:&>", 'g');
-    var wechatEmojiTable = Object.freeze({
-        // TODO: 補完 wechat 預設表情符號編碼
-        '/::)': '😃',
-        '/::~': '😖',
-        '/::B': '😍',
-        '/::|': '😳'
-    });
     var urlRegex = /(\b(https?):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
     var isMobile = 'function' === typeof window.isMobileBrowser && window.isMobileBrowser();
     var hasUserFocus = true;
 
-    /**
-     * @param {string} text
-     */
-    var filterWechatEmoji = function(text) {
-        if (wechatEmojiRegex.test(text)) {
-            var emojis = text.match(wechatEmojiRegex) || [];
-            var newText = text;
-            for (var i = 0; i < emojis.length; i++) {
-                newText = newText.replace(emojis[i], wechatEmojiTable[emojis[i]] || emojis[i]);
-            }
-            return newText;
-        }
-        return text;
-    };
+    // // wechat 的預設表情符號並不是依照 unicode 編碼，傳過來的訊息是依照 wechat 自家的特殊符號編碼而定
+    // // 因此要解析 wechat 的表情符號必須進行轉換
+    // // 1. 使用正規表達式檢測文字內是否含有 wechat 的表情符號
+    // // 2. 將 wechat 表情符號的編碼根據對照表進行轉換
+    // const wechatEmojiRegex = new RegExp("/::\\)|/::~|/::B|/::\\||/:8-\\)|/::<|/::$|/::X|/::Z|/::'\\(|/::-\\||/::@|/::P|/::D|/::O|/::\\(|/::\\+|/:--b|/::Q|/::T|/:,@P|/:,@-D|/::d|/:,@o|/::g|/:\\|-\\)|/::!|/::L|/::>|/::,@|/:,@f|/::-S|/:\\?|/:,@x|/:,@@|/::8|/:,@!|/:!!!|/:xx|/:bye|/:wipe|/:dig|/:handclap|/:&-\\(|/:B-\\)|/:<@|/:@>|/::-O|/:>-\\||/:P-\\(|/::'\\||/:X-\\)|/::\\*|/:@x|/:8\\*|/:pd|/:<W>|/:beer|/:basketb|/:oo|/:coffee|/:eat|/:pig|/:rose|/:fade|/:showlove|/:heart|/:break|/:cake|/:li|/:bome|/:kn|/:footb|/:ladybug|/:shit|/:moon|/:sun|/:gift|/:hug|/:strong|/:weak|/:share|/:v|/:@\\)|/:jj|/:@@|/:bad|/:lvu|/:no|/:ok|/:love|/:<L>|/:jump|/:shake|/:<O>|/:circle|/:kotow|/:turn|/:skip|/:oY|/:#-0|/:hiphot|/:kiss|/:<&|/:&>", 'g');
+    // const wechatEmojiTable = Object.freeze({
+    //     // TODO: 補完 wechat 預設表情符號編碼
+    //     '/::)': '😃',
+    //     '/::~': '😖',
+    //     '/::B': '😍',
+    //     '/::|': '😳'
+    // });
+
+    // /**
+    //  * @param {string} text
+    //  */
+    // function filterWechatEmoji(text) {
+    //     if (wechatEmojiRegex.test(text)) {
+    //         var emojis = text.match(wechatEmojiRegex) || [];
+    //         var newText = text;
+    //         for (var i = 0; i < emojis.length; i++) {
+    //             newText = newText.replace(emojis[i], wechatEmojiTable[emojis[i]] || emojis[i]);
+    //         }
+    //         return newText;
+    //     }
+    //     return text;
+    // }
 
     /**
      * 處理聊天室中視窗右側待辦事項資料的控制集合，
@@ -607,7 +617,7 @@
     });
 
     $profilePanel.on('click', '.user-info .btn-update-name', changeConsumerDisplayName);
-    $profilePanel.on('click', '.assigners-select .dropdown-item', userAssignMessager);
+    $profilePanel.on('click', '.assignees-select .dropdown-item', userAssignMessager);
     $profilePanel.on('click', '.fields-select .dropdown-item', multiSelectChange);
     $profilePanel.on('click', '.leave-group-room button', userLeaveGroupRoom);
     $profilePanel.on('click', '.profile-confirm button', userInfoConfirm);
@@ -841,7 +851,7 @@
             var app = apps[appId];
             var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
             var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
-            var assignedIds = messager.assigned_ids;
+            var assigneeIds = messager.assigned_ids;
 
             var $assignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.assigned');
             var $unassignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unassigned');
@@ -849,11 +859,11 @@
             !isGroupChatroom && (tablinksSelectQuery += '[platform-uid="' + platformUid + '"]');
             var $appChatroom = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
 
-            var assignedIdsOld = appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId].assigned_ids || [];
+            var assigneeIdsOld = appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId].assigned_ids || [];
             var tagsOld = appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId].tags || [];
-            var isAlreadyAssignedToMe = assignedIdsOld.indexOf(userId) >= 0;
+            var isAlreadyAssignedToMe = assigneeIdsOld.indexOf(userId) >= 0;
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager;
-            var isAssignedToMe = assignedIds.indexOf(userId) >= 0;
+            var isAssignedToMe = assigneeIds.indexOf(userId) >= 0;
 
             // 檢查 messager 更新內容的 assigned_ids 是否有包含自已
             // 有的話檢查此聊天室是否已有被加入至已指派
@@ -1359,8 +1369,8 @@
         // 將已指派與未指派的聊天室分門別類
         if (CHATSHIER !== appType) {
             var messagerConsumer = findChatroomMessager(appId, chatroomId, appType);
-            var assignedIds = messagerConsumer.assigned_ids || [];
-            if (assignedIds.indexOf(userId) >= 0) {
+            var assigneeIds = messagerConsumer.assigned_ids || [];
+            if (assigneeIds.indexOf(userId) >= 0) {
                 $ctrlPanelChatroomCollapse.find('.collapse.assigned').append(chatroomItemHtml);
             } else {
                 $ctrlPanelChatroomCollapse.find('.collapse.unassigned').append(chatroomItemHtml);
@@ -1423,7 +1433,7 @@
                 }
 
                 if (!message.template) {
-                    let messageText = linkify(filterWechatEmoji(message.text || ''));
+                    let messageText = linkify(message.text || '');
                     return '<span class="text-content">' + messageText + '</span>';
                 }
                 return templateMessageType(message.template);
@@ -1442,7 +1452,7 @@
                 );
             case 'text':
                 var messageText = message.text || '';
-                messageText = linkify(filterWechatEmoji(messageText));
+                messageText = linkify(messageText);
 
                 if (emojiData) {
                     emojiData.setText(messageText);
@@ -1784,11 +1794,9 @@
 
         var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
         var agents = appsAgents[appId].agents;
-        var assignedIds = messager.assigned_ids || [];
-        var assignerNames = assignedIds.map(function(agentUserId) {
-            return agents[agentUserId].name;
-        });
-        var assignerNamesText = assignerNames.length > 1 ? assignerNames[0] + ' 及其他 ' + (assignerNames.length - 1) + ' 名' : assignerNames.join('');
+        var assigneeIds = (messager.assigned_ids || []).filter((agentUserId) => !!agents[agentUserId]);
+        var assigneeNames = assigneeIds.map((agentUserId) => agents[agentUserId].name);
+        var assigneeNamesText = assigneeNames.length > 1 ? assigneeNames[0] + ' 及其他 ' + (assigneeNames.length - 1) + ' 名' : assigneeNames.join('');
 
         return (
             '<form class="about-form">' +
@@ -1825,13 +1833,13 @@
                     '<label class="px-0 col-3 col-form-label">' + transJson['Assigned'] + '</label>' +
                     '<div class="pr-0 col-9 btn-group btn-block multi-select-wrapper">' +
                         '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
-                            '<span class="multi-select-values">' + assignerNamesText + '</span>' +
+                            '<span class="multi-select-values">' + assigneeNamesText + '</span>' +
                             '<span class="caret"></span>' +
                         '</button>' +
-                        '<div class="multi-select-container dropdown-menu assigners-select">' +
+                        '<div class="multi-select-container dropdown-menu assignees-select">' +
                             (function() {
                                 return Object.keys(agents).map(function(agentUserId) {
-                                    var isAssigned = assignedIds.indexOf(agentUserId) >= 0;
+                                    var isAssigned = assigneeIds.indexOf(agentUserId) >= 0;
                                     return (
                                         '<div class="px-3 dropdown-item">' +
                                             '<div class="form-check form-check-inline">' +
@@ -2987,18 +2995,18 @@
         var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
         var messagerId = messager._id;
 
-        var assignedIds = messager.assigned_ids || [];
+        var assigneeIds = messager.assigned_ids || [];
         var assignedId = $checkInput.val();
-        var idx = assignedIds.indexOf(assignedId);
 
+        var idx = assigneeIds.indexOf(assignedId);
         if (isChecked) {
-            idx < 0 && assignedId && assignedIds.push(assignedId);
+            idx < 0 && assignedId && assigneeIds.push(assignedId);
         } else {
-            idx >= 0 && assignedIds.splice(idx, 1);
+            idx >= 0 && assigneeIds.splice(idx, 1);
         }
 
         var putMessager = {
-            assigned_ids: assignedIds
+            assigned_ids: assigneeIds
         };
 
         var $dropdownToggle = $(ev.target).parents('.dropdown-menu').siblings('.dropdown-toggle');
@@ -3007,7 +3015,7 @@
             var _appsChatroomsMessagers = resJson.data;
             var _messager = _appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
-            assignedIds = _messager.assigned_ids || [];
+            assigneeIds = _messager.assigned_ids || [];
 
             return new Promise(function(resolve, reject) {
                 chatshierSocket.emit(SOCKET_EVENTS.BROADCAST_MESSAGER_TO_SERVER, {
@@ -3023,12 +3031,12 @@
                 });
             });
         }).then(function() {
-            var assignerNames = assignedIds.map(function(assignedId) {
+            var assigneeNames = assigneeIds.map(function(assignedId) {
                 return users[assignedId].name;
             });
-            var displayText = assignerNames.join(',');
-            if (assignerNames.length > 1) {
-                displayText = assignerNames[0] + ' 及其他 ' + (assignerNames.length - 1) + ' 名';
+            var displayText = assigneeNames.join(',');
+            if (assigneeNames.length > 1) {
+                displayText = assigneeNames[0] + ' 及其他 ' + (assigneeNames.length - 1) + ' 名';
             }
             $dropdownToggle.find('.multi-select-values').text(displayText);
 
@@ -3037,7 +3045,7 @@
             var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
             var $appChatroom = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + apps[appId].type + '"] ' + tablinksSelectQuery);
 
-            if (assignedIds.indexOf(userId) >= 0) {
+            if (assigneeIds.indexOf(userId) >= 0) {
                 $unassignedCollapse.find(tablinksSelectQuery).remove();
                 var $assignedChatroom = $assignedCollapse.find(tablinksSelectQuery);
                 if (0 === $assignedChatroom.length) {
@@ -3051,6 +3059,10 @@
                 }
             }
 
+            $dropdownToggle.removeAttr('disabled');
+        }).catch(function() {
+            $.notify('指派失敗', { type: 'danger' });
+            $checkInput.prop('checked', false);
             $dropdownToggle.removeAttr('disabled');
         });
     }
@@ -3073,7 +3085,7 @@
         var $checkboxes = $selectContainer.find('input[type="checkbox"]');
         $checkboxes.each(function(i, elem) {
             var $checkbox = $(elem);
-            if ($checkbox.is(':checked')) {
+            if ($checkbox.prop('checked')) {
                 valArr.push($checkbox.val());
                 textArr.push($checkbox.parents('.dropdown-item').text());
             }
