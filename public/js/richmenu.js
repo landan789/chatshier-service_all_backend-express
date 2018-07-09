@@ -300,8 +300,8 @@
             );
         }
 
-        function onActionDataChange() {
-            let $contentInput = $(this);
+        function onActionDataChange(ev) {
+            let $contentInput = $(ev.target);
             let actionProperty = $contentInput.attr('action-property');
 
             let $actionInput = $contentInput.parents('.action-input');
@@ -314,7 +314,7 @@
 
             if (ACTION_TYPES.URI === actionType) {
                 let uriPrefix = $actionInput.find('.uri-prefix').text();
-                actionValue = uriPrefix + actionData;
+                actionValue = uriPrefix + actionValue;
             }
             actionData[actionProperty] = actionValue;
             $box.data('action', actionData);
@@ -519,7 +519,8 @@
         function onKeywordSelect(ev) {
             let $keywordSelect = $(ev.target);
             let keyword = $keywordSelect.val();
-            $keywordSelect.siblings('.action-data').val(keyword);
+            let $actionData = $keywordSelect.siblings('.action-data');
+            onActionDataChange({ target: $actionData.val(keyword).get(0) });
         }
 
         function onClickActionBox() {
