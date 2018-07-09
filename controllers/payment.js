@@ -353,7 +353,7 @@ module.exports = (function() {
         }
 
         _retrieveServerAddr(req) {
-            let serverAddr = req.protocol + '://' + req.hostname + (req.subdomains.includes('fea') ? ':' + chatshierCfg.API.PORT : '');
+            let serverAddr = 'https://' + req.hostname + (req.subdomains.includes('fea') ? ':' + chatshierCfg.API.PORT : '');
             return serverAddr;
         }
 
