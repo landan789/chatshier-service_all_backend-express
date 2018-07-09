@@ -74,10 +74,21 @@ browser client端的檔案
 
 * index.js - 處理socket的檔案
 
-### 14. typings
+### 14. templates
+存放 Server 端動態渲染的模板，如 Email
+
+### 15. third_party
+放置未發佈至 npm 的第三方 modules
+需要進行 local module install
+
+* ecpay_invoice_nodejs - https://github.com/ECPay/Invoice_Node.js
+* ecpay_payment_nodejs - https://github.com/ECPay/ECPayAIO_Node.js
+    - 在更新此 Repository 時需注意，原 Repository 的資料夾的名稱為 ECPAY_Payment_node_js ，為了統一因此改為小寫命名
+
+### 16. typings
 typing 檔案
 
-### 15. view
+### 17. view
 express view engine: ejs
 
 ## **二、檔案**
