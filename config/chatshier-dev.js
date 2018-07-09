@@ -76,5 +76,6 @@ module.exports = {
         // 1. 使用者解除授權 app
         // 2. 使用者授權 app 時，授權的 scope 發生變更
         refreshToken: '1/rBgB_AywuhwQuZpqnYSAfqtVK8u5ll6Vp2S-XDaLY2hzDFEHIU9C9wNXHivtmo-X'
-    }
+    },
+    PAYMENT_MODE: 'TEST'
 };
