@@ -160,43 +160,45 @@ router.post('/:webhookid', (req, res, next) => {
                         return Promise.reject(SKIP_PROCESS_APP);
                     }
 
-                    return botSvc.getProfile(webhookInfo, appId, app).then((profile) => {
-                        if (!platformUid) {
-                            return Promise.resolve(null);
+                    if (!platformUid) {
+                        return Promise.resolve(null);
+                    }
+
+                    return Promise.all([
+                        botSvc.getProfile(webhookInfo, appId, app),
+                        consumersMdl.find(platformUid)
+                    ]).then(([ profile, consumers ]) => {
+                        if (!profile.photo) {
+                            return consumersMdl.replace(platformUid, profile);
                         }
 
-                        return consumersMdl.find(platformUid).then((consumers) => {
-                            if (!consumers) {
-                                return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
-                            }
+                        if (!consumers) {
+                            return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                        }
 
-                            let consumer = consumers[platformUid];
-                            if (!consumer || (consumer && !consumer.photoOriginal)) {
-                                return consumersMdl.replace(platformUid, profile);
-                            }
+                        let consumer = consumers[platformUid];
+                        let isUnsafe = profile && profile.photoOriginal.startsWith('http://');
+                        let shouldUpdate = consumer && (consumer.photo.startsWith('http://') || profile.photoOriginal !== consumer.photoOriginal);
 
-                            let shouldUpload = (
-                                consumer.photo.startsWith('http://') ||
-                                (profile.photo.startsWith('http://') && profile.photo !== consumer.photoOriginal)
-                            );
-
-                            if (shouldUpload) {
+                        if (shouldUpdate) {
+                            if (isUnsafe) {
                                 let fileName = `${platformUid}_${Date.now()}.jpg`;
                                 let filePath = `${storageHlp.tempPath}/${fileName}`;
-                                let putConsumer = Object.assign({}, profile);
+                                let _profile = Object.assign({}, profile);
 
-                                return storageHlp.filesSaveUrl(filePath, profile.photo).then((url) => {
-                                    putConsumer.photo = url;
+                                return storageHlp.filesSaveUrl(filePath, profile.photoOriginal).then((url) => {
+                                    _profile.photo = url;
                                     let toPath = `/consumers/${platformUid}/photo/${fileName}`;
                                     return storageHlp.filesMoveV2(filePath, toPath);
-                                }).then(() => {
-                                    return consumersMdl.replace(platformUid, putConsumer);
+                                }).then((_profile) => {
+                                    return consumersMdl.replace(platformUid, _profile);
                                 });
                             }
-
-                            delete profile.photo;
                             return consumersMdl.replace(platformUid, profile);
-                        });
+                        }
+
+                        delete profile.photo;
+                        return consumersMdl.replace(platformUid, profile);
                     });
                 }).then((_consumers) => {
                     if (!_consumers) {

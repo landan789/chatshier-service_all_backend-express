@@ -140,7 +140,7 @@ module.exports = (function() {
                                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                                     let chatroomId = Object.keys(chatrooms).shift() || '';
                                     let messager = chatrooms[chatroomId].messagers[platformUid];
-    
+
                                     let hasFinishProfile = (
                                         messager.namings && messager.namings[platformUid] &&
                                         messager.email &&
@@ -151,12 +151,12 @@ module.exports = (function() {
                                     if (!hasFinishProfile) {
                                         let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
                                         url += '/consumer-form?aid=' + appId + '&t=' + token;
-    
+
                                         let alertMessage = {
                                             type: 'text',
                                             text: '您尚未完成個人基本資料的填寫'
                                         };
-    
+
                                         let formMessage = {
                                             type: 'template',
                                             altText: '填寫基本資料模板訊息',
