@@ -504,12 +504,14 @@
         autocomplete: false,
         events: {
             keydown: function(editor, ev) {
-                if (13 === ev.keyCode && ev.ctrlKey) {
+                if (13 === ev.keyCode) {
+                    if (ev.shiftKey) {
+                        return;
+                    }
+
                     ev.preventDefault();
-
-                    let messageText = $submitMessageInput.data('emojioneArea').getText();
-                    $submitMessageInput.val(messageText);
-
+                    let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+                    $submitMessageInput.val(emojioneAreaData.getText());
                     let $submitMessageBtn = $('.message-input-container #submitMessageBtn');
                     submitMessage({ target: $submitMessageBtn.get(0) });
                 }
@@ -518,7 +520,10 @@
     });
 
     $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
-        if (13 === ev.keyCode && ev.ctrlKey) {
+        if (13 === ev.keyCode) {
+            if (ev.shiftKey) {
+                return;
+            }
             ev.preventDefault();
             let $submitMessageBtn = $('.message-input-container #submitMessageBtn');
             submitMessage({ target: $submitMessageBtn.get(0) });
