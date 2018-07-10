@@ -207,9 +207,10 @@ module.exports = (function() {
             }).then((app) => {
                 let groupId = app.group_id;
                 let query = {
-                    _id: this.Types.ObjectId(groupId),
-                    isDeleted: false,
-                    status: true
+                    '_id': this.Types.ObjectId(groupId),
+                    'isDeleted': false,
+                    'members.isDeleted': false,
+                    'members.status': true
                 };
                 return this.GroupsModel.findOne(query);
             }).then((group) => {

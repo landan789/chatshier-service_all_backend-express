@@ -362,7 +362,7 @@ module.exports = (function() {
                                             let isUnsafe = groupMemberProfile && groupMemberProfile.photoOriginal.startsWith('http://');
                                             let shouldUpdate = consumer && (consumer.photo.startsWith('http://') || groupMemberProfile.photoOriginal !== consumer.photoOriginal);
 
-                                            if (shouldUpdate) {
+                                            if (!consumer || shouldUpdate) {
                                                 if (isUnsafe) {
                                                     let fileName = `${platformUid}_${Date.now()}.jpg`;
                                                     let filePath = `${storageHlp.tempPath}/${fileName}`;
@@ -372,7 +372,7 @@ module.exports = (function() {
                                                         _groupMemberProfile.photo = url;
                                                         let toPath = `/consumers/${platformUid}/photo/${fileName}`;
                                                         return storageHlp.filesMoveV2(filePath, toPath);
-                                                    }).then((_groupMemberProfile) => {
+                                                    }).then(() => {
                                                         return consumersMdl.replace(platformUid, _groupMemberProfile);
                                                     });
                                                 }
