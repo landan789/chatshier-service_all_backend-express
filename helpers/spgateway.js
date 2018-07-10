@@ -130,7 +130,7 @@ module.exports = (function() {
          */
         generateTradeHash(encryptStr, hashKey, hashIV) {
             let tradeShaHash = `HashKey=${hashKey}&${encryptStr}&HashIV=${hashIV}`;
-            tradeShaHash = cipherHlp.createHash(tradeShaHash, 'sha-256').toUpperCase();
+            tradeShaHash = cipherHlp.createHash(tradeShaHash, 'sha256').toUpperCase();
             return tradeShaHash;
         }
 
