@@ -7,10 +7,15 @@ RELEASE release: Not Ready
  * Created: richmenu support switch to other richmenu
  * Created: richmenu can send a form link to consumer for fill personal profile
  * Created: richmenu can set donate option for consumer donation
- * Created: keyword reply support image, imagemap, template message type
- * Created: chatroom, keyword reply, auto replay, greeting support emoji input for text message
+ * Created: compose support text condition
+ * Created: compose support image, imagemap, template message type, and emoji input for text message
+ * Created: keyword reply support image, imagemap, template message type, and emoji input for text message
+ * Created: auto reply support image, imagemap, template message type, and emoji input for text message
+ * Created: greeting support image, imagemap, template message type, and emoji input for text message
+ * Created: chatroom support emoji input for text message
 == Bug Fixes ==
  * Fixed: fix group member remove issue, chatroom messager not remove after group member removed
+ * Fixed: prevent assignee not found if the user has left the group
 
 = Release 1.3.1 =
 MASTER release: 2018-06-08

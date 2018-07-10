@@ -24,7 +24,10 @@ module.exports = {
     },
     LINE: {
         PREVIEW_IMAGE_URL: 'https://service.dev.chatshier.com/image/logo-no-transparent.png',
-        DOWNLOAD_IMAGE_URL: 'https://service.dev.chatshier.com/image/download.jpg'
+        // LINE 平台在抓取 imagemap 靜態資源圖像時不知為何會加上 URL + '/1040'
+        // 例如: https://service.dev.chatshier.com/image/download.jpg/1040
+        // 導致靜態資源存取會出現 404 Not Found 錯誤，因此需將目標圖像命名為 1040 然後放置於 download 資料夾下
+        DOWNLOAD_IMAGE_URL: 'https://service.dev.chatshier.com/image/download'
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
@@ -73,5 +76,8 @@ module.exports = {
         // 1. 使用者解除授權 app
         // 2. 使用者授權 app 時，授權的 scope 發生變更
         refreshToken: '1/rBgB_AywuhwQuZpqnYSAfqtVK8u5ll6Vp2S-XDaLY2hzDFEHIU9C9wNXHivtmo-X'
+    },
+    PAYMENT: {
+        MODE: 'TEST' // payment
     }
 };

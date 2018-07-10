@@ -17,8 +17,8 @@ module.exports = (function() {
         /**
          * @param {string | string[]} groupIds
          * @param {string} [memberId]
-         * @param {(groupsMembers: Chatshier.Models.GroupsMembers | null) => any} [callback]
-         * @returns {Promise<Chatshier.Models.GroupsMembers | null>}
+         * @param {(groupsMembers: Chatshier.Models.Groups | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Groups | null>}
          */
         find(groupIds, memberId, callback) {
             // polymorphism from groupid | groupid[]
@@ -72,8 +72,8 @@ module.exports = (function() {
          * @param {string | string[]} [memberIds]
          * @param {boolean} [isDeleted=false]
          * @param {boolean} [status]
-         * @param {(members: Chatshier.Models.Members | null) => any} [callback]
-         * @returns {Promise<Chatshier.Models.Members | null>}
+         * @param {(members: Chatshier.Models.GroupMembers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.GroupMembers | null>}
          */
         findMembers(groupId, memberIds, isDeleted = false, status, callback) {
             if (memberIds && !(memberIds instanceof Array)) {
@@ -137,8 +137,8 @@ module.exports = (function() {
         /**
          * @param {string} groupId
          * @param {any} postMember
-         * @param {(groupMembers: Chatshier.Models.GroupsMembers | null) => any} [callback]
-         * @returns {Promise<Chatshier.Models.GroupsMembers | null>}
+         * @param {(groupMembers: Chatshier.Models.Groups | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Groups | null>}
          */
         insert(groupId, postMember, callback) {
             let userId = postMember.user_id;
@@ -187,8 +187,8 @@ module.exports = (function() {
          * @param {string} groupId
          * @param {string} memberId
          * @param {any} putMember
-         * @param {(groupMembers: Chatshier.Models.GroupsMembers | null) => any} [callback]
-         * @returns {Promise<Chatshier.Models.GroupsMembers | null>}
+         * @param {(groupMembers: Chatshier.Models.Groups | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Groups | null>}
          */
         update(groupId, memberId, putMember, callback) {
             putMember = putMember || {};
@@ -229,8 +229,8 @@ module.exports = (function() {
         /**
          * @param {string} groupId
          * @param {string} memberId
-         * @param {(groupMembers: Chatshier.Models.GroupsMembers | null) => any} [callback]
-         * @returns {Promise<Chatshier.Models.GroupsMembers | null>}
+         * @param {(groupMembers: Chatshier.Models.Groups | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Groups | null>}
          */
         remove(groupId, memberId, callback) {
             let query = {

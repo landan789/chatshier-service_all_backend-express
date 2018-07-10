@@ -345,43 +345,42 @@ module.exports = (function() {
                                             platformGroupId: platformGroupId,
                                             platformGroupType: platformGroupType
                                         };
-                                        return this.getProfile(_webhookInfo, appId, app).then((groupMemberProfile) => {
+
+                                        return Promise.all([
+                                            this.getProfile(_webhookInfo, appId, app),
+                                            consumersMdl.find(groupMemberId)
+                                        ]).then(([ groupMemberProfile, consumers ]) => {
                                             if (!groupMemberProfile.photo) {
                                                 return consumersMdl.replace(groupMemberId, groupMemberProfile);
                                             }
 
-                                            return consumersMdl.find(groupMemberId).then((consumers) => {
-                                                if (!consumers) {
-                                                    return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
-                                                }
+                                            if (!consumers) {
+                                                return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                                            }
 
-                                                let consumer = consumers[groupMemberId];
-                                                if (!consumer || (consumer && !consumer.photoOriginal)) {
-                                                    return consumersMdl.replace(platformUid, groupMemberProfile);
-                                                }
+                                            let consumer = consumers[platformUid];
+                                            let isUnsafe = groupMemberProfile && groupMemberProfile.photoOriginal.startsWith('http://');
+                                            let shouldUpdate = consumer && (consumer.photo.startsWith('http://') || groupMemberProfile.photoOriginal !== consumer.photoOriginal);
 
-                                                let shouldUpload = (
-                                                    consumer.photo.startsWith('http://') ||
-                                                    (groupMemberProfile.photo.startsWith('http://') && groupMemberProfile.photo !== consumer.photoOriginal)
-                                                );
-
-                                                if (shouldUpload) {
-                                                    let fileName = `${groupMemberId}_${Date.now()}.jpg`;
+                                            if (!consumer || shouldUpdate) {
+                                                if (isUnsafe) {
+                                                    let fileName = `${platformUid}_${Date.now()}.jpg`;
                                                     let filePath = `${storageHlp.tempPath}/${fileName}`;
-                                                    let putConsumer = Object.assign({}, groupMemberProfile);
+                                                    let _groupMemberProfile = Object.assign({}, groupMemberProfile);
 
-                                                    return storageHlp.filesSaveUrl(filePath, groupMemberProfile.photo).then((url) => {
-                                                        putConsumer.photo = url;
-                                                        let toPath = `/consumers/${groupMemberId}/photo/${fileName}`;
+                                                    return storageHlp.filesSaveUrl(filePath, groupMemberProfile.photoOriginal).then((url) => {
+                                                        _groupMemberProfile.photo = url;
+                                                        let toPath = `/consumers/${platformUid}/photo/${fileName}`;
                                                         return storageHlp.filesMoveV2(filePath, toPath);
                                                     }).then(() => {
-                                                        return consumersMdl.replace(groupMemberId, putConsumer);
+                                                        return consumersMdl.replace(platformUid, _groupMemberProfile);
                                                     });
                                                 }
-
-                                                delete groupMemberProfile.photo;
                                                 return consumersMdl.replace(platformUid, groupMemberProfile);
-                                            });
+                                            }
+
+                                            delete groupMemberProfile.photo;
+                                            return consumersMdl.replace(platformUid, groupMemberProfile);
                                         }).then(() => {
                                             let _messager = {
                                                 type: app.type,
@@ -1093,8 +1092,14 @@ module.exports = (function() {
 
                 switch (app.type) {
                     case LINE:
+                        /**
+                         * @param {string[]} _recipientUids
+                         * @param {any[]} messages
+                         */
                         _multicast = (_recipientUids, messages) => {
+                            /** @type {any[][]} */
                             let multicasts = [];
+
                             // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
                             while (messages.length > 5) {
                                 multicasts.push(messages.splice(0, 5));
@@ -1104,8 +1109,14 @@ module.exports = (function() {
                             let nextPromise = (i) => {
                                 if (i >= multicasts.length) {
                                     return Promise.resolve();
-                                };
-                                let messages = multicasts[i];
+                                }
+
+                                let messages = multicasts[i].map((message) => {
+                                    if ('image' === message.type) {
+                                        message.previewImageUrl = message.originalContentUrl = message.src;
+                                    }
+                                    return message;
+                                });
                                 return bot.multicast(_recipientUids, messages).then(() => {
                                     return nextPromise(i + 1);
                                 });
@@ -1114,15 +1125,27 @@ module.exports = (function() {
                         };
                         return _multicast(recipientUids, messages);
                     case FACEBOOK:
-                        _multicast = (messagerIds, messages) => {
-                            return Promise.all(messagerIds.map((messagerId) => {
+                        /**
+                         * @param {string[]} _recipientUids
+                         * @param {any[]} messages
+                         */
+                        _multicast = (_recipientUids, messages) => {
+                            return Promise.all(_recipientUids.map((recipientUid) => {
                                 let nextPromise = (i) => {
                                     if (i >= messages.length) {
                                         return Promise.resolve();
                                     };
 
                                     let message = messages[i];
-                                    return bot.sendTextMessage(messagerId, message.text).then(() => {
+                                    return Promise.resolve().then(() => {
+                                        if ('text' === message.type) {
+                                            return bot.sendTextMessage(recipientUid, message.text);
+                                        }
+
+                                        if ('image' === message.type) {
+                                            return bot.sendImageMessage(recipientUid, message.src, true);
+                                        }
+                                    }).then(() => {
                                         return nextPromise(i + 1);
                                     });
                                 };

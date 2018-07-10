@@ -10,7 +10,7 @@ module.exports = (function() {
         encode(password) {
             if (!password) {
                 return password;
-            };
+            }
             let hmac = crypto.createHmac(CHATSHIER.CRYPTO.ALGORITHM, CHATSHIER.CRYPTO.SECRET);
             hmac.write(password);
             return hmac.digest('hex');
@@ -28,11 +28,12 @@ module.exports = (function() {
          * @param {string} key
          * @param {string} iv
          * @param {string} [algorithm='aes-256-cbc']
+         * @param {boolean} [shouldAppendFinal=false]
          */
-        aesEncrypt(plainText, key, iv, algorithm = 'aes-256-cbc') {
+        aesEncrypt(plainText, key, iv, algorithm = 'aes-256-cbc', shouldAppendFinal = false) {
             let encipher = crypto.createCipheriv(algorithm, key, iv);
             let encrypted = encipher.update(plainText, 'utf8', 'hex');
-            return encrypted;
+            return encrypted + (shouldAppendFinal ? encipher.final('hex') : '');
         }
 
         /**
@@ -55,7 +56,7 @@ module.exports = (function() {
          * @param {string} [algorithm='sha256']
          */
         createHash(rawText, algorithm = 'sha256') {
-            return crypto.createHash('sha256').update(rawText).digest('hex');
+            return crypto.createHash(algorithm).update(rawText).digest('hex');
         }
     }
     return new CipherHelper();

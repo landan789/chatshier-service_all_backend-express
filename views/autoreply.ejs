@@ -45,7 +45,7 @@
                                 <i class="fa fa-search"></i>
                             </span>
                             <input type="text" class="search-bar align-middle" placeholder="搜尋" aria-hidden="true">
-                            <button type="button" class="btn btn-light btn-border inner-add p-1 insert" data-toggle="modal" data-target="#autoreplyAddModal" aria-hidden="true" disabled="true">
+                            <button type="button" class="btn btn-light btn-border inner-add p-1 insert" data-toggle="modal" data-target="#autoreplyModal" aria-hidden="true" disabled="true">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -69,29 +69,29 @@
         </div>
     </div>
 
-    <div class="modal autoreply-add fade" id="autoreplyAddModal" tabindex="-1" role="dialog" aria-labelledby="autoreplyAddModalTitle" aria-hidden="true">
+    <div class="modal autoreply-modal fade" id="autoreplyModal" tabindex="-1" role="dialog" aria-labelledby="autoreplyModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="autoreplyAddModalTitle"></h5>
+                    <h5 class="modal-title" id="autoreplyModalTitle"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fas fa-times" aria-hidden="true"></i></button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="app-select" class="col-form-label font-weight-bold">目標機器人:</label>
+                        <label for="modalAppSelect" class="col-form-label font-weight-bold">目標機器人:</label>
                         <div class="select-container">
-                            <select class="form-control" id="app-select"></select>
+                            <select class="form-control" id="modalAppSelect"></select>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="modal-task-name" class="col-form-label font-weight-bold">標題:</label>
+                        <label for="autoreplyTitle" class="col-form-label font-weight-bold">標題:</label>
                         <div class="input-container">
-                            <input class="form-control" type="text" id="modal-task-name" placeholder="請輸入標題" />
+                            <input class="form-control" type="text" id="autoreplyTitle" name="autoreplyTitle" placeholder="請輸入標題" />
                         </div>
                     </div>
 
-                    <div class="card">
+                    <div class="form-group card" id="rowOfPeriod">
                         <div class="card-header">
                             <i class="far fa-clock fa-fw"></i>
                             <span>設定啟用期間</span>
@@ -127,89 +127,12 @@
                             </button>
                         </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="replyText" class="col-form-label font-weight-bold">內容:</label>
-                        <div class="textarea-container">
-                            <textarea class="form-control" id="replyText" placeholder="請輸入內容" rows="3"></textarea>
-                        </div>
-                    </div>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="updateSubmitBtn">更新</button>
                     <button type="button" class="btn btn-primary" id="addSubmitBtn">新增</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal autoreply-edit fade" id="autoreplyEditModal" tabindex="-1" role="dialog" aria-labelledby="autoreplyEditTitle" aria-hidden="true">
-        <div class="modal-dialog modal-xs" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="autoreplyEditTitle"></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <i class="fas fa-times" aria-hidden="true"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="edit-taskTitle" class="col-form-label font-weight-bold">標題:</label>
-                            <div class="input-container">
-                                <input class="form-control" type="text" id="edit-taskTitle">
-                            </div>
-                        </div>
-
-                        
-                        <div class="card">
-                            <div class="card-header">
-                                <i class="far fa-clock fa-fw"></i>
-                                <span>設定啟用期間</span>
-                            </div>
-    
-                            <div class="card-body">
-                                <div class="form-group" id="dateSelectGroup">
-                                    <label class="col-form-label font-weight-bold">開始日期:</label>
-                                    <div class="input-group date" id="startDatetimePicker">
-                                        <span class="input-group-addon input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="far fa-calendar-alt"></i>
-                                            </span>
-                                        </span>
-                                        <input type="text" class="form-control" id="startDatetime" name="startDatetime" placeholder="請選擇開始日期" />
-                                    </div>
-            
-                                    <label class="col-form-label font-weight-bold">結束日期:</label>
-                                    <div class="input-group date" id="endDatetimePicker">
-                                        <span class="input-group-addon input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="far fa-calendar-alt"></i>
-                                            </span>
-                                        </span>
-                                        <input type="text" class="form-control" id="endDatetime" name="endDatetime" placeholder="請選擇結束日期" />
-                                    </div>
-                                </div>
-    
-                                <div class="period-container" id="periodContainer"></div>
-                                <button type="button" class="btn btn-light period-add-btn" id="periodAddBtn">
-                                    <i class="fas fa-plus"></i>
-                                    <span>新增時段</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="replyText" class="col-form-label font-weight-bold">內容:</label>
-                            <div class="textarea-container">
-                                <textarea class="form-control" id="replyText" placeholder="請輸入內容"></textarea>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="editSubmitBtn">更新</button>
                 </div>
             </div>
         </div>
@@ -229,10 +152,10 @@
         </div>
     </div>
     <% include ./partials/require_js.ejs %>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment-with-locales.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
     <script src="/lib/js/emojionearea.min.js"></script>
+    <script src="/js/partials/reply_message_selector.js"></script>
     <script src="/js/autoreply.js"></script>
 </body>
 

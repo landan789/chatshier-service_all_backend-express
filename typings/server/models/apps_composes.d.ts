@@ -10,14 +10,7 @@ declare module Chatshier {
             [composeId: string]: Compose
         }
 
-        interface Compose {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
-            text: string,
-            src: string,
-            type: 'text',
+        interface Compose extends BaseProperty, Reply {
             conditions: ComposeCondition[],
             // false 為草稿, true 為開放
             status: boolean,

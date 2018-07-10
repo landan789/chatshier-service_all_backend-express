@@ -526,7 +526,7 @@
                     methods.initFieldRows(fields, messager)
                 });
 
-                $consumerForm.on('submit', function(ev) {
+                $(document).on('submit', '#consumerForm', function(ev) {
                     ev.preventDefault();
 
                     methods.showDialog('資料填寫無誤，確定送出嗎？', false, function(isOK) {

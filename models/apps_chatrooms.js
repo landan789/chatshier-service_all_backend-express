@@ -206,11 +206,16 @@ module.exports = (function() {
                 return this.AppsModel.findOne(query, project);
             }).then((app) => {
                 let groupId = app.group_id;
-                return this.GroupsModel.findOne({ _id: groupId });
+                let query = {
+                    '_id': this.Types.ObjectId(groupId),
+                    'isDeleted': false,
+                    'members.isDeleted': false,
+                    'members.status': true
+                };
+                return this.GroupsModel.findOne(query);
             }).then((group) => {
-                let members = group.members;
-                let memberUserIds = [];
-                members.forEach((member) => member.status && memberUserIds.push(member.user_id));
+                let members = group.members || [];
+                let memberUserIds = members.map((member) => member.user_id);
 
                 query['chatrooms._id'] = chatroomId;
                 let options = {

@@ -10,11 +10,7 @@ declare module Chatshier {
             [ticketId: string]: Ticket
         }
 
-        interface Ticket {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Ticket extends BaseProperty {
             description: string,
             dueTime: Date | number,
             platformUid: string,

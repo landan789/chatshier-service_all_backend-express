@@ -894,72 +894,74 @@ declare module Spgateway {
             Message: string,
 
             /**
-             * 1.JSON 格式。
+             * 1.JSON 格式時，需要進行 JSON.parse。
              * 2.當該筆開立發票參數 PostData_ 已重覆且參數資料完全一致，則回傳原發票 Result。
              */
-            Result: {
-                /**
-                 * 商店代號
-                 * Pay2go 電子發票加值服務平台商店代號。
-                 */
-                MerchantID: string,
+            Result: string
+        }
 
-                /**
-                 * 智付寶開立序號
-                 * 此次發票開立的智付寶開立序號。
-                 */
-                InvoiceTransNo: string,
+        interface IssueResponseResult {
+            /**
+             * 商店代號
+             * Pay2go 電子發票加值服務平台商店代號。
+             */
+            MerchantID: string,
 
-                /**
-                 * 自訂編號
-                 * 商店於開立發票時提供的自訂編號。
-                 */
-                MerchantOrderNo: string,
+            /**
+             * 智付寶開立序號
+             * 此次發票開立的智付寶開立序號。
+             */
+            InvoiceTransNo: string,
 
-                /**
-                 * 發票金額
-                 */
-                TotalAmt: number,
+            /**
+             * 自訂編號
+             * 商店於開立發票時提供的自訂編號。
+             */
+            MerchantOrderNo: string,
 
-                /**
-                 * 發票號碼
-                 * 1.此次開立發票的發票號碼。
-                 * 2.只有 Status=1 立即開立時，才會回傳
-                 */
-                InvoiceNumber?: string,
+            /**
+             * 發票金額
+             */
+            TotalAmt: number,
 
-                /**
-                 * 發票防偽隨機碼
-                 * 此次開立發票所產生的 4 碼防偽隨機碼。
-                 */
-                RandomNum: string,
+            /**
+             * 發票號碼
+             * 1.此次開立發票的發票號碼。
+             * 2.只有 Status=1 立即開立時，才會回傳
+             */
+            InvoiceNumber?: string,
 
-                /**
-                 * 開立發票時間
-                 * 例：2014-09-25 12:12:12。
-                 */
-                CreateTime: string,
+            /**
+             * 發票防偽隨機碼
+             * 此次開立發票所產生的 4 碼防偽隨機碼。
+             */
+            RandomNum: string,
 
-                /**
-                 * 用來檢查此次資料回傳的合法性，串接時可以比對此參數資料，來檢核是否為本平台所回傳
-                 */
-                CheckCode: string,
+            /**
+             * 開立發票時間
+             * 例：2014-09-25 12:12:12。
+             */
+            CreateTime: string,
 
-                /**
-                 * 發票條碼
-                 */
-                BarCode: string,
+            /**
+             * 用來檢查此次資料回傳的合法性，串接時可以比對此參數資料，來檢核是否為本平台所回傳
+             */
+            CheckCode: string,
 
-                /**
-                 * 發票 QRCode (左)
-                 */
-                QRcodeL: string,
+            /**
+             * 發票條碼
+             */
+            BarCode: string,
 
-                /**
-                 * 發票 QRCode (右)
-                 */
-                QRcodeR: string
-            }
+            /**
+             * 發票 QRCode (左)
+             */
+            QRcodeL: string,
+
+            /**
+             * 發票 QRCode (右)
+             */
+            QRcodeR: string
         }
     }
 }
