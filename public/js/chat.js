@@ -3153,22 +3153,16 @@
             var display = false;
 
             // 客戶名單搜尋
-            $tablinkElem.find('.client-name').each(function(i, elem) {
-                var $content = $(elem).find('.content');
+            $tablinkElem.find('.app-name').each(function(i, elem) {
+                var $content = $(elem).parents('.tablinks');
                 var text = $(elem).text();
 
                 if (text.toLowerCase().indexOf(searchStr) !== -1) {
-                    if (0 === count) {
-                        $tablinkElem.trigger('click');
-                    }
-                    $tablinks.push($tablinkElem);
-                    $panels.push(null);
-                    $clientNameOrTexts.push(null);
-                    count += 1;
-                    $content.addClass('found');
+                    $content.parents('.collapse').addClass('show');
+                    $content.removeClass('d-none');
                     display = true;
                 } else {
-                    $content.removeClass('found');
+                    $content.addClass('d-none');
                 }
             });
             // 聊天室搜尋
