@@ -10,7 +10,7 @@ module.exports = (function() {
         encode(password) {
             if (!password) {
                 return password;
-            };
+            }
             let hmac = crypto.createHmac(CHATSHIER.CRYPTO.ALGORITHM, CHATSHIER.CRYPTO.SECRET);
             hmac.write(password);
             return hmac.digest('hex');
@@ -56,7 +56,7 @@ module.exports = (function() {
          * @param {string} [algorithm='sha256']
          */
         createHash(rawText, algorithm = 'sha256') {
-            return crypto.createHash('sha256').update(rawText).digest('hex');
+            return crypto.createHash(algorithm).update(rawText).digest('hex');
         }
     }
     return new CipherHelper();

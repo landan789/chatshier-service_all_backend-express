@@ -851,7 +851,9 @@
             var app = apps[appId];
             var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
             var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
-            var assigneeIds = messager.assigned_ids;
+
+            var agents = appsAgents[appId].agents;
+            var assigneeIds = (messager.assigned_ids || []).filter((agentUserId) => !!agents[agentUserId]);
 
             var $assignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.assigned');
             var $unassignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unassigned');
@@ -1369,7 +1371,9 @@
         // 將已指派與未指派的聊天室分門別類
         if (CHATSHIER !== appType) {
             var messagerConsumer = findChatroomMessager(appId, chatroomId, appType);
-            var assigneeIds = messagerConsumer.assigned_ids || [];
+            var agents = appsAgents[appId].agents;
+            var assigneeIds = (messagerConsumer.assigned_ids || []).filter((agentUserId) => !!agents[agentUserId]);
+
             if (assigneeIds.indexOf(userId) >= 0) {
                 $ctrlPanelChatroomCollapse.find('.collapse.assigned').append(chatroomItemHtml);
             } else {
@@ -2995,7 +2999,8 @@
         var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
         var messagerId = messager._id;
 
-        var assigneeIds = messager.assigned_ids || [];
+        var agents = appsAgents[appId].agents;
+        var assigneeIds = (messager.assigned_ids || []).filter((agentUserId) => !!agents[agentUserId]);
         var assignedId = $checkInput.val();
 
         var idx = assigneeIds.indexOf(assignedId);
@@ -3015,7 +3020,9 @@
             var _appsChatroomsMessagers = resJson.data;
             var _messager = _appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
-            assigneeIds = _messager.assigned_ids || [];
+
+            var agents = appsAgents[appId].agents;
+            assigneeIds = (_messager.assigned_ids || []).filter((agentUserId) => !!agents[agentUserId]);
 
             return new Promise(function(resolve, reject) {
                 chatshierSocket.emit(SOCKET_EVENTS.BROADCAST_MESSAGER_TO_SERVER, {

@@ -819,7 +819,7 @@ const ConditionSelector = (function() {
 
                 for (let i in composeContents) {
                     composeContents[i].appId = appId;
-                    composeContents[i].reset();
+                    composeContents[i].reset(modalCompose && modalCompose.type);
                 }
                 updateAvailable();
                 return;

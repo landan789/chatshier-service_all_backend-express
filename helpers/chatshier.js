@@ -119,40 +119,75 @@ module.exports = (function() {
                             repliedMessages.push(formMessage);
                             break;
                         case POSTBACK_ACTIONS.PAYMENT_CONFIRM:
-                            // 當 consumer 付款時，檢查此 consumer 是否已經填寫完個人基本資料
-                            // 如果沒有填寫完基本資料，則發送填寫基本資料模板給使用者
-                            let confirmPromise = appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid).then((appsChatroomsMessagers) => {
-                                if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                            let confirmPromise = appsPaymentsMdl.find(appId).then((appsPayments) => {
+                                // 如果此 App 尚未設定金流服務，則跳過處理
+                                if (!(appsPayments && appsPayments[appId])) {
+                                    return Promise.resolve(void 0);
+                                }
+                                return Promise.resolve(Object.values(appsPayments[appId].payments).shift());
+                            }).then((payment) => {
+                                if (!payment) {
                                     return;
                                 }
 
-                                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                                let chatroomId = Object.keys(chatrooms).shift() || '';
-                                let messager = chatrooms[chatroomId].messagers[platformUid];
+                                return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid).then((appsChatroomsMessagers) => {
+                                    if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                                        return;
+                                    }
 
-                                let hasFinishProfile = (
-                                    messager.namings && messager.namings[platformUid] &&
-                                    messager.email &&
-                                    messager.phone &&
-                                    messager.address
-                                );
+                                    // 當 consumer 點擊捐款時，檢查此 consumer 是否已經填寫完個人基本資料
+                                    // 如果沒有填寫完基本資料，則發送填寫基本資料模板給使用者
+                                    let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                                    let chatroomId = Object.keys(chatrooms).shift() || '';
+                                    let messager = chatrooms[chatroomId].messagers[platformUid];
+    
+                                    let hasFinishProfile = (
+                                        messager.namings && messager.namings[platformUid] &&
+                                        messager.email &&
+                                        messager.phone &&
+                                        messager.address
+                                    );
 
-                                if (!hasFinishProfile) {
+                                    if (!hasFinishProfile) {
+                                        let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+                                        url += '/consumer-form?aid=' + appId + '&t=' + token;
+    
+                                        let alertMessage = {
+                                            type: 'text',
+                                            text: '您尚未完成個人基本資料的填寫'
+                                        };
+    
+                                        let formMessage = {
+                                            type: 'template',
+                                            altText: '填寫基本資料模板訊息',
+                                            template: {
+                                                type: 'buttons',
+                                                title: '填寫基本資料',
+                                                text: '開啟以下連結進行填寫動作',
+                                                actions: [{
+                                                    type: 'uri',
+                                                    label: '按此開啟',
+                                                    uri: url
+                                                }]
+                                            }
+                                        };
+                                        repliedMessages.push(alertMessage, formMessage);
+                                        return;
+                                    }
+
                                     let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                                    url += '/consumer-form?aid=' + appId + '&t=' + token;
+                                    url += '/donation-confirm?aid=' + appId + '&t=' + token;
+                                    if (payment.canIssueInvoice) {
+                                        url += '&cii=1';
+                                    }
 
-                                    let alertMessage = {
-                                        type: 'text',
-                                        text: '您尚未完成個人基本資料的填寫'
-                                    };
-
-                                    let formMessage = {
+                                    let linkMessage = {
                                         type: 'template',
-                                        altText: '填寫基本資料模板訊息',
+                                        altText: '捐款連結訊息',
                                         template: {
                                             type: 'buttons',
-                                            title: '填寫基本資料',
-                                            text: '開啟以下連結進行填寫動作',
+                                            title: '捐款連結',
+                                            text: '開啟以下連結前往捐款資料確認',
                                             actions: [{
                                                 type: 'uri',
                                                 label: '按此開啟',
@@ -160,42 +195,8 @@ module.exports = (function() {
                                             }]
                                         }
                                     };
-                                    repliedMessages.push(alertMessage, formMessage);
-                                    return;
-                                }
-
-                                return appsPaymentsMdl.find(appId).then((appsPayments) => {
-                                    if (!(appsPayments && appsPayments[appId])) {
-                                        return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
-                                    }
-                                    return Promise.resolve(Object.values(appsPayments[appId].payments).shift());
+                                    repliedMessages.push(linkMessage);
                                 });
-                            }).then((payment) => {
-                                if (!payment) {
-                                    return;
-                                }
-
-                                let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                                url += '/donation-confirm?aid=' + appId + '&t=' + token;
-                                if (payment.canIssueInvoice) {
-                                    url += '&cii=1';
-                                }
-
-                                let linkMessage = {
-                                    type: 'template',
-                                    altText: '捐款連結訊息',
-                                    template: {
-                                        type: 'buttons',
-                                        title: '捐款連結',
-                                        text: '開啟以下連結前往捐款資料確認',
-                                        actions: [{
-                                            type: 'uri',
-                                            label: '按此開啟',
-                                            uri: url
-                                        }]
-                                    }
-                                };
-                                repliedMessages.push(linkMessage);
                             });
                             promises.push(confirmPromise);
                             break;

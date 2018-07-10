@@ -422,7 +422,7 @@ let PeriodComponent = (function() {
             }
 
             replyMessageSelect.appId = modalAppId;
-            replyMessageSelect.reset();
+            replyMessageSelect.reset(modalAutoreply.type);
         }
 
         function prepareAutoreply() {
