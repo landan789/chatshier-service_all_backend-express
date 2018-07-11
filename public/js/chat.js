@@ -810,19 +810,19 @@
                     var person = CHATSHIER === message.from ? consumers[recipientUid] : consumers[senderUid];
                     var consumerUid = person ? person.platformUid : '';
 
-                    var isHidden = false;
+                    var shouldHide = false;
                     if (isGroupChatroom) {
                         person = Object.assign({}, users[userId]);
                         person.photo = logos[app.type];
                         var $chatroomProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-                        isHidden = $chatroomProfileGroup.hasClass('d-none');
+                        shouldHide = $chatroomProfileGroup.hasClass('d-none');
                         $chatroomProfileGroup = $chatroomProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
-                        isHidden && $chatroomProfileGroup.addClass('d-none');
+                        shouldHide && $chatroomProfileGroup.addClass('d-none');
                     } else if (senderUid && person) {
                         var $personProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + consumerUid + '"]');
-                        isHidden = $personProfileGroup.hasClass('d-none');
+                        shouldHide = $personProfileGroup.hasClass('d-none');
                         $personProfileGroup = $personProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
-                        isHidden && $personProfileGroup.addClass('d-none');
+                        shouldHide && $personProfileGroup.addClass('d-none');
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
