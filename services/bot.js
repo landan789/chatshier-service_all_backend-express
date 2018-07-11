@@ -955,7 +955,7 @@ module.exports = (function() {
                                 text: message.text
                             }, {
                                 type: 'imagemap',
-                                baseUrl: chatshierCfg.LINE.DOWNLOAD_IMAGE_URL,
+                                baseUrl: chatshierCfg.LINE.FILE_IMAGE_BASE_URL,
                                 altText: fileTitle,
                                 baseSize: {
                                     height: 1040,
