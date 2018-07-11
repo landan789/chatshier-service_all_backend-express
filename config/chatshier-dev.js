@@ -24,10 +24,12 @@ module.exports = {
     },
     LINE: {
         PREVIEW_IMAGE_URL: 'https://service.dev.chatshier.com/image/logo-no-transparent.png',
-        // LINE 平台在抓取 imagemap 靜態資源圖像時不知為何會加上 URL + '/1040'
-        // 例如: https://service.dev.chatshier.com/image/download.jpg/1040
-        // 導致靜態資源存取會出現 404 Not Found 錯誤，因此需將目標圖像命名為 1040 然後放置於 download 資料夾下
-        DOWNLOAD_IMAGE_URL: 'https://service.dev.chatshier.com/image/download'
+        // LINE 的 App 會根據行動裝置存取 5 種不同的解析度圖像
+        // 可能存取的像素值有240px, 300px, 460px, 700px, 1040px，例如:
+        // [FILE_IMAGE_BASE_URL]/1040
+        // [FILE_IMAGE_BASE_URL]/700
+        // https://developers.line.me/en/reference/messaging-api/#base-url
+        FILE_IMAGE_BASE_URL: 'https://service.dev.chatshier.com/image/file_images'
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
