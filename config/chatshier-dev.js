@@ -29,7 +29,7 @@ module.exports = {
         // [FILE_IMAGE_BASE_URL]/1040
         // [FILE_IMAGE_BASE_URL]/700
         // https://developers.line.me/en/reference/messaging-api/#base-url
-        FILE_IMAGE_BASE_URL: 'https://service.dev.chatshier.com/image/file_images'
+        FILE_IMAGE_BASE_URL: 'https://service.dev.chatshier.com/image/download'
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
