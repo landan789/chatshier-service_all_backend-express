@@ -16,8 +16,11 @@
     var FACEBOOK = 'FACEBOOK';
     var WECHAT = 'WECHAT';
 
+    var LINE_GROUP = 'LINE_GROUP';
+
     var logos = {
         [LINE]: 'https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg',
+        [LINE_GROUP]: './image/line-group.jpg',
         [FACEBOOK]: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Facebook_Messenger_logo.svg',
         [WECHAT]: 'https://cdn.worldvectorlogo.com/logos/wechat.svg',
         [CHATSHIER]: 'image/logo-no-transparent.png'
@@ -1167,7 +1170,7 @@
                 var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
                 if (isGroupChatroom) {
                     uiRequireData.person = Object.assign({}, users[userId]);
-                    uiRequireData.person.photo = logos[app.type];
+                    uiRequireData.person.photo = logos[LINE_GROUP];
                     uiRequireData.platformUid = userId;
                 } else {
                     var platformMessager = findChatroomMessager(appId, chatroomId, app.type);
