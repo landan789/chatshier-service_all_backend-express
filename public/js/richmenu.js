@@ -314,7 +314,7 @@
 
             if (ACTION_TYPES.URI === actionType) {
                 let uriPrefix = $actionInput.find('.uri-prefix').text();
-                actionValue = uriPrefix + actionValue;
+                actionValue = uriPrefix + actionValue.replace(/(http:\/\/|https:\/\/|tel:)/, '');
             }
             actionData[actionProperty] = actionValue;
             $box.data('action', actionData);
