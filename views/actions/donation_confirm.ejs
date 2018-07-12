@@ -480,7 +480,7 @@
                         var hasRequestInvoice = 'YES' === $donationForm.find('.btn-invoice.active').data('invoice');
                         if (hasRequestInvoice) {
                             var taxId = $donationForm.find('#taxId').val();
-                            if (taxId && !idValidationForTW(taxId)) {
+                            if (taxId && !taxIdValidationForTW(taxId)) {
                                 return methods.showDialog('請填入正確的統一編號格式', true);
                             }
                         }
