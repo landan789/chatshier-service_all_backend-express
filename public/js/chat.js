@@ -553,6 +553,8 @@
         var $ctrlPanel = $('.chsr.ctrl-panel');
         var $chatWrapper = $('.chat-wrapper');
         var $chatroomContainer = $chatWrapper.find('.chatroom-container');
+        var $profileToggle = $toolbar.find('#profileToggle');
+        var $ticketToggle = $toolbar.find('#ticketToggle');
 
         if (isFullscreen) {
             $toolbar.css({
@@ -561,23 +563,32 @@
                 height: '0',
                 display: 'none'
             });
+
             $ctrlPanel.css({
                 willChange: 'width',
                 transitionDuration: '150ms',
                 width: '0',
                 display: 'none'
             }).removeClass('d-sm-block');
+
             $chatWrapper.css({
                 maxWidth: '100%'
             });
+
             $chatroomContainer.css({
-                maxHeight: '100%'
+                maxHeight: '100%',
+                padding: 0
             });
+
+            $profileToggle.hasClass('active') && $profilePanel.addClass('d-none');
+            $ticketToggle.hasClass('active') && $ticketPanel.addClass('d-none');
         } else {
             $toolbar.removeAttr('style');
             $ctrlPanel.removeAttr('style').addClass('d-sm-block');
             $chatWrapper.removeAttr('style');
             $chatroomContainer.removeAttr('style');
+            $profileToggle.hasClass('active') && $profilePanel.removeClass('d-none');
+            $ticketToggle.hasClass('active') && $ticketPanel.removeClass('d-none');
         }
     });
 
@@ -809,14 +820,20 @@
 
                     var person = CHATSHIER === message.from ? consumers[recipientUid] : consumers[senderUid];
                     var consumerUid = person ? person.platformUid : '';
+
+                    var shouldHide = false;
                     if (isGroupChatroom) {
                         person = Object.assign({}, users[userId]);
                         person.photo = logos[app.type];
                         var $chatroomProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-                        $chatroomProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                        shouldHide = $chatroomProfileGroup.hasClass('d-none');
+                        $chatroomProfileGroup = $chatroomProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                        shouldHide && $chatroomProfileGroup.addClass('d-none');
                     } else if (senderUid && person) {
                         var $personProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + consumerUid + '"]');
-                        $personProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                        shouldHide = $personProfileGroup.hasClass('d-none');
+                        $personProfileGroup = $personProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                        shouldHide && $personProfileGroup.addClass('d-none');
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
@@ -3158,22 +3175,16 @@
             var display = false;
 
             // 客戶名單搜尋
-            $tablinkElem.find('.client-name').each(function(i, elem) {
-                var $content = $(elem).find('.content');
+            $tablinkElem.find('.app-name').each(function(i, elem) {
+                var $content = $(elem).parents('.tablinks');
                 var text = $(elem).text();
 
                 if (text.toLowerCase().indexOf(searchStr) !== -1) {
-                    if (0 === count) {
-                        $tablinkElem.trigger('click');
-                    }
-                    $tablinks.push($tablinkElem);
-                    $panels.push(null);
-                    $clientNameOrTexts.push(null);
-                    count += 1;
-                    $content.addClass('found');
+                    $content.parents('.collapse').addClass('show');
+                    $content.removeClass('d-none');
                     display = true;
                 } else {
-                    $content.removeClass('found');
+                    $content.addClass('d-none');
                 }
             });
             // 聊天室搜尋
