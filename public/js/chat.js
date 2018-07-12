@@ -806,7 +806,7 @@
 
                         if (isGroupChatroom) {
                             uiRequireData.person = Object.assign({}, users[userId]);
-                            uiRequireData.person.photo = logos[LINE];
+                            uiRequireData.person.photo = logos[app.type];
                             uiRequireData.platformUid = userId;
                         } else {
                             uiRequireData.person = sender;
