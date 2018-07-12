@@ -23,7 +23,7 @@ module.exports = {
         PATH: '.log'
     },
     LINE: {
-        PREVIEW_IMAGE_URL: 'https://service.dev.chatshier.com/image/logo-no-transparent.png',
+        VIDEO_PREVIEW_IMAGE_URL: 'https://service.dev.chatshier.com/image/video.png',
         // LINE 的 App 會根據行動裝置存取 5 種不同的解析度圖像
         // 可能存取的像素值有240px, 300px, 460px, 700px, 1040px，例如:
         // [FILE_IMAGE_BASE_URL]/1040
