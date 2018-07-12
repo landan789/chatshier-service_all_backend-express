@@ -84,7 +84,8 @@ function init(server) {
                         }
 
                         return storageHlp.filesUpload(originalFilePath, srcBuffer).then(() => {
-                            return storageHlp.sharingCreateSharedLink(originalFilePath, true);
+                            let useShortUrl = 'file' === message.type;
+                            return storageHlp.sharingCreateSharedLink(originalFilePath, useShortUrl);
                         }).then((url) => {
                             message.src = url;
                         });
