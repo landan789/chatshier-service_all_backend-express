@@ -170,38 +170,10 @@ module.exports = (function() {
                     this._paidOrder(tradeId)
                 ]);
             }).then(([ payment, order ]) => {
-                // 此訂單沒有建立發票關聯 ID 則不需要開立發票
-                if (!(order && order.invoiceId)) {
+                if (!order) {
                     return Promise.resolve(void 0);
                 }
-
-                let orderId = order._id;
-                return ecpayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then((invoice) => {
-                    let putOrder = {
-                        isInvoiceIssued: true,
-                        invoiceNumber: invoice.InvoiceNumber,
-                        invoiceRandomNumber: invoice.RandomNumber
-                    };
-                    return ordersMdl.update(orderId, putOrder);
-                }).then((orders) => {
-                    if (!(orders && orders[orderId])) {
-                        return Promise.reject(API_ERROR.ORDER_FAILED_TO_UPDATE);
-                    }
-
-                    let _order = orders[orderId];
-                    let replyText = (
-                        '=== 支付成功 ===\n' +
-                        '感謝您！'
-                    );
-
-                    if (_order.isInvoiceIssued && _order.invoiceNumber) {
-                        replyText += (
-                            '\n\n已為你開立電子發票: ' + _order.invoiceNumber +
-                            '\n如需索取紙本，請留言。'
-                        );
-                    }
-                    return this._replyToConsumer(order.app_id, order.consumerUid, replyText);
-                });
+                return this._issueInvoice(payment, order);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -233,28 +205,74 @@ module.exports = (function() {
                     this._paidOrder(tradeId)
                 ]);
             }).then(([ payment, order ]) => {
-                // 此訂單沒有建立發票關聯 ID 則不需要開立發票
-                if (!(order && order.invoiceId)) {
+                if (!order) {
                     return Promise.resolve(void 0);
                 }
+                return this._issueInvoice(payment, order);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
+            });
+        }
 
-                let orderId = order._id;
-                let appId = order.app_id;
-                let consumerUid = order.consumerUid;
-                let replyText = (
-                    '=== 支付成功 ===\n' +
-                    '感謝您！'
-                );
+        _recordLog(req) {
+            let paymentNotify = {
+                url: req.hostname + req.originalUrl,
+                body: req.body
+            };
+            return paymentsLog.start(paymentNotify);
+        }
+
+        /**
+         * @param {Chatshier.Models.Payment} payment
+         * @param {Chatshier.Models.Order} order
+         */
+        _issueInvoice(payment, order) {
+            let orderId = order._id;
+            let appId = order.app_id;
+            let consumerUid = order.consumerUid;
+            let replyText = (
+                '=== 支付成功 ===\n' +
+                '感謝您！'
+            );
+
+            return Promise.resolve().then(() => {
+                if (!order) {
+                    return Promise.resolve(null);
+                }
+
+                // 此訂單沒有建立發票關聯 ID 則不需要開立發票
+                if (!order.invoiceId) {
+                    return Promise.resolve(order);
+                }
 
                 // 智付通 Spgateway 的電子發票是獨立開來的，使用 智付寶 Pay2Go 電子發票平台
                 // 因此在智付通支付完成後，必須再使用 Pay2Go 的電子發票 API 來開立發票
-                return spgatewayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then((invoice) => {
-                    let putOrder = {
-                        isInvoiceIssued: true,
-                        invoiceNumber: invoice.InvoiceNumber,
-                        invoiceRandomNumber: invoice.RandomNum,
-                        invoiceId: invoice.MerchantOrderNo
-                    };
+                return Promise.resolve().then(() => {
+                    if (ECPAY === payment.type) {
+                        return ecpayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then((invoice) => {
+                            let putOrder = {
+                                isInvoiceIssued: true,
+                                invoiceNumber: invoice.InvoiceNumber,
+                                invoiceRandomNumber: invoice.RandomNumber
+                            };
+                            return putOrder;
+                        });
+                    } else if (SPGATEWAY === payment.type) {
+                        return spgatewayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then((invoice) => {
+                            let putOrder = {
+                                isInvoiceIssued: true,
+                                invoiceId: invoice.MerchantOrderNo,
+                                invoiceNumber: invoice.InvoiceNumber,
+                                invoiceRandomNumber: invoice.RandomNum
+                            };
+                            return putOrder;
+                        });
+                    }
+                    return {};
+                }).then((putOrder) => {
+                    if (0 === Object.keys(putOrder).length) {
+                        return Promise.resolve(null);
+                    }
 
                     return ordersMdl.update(orderId, putOrder).then((orders) => {
                         if (!(orders && orders[orderId])) {
@@ -262,21 +280,21 @@ module.exports = (function() {
                         }
                         return Promise.resolve(orders[orderId]);
                     });
-                }).catch((err) => {
-                    console.error(err);
-                }).then((_order) => {
-                    if (_order) {
-                        if (_order.isInvoiceIssued && _order.invoiceNumber) {
-                            replyText += (
-                                '\n\n已為你開立電子發票: ' + (_order.invoiceNumber.substring(0, 2) + '-' + _order.invoiceNumber.substring(2)) +
-                                '\n如需索取紙本，請留言。'
-                            );
-                        }
-                        return this._replyToConsumer(appId, consumerUid, replyText);
-                    }
                 });
-            }).catch((err) => {
-                return this.errorJson(req, res, err);
+            }).then((_order) => {
+                if (!_order) {
+                    return;
+                }
+
+                if (_order.isInvoiceIssued && _order.invoiceNumber) {
+                    replyText += (
+                        '\n\n已為你開立電子發票: ' +
+                        (_order.invoiceNumber.substring(0, 2) +
+                        '-' +
+                        _order.invoiceNumber.substring(2))
+                    );
+                }
+                return this._replyToConsumer(appId, consumerUid, replyText);
             });
         }
 
@@ -350,14 +368,6 @@ module.exports = (function() {
                     return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
                 });
             });
-        }
-
-        _recordLog(req) {
-            let paymentNotify = {
-                url: req.hostname + req.originalUrl,
-                body: req.body
-            };
-            return paymentsLog.start(paymentNotify);
         }
 
         /**
