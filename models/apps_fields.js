@@ -43,6 +43,12 @@ module.exports = (function() {
             sets: [],
             setsType: SetsTypes.TEXT
         }, {
+            text: 'Address',
+            alias: 'address',
+            type: FieldsTypes.DEFAULT,
+            sets: [],
+            setsType: SetsTypes.TEXT
+        }, {
             text: 'Remark',
             alias: 'remark',
             type: FieldsTypes.DEFAULT,

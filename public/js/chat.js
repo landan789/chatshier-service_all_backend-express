@@ -1898,10 +1898,10 @@
                         // DEFAULT, SYSTEM 在前 CUSTOM 在後
                         if (FIELD_TYPES.CUSTOM !== fieldsA.type &&
                             FIELD_TYPES.CUSTOM === fieldsB.type) {
-                            return false;
+                            return -1;
                         } else if (FIELD_TYPES.CUSTOM === fieldsA.type &&
                             FIELD_TYPES.CUSTOM !== fieldsB.type) {
-                            return true;
+                            return 1;
                         }
                         return fieldsA.order - fieldsB.order;
                     });

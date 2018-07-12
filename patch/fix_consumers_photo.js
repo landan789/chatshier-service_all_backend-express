@@ -48,7 +48,7 @@ consumersMdl.find().then((consumers) => {
 
                 let fileName = `${platformUid}_${Date.now()}.jpg`;
                 let photoPath = `/consumers/${platformUid}/photo/${fileName}`;
-                console.log('[INFO] platformUid: "' + platformUid + '"');
+                console.log('[INFO] consumer: "' + consumer.name + '"');
                 console.log('[INFO] uploading "' + consumer.photo + '" photo to storage path: ' + photoPath);
 
                 return checkingPhotoIsAlive(consumer.photo).then((isAlive) => {
@@ -66,7 +66,6 @@ consumersMdl.find().then((consumers) => {
                         console.log('[INFO] photo replace to url: ' + url);
                         console.log('');
                         putConsumer.photo = url;
-                        return consumersMdl.replace(platformUid, putConsumer);
                     });
                 }).then(() => {
                     return consumersMdl.replace(platformUid, putConsumer);
