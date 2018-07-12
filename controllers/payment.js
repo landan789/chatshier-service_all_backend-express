@@ -57,7 +57,8 @@ module.exports = (function() {
                 payerEmail: req.body.payerEmail,
                 payerPhone: req.body.payerPhone,
                 payerAddress: req.body.payerAddress,
-                hasRequestInvoice: req.body.hasRequestInvoice
+                hasRequestInvoice: req.body.hasRequestInvoice,
+                taxId: req.body.taxId
             };
 
             return Promise.all([
@@ -224,7 +225,8 @@ module.exports = (function() {
             }).then((payment) => {
                 /** @type {Spgateway.Payment.ResultResponse} */
                 let resultInfo = spgatewayHlp.decryptStrToJson(paymentResult.TradeInfo, payment.hashKey, payment.hashIV);
-                let tradeId = (resultInfo.Result && resultInfo.Result.MerchantOrderNo) || '';
+                let tradeId = ('SUCCESS' === resultInfo.Status && resultInfo.Result && resultInfo.Result.MerchantOrderNo) || '';
+                !res.headersSent && res.sendStatus(200);
 
                 return Promise.all([
                     Promise.resolve(payment),
@@ -235,7 +237,6 @@ module.exports = (function() {
                 if (!(order && order.invoiceId)) {
                     return Promise.resolve(void 0);
                 }
-                !res.headersSent && res.sendStatus(200);
 
                 let orderId = order._id;
                 let appId = order.app_id;
@@ -264,13 +265,15 @@ module.exports = (function() {
                 }).catch((err) => {
                     console.error(err);
                 }).then((_order) => {
-                    if (_order && _order.isInvoiceIssued && _order.invoiceNumber) {
-                        replyText += (
-                            '\n\n已為你開立電子發票: ' + _order.invoiceNumber +
-                            '\n如需索取紙本，請留言。'
-                        );
+                    if (_order) {
+                        if (_order.isInvoiceIssued && _order.invoiceNumber) {
+                            replyText += (
+                                '\n\n已為你開立電子發票: ' + (_order.invoiceNumber.substring(0, 2) + '-' + _order.invoiceNumber.substring(2)) +
+                                '\n如需索取紙本，請留言。'
+                            );
+                        }
+                        return this._replyToConsumer(appId, consumerUid, replyText);
                     }
-                    return this._replyToConsumer(appId, consumerUid, replyText);
                 });
             }).catch((err) => {
                 return this.errorJson(req, res, err);
@@ -410,9 +413,12 @@ module.exports = (function() {
         /**
          * @param {string} tradeId
          * @param {any} [putOrder]
-         * @returns {Promise<Chatshier.Models.Order>}
+         * @returns {Promise<Chatshier.Models.Order | void>}
          */
         _paidOrder(tradeId, putOrder) {
+            if (!tradeId) {
+                return Promise.resolve();
+            }
             putOrder = putOrder || {};
             putOrder.isPaid = true;
 
