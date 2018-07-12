@@ -18,7 +18,7 @@
 
     var LINE_GROUP = 'LINE_GROUP';
 
-    var logos = {
+    var LOGOS = {
         [LINE]: 'https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg',
         [LINE_GROUP]: './image/line-group.jpg',
         [FACEBOOK]: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Facebook_Messenger_logo.svg',
@@ -806,7 +806,7 @@
 
                         if (isGroupChatroom) {
                             uiRequireData.person = Object.assign({}, users[userId]);
-                            uiRequireData.person.photo = logos[app.type];
+                            uiRequireData.person.photo = LOGOS[LINE_GROUP];
                             uiRequireData.platformUid = userId;
                         } else {
                             uiRequireData.person = sender;
@@ -1108,19 +1108,19 @@
             '</li>' +
             '<div class="collapse nested unassigned"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + LINE + '">' +
-                '<img class="app-icon" src="' + logos[LINE] + '" />' +
+                '<img class="app-icon" src="' + LOGOS[LINE] + '" />' +
                 '<span>' + LINE + '</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
             '<div class="collapse nested app-types" app-type="' + LINE + '"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + FACEBOOK + '">' +
-                '<img class="app-icon" src="' + logos[FACEBOOK] + '" />' +
+                '<img class="app-icon" src="' + LOGOS[FACEBOOK] + '" />' +
                 '<span>' + FACEBOOK + '</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
             '<div class="collapse nested app-types" app-type="' + FACEBOOK + '"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + CHATSHIER + '">' +
-                '<img class="app-icon" src="' + logos[CHATSHIER] + '" />' +
+                '<img class="app-icon" src="' + LOGOS[CHATSHIER] + '" />' +
                 '<span>' + CHATSHIER + '</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
             '</li>' +
@@ -1167,12 +1167,15 @@
                     chatroom: chatroom
                 };
 
-                var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
-                if (isGroupChatroom) {
+                if (CHATSHIER === app.type) {
                     uiRequireData.person = Object.assign({}, users[userId]);
-                    uiRequireData.person.photo = logos[LINE_GROUP];
+                    uiRequireData.person.photo = LOGOS[app.type];
                     uiRequireData.platformUid = userId;
-                } else {
+                } else if (!!chatroom.platformGroupId) {
+                    uiRequireData.person = Object.assign({}, users[userId]);
+                    uiRequireData.person.photo = LOGOS[LINE_GROUP];
+                    uiRequireData.platformUid = userId;
+                }else {
                     var platformMessager = findChatroomMessager(appId, chatroomId, app.type);
                     var platformUid = platformMessager.platformUid;
                     uiRequireData.person = consumers[platformUid];
@@ -1210,7 +1213,7 @@
         var chatroomName = opts.clientName;
         var isGroupChatroom = CHATSHIER === opts.appType || chatroom.platformGroupType;
         if (isGroupChatroom) {
-            chatroomPhoto = CHATSHIER === opts.appType ? 'image/group.png' : logos[opts.appType];
+            chatroomPhoto = CHATSHIER === opts.appType ? 'image/group.png' : LOGOS[LINE_GROUP];
             chatroomName = chatroom.name || DEFAULT_CHATROOM_NAME;
         }
 
@@ -1323,7 +1326,7 @@
             platformUid: platformUid,
             clientName: (messagerSelf.namings && messagerSelf.namings[platformUid]) || person.name,
             clientPhoto: person.photo,
-            iconSrc: logos[appType] || '',
+            iconSrc: LOGOS[appType] || '',
             unRead: messagerSelf.unRead || 0,
             messageHtml: messageToClientHtml(lastMessage)
         };
