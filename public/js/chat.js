@@ -1170,7 +1170,7 @@
                 var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
                 if (isGroupChatroom) {
                     uiRequireData.person = Object.assign({}, users[userId]);
-                    uiRequireData.person.photo = logos[LINE_GROUP];
+                    uiRequireData.person.photo = logos[app.type];
                     uiRequireData.platformUid = userId;
                 } else {
                     var platformMessager = findChatroomMessager(appId, chatroomId, app.type);
@@ -1210,7 +1210,7 @@
         var chatroomName = opts.clientName;
         var isGroupChatroom = CHATSHIER === opts.appType || chatroom.platformGroupType;
         if (isGroupChatroom) {
-            chatroomPhoto = CHATSHIER === opts.appType ? 'image/group.png' : logos[opts.appType];
+            chatroomPhoto = CHATSHIER === opts.appType ? 'image/group.png' : logos[LINE_GROUP];
             chatroomName = chatroom.name || DEFAULT_CHATROOM_NAME;
         }
 
