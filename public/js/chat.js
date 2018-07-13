@@ -274,7 +274,7 @@
                             continue;
                         }
 
-                        var dueTimeDateStr = new Date(new Date(ticket.dueTime) - timezoneGap).toJSON().split('T').shift();
+                        var dueTimeDateStr = new Date(new Date(ticket.dueTime || Date.now()) - timezoneGap).toJSON().split('T').shift();
                         $ticketBody.prepend(
                             '<tr ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticketEditModal">' +
                                 '<td class="status" style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + statusNumberToText(ticket.status) + '</td>' +
@@ -1887,14 +1887,14 @@
                 '<div class="px-2 d-flex align-items-center form-group user-info">' +
                     '<label class="px-0 col-3 col-form-label">' + transJson['First chat date'] + '</label>' +
                     '<div class="pr-0 col-9">' +
-                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.createdTime).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
+                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.createdTime || Date.now()).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
                     '</div>' +
                 '</div>' +
 
                 '<div class="px-2 d-flex align-items-center form-group user-info">' +
                     '<label class="px-0 col-3 col-form-label">' + transJson['Recent chat date'] + '</label>' +
                     '<div class="pr-0 col-9">' +
-                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.lastTime).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
+                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.lastTime || Date.now()).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
                     '</div>' +
                 '</div>' +
 
