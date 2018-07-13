@@ -88,12 +88,10 @@ module.exports = (function() {
          * @param {any} json
          * @param {string} hashKey
          * @param {string} hashIV
-         * @param {boolean} [shouldAppendFinal=false]
          */
-        encryptJsonToStr(json, hashKey, hashIV, shouldAppendFinal) {
+        encryptJsonToStr(json, hashKey, hashIV) {
             let payloadQuery = this._jsonToQueryString(json);
-            payloadQuery = this._appendPadding(payloadQuery);
-            let encryptStr = cipherHlp.aesEncrypt(payloadQuery, hashKey, hashIV, 'aes-256-cbc', shouldAppendFinal);
+            let encryptStr = cipherHlp.aesEncrypt(payloadQuery, hashKey, hashIV, 'aes-256-cbc', true);
             return encryptStr;
         }
 
@@ -173,7 +171,7 @@ module.exports = (function() {
                 ItemPrice: order.commodities.map((commodity) => commodity.unitPrice).join('|'),
                 ItemAmt: order.commodities.map((commodity) => commodity.count * commodity.unitPrice).join('|')
             };
-            let encryptStr = this.encryptJsonToStr(postData, hashKey, hashIV, !isB2B);
+            let encryptStr = this.encryptJsonToStr(postData, hashKey, hashIV);
 
             /** @type {Spgateway.Pay2Go.InvoicePostParams} */
             let invoiceParams = {
@@ -266,17 +264,6 @@ module.exports = (function() {
                 let str = prop + '=' + encodeURIComponent(json[prop]).replace(/%20/g, '+');
                 return str;
             }).join('&');
-        }
-
-        /**
-         * @param {string} str
-         * @param {number} [blocksize=32]
-         */
-        _appendPadding(str, blocksize = 32) {
-            let len = str.length;
-            let pad = blocksize - (len % blocksize);
-            str += String.fromCharCode(pad).repeat(pad);
-            return str.trim();
         }
 
         _sendRequest(options) {
