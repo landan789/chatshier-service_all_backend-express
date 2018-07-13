@@ -3184,7 +3184,9 @@
 
         var count = 0;
         $tablinks.length = $panels.length = $clientNameOrTexts.length = 0;
-        $('.tablinks').each(function(i, elem) {
+
+        var $targetElems = $('[app-type] .tablinks');
+        $targetElems.each(function(i, elem) {
             var $tablinkElem = $(elem);
             var appId = $tablinkElem.attr('app-id');
             var chatroomId = $tablinkElem.attr('chatroom-id');
