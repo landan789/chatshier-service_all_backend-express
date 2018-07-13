@@ -1153,28 +1153,28 @@ const ConditionSelector = (function() {
                 '<tr class="compose-row" app-id="' + appId + '" compose-id="' + composeId + '">' +
                     (function() {
                         if ('text' === compose.type) {
-                            return '<td class="text-pre" data-title="' + compose.text + '">' + compose.text + '</td>';
+                            return '<td class="text-pre search-source">' + compose.text + '</td>';
                         } else if ('image' === compose.type) {
                             return (
                                 '<td class="text-pre">' +
-                                    '<label>圖像</label>' +
+                                    '<label class="search-source">圖像</label>' +
                                     '<div class="position-relative image-container" style="width: 6rem; height: 6rem;">' +
                                         '<img class="image-fit" src="' + compose.src + '" alt="" />' +
                                     '</div>' +
                                 '</td>'
                             );
                         } else if ('imagemap' === compose.type) {
-                            return '<td class="text-pre" data-title="圖文訊息">圖文訊息</td>';
+                            return '<td class="text-pre search-source">圖文訊息</td>';
                         } else if ('template' === compose.type) {
-                            return '<td class="text-pre" data-title="模板訊息">模板訊息</td>';
+                            return '<td class="text-pre search-source">模板訊息</td>';
                         }
-                        return '<td class="text-pre" data-title=""></td>';
+                        return '<td class="text-pre"></td>';
                     })() +
-                    '<td id="time">' + toLocalTimeString(compose.time) + '</td>' +
+                    '<td class="search-source" id="time">' + toLocalTimeString(compose.time) + '</td>' +
                     '<td>' +
                         (function generateConditionsCol(conditions) {
                             if (0 === conditions.length) {
-                                return '無';
+                                return '<span class="search-source">無</span>';
                             }
 
                             let typeText = {
@@ -1195,7 +1195,7 @@ const ConditionSelector = (function() {
                                 }
 
                                 return (
-                                    '<div class="condition-col">' +
+                                    '<div class="condition-col search-source">' +
                                         conditionText + ': ' + conditionContent +
                                     '<div>'
                                 );
@@ -1226,24 +1226,29 @@ const ConditionSelector = (function() {
     }
 
     function composesSearch(ev) {
-        let searchText = $(this).val().toLocaleLowerCase();
-        let target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
-        if (0 === target.length) {
-            target = $('tbody > tr > td>[data-title*="' + searchText + '"]').parent().parent();
-        }
-        if (!searchText) {
-            $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().removeAttr('style');
+        if (!ev.target.value) {
+            $('.compose-row').removeClass(['d-none', 'matched']);
             return;
         }
+
         let code = ev.keyCode || ev.which;
-        if (13 === code) {
-            // 按下enter鍵
-            if (0 === target.length) {
-                $('tbody > tr ').hide();
-            }
-            $('.table > tbody > tr').hide();
-            target.show();
+        // 按下 enter 鍵才進行搜尋
+        if (13 !== code) {
+            return;
         }
+
+        let searchText = ev.target.value.toLocaleLowerCase();
+        let $searchSrcs = $('.search-source');
+        $searchSrcs.each((i, elem) => {
+            let isMatch = elem.textContent.toLocaleLowerCase().includes(searchText);
+            let $targetRow = $(elem).parents('tr');
+
+            if (isMatch) {
+                $targetRow.removeClass('d-none').addClass('matched');
+            } else if (!$targetRow.hasClass('matched')) {
+                $targetRow.addClass('d-none');
+            }
+        });
     }
 
     /**

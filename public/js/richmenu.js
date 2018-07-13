@@ -805,15 +805,17 @@
         }
 
         function insertRichmenu() {
-            elementDisabled($(this), handleMessages.working);
             let appId = $appSelector.val();
             let selected = 'true' === $('.richmenu-select').val();
             let chatBarText = $('input[name="chatbarText"]').val();
             let form = $('input[name="richmenu-form"]:checked').val();
 
-            if (!appId || !chatBarText) {
-                elementEnabled($('#modal-save'), handleMessages.addFinished);
-                return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
+            if (!chatBarText) {
+                return $.notify('圖文選單標題不可為空', { type: 'warning' });
+            }
+
+            if (!imageFile) {
+                return $.notify('必須上傳圖像', { type: 'warning' });
             }
 
             let areas = getActionBoxAreas();
@@ -824,14 +826,15 @@
             let postRichmenu = {
                 selected: selected,
                 chatBarText: chatBarText,
-                name: 'Chatshier Richmenu',
+                name: chatBarText,
                 form: form,
                 src: '',
                 size: size,
                 areas: areas
             };
 
-            $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-circle-notch fa-spin fa-fw"></i>處理中');
+            elementDisabled($(this), handleMessages.working);
+            $(this).attr('disabled', true).html('<i class="fas fa-circle-notch fa-spin fa-fw"></i>處理中');
             return api.appsRichmenus.insert(appId, userId, postRichmenu, imageFile).then((resJson) => {
                 let _appsRichmenus = resJson.data;
                 if (!appsRichmenus[appId]) {

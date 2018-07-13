@@ -28,24 +28,7 @@
         userId = '';
     }
 
-    $searchBar.on('keyup', function(ev) {
-        let searchText = $(this).val().toLocaleLowerCase();
-        if (!searchText) {
-            $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().removeAttr('style');
-            return;
-        }
-        let code = ev.keyCode || ev.which;
-        if (13 === code) {
-            // enter鍵
-            let target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
-            if (0 === target.length) {
-                $('tbody > tr ').hide();
-            } else {
-                $('.table>tbody > tr').hide();
-                target.show();
-            }
-        }
-    });
+    $searchBar.on('change paste keyup', keywordRepliesSearch);
 
     $jqDoc.on('click', '.keywordreply-row .remove-btn', removeKeywordreply);
 
@@ -159,13 +142,25 @@
 
         function insertKeywordreply() {
             let $insertSubmitBtn = $keywordreplyModal.find('#insertSubmitBtn');
-            $insertSubmitBtn.attr('disabled', true);
-
             let appId = $modalAppSelect.val();
             let filePath = '';
 
+            let keyword = $keywordreplyModal.find('input[name="keywordreplyKeyword"]').val() || '';
+            // ==========
+            // 檢查必填資料有無正確輸入
+            let $errorMsgElem = $keywordreplyModal.find('.text-danger.error-msg').empty();
+            $errorMsgElem.addClass('d-none');
+            if (!appId) {
+                $errorMsgElem.text('請選擇目標App').removeClass('d-none');
+                return;
+            } else if (!keyword) {
+                $errorMsgElem.text('請輸入關鍵字').removeClass('d-none');
+                return;
+            }
+            // ==========
+
+            $insertSubmitBtn.attr('disabled', true);
             return replyMessageSelect.getJSON().then((message) => {
-                let keyword = $keywordreplyModal.find('input[name="keywordreplyKeyword"]').val() || '';
                 let isDraft = $keywordreplyModal.find('input[name="keywordreplyIsDraft"]').prop('checked');
 
                 filePath = message.originalFilePath;
@@ -176,19 +171,6 @@
                 };
                 let postKeywordreply = Object.assign({}, keywordreply, message);
                 delete postKeywordreply.originalFilePath;
-
-                // ==========
-                // 檢查必填資料有無正確輸入
-                let $errorMsgElem = $keywordreplyModal.find('.text-danger.error-msg').empty();
-                $errorMsgElem.addClass('d-none');
-                if (!appId) {
-                    $errorMsgElem.text('請選擇目標App').removeClass('d-none');
-                    return;
-                } else if (!keywordreply.keyword) {
-                    $errorMsgElem.text('請輸入關鍵字').removeClass('d-none');
-                    return;
-                }
-                // ==========
 
                 return api.appsKeywordreplies.insert(appId, userId, postKeywordreply);
             }).then(function(resJson) {
@@ -307,6 +289,32 @@
         }
     });
 
+    function keywordRepliesSearch(ev) {
+        if (!ev.target.value) {
+            $('.keywordreply-row').removeClass(['d-none', 'matched']);
+            return;
+        }
+
+        let code = ev.keyCode || ev.which;
+        // 按下 enter 鍵才進行搜尋
+        if (13 !== code) {
+            return;
+        }
+
+        let searchText = ev.target.value.toLocaleLowerCase();
+        let $searchSrcs = $('.search-source');
+        $searchSrcs.each((i, elem) => {
+            let isMatch = elem.textContent.toLocaleLowerCase().includes(searchText);
+            let $targetRow = $(elem).parents('tr');
+
+            if (isMatch) {
+                $targetRow.removeClass('d-none').addClass('matched');
+            } else if (!$targetRow.hasClass('matched')) {
+                $targetRow.addClass('d-none');
+            }
+        });
+    }
+
     function appSourceChanged() {
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
@@ -338,25 +346,25 @@
 
                 let keywordreplyRow = (
                     '<tr class="keywordreply-row" app-id="' + appId + '" keywordreply-id="' + keywordreplyId + '">' +
-                        '<td data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</td>' +
+                        '<td class="search-source">' + keywordreply.keyword + '</td>' +
                         (function() {
                             if ('text' === keywordreply.type) {
-                                return '<td class="text-pre" data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>';
+                                return '<td class="text-pre search-source">' + keywordreply.text + '</td>';
                             } else if ('image' === keywordreply.type) {
                                 return (
                                     '<td class="text-pre">' +
-                                        '<label>圖像</label>' +
+                                        '<label class="search-source">圖像</label>' +
                                         '<div class="position-relative image-container" style="width: 6rem; height: 6rem;">' +
                                             '<img class="image-fit" src="' + keywordreply.src + '" alt="" />' +
                                         '</div>' +
                                     '</td>'
                                 );
                             } else if ('imagemap' === keywordreply.type) {
-                                return '<td class="text-pre" data-title="圖文訊息">圖文訊息</td>';
+                                return '<td class="text-pre search-source">圖文訊息</td>';
                             } else if ('template' === keywordreply.type) {
-                                return '<td class="text-pre" data-title="模板訊息">模板訊息</td>';
+                                return '<td class="text-pre search-source">模板訊息</td>';
                             }
-                            return '<td class="text-pre" data-title=""></td>';
+                            return '<td class="text-pre search-source"></td>';
                         })() +
                         '<td>' + keywordreply.replyCount + '</td>' +
                         '<td>' +

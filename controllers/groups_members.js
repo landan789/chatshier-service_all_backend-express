@@ -121,7 +121,7 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                 }
 
-                return groupsMembersMdl.findMembers(groupId).then((members) => {
+                return groupsMembersMdl.findMembers(groupId, void 0, null).then((members) => {
                     if (!members || (members && 0 === Object.keys(members).length)) {
                         return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                     }
@@ -151,28 +151,29 @@ module.exports = (function() {
 
                 if (WRITE === paramsMember.type || READ === paramsMember.type) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER);
-                };
+                }
 
                 if (0 <= bodyIndex && bodyMember.isDeleted) {
                     postMember.isDeleted = false;
                     postMember.status = false; // group member must be status false (not active) when we insert him or her again
 
-                    return new Promise((resolve, reject) => {
-                        groupsMembersMdl.update(groupId, bodyMemberId, postMember, (groupsMembers) => {
-                            if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
-                                reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
-                                return;
-                            };
-                            resolve(groupsMembers);
-                        });
+                    return groupsMembersMdl.update(groupId, bodyMemberId, postMember).then((groupsMembers) => {
+                        if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
+                            return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
+                        }
+                        return Promise.resolve(groupsMembers);
                     }).then((groupsMembers) => {
                         let userGroupIds = memberUser.group_ids;
                         let index = userGroupIds.indexOf(groupId);
                         if (0 <= index) {
-                            return;
+                            return Promise.resolve(null);
                         }
 
                         let groupIds = memberUser.group_ids;
+                        if (groupIds.includes(groupId)) {
+                            return groupsMembers;
+                        }
+
                         groupIds.push(groupId);
                         let putMemberUser = {
                             group_ids: groupIds
@@ -261,7 +262,7 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                 }
 
-                return groupsMembersMdl.findMembers(groupId, void 0, false).then((members) => {
+                return groupsMembersMdl.findMembers(groupId).then((members) => {
                     if (!members || (members && 0 === Object.keys(members).length)) {
                         return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                     }

@@ -282,7 +282,7 @@ let PeriodComponent = (function() {
     };
 
     $(document).on('click', '#delete-btn', autoreplyRemove); // 刪除
-    $(document).on('change paste keyup', '.search-bar', dataSearch);
+    $(document).on('change paste keyup', '.search-bar', autoreplySearch);
 
     // 停用所有 form 的提交
     $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
@@ -612,8 +612,8 @@ let PeriodComponent = (function() {
         let autoreplies = appsAutoreplies[appId].autoreplies;
         let autoreply = autoreplies[autoreplyId];
         return (
-            '<tr app-id="' + appId + '" autoreply-id="' + autoreplyId + '">' +
-                '<td class="mb-2" data-title="' + autoreply.title + '">' + autoreply.title + '</td>' +
+            '<tr class="autoreply-row" app-id="' + appId + '" autoreply-id="' + autoreplyId + '">' +
+                '<td class="mb-2 search-source">' + autoreply.title + '</td>' +
                 (function() {
                     if (autoreply.periods && autoreply.periods.length > 0) {
                         let startedTimeDays = [];
@@ -633,8 +633,8 @@ let PeriodComponent = (function() {
                         });
 
                         return (
-                            '<td class="text-pre">' + startedTimeDays.join('\n') + '</td>' +
-                            '<td class="text-pre">' + endedTimeDays.join('\n') + '</td>'
+                            '<td class="text-pre search-source">' + startedTimeDays.join('\n') + '</td>' +
+                            '<td class="text-pre search-source">' + endedTimeDays.join('\n') + '</td>'
                         );
                     }
 
@@ -645,22 +645,22 @@ let PeriodComponent = (function() {
                 })() +
                 (function() {
                     if ('text' === autoreply.type) {
-                        return '<td class="text-pre" data-title="' + autoreply.text + '">' + autoreply.text + '</td>';
+                        return '<td class="text-pre search-source">' + autoreply.text + '</td>';
                     } else if ('image' === autoreply.type) {
                         return (
                             '<td class="text-pre">' +
-                                '<label>圖像</label>' +
+                                '<label class="search-source">圖像</label>' +
                                 '<div class="position-relative image-container" style="width: 6rem; height: 6rem;">' +
                                     '<img class="image-fit" src="' + autoreply.src + '" alt="" />' +
                                 '</div>' +
                             '</td>'
                         );
                     } else if ('imagemap' === autoreply.type) {
-                        return '<td class="text-pre" data-title="圖文訊息">圖文訊息</td>';
+                        return '<td class="text-pre search-source">圖文訊息</td>';
                     } else if ('template' === autoreply.type) {
-                        return '<td class="text-pre" data-title="模板訊息">模板訊息</td>';
+                        return '<td class="text-pre search-source">模板訊息</td>';
                     }
-                    return '<td class="text-pre" data-title=""></td>';
+                    return '<td class="text-pre search-source"></td>';
                 })() +
                 '<td>' +
                     '<button type="button" class="mb-1 mr-1 btn btn-border btn-light update" data-toggle="modal" data-target="#autoreplyModal" aria-hidden="true">' +
@@ -703,23 +703,30 @@ let PeriodComponent = (function() {
         });
     }
 
-    function dataSearch(ev) {
-        let searchText = $(this).val().toLocaleLowerCase();
-        if (!searchText) {
-            $('tbody > tr').removeAttr('style');
+    function autoreplySearch(ev) {
+        if (!ev.target.value) {
+            $('.autoreply-row').removeClass(['d-none', 'matched']);
             return;
         }
+
         let code = ev.keyCode || ev.which;
-        if (13 === code) {
-            // enter鍵
-            let target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
-            if (0 === target.length) {
-                $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().hide();
-            } else {
-                target.siblings().hide();
-                target.show();
-            }
+        // 按下 enter 鍵才進行搜尋
+        if (13 !== code) {
+            return;
         }
+
+        let searchText = ev.target.value.toLocaleLowerCase();
+        let $searchSrcs = $('.search-source');
+        $searchSrcs.each((i, elem) => {
+            let isMatch = elem.textContent.toLocaleLowerCase().includes(searchText);
+            let $targetRow = $(elem).parents('tr');
+
+            if (isMatch) {
+                $targetRow.removeClass('d-none').addClass('matched');
+            } else if (!$targetRow.hasClass('matched')) {
+                $targetRow.addClass('d-none');
+            }
+        });
     }
 
     function showDialog(textContent) {
