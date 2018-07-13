@@ -748,6 +748,7 @@
                 messagers = chatroom.messagers = Object.assign(chatrooms[chatroomId].messagers, chatroomFromSocket.messagers);
             }
             var messagerSelf = findMessagerSelf(appId, chatroomId);
+            var isNewChatroom = chatroomList.indexOf(chatroomId) < 0;
 
             var nextMessage = function(i) {
                 if (i >= messages.length) {
@@ -762,11 +763,16 @@
                     if (SYSTEM === message.from && 'imagemap' === message.type) {
                         message.from = CHATSHIER;
                     }
-                    if (SYSTEM === message.from) {
-                        return users[userId];
-                    }
+
                     !senderUid && senderMsger && (senderUid = senderMsger.platformUid);
                     var sender = CHATSHIER === message.from ? users[senderUid] : consumers[senderUid];
+
+                    // 如果是新的聊天室 sender 一定是從平台而來
+                    if (isNewChatroom) {
+                        return sender;
+                    } else if (SYSTEM === message.from) {
+                        return users[userId];
+                    }
 
                     // 如果前端沒資料代表是新用戶
                     // 因此需要再發一次 api 來獲取新的用戶資料
@@ -795,7 +801,7 @@
                     var app = apps[appId];
                     var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
 
-                    if (chatroomList.indexOf(chatroomId) < 0) {
+                    if (isNewChatroom) {
                         var uiRequireData = {
                             appId: appId,
                             name: app.name,
@@ -856,7 +862,7 @@
                     var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
                     $messageInputContainer.find('button').removeAttr('disabled');
                     $messageInputContainer.find('input').removeAttr('disabled');
-                    
+
                     let emojioneAreaData = $submitMessageInput.data('emojioneArea');
                     if (emojioneAreaData) {
                         emojioneAreaData.enable();
