@@ -67,7 +67,7 @@ module.exports = (function() {
                 CarruerNum: '',
                 Donation: '2',
                 LoveCode: '',
-                Print: '0',
+                Print: '1',
                 SalesAmount: '' + order.tradeAmount,
                 InvoiceRemark: '',
                 ItemName: order.commodities.map((commodity) => commodity.name).join('|'),
