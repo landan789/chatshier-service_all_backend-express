@@ -917,8 +917,11 @@
             // 更新 UI 資料
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
+
             var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]');
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
 
             var tagsNew = messager.tags || [];
             var tagsAdd = tagsNew.filter(function(tag) {
@@ -2769,7 +2772,10 @@
 
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
             $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
 
             return new Promise(function(resolve, reject) {
@@ -2820,7 +2826,10 @@
 
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
             $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
 
             return new Promise(function(resolve, reject) {
@@ -2862,7 +2871,10 @@
 
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
 
             // 將聊天訊息的名稱以及聊天室的名稱做更新
             var consumer = consumers[platformUid];
