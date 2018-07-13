@@ -856,7 +856,14 @@
                     var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
                     $messageInputContainer.find('button').removeAttr('disabled');
                     $messageInputContainer.find('input').removeAttr('disabled');
-                    $submitMessageInput.attr('placeholder', '輸入訊息...');
+                    
+                    let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+                    if (emojioneAreaData) {
+                        emojioneAreaData.enable();
+                        emojioneAreaData.editor.attr('placeholder', '輸入訊息...');
+                    } else {
+                        $submitMessageInput.attr('placeholder', '輸入訊息...');
+                    }
                 }
             });
         });
@@ -941,10 +948,14 @@
         });
 
         socket.on(SOCKET_EVENTS.CONSUMER_FOLLOW, function(data) {
-            var appId = data.appId;
-            var chatroomId = data.chatroomId;
-            var messager = data.messager;
-            var messagerId = messager._id;
+            let appId = data.appId;
+            let chatroomId = data.chatroomId;
+            /** @type {Chatshier.Models.Messager} */
+            let messager = data.messager;
+            /** @type {Chatshier.Models.Consumer} */
+            let consumer = data.consumer;
+            let messagerId = messager._id;
+            let consumerUid = consumer.platformUid;
 
             if (!appsChatrooms[appId]) {
                 appsChatrooms[appId] = { chatrooms: {} };
@@ -954,23 +965,35 @@
                 appsChatrooms[appId].chatrooms[chatroomId] = { messagers: {} };
             }
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager;
+            consumers[consumerUid] = consumer;
 
-            var $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
-            var _appId = $openedChatroomNow.attr('app-id');
-            var _chatroomId = $openedChatroomNow.attr('chatroom-id');
+            let $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
+            let _appId = $openedChatroomNow.attr('app-id');
+            let _chatroomId = $openedChatroomNow.attr('chatroom-id');
+
             if (_appId === appId && _chatroomId === chatroomId) {
-                var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
+                let $messageInputContainer = $submitMessageInput.parents('.message-input-container');
                 $messageInputContainer.find('button').removeAttr('disabled');
                 $messageInputContainer.find('input').removeAttr('disabled');
-                $submitMessageInput.attr('placeholder', '輸入訊息...');
+
+                let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+                if (emojioneAreaData) {
+                    emojioneAreaData.enable();
+                    emojioneAreaData.editor.attr('placeholder', '輸入訊息...');
+                } else {
+                    $submitMessageInput.attr('placeholder', '輸入訊息...');
+                }
             }
+
+            $.notify('[' + consumer.type + '] 用戶 "' + consumer.name + '" 已關注 "' + apps[appId].name + '" 可以與他進行對話囉！', { type: 'info' });
         });
 
         socket.on(SOCKET_EVENTS.CONSUMER_UNFOLLOW, function(data) {
-            var appId = data.appId;
-            var chatroomId = data.chatroomId;
-            var messager = data.messager;
-            var messagerId = messager._id;
+            let appId = data.appId;
+            let chatroomId = data.chatroomId;
+            /** @type {Chatshier.Models.Messager} */
+            let messager = data.messager;
+            let messagerId = messager._id;
 
             if (!appsChatrooms[appId]) {
                 appsChatrooms[appId] = { chatrooms: {} };
@@ -981,15 +1004,27 @@
             }
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager;
 
-            var $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
-            var _appId = $openedChatroomNow.attr('app-id');
-            var _chatroomId = $openedChatroomNow.attr('chatroom-id');
-            if (_appId === appId && _chatroomId === chatroomId) {
-                var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
+            let $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
+            let _appId = $openedChatroomNow.attr('app-id');
+            let _chatroomId = $openedChatroomNow.attr('chatroom-id');
+
+            if (_appId === appId && _chatroomId === chatroomId && messager.isUnfollowed) {
+                let $messageInputContainer = $submitMessageInput.parents('.message-input-container');
                 $messageInputContainer.find('button').attr('disabled', true);
                 $messageInputContainer.find('input').attr('disabled', true);
-                $submitMessageInput.attr('placeholder', '對方已取消關注');
+
+                let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+                if (emojioneAreaData) {
+                    emojioneAreaData.disable();
+                    emojioneAreaData.editor.attr('placeholder', '對方已取消關注');
+                } else {
+                    $submitMessageInput.attr('placeholder', '對方已取消關注');
+                }
             }
+
+            /** @type {Chatshier.Models.Consumer} */
+            let consumer = consumers[messager.platformUid];
+            $.notify('[' + consumer.type + '] 用戶 "' + consumer.name + '" 已封鎖機器人 "' + apps[appId].name + '"', { type: 'warning' });
         });
 
         socket.on(SOCKET_EVENTS.USER_ADD_GROUP_MEMBER_TO_CLIENT, function(data) {
@@ -2261,15 +2296,29 @@
 
         // 如果 1vs1 聊天室中的客戶已經封鎖或解除關注，則無法發送任何訊息給對方
         if (!chatroom.platformGroupId) {
-            var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+            let messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+            let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+
             if (!chatroom.platformGroupId && messager.isUnfollowed) {
                 $messageInputContainer.find('button').attr('disabled', true);
                 $messageInputContainer.find('input').attr('disabled', true);
-                $submitMessageInput.attr('placeholder', '對方已取消關注');
+
+                if (emojioneAreaData) {
+                    emojioneAreaData.disable();
+                    emojioneAreaData.editor.attr('placeholder', '對方已取消關注');
+                } else {
+                    $submitMessageInput.attr('placeholder', '對方已取消關注');
+                }
             } else {
                 $messageInputContainer.find('button').removeAttr('disabled');
                 $messageInputContainer.find('input').removeAttr('disabled');
-                $submitMessageInput.attr('placeholder', '輸入訊息...');
+
+                if (emojioneAreaData) {
+                    emojioneAreaData.enable();
+                    emojioneAreaData.editor.attr('placeholder', '輸入訊息...');
+                } else {
+                    $submitMessageInput.attr('placeholder', '輸入訊息...');
+                }
             }
         }
     }
