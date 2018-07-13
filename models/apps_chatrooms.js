@@ -209,8 +209,7 @@ module.exports = (function() {
                 let query = {
                     '_id': this.Types.ObjectId(groupId),
                     'isDeleted': false,
-                    'members.isDeleted': false,
-                    'members.status': true
+                    'members.isDeleted': false
                 };
 
                 let aggregations = [
