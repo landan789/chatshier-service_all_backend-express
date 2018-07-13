@@ -827,7 +827,7 @@
                     var shouldHide = false;
                     if (isGroupChatroom) {
                         person = Object.assign({}, users[userId]);
-                        person.photo = logos[app.type];
+                        person.photo = LINE === app.type ? LOGOS[LINE_GROUP] : 'image/group.png';
                         var $chatroomProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
                         shouldHide = $chatroomProfileGroup.hasClass('d-none');
                         $chatroomProfileGroup = $chatroomProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
@@ -1174,11 +1174,11 @@
                     uiRequireData.person = Object.assign({}, users[userId]);
                     uiRequireData.person.photo = LOGOS[app.type];
                     uiRequireData.platformUid = userId;
-                } else if (!!chatroom.platformGroupId) {
+                } else if (chatroom.platformGroupId) {
                     uiRequireData.person = Object.assign({}, users[userId]);
                     uiRequireData.person.photo = LOGOS[LINE_GROUP];
                     uiRequireData.platformUid = userId;
-                }else {
+                } else {
                     var platformMessager = findChatroomMessager(appId, chatroomId, app.type);
                     var platformUid = platformMessager.platformUid;
                     uiRequireData.person = consumers[platformUid];
@@ -1216,7 +1216,7 @@
         var chatroomName = opts.clientName;
         var isGroupChatroom = CHATSHIER === opts.appType || chatroom.platformGroupType;
         if (isGroupChatroom) {
-            chatroomPhoto = CHATSHIER === opts.appType ? 'image/group.png' : LOGOS[LINE_GROUP];
+            chatroomPhoto = LINE === opts.appType ? LOGOS[LINE_GROUP] : 'image/group.png';
             chatroomName = chatroom.name || DEFAULT_CHATROOM_NAME;
         }
 
