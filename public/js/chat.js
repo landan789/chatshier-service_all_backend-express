@@ -2704,7 +2704,8 @@
         var _messagerSelf = {
             type: CHATSHIER,
             platformUid: userId,
-            unRead: 0
+            unRead: 0,
+            chatCount: 0
         };
         messagers[userId] = _messagerSelf;
         return _messagerSelf;
