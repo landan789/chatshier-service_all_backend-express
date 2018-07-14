@@ -108,7 +108,7 @@
 
             elementHide($('#modal-save'));
             elementShow($('#modal-update-save'));
-            $modal.find('#modal-update-save').off('click').on('click', () => updateRichmenu(appId, richmenuId, src));
+            $modal.find('#modal-update-save').off('click').on('click', () => updateRichmenu(appId, richmenuId));
 
             return Promise.resolve().then(() => {
                 let richmenu = appsRichmenus[appId] ? appsRichmenus[appId].richmenus[richmenuId] : void 0;
@@ -479,7 +479,7 @@
                         uriPrefix && (uriPrefix += ':');
                         uri = uriSplits.pop() || '';
 
-                        if (0 === uriPrefix.indexOf('http')) {
+                        if (uriPrefix.startsWith('http')) {
                             uriPrefix = uriPrefix + '//';
                             uri = uri.substring(2);
                         }
@@ -806,17 +806,18 @@
 
         function insertRichmenu() {
             let appId = $appSelector.val();
-            let selected = 'true' === $('.richmenu-select').val();
             let chatBarText = $('input[name="chatbarText"]').val();
+            if (!appId) {
+                return $.notify('必須選擇一個機器人', { type: 'warning' });
+            } else if (!chatBarText) {
+                return $.notify('標題不可為空', { type: 'warning' });
+            } else if (!imageFile) {
+                return $.notify('必須設定圖像', { type: 'warning' });
+            }
+
+            let selected = 'true' === $('.richmenu-select').val();
             let form = $('input[name="richmenu-form"]:checked').val();
-
-            if (!chatBarText) {
-                return $.notify('圖文選單標題不可為空', { type: 'warning' });
-            }
-
-            if (!imageFile) {
-                return $.notify('必須上傳圖像', { type: 'warning' });
-            }
+            elementDisabled($(this), handleMessages.working);
 
             let areas = getActionBoxAreas();
             if (!areas) {
@@ -833,7 +834,6 @@
                 areas: areas
             };
 
-            elementDisabled($(this), handleMessages.working);
             $(this).attr('disabled', true).html('<i class="fas fa-circle-notch fa-spin fa-fw"></i>處理中');
             return api.appsRichmenus.insert(appId, userId, postRichmenu, imageFile).then((resJson) => {
                 let _appsRichmenus = resJson.data;
@@ -854,28 +854,36 @@
             });
         }
 
-        function updateRichmenu(appId, richmenuId, src) {
-            elementDisabled($('#modal-update-save'), handleMessages.working);
-            let selected = 'true' === $('.richmenu-select').val();
+        function updateRichmenu(appId, richmenuId) {
+            let richmenu = appsRichmenus[appId].richmenus[richmenuId];
             let chatBarText = $('input[name="chatbarText"]').val();
-            let form = $('input[name="richmenu-form"]:checked').val();
+
+            if (!chatBarText) {
+                return $.notify('標題不可為空', { type: 'warning' });
+            } else if (!richmenu.src && !imageFile) {
+                return $.notify('必須設定圖像', { type: 'warning' });
+            }
 
             let areas = getActionBoxAreas();
             if (!areas) {
                 return;
             }
 
+            let selected = 'true' === $('.richmenu-select').val();
+            let form = $('input[name="richmenu-form"]:checked').val();
             let putRichmenu = {
                 selected: selected,
                 chatBarText: chatBarText,
-                name: 'Chatshier Richmenu',
-                form: form,
-                src: src,
-                size: size,
+                name: chatBarText,
+                form: form || richmenu.form,
+                src: richmenu.src,
+                size: size || richmenu.size,
                 areas: areas
             };
 
-            $('#modal-update-save').attr('disabled', 'disabled').empty().append('<i class="fas fa-circle-notch fa-spin fa-fw"></i>處理中');
+            let $modalUpdateSave = $('#modal-update-save');
+            elementDisabled($modalUpdateSave, handleMessages.working);
+            $modalUpdateSave.html('<i class="fas fa-circle-notch fa-spin fa-fw"></i>處理中');
             return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu, imageFile).then((resJson) => {
                 let _appsRichmenus = resJson.data;
                 Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
