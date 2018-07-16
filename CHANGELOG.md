@@ -1,6 +1,15 @@
+
+= Release 1.4.1 =
+MASTER release: 2018-07-16
+RELEASE release: 2018-07-16
+== Features ==
+ * Changed: change preview image of send video message to LINE
+== Bug Fixes ==
+ * Fixed: fix logic of compose condition filter
+
 = Release 1.4.0 =
-MASTER release: Not Ready
-RELEASE release: Not Ready
+MASTER release: 2018-07-16
+RELEASE release: 2018-07-12
 == Features ==
  * Changed: change app list UI in setting page
  * Created: add feature of payment setting in app setting, support ECPay, Spgateway
