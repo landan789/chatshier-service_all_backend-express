@@ -1,19 +1,44 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 const ConditionSelector = (function() {
-    const DEFAULT_CONDITION_TYPES = {
+    const CONDITION_TYPES = Object.freeze({
+        AGE_RANGE: 'AGE_RANGE',
+        GENDER: 'GENDER',
+        EMAIL: 'EMAIL',
+        PHONE: 'PHONE',
+        ADDRESS: 'ADDRESS',
+        TAGS: 'TAGS',
+        CUSTOM_FIELD: 'CUSTOM_FIELD'
+    });
+
+    const DEFAULT_CONDITIONS = {
         AGE_RANGE: {
-            type: 'AGE_RANGE',
+            type: CONDITION_TYPES.AGE_RANGE,
             text: '年齡',
             field_id: ''
         },
         GENDER: {
-            type: 'GENDER',
+            type: CONDITION_TYPES.GENDER,
             text: '性別',
             field_id: ''
         },
+        EMAIL: {
+            type: CONDITION_TYPES.EMAIL,
+            text: '電子郵件',
+            field_id: ''
+        },
+        PHONE: {
+            type: CONDITION_TYPES.PHONE,
+            text: '電話',
+            field_id: ''
+        },
+        ADDRESS: {
+            type: CONDITION_TYPES.ADDRESS,
+            text: '地址',
+            field_id: ''
+        },
         TAGS: {
-            type: 'TAGS',
+            type: CONDITION_TYPES.TAGS,
             text: '標籤',
             field_id: ''
         }
@@ -73,8 +98,8 @@ const ConditionSelector = (function() {
          * @param {string} [type]
          */
         addConditionItem(ev, type, values, fieldId) {
-            type = type || 'AGE_RANGE';
-            let conditionType = DEFAULT_CONDITION_TYPES[type] || this._conditionTypes[type] || this._conditionTypes[fieldId];
+            type = type || CONDITION_TYPES.AGE_RANGE;
+            let conditionType = DEFAULT_CONDITIONS[type] || this._conditionTypes[type] || this._conditionTypes[fieldId];
             let options = {
                 type: type,
                 field: this._allFields[conditionType.field_id],
@@ -90,14 +115,14 @@ const ConditionSelector = (function() {
                             '</button>' +
                             '<div class="dropdown-menu condition-types-menu">' +
                                 (() => {
-                                    return Object.keys(DEFAULT_CONDITION_TYPES).map((type) => {
-                                        return '<a class="dropdown-item" value="' + type + '">' + DEFAULT_CONDITION_TYPES[type].text + '</a>';
+                                    return Object.keys(DEFAULT_CONDITIONS).map((type) => {
+                                        return '<a class="dropdown-item" value="' + type + '">' + DEFAULT_CONDITIONS[type].text + '</a>';
                                     }).join('');
                                 })() +
                                 (Object.keys(this._conditionTypes).length > 0 ? '<div class="dropdown-divider"></div>' : '') +
                                 (() => {
                                     return Object.keys(this._conditionTypes).map((fieldId) => {
-                                        return '<a class="dropdown-item" value="CUSTOM_FIELD" field-id="' + fieldId + '">' + this._conditionTypes[fieldId].text + '</a>';
+                                        return '<a class="dropdown-item" value="' + CONDITION_TYPES.CUSTOM_FIELD + '" field-id="' + fieldId + '">' + this._conditionTypes[fieldId].text + '</a>';
                                     }).join('');
                                 })() +
                             '</div>' +
@@ -114,7 +139,7 @@ const ConditionSelector = (function() {
             }
             this.$conditionContainer.append($conditionItem);
 
-            if ('TAGS' === type) {
+            if (CONDITION_TYPES.TAGS === type) {
                 this.enableTypeahead($conditionItem.find('.condition-content-wrapper'));
                 if (options.values && options.values.length > 0) {
                     let $tagsContainer = $conditionItem.find('.tags-container');
@@ -133,7 +158,11 @@ const ConditionSelector = (function() {
         }
 
         /**
-         * @param {any} options
+         * @typedef ContentOptions
+         * @property {CONDITION_TYPES} type
+         * @property {Chatshier.Models.Field} field
+         * @property {any[]} conditionValues
+         * @param {ContentOptions} options
          */
         generateConditionContent(options) {
             options = options || {};
@@ -142,7 +171,7 @@ const ConditionSelector = (function() {
             let conditionValues = options.conditionValues || [];
 
             switch (type) {
-                case 'AGE_RANGE':
+                case CONDITION_TYPES.AGE_RANGE:
                     let ageDown = conditionValues[0] || '10';
                     let ageUp = conditionValues[1] || '50';
                     return (
@@ -184,7 +213,7 @@ const ConditionSelector = (function() {
                             '</div>' +
                         '</div>'
                     );
-                case 'GENDER':
+                case CONDITION_TYPES.GENDER:
                     let gender = conditionValues[0] ? conditionValues[0] : 'MALE';
                     let genderText = 'MALE' === gender ? '男' : '女';
                     return (
@@ -198,17 +227,19 @@ const ConditionSelector = (function() {
                             '</div>' +
                         '</div>'
                     );
-                case 'TAGS':
+                case CONDITION_TYPES.EMAIL:
+                case CONDITION_TYPES.ADDRESS:
+                case CONDITION_TYPES.PHONE:
+                    return this._generateTextCondition();
+                case CONDITION_TYPES.TAGS:
                     return (
                         '<div class="condition-content">' +
                             '<input class="form-control typeahead" data-provide="typeahead" type="text" placeholder="請輸入標籤關鍵字" />' +
                         '</div>'
                     );
+                case CONDITION_TYPES.CUSTOM_FIELD:
                 default:
-                    if (field) {
-                        return this.fieldSetsToConditionInput(field);
-                    }
-                    return '';
+                    return field ? this.fieldSetsToConditionInput(field) : '';
             }
         }
 
@@ -220,87 +251,14 @@ const ConditionSelector = (function() {
 
             switch (field.setsType) {
                 case SETS_TYPES.CHECKBOX:
-                    return (
-                        '<div class="dropdown condition-content">' +
-                            '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
-                                '<span class="condition-value" value="true">是</span>' +
-                            '</button>' +
-                            '<div class="dropdown-menu condition-content-menu">' +
-                                '<a class="dropdown-item" value="true">是</a>' +
-                                '<a class="dropdown-item" value="false">否</a>' +
-                            '</div>' +
-                        '</div>'
-                    );
+                    return this._generateCheckboxCondition();
                 case SETS_TYPES.NUMBER:
-                    return (
-                        '<div class="d-inline-block condition-content range">' +
-                            '<input class="form-control condition-value" type="number" value="0" min="0" />' +
-                        '</div>' +
-                        '<span class="px-2">~</span>' +
-                        '<div class="d-inline-block condition-content range">' +
-                            '<input class="form-control condition-value" type="number" value="1" min="1" />' +
-                        '</div>'
-                    );
+                    return this._generateNumberCondition();
                 case SETS_TYPES.SELECT:
                 case SETS_TYPES.MULTI_SELECT:
-                    return (
-                        '<div class="dropdown condition-content">' +
-                            '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
-                                '<span class="condition-value" value="' + (field.sets[0] || '') + '">' + (field.sets[0] || '') + '</span>' +
-                            '</button>' +
-                            '<div class="dropdown-menu condition-content-menu">' +
-                                (() => {
-                                    return field.sets.map((set) => {
-                                        if (!set) {
-                                            return '';
-                                        }
-                                        return (
-                                            '<a class="dropdown-item" value="' + set + '">' +
-                                                '<span>' + set + '</span>' +
-                                            '</a>'
-                                        );
-                                    }).join('');
-                                })() +
-                            '</div>' +
-                        '</div>'
-                    );
+                    return this._generateSelectCondition(field);
                 case SETS_TYPES.TEXT:
-                    return (
-                        '<div class="d-inline-block condition-content range">' +
-                            '<input class="form-control condition-value" type="text" maxlength="50" placeholder="輸入條件文字" />' +
-                        '</div>' +
-                        '<span class="px-2">-</span>' +
-                        '<div class="d-inline-block condition-content range">' +
-                            '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
-                                '<span class="condition-value" value="' + TEXT_MATCH_WAYS.INCLUDES + '">含有文字</span>' +
-                            '</button>' +
-                            '<div class="dropdown-menu condition-content-menu">' +
-                                (function() {
-                                    let items = [{
-                                        value: TEXT_MATCH_WAYS.INCLUDES,
-                                        text: '含有文字'
-                                    }, {
-                                        value: TEXT_MATCH_WAYS.FULL_MATCH,
-                                        text: '完全符合'
-                                    }, {
-                                        value: TEXT_MATCH_WAYS.STARTS_WITH,
-                                        text: '以此開頭'
-                                    }, {
-                                        value: TEXT_MATCH_WAYS.ENDS_WITH,
-                                        text: '以此結尾'
-                                    }];
-
-                                    return items.map(function(item) {
-                                        return (
-                                            '<a class="dropdown-item" value="' + item.value + '">' +
-                                                '<span>' + item.text + '</span>' +
-                                            '</a>'
-                                        );
-                                    }).join('');
-                                })() +
-                            '</div>' +
-                        '</div>'
-                    );
+                    return this._generateTextCondition();
                 default:
                     return '';
             }
@@ -405,7 +363,7 @@ const ConditionSelector = (function() {
                             for (let i in _conditions) {
                                 let condition = _conditions[i];
 
-                                if ('AGE_RANGE' === conditionType) {
+                                if (CONDITION_TYPES.AGE_RANGE === conditionType) {
                                     if (!messager.age) {
                                         isAccept = isAccept || false;
                                     } else {
@@ -413,14 +371,44 @@ const ConditionSelector = (function() {
                                         let ageUp = condition.values[1];
                                         isAccept = isAccept || (ageDown <= messager.age && ageUp >= messager.age);
                                     }
-                                } else if ('GENDER' === conditionType) {
+                                } else if (CONDITION_TYPES.GENDER === conditionType) {
                                     if (!messager.gender) {
                                         isAccept = isAccept || false;
                                     } else {
                                         let gender = condition.values[0];
                                         isAccept = isAccept || gender === messager.gender;
                                     }
-                                } else if ('TAGS' === conditionType) {
+                                } else if (CONDITION_TYPES.EMAIL === conditionType) {
+                                    if (!messager.email) {
+                                        isAccept = isAccept || false;
+                                    } else {
+                                        let matchText = condition.values[0] || '';
+                                        let matchWay = condition.values[1];
+                                        if (matchText && matchWay) {
+                                            isAccept = textValidation[matchWay] ? textValidation[matchWay](messager.email, matchText) : false;
+                                        }
+                                    }
+                                } else if (CONDITION_TYPES.PHONE === conditionType) {
+                                    if (!messager.phone) {
+                                        isAccept = isAccept || false;
+                                    } else {
+                                        let matchText = condition.values[0] || '';
+                                        let matchWay = condition.values[1];
+                                        if (matchText && matchWay) {
+                                            isAccept = textValidation[matchWay] ? textValidation[matchWay](messager.phone, matchText) : false;
+                                        }
+                                    }
+                                } else if (CONDITION_TYPES.ADDRESS === conditionType) {
+                                    if (!messager.address) {
+                                        isAccept = isAccept || false;
+                                    } else {
+                                        let matchText = condition.values[0] || '';
+                                        let matchWay = condition.values[1];
+                                        if (matchText && matchWay) {
+                                            isAccept = textValidation[matchWay] ? textValidation[matchWay](messager.address, matchText) : false;
+                                        }
+                                    }
+                                } else if (CONDITION_TYPES.TAGS === conditionType) {
                                     if (!messager.tags || (messager.tags && 0 === messager.tags.length)) {
                                         isAccept = isAccept || false;
                                     } else {
@@ -434,7 +422,7 @@ const ConditionSelector = (function() {
                                         }
                                         isAccept = isAccept || hasContainTag;
                                     }
-                                } else if ('CUSTOM_FIELD' === conditionType) {
+                                } else if (CONDITION_TYPES.CUSTOM_FIELD === conditionType) {
                                     let fieldId = condition.field_id;
                                     let customField = messager.custom_fields[fieldId];
 
@@ -467,7 +455,7 @@ const ConditionSelector = (function() {
                                                 break;
                                             case SETS_TYPES.TEXT:
                                                 let matchText = condition.values[0] || '';
-                                                let matchWay = condition.values[1] || '';
+                                                let matchWay = condition.values[1];
                                                 if (matchText && matchWay) {
                                                     isAccept = textValidation[matchWay] ? textValidation[matchWay](customFieldValue, matchText) : false;
                                                 }
@@ -500,7 +488,7 @@ const ConditionSelector = (function() {
                 let conditionType = $typeValues.attr('value');
 
                 let contentValues = [];
-                if ('TAGS' === conditionType) {
+                if (CONDITION_TYPES.TAGS === conditionType) {
                     let $tags = $conditionItem.find('.tags-container .chip-text');
                     $tags.each(function() {
                         let tag = $(this).text();
@@ -542,7 +530,7 @@ const ConditionSelector = (function() {
             $conditionTypes.parents('.item-wrapper').find('.tags-container').remove();
 
             let type = typeFieldId || typeValue;
-            let conditionType = DEFAULT_CONDITION_TYPES[type] || this._conditionTypes[type];
+            let conditionType = DEFAULT_CONDITIONS[type] || this._conditionTypes[type];
             let options = {
                 type: type,
                 field: this._allFields[conditionType.field_id]
@@ -551,7 +539,7 @@ const ConditionSelector = (function() {
             $conditionContentWrapper.append($conditionContent);
             this.refreshAvailable();
 
-            if ('TAGS' === typeValue) {
+            if (CONDITION_TYPES.TAGS === typeValue) {
                 this.enableTypeahead($conditionContentWrapper);
             }
         }
@@ -569,8 +557,101 @@ const ConditionSelector = (function() {
             $conditionContent.find('.condition-value').attr('value', contentValue).attr('app-id', appId || '').text(contentText);
             this.refreshAvailable();
         }
+
+        _generateTextCondition() {
+            return (
+                '<div class="d-inline-block condition-content range">' +
+                    '<input class="form-control condition-value" type="text" maxlength="50" placeholder="輸入條件文字" />' +
+                '</div>' +
+                '<span class="px-2">-</span>' +
+                '<div class="d-inline-block condition-content range">' +
+                    '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                        '<span class="condition-value" value="' + TEXT_MATCH_WAYS.INCLUDES + '">含有文字</span>' +
+                    '</button>' +
+                    '<div class="dropdown-menu condition-content-menu">' +
+                        (function() {
+                            let items = [{
+                                value: TEXT_MATCH_WAYS.INCLUDES,
+                                text: '含有文字'
+                            }, {
+                                value: TEXT_MATCH_WAYS.FULL_MATCH,
+                                text: '完全符合'
+                            }, {
+                                value: TEXT_MATCH_WAYS.STARTS_WITH,
+                                text: '以此開頭'
+                            }, {
+                                value: TEXT_MATCH_WAYS.ENDS_WITH,
+                                text: '以此結尾'
+                            }];
+
+                            return items.map(function(item) {
+                                return (
+                                    '<a class="dropdown-item" value="' + item.value + '">' +
+                                        '<span>' + item.text + '</span>' +
+                                    '</a>'
+                                );
+                            }).join('');
+                        })() +
+                    '</div>' +
+                '</div>'
+            );
+        }
+
+        /**
+         * @param {Chatshier.Models.Field} field
+         */
+        _generateSelectCondition(field) {
+            return (
+                '<div class="dropdown condition-content">' +
+                    '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                        '<span class="condition-value" value="' + (field.sets[0] || '') + '">' + (field.sets[0] || '') + '</span>' +
+                    '</button>' +
+                    '<div class="dropdown-menu condition-content-menu">' +
+                        (() => {
+                            return field.sets.map((set) => {
+                                if (!set) {
+                                    return '';
+                                }
+                                return (
+                                    '<a class="dropdown-item" value="' + set + '">' +
+                                        '<span>' + set + '</span>' +
+                                    '</a>'
+                                );
+                            }).join('');
+                        })() +
+                    '</div>' +
+                '</div>'
+            );
+        }
+
+        _generateNumberCondition() {
+            return (
+                '<div class="d-inline-block condition-content range">' +
+                    '<input class="form-control condition-value" type="number" value="0" min="0" />' +
+                '</div>' +
+                '<span class="px-2">~</span>' +
+                '<div class="d-inline-block condition-content range">' +
+                    '<input class="form-control condition-value" type="number" value="1" min="1" />' +
+                '</div>'
+            );
+        }
+
+        _generateCheckboxCondition() {
+            return (
+                '<div class="dropdown condition-content">' +
+                    '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                        '<span class="condition-value" value="true">是</span>' +
+                    '</button>' +
+                    '<div class="dropdown-menu condition-content-menu">' +
+                        '<a class="dropdown-item" value="true">是</a>' +
+                        '<a class="dropdown-item" value="false">否</a>' +
+                    '</div>' +
+                '</div>'
+            );
+        }
     }
 
+    ConditionSelector.CONDITION_TYPES = CONDITION_TYPES;
     return ConditionSelector;
 })();
 
@@ -718,7 +799,7 @@ const ConditionSelector = (function() {
 
                         allFields[fieldId] = field;
                         conditionTypes[fieldId] = {
-                            type: 'CUSTOM_FIELD',
+                            type: ConditionSelector.CONDITION_TYPES.CUSTOM_FIELD,
                             text: field.text,
                             field_id: fieldId
                         };

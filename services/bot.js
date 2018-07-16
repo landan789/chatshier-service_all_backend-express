@@ -932,7 +932,7 @@ module.exports = (function() {
                         if ('video' === message.type) {
                             messages.push({
                                 type: message.type,
-                                previewImageUrl: chatshierCfg.LINE.PREVIEW_IMAGE_URL,
+                                previewImageUrl: chatshierCfg.LINE.VIDEO_PREVIEW_IMAGE_URL,
                                 originalContentUrl: message.src
                             });
                         }

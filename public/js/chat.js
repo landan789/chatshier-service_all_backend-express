@@ -2167,14 +2167,12 @@
     // =====start chat function=====
     function userClickTablink() {
         var $eventTablink = $(this);
-        var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
 
         var appId = $eventTablink.attr('app-id');
-        var appName = apps[appId].name;
-        var appType = $eventTablink.attr('app-type');
         var chatroomId = $eventTablink.attr('chatroom-id');
         var platformUid = $eventTablink.attr('platform-uid');
 
+        var appType = apps[appId].type;
         var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
         var isGroupChatroom = CHATSHIER === appType || !!chatroom.platformGroupId;
 
@@ -2183,10 +2181,28 @@
 
         var $chatroomTablinks = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery);
         var $selectedTablinks = $('.tablinks.selected');
+
+        var isSameRoom = (() => {
+            for (let i = 0; i < $selectedTablinks.length; i++) {
+                let tablink = $selectedTablinks[i];
+                if (appId === tablink.getAttribute('app-id') &&
+                    chatroomId === tablink.getAttribute('chatroom-id')) {
+                    return true;
+                }
+            }
+            return false;
+        })();
+
+        // 當點擊同一個聊天室時，不用重複處理聊天資料
+        if (isSameRoom) {
+            return;
+        }
+
         $selectedTablinks.removeClass('selected').css('background-color', '');
         $chatroomTablinks.addClass('selected').css('background-color', COLOR.CLICKED);
 
         var $navTitle = $('#navTitle');
+        var appName = apps[appId].name;
         var chatroomTitle = document.title.replace(' | Chatshier', ' #' + appName);
 
         let $imagemapArea = $('.message-input-container .imagemap-area');
@@ -2236,6 +2252,7 @@
         var $chatContent = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $ticketGroup = $('.ticket-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
         $messageInputContainer.removeClass('d-none');
         $chatContent.siblings().removeClass('shown').addClass('d-none');
         $chatContent.addClass('shown').removeClass('d-none');
