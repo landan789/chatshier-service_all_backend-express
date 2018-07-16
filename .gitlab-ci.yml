@@ -77,7 +77,7 @@ MASTER:
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_2_HOST} -p 22 "cd ${API_DIR} && git stash && git checkout -f master && git reset --hard origin/master && git fetch -p && git pull -f" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
    
    - echo "[STEP 2] start to npm install on all servers."
-   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_1_HOST} -p 22 "cd ${API_DIR} && npm prune --production && npm install--production" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_1_HOST} -p 22 "cd ${API_DIR} && npm prune --production && npm install --production" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_1_HOST} -p 22 "cd ${API_DIR} && npm prune --production && npm install --production" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_2_HOST} -p 22 "cd ${API_DIR} && npm prune --production && npm install --production" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
 
