@@ -721,6 +721,11 @@
             var senderMsger;
             consumersFromSocket && Object.assign(consumers, consumersFromSocket);
 
+            var app = apps[appId];
+            if (!app) {
+                return;
+            }
+
             // 根據發送的時間從早到晚排序
             messages.sort(function(a, b) {
                 return new Date(a.time).getTime() - new Date(b.time).getTime();
@@ -747,6 +752,7 @@
                 chatroom.platformGroupType = chatroomFromSocket.platformGroupType;
                 messagers = chatroom.messagers = Object.assign(chatrooms[chatroomId].messagers, chatroomFromSocket.messagers);
             }
+
             var messagerSelf = findMessagerSelf(appId, chatroomId);
             var isNewChatroom = chatroomList.indexOf(chatroomId) < 0;
 
@@ -798,7 +804,6 @@
                     chatroom.messages[message._id] = message;
                     senderUid !== userId && CHATSHIER === message.from && messagerSelf.unRead++;
 
-                    var app = apps[appId];
                     var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
 
                     if (isNewChatroom) {
@@ -2009,7 +2014,7 @@
                                                 '<span class="multi-select-values">' + multiSelectText + '</span>' +
                                                 '<span class="caret"></span>' +
                                             '</button>' +
-                                            '<div class="multi-select-container dropdown-menu fields-select">' +
+                                            '<div class="multi-select-container dropdown-menu fields-select field-value">' +
                                                 (function(sets) {
                                                     return sets.map(function(set, i) {
                                                         return (
@@ -2167,14 +2172,12 @@
     // =====start chat function=====
     function userClickTablink() {
         var $eventTablink = $(this);
-        var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
 
         var appId = $eventTablink.attr('app-id');
-        var appName = apps[appId].name;
-        var appType = $eventTablink.attr('app-type');
         var chatroomId = $eventTablink.attr('chatroom-id');
         var platformUid = $eventTablink.attr('platform-uid');
 
+        var appType = apps[appId].type;
         var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
         var isGroupChatroom = CHATSHIER === appType || !!chatroom.platformGroupId;
 
@@ -2183,10 +2186,28 @@
 
         var $chatroomTablinks = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery);
         var $selectedTablinks = $('.tablinks.selected');
+
+        var isSameRoom = (() => {
+            for (let i = 0; i < $selectedTablinks.length; i++) {
+                let tablink = $selectedTablinks[i];
+                if (appId === tablink.getAttribute('app-id') &&
+                    chatroomId === tablink.getAttribute('chatroom-id')) {
+                    return true;
+                }
+            }
+            return false;
+        })();
+
+        // 當點擊同一個聊天室時，不用重複處理聊天資料
+        if (isSameRoom) {
+            return;
+        }
+
         $selectedTablinks.removeClass('selected').css('background-color', '');
         $chatroomTablinks.addClass('selected').css('background-color', COLOR.CLICKED);
 
         var $navTitle = $('#navTitle');
+        var appName = apps[appId].name;
         var chatroomTitle = document.title.replace(' | Chatshier', ' #' + appName);
 
         let $imagemapArea = $('.message-input-container .imagemap-area');
@@ -2236,6 +2257,7 @@
         var $chatContent = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $ticketGroup = $('.ticket-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
         $messageInputContainer.removeClass('d-none');
         $chatContent.siblings().removeClass('shown').addClass('d-none');
         $chatContent.addClass('shown').removeClass('d-none');
@@ -3196,7 +3218,7 @@
 
         var displayText = textArr.join(',');
         if (textArr.length > 1) {
-            displayText = textArr[0] + ' 及其他 ' + (textArr.length - 1) + ' 名';
+            displayText = textArr[0] + ' 及其他 ' + (textArr.length - 1) + ' 項';
         }
         $selectValues.text(displayText).attr('rel', valArr.join(','));
     }
