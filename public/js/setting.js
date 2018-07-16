@@ -740,7 +740,7 @@
                     '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
-                    '<label class="col-form-label">App ID:</label>' +
+                    '<label class="col-form-label">粉絲專頁 ID:</label>' +
                         '<div class="input-container">' +
                         '<input class="form-control" type="text" name="appId1" placeholder="在此貼上您的 粉絲專頁 ID" />' +
                     '</div>' +
