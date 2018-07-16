@@ -209,14 +209,25 @@ module.exports = (function() {
                 let query = {
                     '_id': this.Types.ObjectId(groupId),
                     'isDeleted': false,
-                    'members.isDeleted': false,
-                    'members.status': true
+                    'members.isDeleted': false
                 };
-                return this.GroupsModel.findOne(query);
-            }).then((group) => {
-                let members = group.members || [];
-                let memberUserIds = members.map((member) => member.user_id);
 
+                let aggregations = [
+                    {
+                        $unwind: '$members'
+                    }, {
+                        $match: query
+                    }, {
+                        $project: {
+                            members: true
+                        }
+                    }
+                ];
+
+                return this.GroupsModel.aggregate(aggregations).then((results) => {
+                    return results.map((group) => group.members.user_id);
+                });
+            }).then((memberUserIds) => {
                 query['chatrooms._id'] = chatroomId;
                 let options = {
                     arrayFilters: [

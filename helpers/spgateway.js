@@ -12,13 +12,13 @@ module.exports = (function() {
     };
 
     const INVOICE_ENDPOINT = {
-        [TEST]: 'https://cinv.pay2go.com/API/invoice_issue',
-        [PRODUCTION]: 'https://inv.pay2go.com/API/invoice_issue'
+        [TEST]: 'https://cinv.pay2go.com/API',
+        [PRODUCTION]: 'https://inv.pay2go.com/API'
     };
 
     class SpgatewayHelper {
         constructor() {
-            this._mode = chatshierCfg.PAYMENT_MODE || TEST;
+            this._mode = chatshierCfg.PAYMENT.MODE || TEST;
         }
 
         /**
@@ -91,7 +91,6 @@ module.exports = (function() {
          */
         encryptJsonToStr(json, hashKey, hashIV) {
             let payloadQuery = this._jsonToQueryString(json);
-            payloadQuery = this._appendPadding(payloadQuery);
             let encryptStr = cipherHlp.aesEncrypt(payloadQuery, hashKey, hashIV, 'aes-256-cbc', true);
             return encryptStr;
         }
@@ -142,6 +141,10 @@ module.exports = (function() {
          * @returns {Promise<Spgateway.Pay2Go.IssueResponseResult>}
          */
         issueInvoice(order, merchantId, hashKey, hashIV) {
+            let isB2B = !!order.taxId;
+            let taxRate = 0.05;
+            let taxAmt = Math.floor(order.tradeAmount * taxRate);
+
             /** @type {Spgateway.Pay2Go.InvoicePostData} */
             let postData = {
                 RespondType: 'JSON',
@@ -149,16 +152,18 @@ module.exports = (function() {
                 TimeStamp: '' + Math.floor(Date.now() / 1000),
                 MerchantOrderNo: order.invoiceId,
                 Status: '1',
-                Category: order.taxId ? 'B2B' : 'B2C',
+                Category: isB2B ? 'B2B' : 'B2C',
+                BuyerUBN: isB2B ? order.taxId : '',
                 BuyerName: order.payerName,
                 BuyerAddress: order.payerAddress,
+                BuyerPhone: isB2B ? order.payerPhone : '',
                 BuyerEmail: order.payerEmail,
                 PrintFlag: 'Y',
                 TaxType: '1',
-                TaxRate: 5,
+                TaxRate: taxRate * 100,
                 CustomsClearance: '1',
-                Amt: order.tradeAmount * 0.95,
-                TaxAmt: order.tradeAmount * 0.05,
+                Amt: order.tradeAmount - taxAmt,
+                TaxAmt: taxAmt,
                 TotalAmt: order.tradeAmount,
                 ItemName: order.commodities.map((commodity) => commodity.name).join('|'),
                 ItemCount: order.commodities.map((commodity) => commodity.count).join('|'),
@@ -166,7 +171,6 @@ module.exports = (function() {
                 ItemPrice: order.commodities.map((commodity) => commodity.unitPrice).join('|'),
                 ItemAmt: order.commodities.map((commodity) => commodity.count * commodity.unitPrice).join('|')
             };
-            order.taxId && (postData.BuyerUBN = order.taxId);
             let encryptStr = this.encryptJsonToStr(postData, hashKey, hashIV);
 
             /** @type {Spgateway.Pay2Go.InvoicePostParams} */
@@ -177,7 +181,7 @@ module.exports = (function() {
 
             let options = {
                 method: 'POST',
-                url: INVOICE_ENDPOINT[this._mode],
+                url: INVOICE_ENDPOINT[this._mode] + '/invoice_issue',
                 formData: invoiceParams
             };
 
@@ -211,6 +215,44 @@ module.exports = (function() {
         }
 
         /**
+         * @param {string} invoiceNumber
+         * @param {string} randomNumber
+         * @param {string} merchantId
+         * @param {string} hashKey
+         * @param {string} hashIV
+         */
+        searchInvoice(invoiceNumber, randomNumber, merchantId, hashKey, hashIV) {
+            let postData = {
+                RespondType: 'JSON',
+                Version: '1.1',
+                TimeStamp: '' + Math.floor(Date.now() / 1000),
+                SearchType: '0',
+                InvoiceNumber: invoiceNumber,
+                RandomNum: randomNumber
+            };
+
+            let encryptStr = this.encryptJsonToStr(postData, hashKey, hashIV);
+
+            /** @type {Spgateway.Pay2Go.InvoicePostParams} */
+            let invoiceParams = {
+                MerchantID_: merchantId,
+                PostData_: encryptStr
+            };
+
+            let options = {
+                method: 'POST',
+                url: INVOICE_ENDPOINT[this._mode] + '/invoice_search',
+                formData: invoiceParams
+            };
+            return this._sendRequest(options).then((invoiceRes) => {
+                if (!invoiceRes || (invoiceRes && 'SUCCESS' !== invoiceRes.Status)) {
+                    return Promise.reject(invoiceRes ? invoiceRes.Message : new Error(invoiceRes));
+                }
+                return Promise.resolve(JSON.parse(invoiceRes.Result));
+            });
+        }
+
+        /**
          * @param {any} json
          */
         _jsonToQueryString(json) {
@@ -222,17 +264,6 @@ module.exports = (function() {
                 let str = prop + '=' + encodeURIComponent(json[prop]).replace(/%20/g, '+');
                 return str;
             }).join('&');
-        }
-
-        /**
-         * @param {string} str
-         * @param {number} [blocksize=32]
-         */
-        _appendPadding(str, blocksize = 32) {
-            let len = str.length;
-            let pad = blocksize - (len % blocksize);
-            str += String.fromCharCode(pad).repeat(pad);
-            return str.trim();
         }
 
         _sendRequest(options) {

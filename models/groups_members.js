@@ -70,7 +70,7 @@ module.exports = (function() {
          *
          * @param {string} groupId
          * @param {string | string[]} [memberIds]
-         * @param {boolean} [isDeleted=false]
+         * @param {boolean|null} [isDeleted=false]
          * @param {boolean} [status]
          * @param {(members: Chatshier.Models.GroupMembers | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.GroupMembers | null>}

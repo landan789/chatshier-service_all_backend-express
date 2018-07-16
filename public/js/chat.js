@@ -274,7 +274,7 @@
                             continue;
                         }
 
-                        var dueTimeDateStr = new Date(new Date(ticket.dueTime) - timezoneGap).toJSON().split('T').shift();
+                        var dueTimeDateStr = new Date(new Date(ticket.dueTime || Date.now()) - timezoneGap).toJSON().split('T').shift();
                         $ticketBody.prepend(
                             '<tr ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticketEditModal">' +
                                 '<td class="status" style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + statusNumberToText(ticket.status) + '</td>' +
@@ -748,6 +748,7 @@
                 messagers = chatroom.messagers = Object.assign(chatrooms[chatroomId].messagers, chatroomFromSocket.messagers);
             }
             var messagerSelf = findMessagerSelf(appId, chatroomId);
+            var isNewChatroom = chatroomList.indexOf(chatroomId) < 0;
 
             var nextMessage = function(i) {
                 if (i >= messages.length) {
@@ -762,11 +763,16 @@
                     if (SYSTEM === message.from && 'imagemap' === message.type) {
                         message.from = CHATSHIER;
                     }
-                    if (SYSTEM === message.from) {
-                        return users[userId];
-                    }
+
                     !senderUid && senderMsger && (senderUid = senderMsger.platformUid);
                     var sender = CHATSHIER === message.from ? users[senderUid] : consumers[senderUid];
+
+                    // 如果是新的聊天室 sender 一定是從平台而來
+                    if (isNewChatroom) {
+                        return sender;
+                    } else if (SYSTEM === message.from) {
+                        return users[userId];
+                    }
 
                     // 如果前端沒資料代表是新用戶
                     // 因此需要再發一次 api 來獲取新的用戶資料
@@ -795,7 +801,7 @@
                     var app = apps[appId];
                     var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
 
-                    if (chatroomList.indexOf(chatroomId) < 0) {
+                    if (isNewChatroom) {
                         var uiRequireData = {
                             appId: appId,
                             name: app.name,
@@ -827,7 +833,7 @@
                     var shouldHide = false;
                     if (isGroupChatroom) {
                         person = Object.assign({}, users[userId]);
-                        person.photo = logos[app.type];
+                        person.photo = LINE === app.type ? LOGOS[LINE_GROUP] : 'image/group.png';
                         var $chatroomProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
                         shouldHide = $chatroomProfileGroup.hasClass('d-none');
                         $chatroomProfileGroup = $chatroomProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
@@ -856,7 +862,14 @@
                     var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
                     $messageInputContainer.find('button').removeAttr('disabled');
                     $messageInputContainer.find('input').removeAttr('disabled');
-                    $submitMessageInput.attr('placeholder', '輸入訊息...');
+
+                    let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+                    if (emojioneAreaData) {
+                        emojioneAreaData.enable();
+                        emojioneAreaData.editor.attr('placeholder', '輸入訊息...');
+                    } else {
+                        $submitMessageInput.attr('placeholder', '輸入訊息...');
+                    }
                 }
             });
         });
@@ -917,8 +930,11 @@
             // 更新 UI 資料
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
+
             var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]');
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
 
             var tagsNew = messager.tags || [];
             var tagsAdd = tagsNew.filter(function(tag) {
@@ -938,10 +954,14 @@
         });
 
         socket.on(SOCKET_EVENTS.CONSUMER_FOLLOW, function(data) {
-            var appId = data.appId;
-            var chatroomId = data.chatroomId;
-            var messager = data.messager;
-            var messagerId = messager._id;
+            let appId = data.appId;
+            let chatroomId = data.chatroomId;
+            /** @type {Chatshier.Models.Messager} */
+            let messager = data.messager;
+            /** @type {Chatshier.Models.Consumer} */
+            let consumer = data.consumer;
+            let messagerId = messager._id;
+            let consumerUid = consumer.platformUid;
 
             if (!appsChatrooms[appId]) {
                 appsChatrooms[appId] = { chatrooms: {} };
@@ -951,23 +971,35 @@
                 appsChatrooms[appId].chatrooms[chatroomId] = { messagers: {} };
             }
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager;
+            consumers[consumerUid] = consumer;
 
-            var $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
-            var _appId = $openedChatroomNow.attr('app-id');
-            var _chatroomId = $openedChatroomNow.attr('chatroom-id');
+            let $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
+            let _appId = $openedChatroomNow.attr('app-id');
+            let _chatroomId = $openedChatroomNow.attr('chatroom-id');
+
             if (_appId === appId && _chatroomId === chatroomId) {
-                var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
+                let $messageInputContainer = $submitMessageInput.parents('.message-input-container');
                 $messageInputContainer.find('button').removeAttr('disabled');
                 $messageInputContainer.find('input').removeAttr('disabled');
-                $submitMessageInput.attr('placeholder', '輸入訊息...');
+
+                let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+                if (emojioneAreaData) {
+                    emojioneAreaData.enable();
+                    emojioneAreaData.editor.attr('placeholder', '輸入訊息...');
+                } else {
+                    $submitMessageInput.attr('placeholder', '輸入訊息...');
+                }
             }
+
+            $.notify('[' + consumer.type + '] 用戶 "' + consumer.name + '" 已關注 "' + apps[appId].name + '" 可以與他進行對話囉！', { type: 'info' });
         });
 
         socket.on(SOCKET_EVENTS.CONSUMER_UNFOLLOW, function(data) {
-            var appId = data.appId;
-            var chatroomId = data.chatroomId;
-            var messager = data.messager;
-            var messagerId = messager._id;
+            let appId = data.appId;
+            let chatroomId = data.chatroomId;
+            /** @type {Chatshier.Models.Messager} */
+            let messager = data.messager;
+            let messagerId = messager._id;
 
             if (!appsChatrooms[appId]) {
                 appsChatrooms[appId] = { chatrooms: {} };
@@ -978,15 +1010,27 @@
             }
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager;
 
-            var $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
-            var _appId = $openedChatroomNow.attr('app-id');
-            var _chatroomId = $openedChatroomNow.attr('chatroom-id');
-            if (_appId === appId && _chatroomId === chatroomId) {
-                var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
+            let $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
+            let _appId = $openedChatroomNow.attr('app-id');
+            let _chatroomId = $openedChatroomNow.attr('chatroom-id');
+
+            if (_appId === appId && _chatroomId === chatroomId && messager.isUnfollowed) {
+                let $messageInputContainer = $submitMessageInput.parents('.message-input-container');
                 $messageInputContainer.find('button').attr('disabled', true);
                 $messageInputContainer.find('input').attr('disabled', true);
-                $submitMessageInput.attr('placeholder', '對方已取消關注');
+
+                let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+                if (emojioneAreaData) {
+                    emojioneAreaData.disable();
+                    emojioneAreaData.editor.attr('placeholder', '對方已取消關注');
+                } else {
+                    $submitMessageInput.attr('placeholder', '對方已取消關注');
+                }
             }
+
+            /** @type {Chatshier.Models.Consumer} */
+            let consumer = consumers[messager.platformUid];
+            $.notify('[' + consumer.type + '] 用戶 "' + consumer.name + '" 已封鎖機器人 "' + apps[appId].name + '"', { type: 'warning' });
         });
 
         socket.on(SOCKET_EVENTS.USER_ADD_GROUP_MEMBER_TO_CLIENT, function(data) {
@@ -1171,11 +1215,11 @@
                     uiRequireData.person = Object.assign({}, users[userId]);
                     uiRequireData.person.photo = LOGOS[app.type];
                     uiRequireData.platformUid = userId;
-                } else if (!!chatroom.platformGroupId) {
+                } else if (chatroom.platformGroupId) {
                     uiRequireData.person = Object.assign({}, users[userId]);
                     uiRequireData.person.photo = LOGOS[LINE_GROUP];
                     uiRequireData.platformUid = userId;
-                }else {
+                } else {
                     var platformMessager = findChatroomMessager(appId, chatroomId, app.type);
                     var platformUid = platformMessager.platformUid;
                     uiRequireData.person = consumers[platformUid];
@@ -1213,7 +1257,7 @@
         var chatroomName = opts.clientName;
         var isGroupChatroom = CHATSHIER === opts.appType || chatroom.platformGroupType;
         if (isGroupChatroom) {
-            chatroomPhoto = CHATSHIER === opts.appType ? 'image/group.png' : LOGOS[LINE_GROUP];
+            chatroomPhoto = LINE === opts.appType ? LOGOS[LINE_GROUP] : 'image/group.png';
             chatroomName = chatroom.name || DEFAULT_CHATROOM_NAME;
         }
 
@@ -1601,7 +1645,7 @@
                             );
                         case 'buttons':
                             return (
-                                '<div class="template ml-1">' +
+                                '<div class="template">' +
                                     (function() {
                                         if (template.thumbnailImageUrl) {
                                             return (
@@ -1635,7 +1679,7 @@
                             );
                         case 'carousel':
                             return template.columns.map((column) => (
-                                '<div class="template ml-1">' +
+                                '<div class="template">' +
                                     '<div class="text-center top-img-container">' +
                                         `<img src="${column.thumbnailImageUrl}" class="template-image image-fit" alt="未顯示圖片" />` +
                                     '</div>' +
@@ -1843,14 +1887,14 @@
                 '<div class="px-2 d-flex align-items-center form-group user-info">' +
                     '<label class="px-0 col-3 col-form-label">' + transJson['First chat date'] + '</label>' +
                     '<div class="pr-0 col-9">' +
-                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.createdTime).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
+                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.createdTime || Date.now()).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
                     '</div>' +
                 '</div>' +
 
                 '<div class="px-2 d-flex align-items-center form-group user-info">' +
                     '<label class="px-0 col-3 col-form-label">' + transJson['Recent chat date'] + '</label>' +
                     '<div class="pr-0 col-9">' +
-                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.lastTime).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
+                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.lastTime || Date.now()).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
                     '</div>' +
                 '</div>' +
 
@@ -1904,10 +1948,10 @@
                         // DEFAULT, SYSTEM 在前 CUSTOM 在後
                         if (FIELD_TYPES.CUSTOM !== fieldsA.type &&
                             FIELD_TYPES.CUSTOM === fieldsB.type) {
-                            return false;
+                            return -1;
                         } else if (FIELD_TYPES.CUSTOM === fieldsA.type &&
                             FIELD_TYPES.CUSTOM !== fieldsB.type) {
-                            return true;
+                            return 1;
                         }
                         return fieldsA.order - fieldsB.order;
                     });
@@ -2258,15 +2302,29 @@
 
         // 如果 1vs1 聊天室中的客戶已經封鎖或解除關注，則無法發送任何訊息給對方
         if (!chatroom.platformGroupId) {
-            var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+            let messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+            let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+
             if (!chatroom.platformGroupId && messager.isUnfollowed) {
                 $messageInputContainer.find('button').attr('disabled', true);
                 $messageInputContainer.find('input').attr('disabled', true);
-                $submitMessageInput.attr('placeholder', '對方已取消關注');
+
+                if (emojioneAreaData) {
+                    emojioneAreaData.disable();
+                    emojioneAreaData.editor.attr('placeholder', '對方已取消關注');
+                } else {
+                    $submitMessageInput.attr('placeholder', '對方已取消關注');
+                }
             } else {
                 $messageInputContainer.find('button').removeAttr('disabled');
                 $messageInputContainer.find('input').removeAttr('disabled');
-                $submitMessageInput.attr('placeholder', '輸入訊息...');
+
+                if (emojioneAreaData) {
+                    emojioneAreaData.enable();
+                    emojioneAreaData.editor.attr('placeholder', '輸入訊息...');
+                } else {
+                    $submitMessageInput.attr('placeholder', '輸入訊息...');
+                }
             }
         }
     }
@@ -2646,7 +2704,8 @@
         var _messagerSelf = {
             type: CHATSHIER,
             platformUid: userId,
-            unRead: 0
+            unRead: 0,
+            chatCount: 0
         };
         messagers[userId] = _messagerSelf;
         return _messagerSelf;
@@ -2769,7 +2828,10 @@
 
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
             $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
 
             return new Promise(function(resolve, reject) {
@@ -2820,7 +2882,10 @@
 
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
             $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
 
             return new Promise(function(resolve, reject) {
@@ -2862,7 +2927,10 @@
 
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
 
             // 將聊天訊息的名稱以及聊天室的名稱做更新
             var consumer = consumers[platformUid];
@@ -3172,7 +3240,9 @@
 
         var count = 0;
         $tablinks.length = $panels.length = $clientNameOrTexts.length = 0;
-        $('.tablinks').each(function(i, elem) {
+
+        var $targetElems = $('[app-type] .tablinks');
+        $targetElems.each(function(i, elem) {
             var $tablinkElem = $(elem);
             var appId = $tablinkElem.attr('app-id');
             var chatroomId = $tablinkElem.attr('chatroom-id');

@@ -261,9 +261,21 @@ router.post('/:webhookid', (req, res, next) => {
                                         let socketBody = {
                                             appId: appId,
                                             chatroomId: _chatroomId,
-                                            messager: _messager
+                                            messager: _messager,
+                                            consumer: consumers[messager.platformUid]
                                         };
-                                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.CONSUMER_FOLLOW, socketBody).then(() => platformMessager);
+
+                                        return appsChatroomsMessagersMdl.find(appId, _chatroomId, void 0, CHATSHIER).then((__appsChatroomsMessagers) => {
+                                            if (!(__appsChatroomsMessagers && __appsChatroomsMessagers[appId])) {
+                                                return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                            }
+
+                                            let __chatrooms = __appsChatroomsMessagers[appId].chatrooms;
+                                            let __messagers = __chatrooms[_chatroomId].messagers;
+
+                                            let _recipientUserIds = Object.values(__messagers).map((__messager) => __messager.platformUid);
+                                            return socketHlp.emitToAll(_recipientUserIds, SOCKET_EVENTS.CONSUMER_FOLLOW, socketBody).then(() => platformMessager);
+                                        });
                                     });
                                 }
                                 platformMessager = messager;
