@@ -18,7 +18,7 @@ module.exports = (function() {
 
     class SpgatewayHelper {
         constructor() {
-            this._mode = chatshierCfg.PAYMENT_MODE || TEST;
+            this._mode = chatshierCfg.PAYMENT.MODE || TEST;
         }
 
         /**

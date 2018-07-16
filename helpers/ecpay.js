@@ -8,7 +8,7 @@ module.exports = (function() {
 
     class ECPayHelper {
         constructor() {
-            this.paymentHelper.op_mode = 'PRODUCTION' === chatshierCfg.PAYMENT_MODE ? 'Production' : 'Test'; // Test or Production
+            this.paymentHelper.op_mode = 'PRODUCTION' === chatshierCfg.PAYMENT.MODE ? 'Production' : 'Test'; // Test or Production
 
             // 由自己自行設定 SDK 內的忽略支付清單
             // 支援的支付類型: 'Credit', 'WebATM', 'ATM', 'CVS', 'BARCODE', 'AndroidPay'
