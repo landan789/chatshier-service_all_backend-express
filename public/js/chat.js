@@ -1645,7 +1645,7 @@
                             );
                         case 'buttons':
                             return (
-                                '<div class="template ml-1">' +
+                                '<div class="template">' +
                                     (function() {
                                         if (template.thumbnailImageUrl) {
                                             return (
@@ -1679,7 +1679,7 @@
                             );
                         case 'carousel':
                             return template.columns.map((column) => (
-                                '<div class="template ml-1">' +
+                                '<div class="template">' +
                                     '<div class="text-center top-img-container">' +
                                         `<img src="${column.thumbnailImageUrl}" class="template-image image-fit" alt="未顯示圖片" />` +
                                     '</div>' +
