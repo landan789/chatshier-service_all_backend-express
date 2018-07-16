@@ -729,8 +729,8 @@
 
             let $boxes = $showRichmenuForm.find('.box');
             let areas = [];
-            $boxes.each(function() {
-                let $box = $(this);
+            for (let i = 0; i < $boxes.length; i++) {
+                let $box = $($boxes[i]);
                 let actionType = $box.attr('action-type');
                 let actionData = $box.data('action');
 
@@ -738,6 +738,11 @@
                 let boxHeight = $box.height();
                 let x = parseInt($box.data('x'));
                 let y = parseInt($box.data('y'));
+                let action = getRichmenuAction(actionType, actionData);
+
+                if (!action) {
+                    return;
+                }
 
                 let area = {
                     // 將 長寬 及 座標 依圖片大小縮放並四捨五入
@@ -751,20 +756,29 @@
                 };
 
                 areas.push(area);
-            });
+            }
             return areas;
         }
 
         function getRichmenuAction(actionType, actionData) {
+            actionData = actionData || {};
             let richmenuAction = {};
             switch (actionType) {
                 case ACTION_TYPES.TEXT:
+                    if (!actionData.text) {
+                        $.notify('設定為文字時，文字不可為空', { type: 'warning' });
+                        return;
+                    }
                     richmenuAction.type = 'message';
-                    richmenuAction.text = actionData.text;
+                    richmenuAction.text = actionData.text || '';
                     break;
                 case ACTION_TYPES.URI:
+                    if (!actionData.uri) {
+                        $.notify('設定為連結時，連結不可為空', { type: 'warning' });
+                        return;
+                    }
                     richmenuAction.type = 'uri';
-                    richmenuAction.uri = actionData.uri;
+                    richmenuAction.uri = actionData.uri || '';
                     break;
                 case ACTION_TYPES.RICHMENU:
                     let richmenuData = {
