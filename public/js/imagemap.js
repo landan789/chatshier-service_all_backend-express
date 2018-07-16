@@ -41,6 +41,9 @@
     $jqDoc.on('click', '#insert-btn', insertImagemap);
     $jqDoc.on('click', '#remove-btn', removeImagemap);
 
+    // 停用所有 form 的提交
+    $jqDoc.on('submit', 'form', function(ev) { return ev.preventDefault(); });
+
     $modal.on('show.bs.modal', function(ev) {
         let $relatedBtn = $(ev.relatedTarget);
         cleanModal();
@@ -70,11 +73,11 @@
             let appsImagemaps = resJson.data;
             let imagemap = appsImagemaps[imagemapId];
             size = imagemap.baseSize;
-            currentImageUri = imagemap.baseUri;
+            currentImageUri = imagemap.baseUrl;
             $('#title').val(imagemap.title);
             $(`[value="${imagemap.form}"]`).prop('checked', true);
             $('.show-imagemap-form')
-                .css('background', 'url(' + imagemap.baseUri + ') center no-repeat')
+                .css('background', 'url(' + imagemap.baseUrl + ') center no-repeat')
                 .css('background-size', 'cover');
             photoFormShow();
             let $boxes = $('.box');
@@ -86,12 +89,12 @@
                     .attr('ref', output);
                 let id = $(this).attr('id');
                 imagemap.actions[i].text ? $(`#${id}-input #text`).val(imagemap.actions[i].text) : $(`#${id}-input #url`).val(imagemap.actions[i].linkUri);
-                imagemap.actions[i].text ? $(`.boxes-inputs #${id}-input [value="text"]`).attr('checked', true) : $(`.boxes-inputs #${id}-input [value="url"]`).attr('checked', true);
+                imagemap.actions[i].text ? $(`.boxes-inputs #${id}-input [value="text"]`).prop('checked', true) : $(`.boxes-inputs #${id}-input [value="url"]`).prop('checked', true);
             });
         });
     });
 
-    $modal.on('hidden.bs.modal', function() {
+    $modal.on('hide.bs.modal', function() {
         let modalAppId = $appSelector.val();
         if (nowSelectAppId !== modalAppId) {
             $appDropdown.find('#' + modalAppId).trigger('click');
@@ -372,22 +375,20 @@
         }
 
         elementDisabled($(this), handleMessages.working);
-        return Promise.resolve().then(() => {
-            return api.image.uploadFile(appId, userId, imageFile);
-        }).then((resJson) => {
+        return api.image.uploadFile(userId, imageFile).then((resJson) => {
             let url = resJson.data.url;
 
             let postImagemap = {
                 type: 'imagemap',
-                baseUri: url,
-                altText: 'imagemap create by chatshier via line',
+                baseUrl: url,
+                altText: title,
                 baseSize: {
                     height: 1040,
                     width: 1040
                 },
-                actions,
-                form,
-                title
+                actions: actions,
+                form: form,
+                title: title
             };
             return api.appsImagemaps.insert(appId, userId, postImagemap);
         }).then(() => {
@@ -416,15 +417,15 @@
 
         let putImagemap = {
             type: 'imagemap',
-            baseUri: currentImageUri,
-            altText: 'imagemap create by chatshier via line',
+            baseUrl: currentImageUri,
+            altText: title,
             baseSize: {
                 height: 1040,
                 width: 1040
             },
-            actions,
-            form,
-            title
+            actions: actions,
+            form: form,
+            title: title
         };
 
         elementDisabled($updateBtn, handleMessages.working);
@@ -439,8 +440,8 @@
             });
         }
 
-        return api.image.uploadFile(appId, userId, imageFile).then((resJson) => {
-            putImagemap.baseUri = resJson.data.url;
+        return api.image.uploadFile(userId, imageFile).then((resJson) => {
+            putImagemap.baseUrl = resJson.data.url;
             return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap);
         }).then((resJson) => {
             $('#imagemap-modal').modal('hide');
@@ -590,7 +591,7 @@
         var trGrop =
             '<tr id="' + imagemapId + '" rel="' + appId + '">' +
                 '<th>' + imagemap.title + '</th>' +
-                '<td id="photoForm" data-form="' + imagemap.form + '" data-url="' + imagemap.baseUri + '">種類 ' + imagemap.form.slice(-1) + '</td>' +
+                '<td id="photoForm" data-form="' + imagemap.form + '" data-url="' + imagemap.baseUrl + '">種類 ' + imagemap.form.slice(-1) + '</td>' +
                 '<td>' + linkText + '</td>' +
                 '<td>' +
                     '<button type="button" id="turnOn-update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#imagemap-modal" aria-hidden="true"></button>' +
@@ -686,7 +687,7 @@
 
             // 目前只有 LINE 支援此功能
             if (app.isDeleted ||
-                app.type !== api.apps.enums.type.LINE) {
+                app.type !== api.apps.TYPES.LINE) {
                 delete appsData[appId];
                 continue;
             }

@@ -1,22 +1,34 @@
-= Release 1.3.2 =
-MASTER release： Not Ready
-RELEASE release：2018-06-05
+= Release 1.4.0 =
+MASTER release: Not Ready
+RELEASE release: Not Ready
+== Features ==
+ * Changed: change app list UI in setting page
+ * Created: add feature of payment setting in app setting, support ECPay, Spgateway
+ * Created: richmenu support switch to other richmenu
+ * Created: richmenu can send a form link to consumer for fill personal profile
+ * Created: richmenu can set donate option for consumer donation
+ * Created: compose support text condition
+ * Created: compose support image, imagemap, template message type, and emoji input for text message
+ * Created: keyword reply support image, imagemap, template message type, and emoji input for text message
+ * Created: auto reply support image, imagemap, template message type, and emoji input for text message
+ * Created: greeting support image, imagemap, template message type, and emoji input for text message
+ * Created: chatroom support emoji input for text message
+== Bug Fixes ==
+ * Fixed: fix group member remove issue, chatroom messager not remove after group member removed
+ * Fixed: prevent assignee not found if the user has left the group
+
+= Release 1.3.1 =
+MASTER release: 2018-06-08
+RELEASE release: 2018-06-05
 == Features ==
  * Removed: remove scroll to top button of control panel
 == Bug Fixes ==
  * Fixed: fix LINE richmenu link logic
 
-= Release 1.3.1 =
-MASTER release： Not Ready
-RELEASE release：2018-06-01
-== Features ==
-
-== Bug Fixes ==
-
 
 = Release 1.3.0 =
-MASTER release： Not Ready
-RELEASE release：2018-05-28 
+MASTER release: 2018-06-05
+RELEASE release: 2018-05-28
 == Features ==
  * Created: support LINE group and room chat with LINE
  * Created: custom naming platform group chatroom name

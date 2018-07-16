@@ -26,6 +26,10 @@ module.exports = (function() {
             this.leaveGroupRoom = this.leaveGroupRoom.bind(this);
         }
 
+        /**
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
         _findPlatformUids(appId, app) {
             return Promise.resolve().then(() => {
                 if (!app) {
@@ -39,7 +43,11 @@ module.exports = (function() {
                 return app;
             }).then((_app) => {
                 let appType = _app.type;
-                return appsChatroomsMessagersMdl.find(appId, null, null, appType).then((appsChatroomsMessagers) => {
+                return appsChatroomsMessagersMdl.find(appId, void 0, void 0, appType).then((appsChatroomsMessagers) => {
+                    if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                        return [];
+                    }
+
                     let platformUidsMap = {};
                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                     for (let chatroomId in chatrooms) {
@@ -163,8 +171,13 @@ module.exports = (function() {
         deactivateRichmenu(req, res) {
             let appId = req.params.appid;
             let richmenuId = req.params.menuid;
+            /** @type {Chatshier.Models.Richmenu} */
             let deactivateRichmenu;
+            /** @type {Chatshier.Models.Richmenu} */
             let defaultRichmenu;
+
+            /** @type {Chatshier.Models.App} */
+            let app;
 
             return this.appsRequestVerify(req).then(() => {
                 return appsRichmenusMdl.find(appId, richmenuId);
@@ -182,61 +195,61 @@ module.exports = (function() {
                 let isDefault = deactivateRichmenu.isDefault;
                 deactivateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
 
-                // 如果取消啟用的 richmenu 是預設啟用的 richmenu
-                // 則取消啟用後，必須設定成其他已啟用的 richmenu 並 link 至用戶
-                if (isDefault) {
-                    return appsRichmenusMdl.findActivated(appId).then((_appsRichmenus) => {
-                        if (!(_appsRichmenus && _appsRichmenus[appId])) {
-                            // 沒有其他已啟用的 richmenu 則不做任何事
-                            return Promise.resolve();
-                        }
-                        // 將第一筆(最後更新)的已啟用 richmenu 設為預設 (TODO: 資料庫須根據 updatedTime 排序)
-                        let activateRichmenuId = Object.keys(_appsRichmenus[appId].richmenus).shift() || '';
-                        return appsRichmenusMdl.update(appId, activateRichmenuId, { isDefault: true }).then((_appsRichmenus) => {
+                return Promise.resolve().then(() => {
+                    // 如果取消啟用的 richmenu 是預設啟用的 richmenu
+                    // 則取消啟用後，必須設定成其他已啟用的 richmenu
+                    if (isDefault) {
+                        return appsRichmenusMdl.findActivated(appId).then((_appsRichmenus) => {
                             if (!(_appsRichmenus && _appsRichmenus[appId])) {
-                                return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
+                                // 沒有其他已啟用的 richmenu 則不做任何事
+                                return Promise.resolve(null);
                             }
-                            defaultRichmenu = _appsRichmenus[appId].richmenus[activateRichmenuId];
-                            return defaultRichmenu;
+
+                            // 將第一筆(最後更新)的已啟用 richmenu 設為預設 (TODO: 資料庫須根據 updatedTime 排序)
+                            let defaultRichmenuId = Object.keys(_appsRichmenus[appId].richmenus).shift() || '';
+                            return appsRichmenusMdl.update(appId, defaultRichmenuId, { isDefault: true });
                         });
-                    }).then((defaultRichmenu) => {
-                        /** @type {Chatshier.Models.App} */
-                        let app;
-                        return appsMdl.find(appId).then((apps) => {
-                            if (!(apps && apps[appId])) {
-                                return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
-                            }
-                            app = apps[appId];
-                            return this._findPlatformUids(appId, app);
-                        }).then((platformUids) => {
-                            return Promise.all(platformUids.map((platformUid) => {
-                                // 取得平台用戶目前啟用的 richmenu ID
-                                return botSvc.getRichMenuIdOfUser(platformUid, appId, app).then((_platformMenuId) => {
-                                    // 如果是與取消啟用的 richmenu 相同 ID
-                                    // 有其他的啟用 richmenu 的話 link 其他的啟用 richmenu
-                                    // 沒有已啟用的 richmenu 則 unlink 所有平台用戶的 richmenu
-                                    return Promise.resolve().then(() => {
-                                        if (_platformMenuId && _platformMenuId === deactivateRichmenu.platformMenuId) {
-                                            if (defaultRichmenu) {
-                                                return botSvc.linkRichMenuToUser(platformUid, defaultRichmenu.platformMenuId, appId, app);
-                                            }
-                                            return botSvc.unlinkRichMenuFromUser(platformUid, deactivateRichmenu.platformMenuId, appId);
-                                        }
-                                        return {};
-                                    }).then((resJson) => {
-                                        if (!resJson) {
-                                            return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
-                                        }
-                                        return Promise.resolve();
-                                    });
-                                });
-                            }));
-                        });
-                    }).then(() => {
-                        return appsRichmenus;
+                    }
+                    return appsRichmenusMdl.findActivated(appId, true);
+                }).then((_appsRichmenus) => {
+                    if (_appsRichmenus && _appsRichmenus[appId]) {
+                        let defaultRichmenuId = Object.keys(_appsRichmenus[appId].richmenus).shift() || '';
+                        defaultRichmenu = _appsRichmenus[appId].richmenus[defaultRichmenuId];
+                    }
+
+                    return appsMdl.find(appId).then((apps) => {
+                        if (!(apps && apps[appId])) {
+                            return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        }
+                        app = apps[appId];
+                        return this._findPlatformUids(appId, app);
                     });
-                }
-                return appsRichmenus;
+                }).then((platformUids) => {
+                    return Promise.all(platformUids.map((platformUid) => {
+                        // 取得平台用戶目前啟用的 richmenu ID
+                        return botSvc.getRichMenuIdOfUser(platformUid, appId, app).then((_platformMenuId) => {
+                            // 如果是與取消啟用的 richmenu 相同 ID
+                            // 有預設啟用的 richmenu 的話 link 預設啟用的 richmenu
+                            // 沒有已啟用的 richmenu 則 unlink 所有平台用戶的 richmenu
+                            return Promise.resolve().then(() => {
+                                if (_platformMenuId && _platformMenuId === deactivateRichmenu.platformMenuId) {
+                                    if (defaultRichmenu) {
+                                        return botSvc.linkRichMenuToUser(platformUid, defaultRichmenu.platformMenuId, appId, app);
+                                    }
+                                    return botSvc.unlinkRichMenuFromUser(platformUid, deactivateRichmenu.platformMenuId, appId);
+                                }
+                                return {};
+                            });
+                        }).then((resJson) => {
+                            if (!resJson) {
+                                return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                            }
+                            return Promise.resolve();
+                        }).catch(() => {
+                            return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                        });
+                    }));
+                });
             }).then(() => {
                 // 變更的資料可能會有 deactivate 的 richmenu
                 // 以及設為預設的 richmenu
@@ -281,7 +294,7 @@ module.exports = (function() {
             }).then((appsRichmenus) => {
                 if (!(appsRichmenus && appsRichmenus[appId])) {
                     // 沒有其他已啟用的 richmenu 則不做任何事
-                    return;
+                    return Promise.resolve(null);
                 }
                 defaultRichmenu = Object.values(appsRichmenus[appId].richmenus).shift();
 
@@ -290,7 +303,7 @@ module.exports = (function() {
                 if (!(appsRichmenus && appsRichmenus[appId])) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
-                let activateRichmenu = Object.values(appsRichmenus[appId].richmenus).shift();
+                let activateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
 
                 return Promise.all(platformUids.map((platformUid) => {
                     // 取得平台用戶目前啟用的 richmenu ID
@@ -326,7 +339,7 @@ module.exports = (function() {
                         richmenus: {}
                     }
                 };
-                Object.assign(response[appId].richmenus, appsRichmenus[appId].richmenus);
+                Object.assign(response[appId].richmenus, appsRichmenus ? appsRichmenus[appId].richmenus : {});
                 defaultAppsRichmenus && Object.assign(response[appId].richmenus, defaultAppsRichmenus[appId].richmenus);
 
                 let suc = {
@@ -362,7 +375,9 @@ module.exports = (function() {
                 app = apps[appId];
                 return botSvc.create(appId, app);
             }).then(() => {
+                /** @type {Webhook.Chatshier.Information} */
                 let platformInfo = {
+                    serverAddress: 'https://' + req.hostname,
                     platformUid: platformUid
                 };
                 return botSvc.getProfile(platformInfo, appId, app);

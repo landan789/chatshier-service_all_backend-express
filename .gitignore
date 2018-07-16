@@ -1,13 +1,11 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
+/.log/*.log
 
 # production
-/config/firebase-adminsdk.json
-/config/firebase_admin_database_url.js
 /config/chatshier.js
-/public/config/firebaseConfig.js
 /public/config/url-config.js
 
 # npm

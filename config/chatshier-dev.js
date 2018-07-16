@@ -19,26 +19,32 @@ module.exports = {
         USERNAME: 'chsr',
         PASSWORD: '0be44b96e3decd6a6b30cdb30c126089'
     },
-    ELASTICSEARCH: {
-        HOST: '127.0.0.1',
-        PORT: 9200,
-        USERNAME: 'chsr',
-        PASSWORD: '0be44b96e3decd6a6b30cdb30c126089',
-        INDEX: 'log' // INDEX of ELASTICSEARCH is simalir to DATABASE of MONGODB
+    LOG: {
+        PATH: '.log'
     },
     LINE: {
-        PREVIEW_IMAGE_URL: 'https://service.chatshier.com/image/logo-no-transparent.png'
+        PREVIEW_IMAGE_URL: 'https://service.dev.chatshier.com/image/logo-no-transparent.png',
+        // LINE 的 App 會根據行動裝置存取 5 種不同的解析度圖像
+        // 可能存取的像素值有240px, 300px, 460px, 700px, 1040px，例如:
+        // [FILE_IMAGE_BASE_URL]/1040
+        // [FILE_IMAGE_BASE_URL]/700
+        // https://developers.line.me/en/reference/messaging-api/#base-url
+        FILE_IMAGE_BASE_URL: 'https://service.dev.chatshier.com/image/download'
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
-        appId: '178381762879392',
-        appSecret: '27aad72319bf154c059f696bce055ac2',
-        appAccessToken: '8eeabaf3c836d295edb26264ec76e975',
+        appId: '1569929989761572',
+        appSecret: '8e21836de6f01a6a5d1d0876e4f2c1d1',
+        appAccessToken: 'd83ed3a87f6aef9eb7982e5ef5acb187',
         apiVersion: 'v3.0'
     },
     GOOGLE: {
+        serverAPIKey: 'AIzaSyDvAQBzctZSnaUeJWZlbeng7JFjV4lEmL4',
         // https://www.google.com/recaptcha/admin
-        recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x'
+        recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x',
+        // owner: 9thflr.RD@gmail.com
+        // https://console.firebase.google.com/u/0/project/chatshier-d4dfd/settings/general/
+        FDLdomain: 'chatshier9450.page.link'
     },
     JWT: {
         EXPIRES: EXPIRES,
@@ -72,5 +78,8 @@ module.exports = {
         // 1. 使用者解除授權 app
         // 2. 使用者授權 app 時，授權的 scope 發生變更
         refreshToken: '1/rBgB_AywuhwQuZpqnYSAfqtVK8u5ll6Vp2S-XDaLY2hzDFEHIU9C9wNXHivtmo-X'
+    },
+    PAYMENT: {
+        MODE: 'TEST' // payment
     }
 };

@@ -1,3 +1,4 @@
+/// <reference path='../../../typings/client/index.d.ts' />
 
 window.OneSignal = window.OneSignal || [];
 

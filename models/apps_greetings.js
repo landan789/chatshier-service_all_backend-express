@@ -11,10 +11,10 @@ module.exports = (function() {
         /**
          * 輸入全部的 appId 取得該 App 所有加好友回覆的資料
          *
-         * @param {string|string[]} appIds
-         * @param {any|string} [greetingId]
-         * @param {(appsGreetings: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {string | string[]} appIds
+         * @param {string} [greetingId]
+         * @param {(appsGreetings: Chatshier.Models.AppsGreetings | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.AppsGreetings | null>}
          */
         find(appIds, greetingId, callback) {
             if (!(appIds instanceof Array)) {
@@ -69,9 +69,9 @@ module.exports = (function() {
         /**
          * 找到 加好友回覆未刪除的資料包，不含 apps 結構
          *
-         * @param {string|string[]} appIds
-         * @param {(greetings: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {string | string[]} appIds
+         * @param {(greetings: Chatshier.Models.Greetings | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.Greetings | null>}
          */
         findGreetings(appIds, callback) {
             if (!(appIds instanceof Array)) {
@@ -124,8 +124,8 @@ module.exports = (function() {
          *
          * @param {string} appId
          * @param {any} postGreeting
-         * @param {(appsGreetings: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsGreetings: Chatshier.Models.AppsGreetings | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsGreetings | null>}
          */
         insert(appId, postGreeting, callback) {
             let greetId = this.Types.ObjectId();
@@ -137,7 +137,7 @@ module.exports = (function() {
                 app.greetings.push(postGreeting);
                 return app.save();
             }).then(() => {
-                return this.find(appId, greetId);
+                return this.find(appId, greetId.toHexString());
             }).then((appsGreetings) => {
                 ('function' === typeof callback) && callback(appsGreetings);
                 return appsGreetings;
@@ -152,8 +152,8 @@ module.exports = (function() {
          *
          * @param {string} appId
          * @param {string} greetingId
-         * @param {(appsGreetings: any) => any} [callback]
-         * @param {Promise<any>} callback
+         * @param {(appsGreetings: Chatshier.Models.AppsGreetings | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsGreetings | null>}
          */
         update(appId, greetingId, putGreeting, callback) {
             putGreeting._id = greetingId;
@@ -185,8 +185,8 @@ module.exports = (function() {
          *
          * @param {string} appId
          * @param {string} greetingId
-         * @param {(appsGreetings: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsGreetings: Chatshier.Models.AppsGreetings | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsGreetings | null>}
          */
         remove(appId, greetingId, callback) {
             let query = {

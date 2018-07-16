@@ -1,3 +1,5 @@
+/// <reference path='../../../typings/client/index.d.ts' />
+
 window.googleClientHelper = (function() {
     var initPromise = null;
     var googleAuth = null;

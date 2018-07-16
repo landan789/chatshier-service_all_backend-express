@@ -24,13 +24,12 @@ module.exports = (function() {
                     if (!appsAutoreplies) {
                         return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                     }
-                    return appsAutoreplies;
+                    return Promise.resolve(appsAutoreplies);
                 });
-            }).then((data) => {
-                let apps = data;
+            }).then((appsAutoreplies) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: apps
+                    data: appsAutoreplies
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -47,7 +46,7 @@ module.exports = (function() {
                     if (!(appsAutoreplies && appsAutoreplies[appId])) {
                         return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                     }
-                    return appsAutoreplies;
+                    return Promise.resolve(appsAutoreplies);
                 });
             }).then((appsAutoreplies) => {
                 let suc = {
@@ -62,21 +61,29 @@ module.exports = (function() {
 
         postOne(req, res, next) {
             let appId = req.params.appid;
-            let autoreply = {
+            let postAutoreply = {
+                type: req.body.type || '',
                 title: req.body.title || '',
                 startedTime: undefined !== req.body.startedTime ? req.body.startedTime : 0,
                 endedTime: undefined !== req.body.endedTime ? req.body.endedTime : 0,
                 timezoneOffset: undefined !== req.body.timezoneOffset ? req.body.timezoneOffset : 0,
                 text: req.body.text || '',
-                periods: req.body.periods || []
+                periods: req.body.periods || [],
+                src: req.body.src || '',
+                template_id: req.body.template_id || '',
+                imagemap_id: req.body.imagemap_id || ''
             };
 
             return this.appsRequestVerify(req).then(() => {
-                return appsAutorepliesMdl.insert(appId, autoreply).then((appsAutoreplies) => {
+                if (!postAutoreply.title) {
+                    return Promise.reject(API_ERROR.APP_AUTOREPLY_TITLE_WAS_EMPTY);
+                }
+
+                return appsAutorepliesMdl.insert(appId, postAutoreply).then((appsAutoreplies) => {
                     if (!appsAutoreplies) {
                         return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_INSERT);
                     }
-                    return appsAutoreplies;
+                    return Promise.resolve(appsAutoreplies);
                 });
             }).then((appsAutoreplies) => {
                 let suc = {
@@ -92,26 +99,26 @@ module.exports = (function() {
         putOne(req, res, next) {
             let appId = req.params.appid;
             let autoreplyId = req.params.autoreplyid;
-            let autoreply = {};
-            ('string' === typeof req.body.title) && (autoreply.title = req.body.title);
-            ('number' === typeof req.body.startedTime) && (autoreply.startedTime = req.body.startedTime);
-            ('number' === typeof req.body.endedTime) && (autoreply.endedTime = req.body.endedTime);
-            ('string' === typeof req.body.text) && (autoreply.text = req.body.text);
-            ('number' === typeof req.body.timezoneOffset) && (autoreply.timezoneOffset = req.body.timezoneOffset);
-            (req.body.periods instanceof Array) && (autoreply.periods = req.body.periods);
+            let putAutoreply = {};
+            ('string' === typeof req.body.type) && (putAutoreply.type = req.body.type);
+            ('string' === typeof req.body.title) && (putAutoreply.title = req.body.title);
+            ('number' === typeof req.body.startedTime) && (putAutoreply.startedTime = req.body.startedTime);
+            ('number' === typeof req.body.endedTime) && (putAutoreply.endedTime = req.body.endedTime);
+            ('string' === typeof req.body.text) && (putAutoreply.text = req.body.text);
+            ('number' === typeof req.body.timezoneOffset) && (putAutoreply.timezoneOffset = req.body.timezoneOffset);
+            (req.body.periods instanceof Array) && (putAutoreply.periods = req.body.periods);
+            ('string' === typeof req.body.src) && (putAutoreply.src = req.body.src);
+            ('string' === typeof req.body.template_id) && (putAutoreply.template_id = req.body.template_id);
+            ('string' === typeof req.body.imagemap_id) && (putAutoreply.imagemap_id = req.body.imagemap_id);
 
             return this.appsRequestVerify(req).then(() => {
                 if (!autoreplyId) {
                     return Promise.reject(API_ERROR.APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY);
-                };
+                }
 
-                if ('' === autoreply.title) {
+                if (!putAutoreply.title) {
                     return Promise.reject(API_ERROR.APP_AUTOREPLY_TITLE_WAS_EMPTY);
-                };
-
-                if ('' === autoreply.text) {
-                    return Promise.reject(API_ERROR.APP_AUTOREPLY_TEXT_WAS_EMPTY);
-                };
+                }
 
                 return appsAutorepliesMdl.findAutoreplies(appId).then((autoreplies) => {
                     if (!autoreplies) {
@@ -123,11 +130,11 @@ module.exports = (function() {
                         return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
                     }
 
-                    return appsAutorepliesMdl.update(appId, autoreplyId, autoreply).then((appsAutoreplies) => {
+                    return appsAutorepliesMdl.update(appId, autoreplyId, putAutoreply).then((appsAutoreplies) => {
                         if (!(appsAutoreplies && appsAutoreplies[appId])) {
                             return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_UPDATE);
                         }
-                        return appsAutoreplies;
+                        return Promise.resolve(appsAutoreplies);
                     });
                 });
             }).then((appsAutoreplies) => {
@@ -154,6 +161,7 @@ module.exports = (function() {
                 if (!autoreplies) {
                     return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                 }
+
                 // 判斷 appId 中是否有目前 autoreplyId
                 if (!autoreplies[autoreplyId]) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
@@ -163,7 +171,7 @@ module.exports = (function() {
                     if (!appsAutoreplies) {
                         return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_REMOVE);
                     }
-                    return appsAutoreplies;
+                    return Promise.resolve(appsAutoreplies);
                 });
             }).then((appsAutoreplies) => {
                 let suc = {

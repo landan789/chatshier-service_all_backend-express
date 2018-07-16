@@ -167,6 +167,7 @@ module.exports = (function() {
 
             /** @type {Webhook.Chatshier.Information} */
             let webhookInfo = {
+                serverAddress: 'https://' + req.hostname,
                 platformUid: ''
             };
 
@@ -214,21 +215,20 @@ module.exports = (function() {
 
         /**
          * @param {Webhook.Chatshier.Information} webhookInfo
+         * @param {any} req
          * @param {string} appId
          * @param {Chatshier.Models.App} app
          * @returns {Promise<boolean>}
          */
-        resolveSpecificEvent(webhookInfo, appId, app) {
-            let isContinue = true;
+        resolveSpecificEvent(webhookInfo, req, appId, app) {
+            let shouldContinue = true;
             let platformUid = webhookInfo.platformUid;
 
             return Promise.resolve().then(() => {
                 if (LINE === app.type) {
-                    let isFollow = webhookInfo.eventType === this.LINE_EVENT_TYPES.FOLLOW;
-                    let isUnfollow = webhookInfo.eventType === this.LINE_EVENT_TYPES.UNFOLLOW;
-
                     // LINE 用戶加 LINE@ 好友時，檢查有無啟用的 richmenu
                     // 將預設的 richmenu link 至 LINE 用戶
+                    let isFollow = webhookInfo.eventType === this.LINE_EVENT_TYPES.FOLLOW;
                     if (isFollow) {
                         return appsRichmenusMdl.findActivated(appId, true).then((appsRichmenus) => {
                             return this.getRichMenuIdOfUser(platformUid, appId, app).then((_platformMenuId) => {
@@ -240,17 +240,18 @@ module.exports = (function() {
 
                                 // 只有 richmenu ID 與預設的 richmenu ID 不同時才需要重新 link LINE 用戶
                                 let richmenu = Object.values(appsRichmenus[appId].richmenus).shift();
-                                if (richmenu.platformMenuId && _platformMenuId !== richmenu.platformMenuId) {
+                                if (richmenu && richmenu.platformMenuId && _platformMenuId !== richmenu.platformMenuId) {
                                     return this.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId, app).catch(() => void 0);
                                 }
                             });
                         // LINE 用戶加 LINE@ 好友時，還是要繼續 webhook 的訊息回覆處理，因此不要回傳 false flag
-                        }).then(() => (isContinue = true));
+                        }).then(() => (shouldContinue = true));
                     }
 
-                    // 如果 LINE 用戶封鎖 LINE@ 時，將聊天室中的 messager 的 isUnfollow 設為 true
+                    // 如果 LINE 用戶封鎖 LINE@ 時，將聊天室中的 messager 的 isUnfollowed 設為 true
                     // 來表示用戶已取消關注 LINE@, 此時無法傳送任何訊息給 LINE 用戶
-                    if (isUnfollow) {
+                    let isUnfollowed = webhookInfo.eventType === this.LINE_EVENT_TYPES.UNFOLLOW;
+                    if (isUnfollowed) {
                         return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, webhookInfo.platformUid).then((appsChatroomsMessagers) => {
                             if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
                                 return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
@@ -259,7 +260,7 @@ module.exports = (function() {
                             let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                             let platformMessager;
                             let putMessagers = {
-                                isUnfollow: true
+                                isUnfollowed: true
                             };
 
                             return Promise.all(Object.keys(chatrooms).map((_chatroomId) => {
@@ -286,7 +287,7 @@ module.exports = (function() {
                                     return socketHlp.emitToAll(_recipientUserIds, SOCKET_EVENTS.CONSUMER_UNFOLLOW, socketBody);
                                 });
                             }));
-                        }).then(() => (isContinue = false));
+                        }).then(() => (shouldContinue = false));
                     }
 
                     if (webhookInfo.platformGroupId) {
@@ -308,7 +309,12 @@ module.exports = (function() {
                                         platformGroupId: platformGroupId,
                                         platformGroupType: platformGroupType
                                     };
-                                    return appsChatroomsMdl.insert(appId, chatroom);
+                                    return appsChatroomsMdl.insert(appId, chatroom).then((_appsChatrooms) => {
+                                        if (!(_appsChatrooms && _appsChatrooms[appId])) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
+                                        }
+                                        return Promise.resolve(_appsChatrooms);
+                                    });
                                 }
                                 return appsChatrooms;
                             }).then((appsChatrooms) => {
@@ -324,7 +330,7 @@ module.exports = (function() {
                                             return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
                                         }
                                         chatroom = _appsChatrooms[appId].chatrooms[chatroomId];
-                                        return chatroom;
+                                        return Promise.resolve(chatroom);
                                     });
                                 }
                                 return chatroom;
@@ -334,41 +340,47 @@ module.exports = (function() {
                                     return Promise.all(groupMemberIds.map((groupMemberId) => {
                                         /** @type {Webhook.Chatshier.Information} */
                                         let _webhookInfo = {
+                                            serverAddress: 'https://' + req.hostname,
                                             platformUid: groupMemberId,
                                             platformGroupId: platformGroupId,
                                             platformGroupType: platformGroupType
                                         };
-                                        return this.getProfile(_webhookInfo, appId, app).then((groupMemberProfile) => {
+
+                                        return Promise.all([
+                                            this.getProfile(_webhookInfo, appId, app),
+                                            consumersMdl.find(groupMemberId)
+                                        ]).then(([ groupMemberProfile, consumers ]) => {
                                             if (!groupMemberProfile.photo) {
                                                 return consumersMdl.replace(groupMemberId, groupMemberProfile);
                                             }
 
-                                            return consumersMdl.find(groupMemberId).then((consumers) => {
-                                                let consumer = consumers[groupMemberId];
-                                                if (!consumer || (consumer && !consumer.photoOriginal)) {
-                                                    return consumersMdl.replace(platformUid, groupMemberProfile);
-                                                }
+                                            if (!consumers) {
+                                                return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                                            }
 
-                                                let shouldUpload = (
-                                                    consumer.photo.startsWith('http://') ||
-                                                    (groupMemberProfile.photo.startsWith('http://') && groupMemberProfile.photo !== consumer.photoOriginal)
-                                                );
+                                            let consumer = consumers[platformUid];
+                                            let isUnsafe = groupMemberProfile && groupMemberProfile.photoOriginal.startsWith('http://');
+                                            let shouldUpdate = consumer && (consumer.photo.startsWith('http://') || groupMemberProfile.photoOriginal !== consumer.photoOriginal);
 
-                                                if (shouldUpload) {
-                                                    let fileName = `${groupMemberId}_${Date.now()}.jpg`;
+                                            if (!consumer || shouldUpdate) {
+                                                if (isUnsafe) {
+                                                    let fileName = `${platformUid}_${Date.now()}.jpg`;
                                                     let filePath = `${storageHlp.tempPath}/${fileName}`;
-                                                    let putConsumer = Object.assign({}, groupMemberProfile);
+                                                    let _groupMemberProfile = Object.assign({}, groupMemberProfile);
 
-                                                    return storageHlp.filesSaveUrl(filePath, groupMemberProfile.photo).then((url) => {
-                                                        putConsumer.photo = url;
-                                                        let toPath = `/consumers/${groupMemberId}/photo/${fileName}`;
+                                                    return storageHlp.filesSaveUrl(filePath, groupMemberProfile.photoOriginal).then((url) => {
+                                                        _groupMemberProfile.photo = url;
+                                                        let toPath = `/consumers/${platformUid}/photo/${fileName}`;
                                                         return storageHlp.filesMoveV2(filePath, toPath);
                                                     }).then(() => {
-                                                        return consumersMdl.replace(groupMemberId, putConsumer);
+                                                        return consumersMdl.replace(platformUid, _groupMemberProfile);
                                                     });
                                                 }
                                                 return consumersMdl.replace(platformUid, groupMemberProfile);
-                                            });
+                                            }
+
+                                            delete groupMemberProfile.photo;
+                                            return consumersMdl.replace(platformUid, groupMemberProfile);
                                         }).then(() => {
                                             let _messager = {
                                                 type: app.type,
@@ -380,20 +392,20 @@ module.exports = (function() {
                                         });
                                     }));
                                 });
-                            }).then(() => (isContinue = false));
+                            }).then(() => (shouldContinue = false));
                         // 如果 LINE@ 被踢出群組或經由 API 自行離開時，會接收到 leave 事件
                         // 此時將 LINE@ 的群組聊天室刪除
                         } else if (isLeave) {
                             return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId).then((appsChatrooms) => {
                                 if (!(appsChatrooms && appsChatrooms[appId])) {
-                                    return;
+                                    return Promise.resolve(appsChatrooms);
                                 }
 
                                 let chatrooms = appsChatrooms[appId].chatrooms;
                                 let chatroomId = Object.keys(chatrooms).shift() || '';
                                 webhookChatroomId = chatroomId;
                                 return appsChatroomsMdl.remove(appId, chatroomId);
-                            }).then(() => (isContinue = false));
+                            }).then(() => (shouldContinue = false));
                         }
                     }
                 } else if (FACEBOOK === app.type) {
@@ -401,12 +413,12 @@ module.exports = (function() {
                     // 如果有開啟 message_echoes 時，會收到 webhook 事件
                     if (webhookInfo.isEcho && webhookInfo.platfromAppId) {
                         // 如果是由我們自己的 Facebook app 發送的不需處理 echo
-                        isContinue = false;
+                        shouldContinue = false;
                     }
-                    return isContinue;
+                    return shouldContinue;
                 }
-                return isContinue;
-            }).then(() => isContinue);
+                return shouldContinue;
+            }).then(() => shouldContinue);
         }
 
         /**
@@ -415,7 +427,7 @@ module.exports = (function() {
          * @param {string} messagerId - 這裡是代表 Chatshier chatroom 裡的 messager_id
          * @param {string} appId
          * @param {Chatshier.Models.App} app
-         * @return {Promise<any>}
+         * @return {Promise<any[]>}
          */
         getReceivedMessages(req, res, messagerId, appId, app) {
             let body = req.body;
@@ -444,8 +456,13 @@ module.exports = (function() {
                                 return;
                             }
 
+                            if (LINE_EVENT_TYPES.POSTBACK === event.type) {
+                                messages.push({ postback: event.postback });
+                                return;
+                            }
+
                             // 非 message 的 webhook event 不抓取訊息資料
-                            if (!('message' === event.type && event.message)) {
+                            if (!(LINE_EVENT_TYPES.MESSAGE === event.type && event.message)) {
                                 return;
                             }
 
@@ -498,6 +515,7 @@ module.exports = (function() {
                                     messages.push(_message);
                                 });
                             }
+
                             messages.push(_message);
                         })).then(() => {
                             return messages;
@@ -803,7 +821,7 @@ module.exports = (function() {
         /**
          * @param {string} platformUid
          * @param {string} replyToken
-         * @param {any[]|any} messages
+         * @param {any} messages
          * @param {string} appId
          * @param {any} app
          */
@@ -821,9 +839,16 @@ module.exports = (function() {
             }).then((bot) => {
                 switch (app.type) {
                     case LINE:
-                        return bot.replyMessage(replyToken, messages).then(() => {
-                            // 一同將 webhook 打過來的 http request 回覆 200 狀態
-                            return !res.headersSent && res.status(200).send('');
+                        return Promise.all(messages.map((message) => {
+                            if ('image' === message.type) {
+                                message.originalContentUrl = message.previewImageUrl = message.src;
+                            }
+                            return Promise.resolve(message);
+                        })).then((_messages) => {
+                            return bot.replyMessage(replyToken, _messages).then(() => {
+                                // 一同將 webhook 打過來的 http request 回覆 200 狀態
+                                return !res.headersSent && res.status(200).send('');
+                            });
                         });
                     case FACEBOOK:
                         return Promise.all(messages.map((message) => {
@@ -863,141 +888,201 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} recipientUid
+         * @param {any} message
+         * @param {Buffer} [srcBuffer]
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
         pushMessage(recipientUid, message, srcBuffer, appId, app) {
-            let bot = this.bots[appId];
-            switch (app.type) {
-                case LINE:
-                    let _message = {};
-                    if ('text' === message.type) {
-                        _message.type = message.type;
-                        _message.text = message.text;
-                    }
-                    if ('image' === message.type) {
-                        _message.type = message.type;
-                        _message.previewImageUrl = message.src;
-                        _message.originalContentUrl = message.src;
-                    }
-                    if ('audio' === message.type) {
-                        _message.type = message.type;
-                        _message.duration = message.duration ? message.duration : 240000;
-                        _message.originalContentUrl = message.src;
-                    }
-                    if ('video' === message.type) {
-                        _message.type = message.type;
-                        _message.previewImageUrl = chatshierCfg.LINE.PREVIEW_IMAGE_URL;
-                        _message.originalContentUrl = message.src;
-                    }
-                    if ('sticker' === message.type) {
-                        _message.type = message.type;
-                        _message.stickerId = message.text.substr(message.text.lastIndexOf(' '));
-                        _message.packageId = message.text.substr(message.text.indexOf(' '));
-                    }
-                    if ('file' === message.type) {
-                        _message.type = 'text';
-                        _message.text = message.text + message.src;
-                    }
-                    if ('imagemap' === message.type) {
-                        _message.type = message.type;
-                        _message.baseUrl = message.baseUri;
-                        _message.altText = message.altText;
-                        _message.baseSize = message.baseSize;
-                        _message.actions = message.actions;
-                    }
+            return this._protectApps(appId, app).then((_app) => {
+                app = _app;
+                return this._protectBot(appId, app);
+            }).then((_bot) => {
+                let bot = _bot;
+                let appType = app ? app.type : '';
 
-                    return bot.pushMessage(recipientUid, _message);
-                case FACEBOOK:
-                    if ('text' === message.type) {
-                        return bot.sendTextMessage(recipientUid, message.text);
-                    }
-                    if ('image' === message.type) {
-                        return bot.sendImageMessage(recipientUid, message.src, true);
-                    }
-                    if ('audio' === message.type) {
-                        return bot.sendAudioMessage(recipientUid, message.src, true);
-                    }
-                    if ('video' === message.type) {
-                        return bot.sendVideoMessage(recipientUid, message.src, true);
-                    }
-                    if ('file' === message.type) {
-                        return bot.sendFileMessage(recipientUid, message.src, true);
-                    }
-                    return bot.sendTextMessage(recipientUid, message.text);
-                case WECHAT:
-                    return Promise.resolve().then(() => {
-                        if (message.src && srcBuffer) {
-                            // wechat 在傳送多媒體資源時，必須先將資源上傳至 wechat 伺服器
-                            // 成功上傳後會取得 media_id, 使用此 ID 來發送多媒體訊息
-                            // 暫時性的多媒體檔案只會在 wechat 伺服器裡存在 3 天後就會被 wechat 刪除
-                            return new Promise((resolve, reject) => {
-                                bot.getToken((err, token) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
-                                    }
-                                    resolve(token);
-                                });
-                            }).then((token) => {
-                                let filename = message.src.split('/').pop();
-                                let mediaType = message.type;
-                                if ('audio' === mediaType) {
-                                    mediaType = 'voice';
-                                }
-                                return wechatSvc.uploadMedia(mediaType, srcBuffer, filename, token.accessToken);
+                switch (appType) {
+                    case LINE:
+                        let messages = [];
+                        if ('text' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                text: message.text
                             });
                         }
-                    }).then((mediaResult) => {
-                        return new Promise((resolve, reject) => {
-                            if (!mediaResult) {
-                                bot.sendText(recipientUid, message.text, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
-                                    }
-                                    resolve(result);
-                                });
-                                return;
-                            }
 
-                            if ('image' === message.type) {
-                                bot.sendImage(recipientUid, mediaResult.media_id, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
+                        if ('image' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                previewImageUrl: message.src,
+                                originalContentUrl: message.src
+                            });
+                        }
+
+                        if ('audio' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                duration: message.duration ? message.duration : 240000,
+                                originalContentUrl: message.src
+                            });
+                        }
+
+                        if ('video' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                previewImageUrl: chatshierCfg.LINE.PREVIEW_IMAGE_URL,
+                                originalContentUrl: message.src
+                            });
+                        }
+
+                        if ('sticker' === message.type) {
+                            let stickerStr = message.text;
+                            messages.push({
+                                type: message.type,
+                                stickerId: stickerStr.substr(stickerStr.lastIndexOf(' ')),
+                                packageId: stickerStr.substr(stickerStr.indexOf(' '))
+                            });
+                        }
+
+                        if ('file' === message.type) {
+                            let textSplits = message.text.split('\n');
+                            let fileTitle = textSplits.shift();
+
+                            messages.push({
+                                type: 'text',
+                                text: message.text
+                            }, {
+                                type: 'imagemap',
+                                baseUrl: chatshierCfg.LINE.FILE_IMAGE_BASE_URL,
+                                altText: fileTitle,
+                                baseSize: {
+                                    height: 1040,
+                                    width: 1040
+                                },
+                                actions: [{
+                                    type: 'uri',
+                                    linkUri: message.src,
+                                    area: {
+                                        x: 0,
+                                        y: 0,
+                                        width: 1040,
+                                        height: 1040
                                     }
-                                    resolve();
-                                });
-                                return;
-                            } else if ('audio' === message.type) {
-                                bot.sendVoice(recipientUid, mediaResult.media_id, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
+                                }]
+                            });
+                        }
+
+                        if ('imagemap' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                baseUrl: message.baseUrl,
+                                altText: message.altText,
+                                baseSize: message.baseSize,
+                                actions: message.actions
+                            });
+                        }
+
+                        return bot.pushMessage(recipientUid, messages);
+                    case FACEBOOK:
+                        if ('text' === message.type) {
+                            return bot.sendTextMessage(recipientUid, message.text);
+                        }
+
+                        if ('image' === message.type) {
+                            return bot.sendImageMessage(recipientUid, message.src, true);
+                        }
+
+                        if ('audio' === message.type) {
+                            return bot.sendAudioMessage(recipientUid, message.src, true);
+                        }
+
+                        if ('video' === message.type) {
+                            return bot.sendVideoMessage(recipientUid, message.src, true);
+                        }
+
+                        if ('file' === message.type) {
+                            return bot.sendFileMessage(recipientUid, message.src, true);
+                        }
+                        return bot.sendTextMessage(recipientUid, message.text);
+                    case WECHAT:
+                        return Promise.resolve().then(() => {
+                            if (message.src && srcBuffer) {
+                                // wechat 在傳送多媒體資源時，必須先將資源上傳至 wechat 伺服器
+                                // 成功上傳後會取得 media_id, 使用此 ID 來發送多媒體訊息
+                                // 暫時性的多媒體檔案只會在 wechat 伺服器裡存在 3 天後就會被 wechat 刪除
+                                return new Promise((resolve, reject) => {
+                                    bot.getToken((err, token) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve(token);
+                                    });
+                                }).then((token) => {
+                                    let filename = message.src.split('/').pop();
+                                    let mediaType = message.type;
+                                    if ('audio' === mediaType) {
+                                        mediaType = 'voice';
                                     }
-                                    resolve();
+                                    return wechatSvc.uploadMedia(mediaType, srcBuffer, filename, token.accessToken);
                                 });
-                                return;
-                            } else if ('video' === message.type) {
-                                bot.sendVideo(recipientUid, mediaResult.media_id, mediaResult.thumb_media_id, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
-                                    }
-                                    resolve();
-                                });
-                                return;
-                            };
+                            }
+                        }).then((mediaResult) => {
+                            return new Promise((resolve, reject) => {
+                                if (!mediaResult) {
+                                    bot.sendText(recipientUid, message.text, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve(result);
+                                    });
+                                    return;
+                                }
+
+                                if ('image' === message.type) {
+                                    bot.sendImage(recipientUid, mediaResult.media_id, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve();
+                                    });
+                                    return;
+                                } else if ('audio' === message.type) {
+                                    bot.sendVoice(recipientUid, mediaResult.media_id, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve();
+                                    });
+                                    return;
+                                } else if ('video' === message.type) {
+                                    bot.sendVideo(recipientUid, mediaResult.media_id, mediaResult.thumb_media_id, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve();
+                                    });
+                                    return;
+                                };
+                            });
                         });
-                    });
-                default:
-                    return Promise.resolve();
-            }
+                    default:
+                        return Promise.resolve();
+                }
+            });
         }
 
         /**
          * @param {string[]} recipientUids
          * @param {any[]} messages
          * @param {string} appId
-         * @param {any} app
+         * @param {Chatshier.Models.App} app
          */
         multicast(recipientUids, messages, appId, app) {
             let _multicast;
@@ -1007,8 +1092,14 @@ module.exports = (function() {
 
                 switch (app.type) {
                     case LINE:
+                        /**
+                         * @param {string[]} _recipientUids
+                         * @param {any[]} messages
+                         */
                         _multicast = (_recipientUids, messages) => {
+                            /** @type {any[][]} */
                             let multicasts = [];
+
                             // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
                             while (messages.length > 5) {
                                 multicasts.push(messages.splice(0, 5));
@@ -1018,8 +1109,14 @@ module.exports = (function() {
                             let nextPromise = (i) => {
                                 if (i >= multicasts.length) {
                                     return Promise.resolve();
-                                };
-                                let messages = multicasts[i];
+                                }
+
+                                let messages = multicasts[i].map((message) => {
+                                    if ('image' === message.type) {
+                                        message.previewImageUrl = message.originalContentUrl = message.src;
+                                    }
+                                    return message;
+                                });
                                 return bot.multicast(_recipientUids, messages).then(() => {
                                     return nextPromise(i + 1);
                                 });
@@ -1028,15 +1125,27 @@ module.exports = (function() {
                         };
                         return _multicast(recipientUids, messages);
                     case FACEBOOK:
-                        _multicast = (messagerIds, messages) => {
-                            return Promise.all(messagerIds.map((messagerId) => {
+                        /**
+                         * @param {string[]} _recipientUids
+                         * @param {any[]} messages
+                         */
+                        _multicast = (_recipientUids, messages) => {
+                            return Promise.all(_recipientUids.map((recipientUid) => {
                                 let nextPromise = (i) => {
                                     if (i >= messages.length) {
                                         return Promise.resolve();
                                     };
 
                                     let message = messages[i];
-                                    return bot.sendTextMessage(messagerId, message.text).then(() => {
+                                    return Promise.resolve().then(() => {
+                                        if ('text' === message.type) {
+                                            return bot.sendTextMessage(recipientUid, message.text);
+                                        }
+
+                                        if ('image' === message.type) {
+                                            return bot.sendImageMessage(recipientUid, message.src, true);
+                                        }
+                                    }).then(() => {
                                         return nextPromise(i + 1);
                                     });
                                 };
@@ -1092,7 +1201,7 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {Chatshier.Models.App} [app]
-         * @returns {Promise<Array>}
+         * @returns {Promise<any[]>}
          */
         getRichmenuList(appId, app) {
             return this._protectApps(appId, app).then((_app) => {
@@ -1282,7 +1391,7 @@ module.exports = (function() {
                         lineBot = _lineBot;
                         return appsChatroomsMdl.find(appId, chatroomId);
                     }).then((appsChatrooms) => {
-                        if (!appsChatrooms && (appsChatrooms && 1 !== Object.keys(appsChatrooms).length)) {
+                        if (!(appsChatrooms && appsChatrooms[appId])) {
                             return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
                         }
 

@@ -2,22 +2,22 @@
 <html>
 
 <head>
-    <% include ../views/partials/meta_tags.ejs %>
-    <% include ../views/partials/favicon.ejs %>
+    <% include ./partials/meta_tags.ejs %>
+    <% include ./partials/favicon.ejs %>
     <title><%= title %></title>
 
-    <% include ../views/partials/require_css.ejs %>
-    <link rel="stylesheet" href="css/setting.css" />
+    <% include ./partials/require_css.ejs %>
+    <link rel="stylesheet" href="/css/setting.css" />
 </head>
 
 <body>
-    <% include ../views/partials/loading.ejs %>
+    <% include ./partials/loading.ejs %>
 
     <div class="root d-flex w-100 h-100">
-        <% include ../views/partials/control_panel.ejs %>
+        <% include ./partials/control_panel.ejs %>
 
         <div class="ml-auto w-100 page-wrapper">
-            <% include ../views/partials/toolbar.ejs %>
+            <% include ./partials/toolbar.ejs %>
 
             <div class="d-flex flex-column flex-sm-row mt-4 tabs-container">
                 <div class="col-2 d-none d-lg-block tabs-desktop">
@@ -203,17 +203,18 @@
         </div>
     </div>
 
-    <% include ../views/partials/modals/group_add_modal.ejs %>
-    <% include ../views/partials/modals/app_add_modal.ejs %>
-    <% include ../views/partials/modals/setting_modal.ejs %>
+    <% include ./partials/modals/group_add_modal.ejs %>
+    <% include ./partials/modals/app_add_modal.ejs %>
+    <% include ./partials/modals/setting_modal.ejs %>
+    <% include ./partials/modals/payment_modal.ejs %>
 
-    <% include ../views/partials/require_js.ejs %>
+    <% include ./partials/require_js.ejs %>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
-    <script src="js/helpers/google_client.js"></script>
-    <script src="js/helpers/google_calendar.js"></script>
-    <script src="js/helpers/facebook.js"></script>
-    <script src="js/setting.js"></script>
+    <script src="/js/helpers/google_client.js"></script>
+    <script src="/js/helpers/google_calendar.js"></script>
+    <script src="/js/helpers/facebook.js"></script>
+    <script src="/js/setting.js"></script>
 </body>
 
 </html>

@@ -24,6 +24,8 @@
 .compose-modal.chsr input[type=checkbox] {
     transform: none; }
 
+.compose-modal .emojionearea {
+    border: none; }
 
 .condition-item:last-child {
     margin-bottom: 1rem !important; }

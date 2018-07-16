@@ -8,12 +8,14 @@ module.exports = (function() {
             this.AppsModel = this.model(APPS, this.AppsSchema);
         };
 
+        /**
+         * @param {string | string[]} appIds
+         * @param {string | string[]} [keywordreplyIds]
+         * @param {(appsKeywordreplies: Chatshier.Models.AppsKeywordreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsKeywordreplies | null>}
+         */
         find(appIds, keywordreplyIds, callback) {
-            if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
-                keywordreplyIds = [keywordreplyIds];
-            }
-
-            if (appIds && !(appIds instanceof Array)) {
+            if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
@@ -26,6 +28,10 @@ module.exports = (function() {
             };
 
             if (keywordreplyIds) {
+                if (!(keywordreplyIds instanceof Array)) {
+                    keywordreplyIds = [keywordreplyIds];
+                }
+
                 query['keywordreplies._id'] = {
                     $in: keywordreplyIds.map((keywordreplyId) => this.Types.ObjectId(keywordreplyId))
                 };
@@ -64,6 +70,12 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} appId
+         * @param {any} [postKeywordreply]
+         * @param {(appsKeywordreplies: Chatshier.Models.AppsKeywordreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsKeywordreplies | null>}
+         */
         insert(appId, postKeywordreply, callback) {
             let keywordreplyId = this.Types.ObjectId();
             postKeywordreply._id = keywordreplyId;
@@ -73,7 +85,7 @@ module.exports = (function() {
                 app.keywordreplies.push(postKeywordreply);
                 return app.save();
             }).then(() => {
-                return this.find(appId, keywordreplyId);
+                return this.find(appId, keywordreplyId.toHexString());
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
                 return appsKeywordreplies;
@@ -83,6 +95,12 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} appId
+         * @param {string} keywordreplyId
+         * @param {(appsKeywordreplies: Chatshier.Models.AppsKeywordreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsKeywordreplies | null>}
+         */
         update(appId, keywordreplyId, putKeywordreply, callback) {
             putKeywordreply._id = keywordreplyId;
             putKeywordreply.updatedTime = Date.now();
@@ -92,12 +110,12 @@ module.exports = (function() {
                 'keywordreplies._id': keywordreplyId
             };
 
-            let updateOper = {
-                $set: {
-                    'keywordreplies.$': putKeywordreply
-                }
-            };
-            return this.AppsModel.findOneAndUpdate(query, updateOper).then(() => {
+            let updateOper = { $set: {} };
+            for (let prop in putKeywordreply) {
+                updateOper.$set['keywordreplies.$.' + prop] = putKeywordreply[prop];
+            }
+
+            return this.AppsModel.update(query, updateOper).then(() => {
                 return this.find(appId, keywordreplyId);
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
@@ -108,8 +126,14 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} appId
+         * @param {string | string[]} keywordreplyIds
+         * @param {(appsKeywordreplies: Chatshier.Models.AppsKeywordreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsKeywordreplies | null>}
+         */
         increaseReplyCount(appId, keywordreplyIds, callback) {
-            if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
+            if (!(keywordreplyIds instanceof Array)) {
                 keywordreplyIds = [keywordreplyIds];
             }
 
@@ -138,18 +162,28 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} appId
+         * @param {string} keywordreplyId
+         * @param {(appsKeywordreplies: Chatshier.Models.AppsKeywordreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsKeywordreplies | null>}
+         */
         remove(appId, keywordreplyId, callback) {
+            let putKeywordreply = {
+                isDeleted: true,
+                updatedTime: Date.now()
+            };
+
             let query = {
                 '_id': appId,
                 'keywordreplies._id': keywordreplyId
             };
 
-            let updateOper = {
-                $set: {
-                    'keywordreplies.$.isDeleted': true,
-                    'keywordreplies.$.updatedTime': Date.now()
-                }
-            };
+            let updateOper = { $set: {} };
+            for (let prop in putKeywordreply) {
+                updateOper.$set['keywordreplies.$.' + prop] = putKeywordreply[prop];
+            }
+
             return this.AppsModel.update(query, updateOper).then(() => {
                 let aggregations = [
                     {

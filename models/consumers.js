@@ -6,24 +6,14 @@ module.exports = (function() {
         constructor() {
             super();
             this.Model = this.model(CONSUMERS, this.ConsumersSchema);
-            this.project = {
-                platformUid: true,
-                isDeleted: true,
-                updatedTime: true,
-                createdTime: true,
-                name: true,
-                photo: true,
-                photoOriginal: true,
-                type: true
-            };
         }
 
         /**
          * 查找時必須使用各平台的 platformUid 而不是 consumerId
          *
          * @param {string|string[]} [platformUids]
-         * @param {(consumers: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(consumers: Chatshier.Models.Consumers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Consumers | null>}
          */
         find(platformUids, callback) {
             if (platformUids && !(platformUids instanceof Array)) {
@@ -40,7 +30,7 @@ module.exports = (function() {
                 };
             }
 
-            return this.Model.find(query, this.project).then((consumers) => {
+            return this.Model.find(query).lean().then((consumers) => {
                 return this.toObject(consumers, 'platformUid');
             }).then((consumers) => {
                 ('function' === typeof callback) && callback(consumers);
@@ -54,8 +44,8 @@ module.exports = (function() {
         /**
          * @param {string} platformUid
          * @param {any} consumer
-         * @param {(consumers: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(consumers: Chatshier.Models.Consumers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Consumers | null>}
          */
         replace(platformUid, consumer, callback) {
             consumer = consumer || {};
@@ -92,8 +82,8 @@ module.exports = (function() {
 
         /**
          * @param {string} platformUid
-         * @param {(consumers: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(consumers: Chatshier.Models.Consumers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Consumers | null>}
          */
         remove(platformUid, callback) {
             let consumer = {
@@ -115,7 +105,7 @@ module.exports = (function() {
                     return Promise.reject(new Error());
                 }
 
-                return this.Model.findOne(query, this.project).then((consumer) => {
+                return this.Model.findOne(query).lean().then((consumer) => {
                     return this.toObject(consumer);
                 });
             }).then((consumers) => {

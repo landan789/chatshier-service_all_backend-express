@@ -20,9 +20,10 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string|string[]} appIds
-         * @param {any|null} [composeId]
-         * @param {(appComposes: any) => any} [callback]
+         * @param {string | string[]} appIds
+         * @param {string} [composeId]
+         * @param {(appComposes: Chatshier.Models.AppsComposes | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsComposes | null>}
          */
         find(appIds, composeId, callback) {
             if (!(appIds instanceof Array)) {
@@ -73,7 +74,8 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {any} compose
-         * @param {(appTickets: any) => any} [callback]
+         * @param {(appComposes: Chatshier.Models.AppsComposes | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsComposes | null>}
          */
         insert(appId, compose, callback) {
             let composeId = this.Types.ObjectId();
@@ -91,7 +93,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                return this.find(appId, composeId);
+                return this.find(appId, composeId.toHexString());
             }).then((appsComposes) => {
                 ('function' === typeof callback) && callback(appsComposes);
                 return appsComposes;
@@ -102,10 +104,11 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string|string[]} appIds
+         * @param {string | string[]} appIds
          * @param {string} composeId
          * @param {any} compose
-         * @param {(appComposes: any) => any} [callback]
+         * @param {(appComposes: Chatshier.Models.AppsComposes | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsComposes | null>}
          */
         update(appIds, composeId, compose, callback) {
             if (!(appIds instanceof Array)) {
@@ -139,9 +142,10 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string|string[]} appIds
+         * @param {string | string[]} appIds
          * @param {string} composeId
-         * @param {(appComposes: any) => any} [callback]
+         * @param {(appComposes: Chatshier.Models.AppsComposes | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsComposes | null>}
          */
         remove(appIds, composeId, callback) {
             if (!(appIds instanceof Array)) {

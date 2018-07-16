@@ -1,6 +1,7 @@
 const schedule = require('node-schedule');
 const timerHlp = require('../helpers/timer');
 const composeHlp = require('../helpers/compose');
+const chatshierHlp = require('../helpers/chatshier');
 const socketHlp = require('../helpers/socket');
 const botSvc = require('../services/bot');
 const appsMdl = require('../models/apps');
@@ -40,95 +41,97 @@ let jobProcess = () => {
 
                 let appComposes = appsComposes[appId] || {};
                 let composes = appComposes.composes || {};
-                let composeIds = Object.keys(composes);
-                composeIds = composeIds.filter((composeId) => {
+
+                for (let composeId in composes) {
                     let compose = composes[composeId];
-                    return (
-                        !compose.isDeleted &&
-                        !!compose.text &&
-                        compose.status &&
-                        timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(compose.time)
-                    );
-                });
+                    if (compose.isDeleted ||
+                        ('text' === compose.type && !compose.text) ||
+                        ('image' === compose.type && !compose.src) ||
+                        ('imagemap' === compose.type && !compose.imagemap_id) ||
+                        ('template' === compose.type && !compose.template_id) ||
+                        !compose.status ||
+                        timerHlp.minutedUnixTime(startedUnixTime) !== timerHlp.minutedUnixTime(compose.time)) {
+                        delete composes[composeId];
+                    }
+                }
 
-                return Promise.all(composeIds.map((composeId) => {
-                    let compose = composes[composeId];
-                    let conditions = compose.conditions || [];
-                    let message = {
-                        from: SYSTEM,
-                        messager_id: '',
-                        type: compose.type,
-                        text: compose.text,
-                        time: Date.now(),
-                        src: compose.src || ''
-                    };
-                    let messages = [message];
+                return chatshierHlp.prepareReplies(appId, composes).then((_composes) => {
+                    return Promise.all(Object.keys(_composes).map((composeId) => {
+                        let compose = _composes[composeId];
+                        let conditions = compose.conditions || [];
+                        let _compose = {
+                            from: SYSTEM,
+                            messager_id: ''
+                        };
+                        let message = Object.assign(_compose, compose);
+                        message.time = Date.now();
 
-                    return composeHlp.findAvailableMessagers(conditions, appId).then((appsChatroomsMessagers) => {
-                        let _app = appsChatroomsMessagers[appId];
-                        if (!_app) {
-                            return Promise.resolve([]);
-                        }
-
-                        let chatroomIds = Object.keys(appsChatroomsMessagers[appId].chatrooms);
-                        return Promise.all(chatroomIds.map((chatroomId) => {
-                            let chatroom = _app.chatrooms[chatroomId];
-                            let messagers = chatroom.messagers;
-                            let messagerIds = Object.keys(chatroom.messagers);
-                            let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
-
-                            if (0 === recipientUids.length) {
-                                return Promise.resolve();
+                        let messages = [message];
+                        return composeHlp.findAvailableMessagers(conditions, appId).then((appsChatroomsMessagers) => {
+                            if (!appsChatroomsMessagers[appId]) {
+                                return Promise.resolve([]);
                             }
-                            return botSvc.multicast(recipientUids, messages, appId, _app);
-                        })).then(() => {
+
+                            let chatroomIds = Object.keys(appsChatroomsMessagers[appId].chatrooms);
                             return Promise.all(chatroomIds.map((chatroomId) => {
-                                return Promise.all(messages.map((message) => {
-                                    console.log('[database] insert each message to chatroom - ' + chatroomId);
-                                    return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
-                                        if (!appsChatroomsMessages) {
-                                            return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
-                                        }
+                                let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                                let messagers = chatroom.messagers;
+                                let messagerIds = Object.keys(chatroom.messagers);
+                                let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
 
-                                        let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
-                                        let messageId = Object.keys(messagesInDB).shift() || '';
-                                        return messagesInDB[messageId];
-                                    });
-                                })).then((messages) => {
-                                    let chatroom = _app.chatrooms[chatroomId];
-                                    let messagers = chatroom.messagers;
-                                    let messagerIds = Object.keys(messagers);
-                                    let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
+                                if (0 === recipientUids.length) {
+                                    return Promise.resolve();
+                                }
+                                return botSvc.multicast(recipientUids, messages, appId, app);
+                            })).then(() => {
+                                return Promise.all(chatroomIds.map((chatroomId) => {
+                                    return Promise.all(messages.map((message) => {
+                                        console.log('[database] insert each message to chatroom - ' + chatroomId);
+                                        return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]).then((appsChatroomsMessages) => {
+                                            if (!appsChatroomsMessages) {
+                                                return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                                            }
 
-                                    /** @type {ChatshierChatSocketBody} */
-                                    let socketBody = {
-                                        app_id: appId,
-                                        type: _app.type,
-                                        chatroom_id: chatroomId,
-                                        chatroom: chatroom,
-                                        senderUid: '',
-                                        recipientUid: recipientUids.shift(),
-                                        messages: messages
-                                    };
-
-                                    return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((_appsChatroomsMessagers) => {
-                                        if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
-                                        }
-
-                                        let chatroom = _appsChatroomsMessagers[appId].chatrooms[chatroomId];
-                                        let messagers = chatroom.messagers;
-                                        let recipientUserIds = Object.keys(messagers).map((messagerId) => {
-                                            return messagers[messagerId].platformUid;
+                                            let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
+                                            let messageId = Object.keys(messagesInDB).shift() || '';
+                                            return Promise.resolve(messagesInDB[messageId]);
                                         });
-                                        // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
-                                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+                                    })).then((messages) => {
+                                        let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                                        let messagers = chatroom.messagers;
+                                        let messagerIds = Object.keys(messagers);
+                                        let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
+
+                                        /** @type {ChatshierChatSocketBody} */
+                                        let socketBody = {
+                                            app_id: appId,
+                                            type: app.type,
+                                            chatroom_id: chatroomId,
+                                            chatroom: chatroom,
+                                            senderUid: '',
+                                            recipientUid: recipientUids.shift() || '',
+                                            messages: messages
+                                        };
+
+                                        return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((_appsChatroomsMessagers) => {
+                                            if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
+                                                return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                            }
+
+                                            let chatroom = _appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                                            let messagers = chatroom.messagers;
+                                            let recipientUserIds = Object.keys(messagers).map((messagerId) => {
+                                                return messagers[messagerId].platformUid;
+                                            });
+                                            // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
+                                            return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+                                        });
                                     });
-                                });
-                            }));
+                                }));
+                            });
                         });
-                    });
-                }));
+                    }));
+                });
             });
         }));
     }).then(() => {

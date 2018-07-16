@@ -16,9 +16,12 @@
     var FACEBOOK = 'FACEBOOK';
     var WECHAT = 'WECHAT';
 
-    var logos = {
+    var LINE_GROUP = 'LINE_GROUP';
+
+    var LOGOS = {
         [LINE]: 'https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg',
-        [FACEBOOK]: 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png',
+        [LINE_GROUP]: './image/line-group.jpg',
+        [FACEBOOK]: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Facebook_Messenger_logo.svg',
         [WECHAT]: 'https://cdn.worldvectorlogo.com/logos/wechat.svg',
         [CHATSHIER]: 'image/logo-no-transparent.png'
     };
@@ -27,10 +30,15 @@
     var DEFAULT_CHATROOM_NAME = '群組聊天室';
     var SOCKET_NAMESPACE = '/chatshier';
     var SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    var SOCKET_EVENTS = window.SOCKET_EVENTS;
 
     // var BREAKPOINT_SM = 576;
     // var BREAKPOINT_MD = 768;
     var BREAKPOINT_LG = 992;
+
+    var $emojiParseInput = $(document.createElement('input'));
+    $emojiParseInput.emojioneArea();
+    var emojiData = $emojiParseInput.data('emojioneArea');
 
     var api = window.restfulAPI;
     var userId;
@@ -41,13 +49,29 @@
         userId = '';
     }
 
+    /** @type {string[]} */
     var chatroomList = [];
-    var apps = {}; // 此變數用來裝所有的 app 資料
-    var appsChatrooms = {};
-    var appsFields = {};
+
+    /**
+     * @typedef {Object} Agent
+     * @property {string} name
+     * @property {string} email
+     * @typedef {{ [userId: string]: Agent }} Agents
+     * @type {{ [appId: string]: { agents: Agents } }}
+     */
     var appsAgents = {};
+
+    /** @type {Chatshier.Models.Apps} */
+    var apps = {};
+    /** @type {Chatshier.Models.AppsChatrooms} */
+    var appsChatrooms = {};
+    /** @type {Chatshier.Models.AppsFields} */
+    var appsFields = {};
+    /** @type {Chatshier.Models.Consumers} */
     var consumers = {};
+    /** @type {Chatshier.Models.Groups} */
     var groups = {};
+    /** @type {Chatshier.Models.Users} */
     var users = {};
 
     // selectors
@@ -66,36 +90,37 @@
         transJson = Object.assign(transJson, json);
     });
 
-    // wechat 的預設表情符號並不是依照 unicode 編碼，傳過來的訊息是依照 wechat 自家的特殊符號編碼而定
-    // 因此要解析 wechat 的表情符號必須進行轉換
-    // 1. 使用正規表達式檢測文字內是否含有 wechat 的表情符號
-    // 2. 將 wechat 表情符號的編碼根據對照表進行轉換
-    var wechatEmojiRegex = new RegExp("/::\\)|/::~|/::B|/::\\||/:8-\\)|/::<|/::$|/::X|/::Z|/::'\\(|/::-\\||/::@|/::P|/::D|/::O|/::\\(|/::\\+|/:--b|/::Q|/::T|/:,@P|/:,@-D|/::d|/:,@o|/::g|/:\\|-\\)|/::!|/::L|/::>|/::,@|/:,@f|/::-S|/:\\?|/:,@x|/:,@@|/::8|/:,@!|/:!!!|/:xx|/:bye|/:wipe|/:dig|/:handclap|/:&-\\(|/:B-\\)|/:<@|/:@>|/::-O|/:>-\\||/:P-\\(|/::'\\||/:X-\\)|/::\\*|/:@x|/:8\\*|/:pd|/:<W>|/:beer|/:basketb|/:oo|/:coffee|/:eat|/:pig|/:rose|/:fade|/:showlove|/:heart|/:break|/:cake|/:li|/:bome|/:kn|/:footb|/:ladybug|/:shit|/:moon|/:sun|/:gift|/:hug|/:strong|/:weak|/:share|/:v|/:@\\)|/:jj|/:@@|/:bad|/:lvu|/:no|/:ok|/:love|/:<L>|/:jump|/:shake|/:<O>|/:circle|/:kotow|/:turn|/:skip|/:oY|/:#-0|/:hiphot|/:kiss|/:<&|/:&>", 'g');
-    var wechatEmojiTable = Object.freeze({
-        // TODO: 補完 wechat 預設表情符號編碼
-        '/::)': '😃',
-        '/::~': '😖',
-        '/::B': '😍',
-        '/::|': '😳'
-    });
     var urlRegex = /(\b(https?):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
     var isMobile = 'function' === typeof window.isMobileBrowser && window.isMobileBrowser();
     var hasUserFocus = true;
 
-    /**
-     * @param {string} text
-     */
-    var filterWechatEmoji = function(text) {
-        if (wechatEmojiRegex.test(text)) {
-            var emojis = text.match(wechatEmojiRegex) || [];
-            var newText = text;
-            for (var i = 0; i < emojis.length; i++) {
-                newText = newText.replace(emojis[i], wechatEmojiTable[emojis[i]] || emojis[i]);
-            }
-            return newText;
-        }
-        return text;
-    };
+    // // wechat 的預設表情符號並不是依照 unicode 編碼，傳過來的訊息是依照 wechat 自家的特殊符號編碼而定
+    // // 因此要解析 wechat 的表情符號必須進行轉換
+    // // 1. 使用正規表達式檢測文字內是否含有 wechat 的表情符號
+    // // 2. 將 wechat 表情符號的編碼根據對照表進行轉換
+    // const wechatEmojiRegex = new RegExp("/::\\)|/::~|/::B|/::\\||/:8-\\)|/::<|/::$|/::X|/::Z|/::'\\(|/::-\\||/::@|/::P|/::D|/::O|/::\\(|/::\\+|/:--b|/::Q|/::T|/:,@P|/:,@-D|/::d|/:,@o|/::g|/:\\|-\\)|/::!|/::L|/::>|/::,@|/:,@f|/::-S|/:\\?|/:,@x|/:,@@|/::8|/:,@!|/:!!!|/:xx|/:bye|/:wipe|/:dig|/:handclap|/:&-\\(|/:B-\\)|/:<@|/:@>|/::-O|/:>-\\||/:P-\\(|/::'\\||/:X-\\)|/::\\*|/:@x|/:8\\*|/:pd|/:<W>|/:beer|/:basketb|/:oo|/:coffee|/:eat|/:pig|/:rose|/:fade|/:showlove|/:heart|/:break|/:cake|/:li|/:bome|/:kn|/:footb|/:ladybug|/:shit|/:moon|/:sun|/:gift|/:hug|/:strong|/:weak|/:share|/:v|/:@\\)|/:jj|/:@@|/:bad|/:lvu|/:no|/:ok|/:love|/:<L>|/:jump|/:shake|/:<O>|/:circle|/:kotow|/:turn|/:skip|/:oY|/:#-0|/:hiphot|/:kiss|/:<&|/:&>", 'g');
+    // const wechatEmojiTable = Object.freeze({
+    //     // TODO: 補完 wechat 預設表情符號編碼
+    //     '/::)': '😃',
+    //     '/::~': '😖',
+    //     '/::B': '😍',
+    //     '/::|': '😳'
+    // });
+
+    // /**
+    //  * @param {string} text
+    //  */
+    // function filterWechatEmoji(text) {
+    //     if (wechatEmojiRegex.test(text)) {
+    //         var emojis = text.match(wechatEmojiRegex) || [];
+    //         var newText = text;
+    //         for (var i = 0; i < emojis.length; i++) {
+    //             newText = newText.replace(emojis[i], wechatEmojiTable[emojis[i]] || emojis[i]);
+    //         }
+    //         return newText;
+    //     }
+    //     return text;
+    // }
 
     /**
      * 處理聊天室中視窗右側待辦事項資料的控制集合，
@@ -249,7 +274,7 @@
                             continue;
                         }
 
-                        var dueTimeDateStr = new Date(new Date(ticket.dueTime) - timezoneGap).toJSON().split('T').shift();
+                        var dueTimeDateStr = new Date(new Date(ticket.dueTime || Date.now()) - timezoneGap).toJSON().split('T').shift();
                         $ticketBody.prepend(
                             '<tr ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticketEditModal">' +
                                 '<td class="status" style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + statusNumberToText(ticket.status) + '</td>' +
@@ -472,10 +497,39 @@
     $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
 
+    // 停用所有 form 的提交
+    $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
+
+    !isMobile && $submitMessageInput.emojioneArea({
+        placeholder: $submitMessageInput.attr('placeholder') || '',
+        searchPlaceholder: '搜尋',
+        buttonTitle: '',
+        autocomplete: false,
+        events: {
+            keydown: function(editor, ev) {
+                if (13 === ev.keyCode) {
+                    if (ev.shiftKey) {
+                        return;
+                    }
+
+                    ev.preventDefault();
+                    let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+                    $submitMessageInput.val(emojioneAreaData.getText());
+                    let $submitMessageBtn = $('.message-input-container #submitMessageBtn');
+                    submitMessage({ target: $submitMessageBtn.get(0) });
+                }
+            }
+        }
+    });
+
     $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
-        if (13 === ev.keyCode && ev.ctrlKey) {
-            $('.message-input-container #submitMessageBtn').click();
+        if (13 === ev.keyCode) {
+            if (ev.shiftKey) {
+                return;
+            }
             ev.preventDefault();
+            let $submitMessageBtn = $('.message-input-container #submitMessageBtn');
+            submitMessage({ target: $submitMessageBtn.get(0) });
         }
 
         // if (13 === ev.keyCode) {
@@ -502,6 +556,8 @@
         var $ctrlPanel = $('.chsr.ctrl-panel');
         var $chatWrapper = $('.chat-wrapper');
         var $chatroomContainer = $chatWrapper.find('.chatroom-container');
+        var $profileToggle = $toolbar.find('#profileToggle');
+        var $ticketToggle = $toolbar.find('#ticketToggle');
 
         if (isFullscreen) {
             $toolbar.css({
@@ -510,23 +566,32 @@
                 height: '0',
                 display: 'none'
             });
+
             $ctrlPanel.css({
                 willChange: 'width',
                 transitionDuration: '150ms',
                 width: '0',
                 display: 'none'
             }).removeClass('d-sm-block');
+
             $chatWrapper.css({
                 maxWidth: '100%'
             });
+
             $chatroomContainer.css({
-                maxHeight: '100%'
+                maxHeight: '100%',
+                padding: 0
             });
+
+            $profileToggle.hasClass('active') && $profilePanel.addClass('d-none');
+            $ticketToggle.hasClass('active') && $ticketPanel.addClass('d-none');
         } else {
             $toolbar.removeAttr('style');
             $ctrlPanel.removeAttr('style').addClass('d-sm-block');
             $chatWrapper.removeAttr('style');
             $chatroomContainer.removeAttr('style');
+            $profileToggle.hasClass('active') && $profilePanel.removeClass('d-none');
+            $ticketToggle.hasClass('active') && $ticketPanel.removeClass('d-none');
         }
     });
 
@@ -571,7 +636,7 @@
     });
 
     $profilePanel.on('click', '.user-info .btn-update-name', changeConsumerDisplayName);
-    $profilePanel.on('click', '.assigners-select .dropdown-item', userAssignMessager);
+    $profilePanel.on('click', '.assignees-select .dropdown-item', userAssignMessager);
     $profilePanel.on('click', '.fields-select .dropdown-item', multiSelectChange);
     $profilePanel.on('click', '.leave-group-room button', userLeaveGroupRoom);
     $profilePanel.on('click', '.profile-confirm button', userInfoConfirm);
@@ -683,6 +748,7 @@
                 messagers = chatroom.messagers = Object.assign(chatrooms[chatroomId].messagers, chatroomFromSocket.messagers);
             }
             var messagerSelf = findMessagerSelf(appId, chatroomId);
+            var isNewChatroom = chatroomList.indexOf(chatroomId) < 0;
 
             var nextMessage = function(i) {
                 if (i >= messages.length) {
@@ -697,11 +763,16 @@
                     if (SYSTEM === message.from && 'imagemap' === message.type) {
                         message.from = CHATSHIER;
                     }
-                    if (SYSTEM === message.from) {
-                        return users[userId];
-                    }
+
                     !senderUid && senderMsger && (senderUid = senderMsger.platformUid);
                     var sender = CHATSHIER === message.from ? users[senderUid] : consumers[senderUid];
+
+                    // 如果是新的聊天室 sender 一定是從平台而來
+                    if (isNewChatroom) {
+                        return sender;
+                    } else if (SYSTEM === message.from) {
+                        return users[userId];
+                    }
 
                     // 如果前端沒資料代表是新用戶
                     // 因此需要再發一次 api 來獲取新的用戶資料
@@ -730,7 +801,7 @@
                     var app = apps[appId];
                     var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
 
-                    if (chatroomList.indexOf(chatroomId) < 0) {
+                    if (isNewChatroom) {
                         var uiRequireData = {
                             appId: appId,
                             name: app.name,
@@ -741,7 +812,7 @@
 
                         if (isGroupChatroom) {
                             uiRequireData.person = Object.assign({}, users[userId]);
-                            uiRequireData.person.photo = logos[app.type];
+                            uiRequireData.person.photo = LOGOS[LINE_GROUP];
                             uiRequireData.platformUid = userId;
                         } else {
                             uiRequireData.person = sender;
@@ -758,14 +829,20 @@
 
                     var person = CHATSHIER === message.from ? consumers[recipientUid] : consumers[senderUid];
                     var consumerUid = person ? person.platformUid : '';
+
+                    var shouldHide = false;
                     if (isGroupChatroom) {
                         person = Object.assign({}, users[userId]);
-                        person.photo = logos[app.type];
+                        person.photo = LINE === app.type ? LOGOS[LINE_GROUP] : 'image/group.png';
                         var $chatroomProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-                        $chatroomProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                        shouldHide = $chatroomProfileGroup.hasClass('d-none');
+                        $chatroomProfileGroup = $chatroomProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                        shouldHide && $chatroomProfileGroup.addClass('d-none');
                     } else if (senderUid && person) {
                         var $personProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + consumerUid + '"]');
-                        $personProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                        shouldHide = $personProfileGroup.hasClass('d-none');
+                        $personProfileGroup = $personProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                        shouldHide && $personProfileGroup.addClass('d-none');
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
@@ -785,7 +862,14 @@
                     var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
                     $messageInputContainer.find('button').removeAttr('disabled');
                     $messageInputContainer.find('input').removeAttr('disabled');
-                    $submitMessageInput.attr('placeholder', '輸入訊息...');
+
+                    let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+                    if (emojioneAreaData) {
+                        emojioneAreaData.enable();
+                        emojioneAreaData.editor.attr('placeholder', '輸入訊息...');
+                    } else {
+                        $submitMessageInput.attr('placeholder', '輸入訊息...');
+                    }
                 }
             });
         });
@@ -805,7 +889,9 @@
             var app = apps[appId];
             var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
             var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
-            var assignedIds = messager.assigned_ids;
+
+            var agents = appsAgents[appId].agents;
+            var assigneeIds = (messager.assigned_ids || []).filter((agentUserId) => !!agents[agentUserId]);
 
             var $assignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.assigned');
             var $unassignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unassigned');
@@ -813,11 +899,11 @@
             !isGroupChatroom && (tablinksSelectQuery += '[platform-uid="' + platformUid + '"]');
             var $appChatroom = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
 
-            var assignedIdsOld = appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId].assigned_ids || [];
+            var assigneeIdsOld = appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId].assigned_ids || [];
             var tagsOld = appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId].tags || [];
-            var isAlreadyAssignedToMe = assignedIdsOld.indexOf(userId) >= 0;
+            var isAlreadyAssignedToMe = assigneeIdsOld.indexOf(userId) >= 0;
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager;
-            var isAssignedToMe = assignedIds.indexOf(userId) >= 0;
+            var isAssignedToMe = assigneeIds.indexOf(userId) >= 0;
 
             // 檢查 messager 更新內容的 assigned_ids 是否有包含自已
             // 有的話檢查此聊天室是否已有被加入至已指派
@@ -844,8 +930,11 @@
             // 更新 UI 資料
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
+
             var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]');
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
 
             var tagsNew = messager.tags || [];
             var tagsAdd = tagsNew.filter(function(tag) {
@@ -865,10 +954,14 @@
         });
 
         socket.on(SOCKET_EVENTS.CONSUMER_FOLLOW, function(data) {
-            var appId = data.appId;
-            var chatroomId = data.chatroomId;
-            var messager = data.messager;
-            var messagerId = messager._id;
+            let appId = data.appId;
+            let chatroomId = data.chatroomId;
+            /** @type {Chatshier.Models.Messager} */
+            let messager = data.messager;
+            /** @type {Chatshier.Models.Consumer} */
+            let consumer = data.consumer;
+            let messagerId = messager._id;
+            let consumerUid = consumer.platformUid;
 
             if (!appsChatrooms[appId]) {
                 appsChatrooms[appId] = { chatrooms: {} };
@@ -878,23 +971,35 @@
                 appsChatrooms[appId].chatrooms[chatroomId] = { messagers: {} };
             }
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager;
+            consumers[consumerUid] = consumer;
 
-            var $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
-            var _appId = $openedChatroomNow.attr('app-id');
-            var _chatroomId = $openedChatroomNow.attr('chatroom-id');
+            let $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
+            let _appId = $openedChatroomNow.attr('app-id');
+            let _chatroomId = $openedChatroomNow.attr('chatroom-id');
+
             if (_appId === appId && _chatroomId === chatroomId) {
-                var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
+                let $messageInputContainer = $submitMessageInput.parents('.message-input-container');
                 $messageInputContainer.find('button').removeAttr('disabled');
                 $messageInputContainer.find('input').removeAttr('disabled');
-                $submitMessageInput.attr('placeholder', '輸入訊息...');
+
+                let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+                if (emojioneAreaData) {
+                    emojioneAreaData.enable();
+                    emojioneAreaData.editor.attr('placeholder', '輸入訊息...');
+                } else {
+                    $submitMessageInput.attr('placeholder', '輸入訊息...');
+                }
             }
+
+            $.notify('[' + consumer.type + '] 用戶 "' + consumer.name + '" 已關注 "' + apps[appId].name + '" 可以與他進行對話囉！', { type: 'info' });
         });
 
         socket.on(SOCKET_EVENTS.CONSUMER_UNFOLLOW, function(data) {
-            var appId = data.appId;
-            var chatroomId = data.chatroomId;
-            var messager = data.messager;
-            var messagerId = messager._id;
+            let appId = data.appId;
+            let chatroomId = data.chatroomId;
+            /** @type {Chatshier.Models.Messager} */
+            let messager = data.messager;
+            let messagerId = messager._id;
 
             if (!appsChatrooms[appId]) {
                 appsChatrooms[appId] = { chatrooms: {} };
@@ -905,15 +1010,27 @@
             }
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager;
 
-            var $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
-            var _appId = $openedChatroomNow.attr('app-id');
-            var _chatroomId = $openedChatroomNow.attr('chatroom-id');
-            if (_appId === appId && _chatroomId === chatroomId) {
-                var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
+            let $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
+            let _appId = $openedChatroomNow.attr('app-id');
+            let _chatroomId = $openedChatroomNow.attr('chatroom-id');
+
+            if (_appId === appId && _chatroomId === chatroomId && messager.isUnfollowed) {
+                let $messageInputContainer = $submitMessageInput.parents('.message-input-container');
                 $messageInputContainer.find('button').attr('disabled', true);
                 $messageInputContainer.find('input').attr('disabled', true);
-                $submitMessageInput.attr('placeholder', '對方已取消關注');
+
+                let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+                if (emojioneAreaData) {
+                    emojioneAreaData.disable();
+                    emojioneAreaData.editor.attr('placeholder', '對方已取消關注');
+                } else {
+                    $submitMessageInput.attr('placeholder', '對方已取消關注');
+                }
             }
+
+            /** @type {Chatshier.Models.Consumer} */
+            let consumer = consumers[messager.platformUid];
+            $.notify('[' + consumer.type + '] 用戶 "' + consumer.name + '" 已封鎖機器人 "' + apps[appId].name + '"', { type: 'warning' });
         });
 
         socket.on(SOCKET_EVENTS.USER_ADD_GROUP_MEMBER_TO_CLIENT, function(data) {
@@ -1035,19 +1152,19 @@
             '</li>' +
             '<div class="collapse nested unassigned"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + LINE + '">' +
-                '<img class="app-icon" src="' + logos[LINE] + '" />' +
+                '<img class="app-icon" src="' + LOGOS[LINE] + '" />' +
                 '<span>' + LINE + '</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
             '<div class="collapse nested app-types" app-type="' + LINE + '"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + FACEBOOK + '">' +
-                '<img class="app-icon" src="' + logos[FACEBOOK] + '" />' +
+                '<img class="app-icon" src="' + LOGOS[FACEBOOK] + '" />' +
                 '<span>' + FACEBOOK + '</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
             '<div class="collapse nested app-types" app-type="' + FACEBOOK + '"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + CHATSHIER + '">' +
-                '<img class="app-icon" src="' + logos[CHATSHIER] + '" />' +
+                '<img class="app-icon" src="' + LOGOS[CHATSHIER] + '" />' +
                 '<span>' + CHATSHIER + '</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
             '</li>' +
@@ -1094,10 +1211,13 @@
                     chatroom: chatroom
                 };
 
-                var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
-                if (isGroupChatroom) {
+                if (CHATSHIER === app.type) {
                     uiRequireData.person = Object.assign({}, users[userId]);
-                    uiRequireData.person.photo = logos[app.type];
+                    uiRequireData.person.photo = LOGOS[app.type];
+                    uiRequireData.platformUid = userId;
+                } else if (chatroom.platformGroupId) {
+                    uiRequireData.person = Object.assign({}, users[userId]);
+                    uiRequireData.person.photo = LOGOS[LINE_GROUP];
                     uiRequireData.platformUid = userId;
                 } else {
                     var platformMessager = findChatroomMessager(appId, chatroomId, app.type);
@@ -1137,7 +1257,7 @@
         var chatroomName = opts.clientName;
         var isGroupChatroom = CHATSHIER === opts.appType || chatroom.platformGroupType;
         if (isGroupChatroom) {
-            chatroomPhoto = CHATSHIER === opts.appType ? 'image/group.png' : logos[opts.appType];
+            chatroomPhoto = LINE === opts.appType ? LOGOS[LINE_GROUP] : 'image/group.png';
             chatroomName = chatroom.name || DEFAULT_CHATROOM_NAME;
         }
 
@@ -1250,7 +1370,7 @@
             platformUid: platformUid,
             clientName: (messagerSelf.namings && messagerSelf.namings[platformUid]) || person.name,
             clientPhoto: person.photo,
-            iconSrc: logos[appType] || '',
+            iconSrc: LOGOS[appType] || '',
             unRead: messagerSelf.unRead || 0,
             messageHtml: messageToClientHtml(lastMessage)
         };
@@ -1323,8 +1443,10 @@
         // 將已指派與未指派的聊天室分門別類
         if (CHATSHIER !== appType) {
             var messagerConsumer = findChatroomMessager(appId, chatroomId, appType);
-            var assignedIds = messagerConsumer.assigned_ids || [];
-            if (assignedIds.indexOf(userId) >= 0) {
+            var agents = appsAgents[appId].agents;
+            var assigneeIds = (messagerConsumer.assigned_ids || []).filter((agentUserId) => !!agents[agentUserId]);
+
+            if (assigneeIds.indexOf(userId) >= 0) {
                 $ctrlPanelChatroomCollapse.find('.collapse.assigned').append(chatroomItemHtml);
             } else {
                 $ctrlPanelChatroomCollapse.find('.collapse.unassigned').append(chatroomItemHtml);
@@ -1387,7 +1509,7 @@
                 }
 
                 if (!message.template) {
-                    let messageText = linkify(filterWechatEmoji(message.text || ''));
+                    let messageText = linkify(message.text || '');
                     return '<span class="text-content">' + messageText + '</span>';
                 }
                 return templateMessageType(message.template);
@@ -1395,7 +1517,7 @@
                 // var fileName = message.src.split('/').pop();
                 return (
                     '<i class="fas fa-file fa-fw file-icon"></i>' +
-                    '<span class="text-content">' + message.text + '<a href="' + message.src + '" download="' + message.src + '" target="_blank">' + message.src + '</a></span>'
+                    '<span class="text-content">' + message.text + '\n<a href="' + message.src + '" download="' + message.src + '" target="_blank">' + message.src + '</a></span>'
                 );
             case 'imagemap':
                 return (
@@ -1405,7 +1527,13 @@
                     '</div>'
                 );
             case 'text':
-                var messageText = linkify(filterWechatEmoji(message.text || ''));
+                var messageText = message.text || '';
+                messageText = linkify(messageText);
+
+                if (emojiData) {
+                    emojiData.setText(messageText);
+                    messageText = emojiData.editor ? emojiData.editor.html() : messageText;
+                }
                 return '<span class="text-content">' + messageText + '</span>';
             default:
                 return '';
@@ -1506,9 +1634,9 @@
                                     '<div class="d-flex flex-row justify-content-between template-sm-buttons">' +
                                         (function() {
                                             return template.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-auto template-sm-button${i + 1}">
-                                                    <span class="template-confirm pl-1">${8 >= action.label.length ? action.label : `${action.label.substring(0, 6)}...`}</span>
-                                                    <span class="template-confirm pl-1">(${4 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 4)}...`})</span>
+                                                `<div class="d-flex flex-column justify-content-center my-auto px-3 template-sm-button${i + 1}">
+                                                    <span class="template-confirm">${8 >= action.label.length ? action.label : `${action.label.substring(0, 6)}...`}</span>
+                                                    <span class="template-confirm">(${4 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 4)}...`})</span>
                                                 </div>`
                                             )).join('');
                                         })() +
@@ -1517,48 +1645,61 @@
                             );
                         case 'buttons':
                             return (
-                                '<div class="template ml-1">' +
-                                    '<div class="text-center top-img-container">' +
-                                        `<img src="${template.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
-                                    '</div>' +
-                                    `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
+                                '<div class="template">' +
+                                    (function() {
+                                        if (template.thumbnailImageUrl) {
+                                            return (
+                                                '<div class="text-center top-img-container">' +
+                                                    `<img class="template-image image-fit" src="${template.thumbnailImageUrl}" alt="未顯示圖片" />` +
+                                                '</div>'
+                                            );
+                                        }
+                                        return '';
+                                    })() +
+                                    `<div class="template-title py-2 px-3">
                                         <span class="template-title">${template.title}</span>
                                     </div>` +
-                                    `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
+                                    `<div class="template-desc py-2 px-3">
                                         <span class="template-desc">${template.text}</span>
                                     </div>` +
-                                    '<div class="d-flex flex-column template-buttons">' +
+                                    '<div class="d-flex flex-column py-2 template-buttons">' +
                                         (function() {
-                                            return template.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
-                                                    <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
-                                                    <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
-                                                </div>`
-                                            )).join('');
+                                            return template.actions.map((action, i) => {
+                                                let label = action.label || '';
+                                                return (
+                                                    `<div class="d-flex flex-column justify-content-center my-1 px-3 template-button${i + 1}">
+                                                        <span class="template-button">${10 >= label.length ? label : `${label.substring(0, 9)}...`}</span>
+                                                        <span class="template-button">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
+                                                    </div>`
+                                                );
+                                            }).join('');
                                         })() +
                                     '</div>' +
                                 '</div>'
                             );
                         case 'carousel':
                             return template.columns.map((column) => (
-                                '<div class="template ml-1">' +
+                                '<div class="template">' +
                                     '<div class="text-center top-img-container">' +
-                                        `<img src="${column.thumbnailImageUrl}" class="template-image" alt="未顯示圖片" />` +
+                                        `<img src="${column.thumbnailImageUrl}" class="template-image image-fit" alt="未顯示圖片" />` +
                                     '</div>' +
-                                    `<div class="d-flex flex-wrap align-items-center template-title py-1 px-3">
+                                    `<div class="template-title py-2 px-3">
                                         <span class="template-title">${column.title}</span>
                                     </div>` +
-                                    `<div class="d-flex flex-wrap align-items-center template-desc py-1 px-3">
+                                    `<div class="template-desc py-2 px-3">
                                         <span class="template-desc">${column.text}</span>
                                     </div>` +
-                                    '<div class="d-flex flex-column template-buttons">' +
+                                    '<div class="d-flex flex-column py-2 template-buttons">' +
                                         (function() {
-                                            return column.actions.map((action, i) => (
-                                                `<div class="d-flex flex-column justify-content-center my-1 template-button${i + 1}">
-                                                    <span class="template-button pl-3">${10 >= action.label.length ? action.label : `${action.label.substring(0, 9)}...`}</span>
-                                                    <span class="template-button pl-3">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
-                                                </div>`
-                                            )).join('');
+                                            return column.actions.map((action, i) => {
+                                                let label = action.label || '';
+                                                return (
+                                                    `<div class="d-flex flex-column justify-content-center my-1 px-3 template-button${i + 1}">
+                                                        <span class="template-button">${10 >= label.length ? label : `${label.substring(0, 9)}...`}</span>
+                                                        <span class="template-button">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
+                                                    </div>`
+                                                );
+                                            }).join('');
                                         })() +
                                     '</div>' +
                                 '</div>'
@@ -1573,9 +1714,13 @@
     function getTemplateOutput(action) {
         switch (action.type) {
             case 'uri':
-                return action.uri;
+                return action.uri || '';
+            case 'text':
+                return action.text || '';
+            case 'postback':
+                return '互動資料';
             default:
-                return action.text;
+                return '';
         }
     }
 
@@ -1725,11 +1870,9 @@
 
         var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
         var agents = appsAgents[appId].agents;
-        var assignedIds = messager.assigned_ids || [];
-        var assignerNames = assignedIds.map(function(agentUserId) {
-            return agents[agentUserId].name;
-        });
-        var assignerNamesText = assignerNames.length > 1 ? assignerNames[0] + ' 及其他 ' + (assignerNames.length - 1) + ' 名' : assignerNames.join('');
+        var assigneeIds = (messager.assigned_ids || []).filter((agentUserId) => !!agents[agentUserId]);
+        var assigneeNames = assigneeIds.map((agentUserId) => agents[agentUserId].name);
+        var assigneeNamesText = assigneeNames.length > 1 ? assigneeNames[0] + ' 及其他 ' + (assigneeNames.length - 1) + ' 名' : assigneeNames.join('');
 
         return (
             '<form class="about-form">' +
@@ -1744,14 +1887,14 @@
                 '<div class="px-2 d-flex align-items-center form-group user-info">' +
                     '<label class="px-0 col-3 col-form-label">' + transJson['First chat date'] + '</label>' +
                     '<div class="pr-0 col-9">' +
-                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.createdTime).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
+                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.createdTime || Date.now()).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
                     '</div>' +
                 '</div>' +
 
                 '<div class="px-2 d-flex align-items-center form-group user-info">' +
                     '<label class="px-0 col-3 col-form-label">' + transJson['Recent chat date'] + '</label>' +
                     '<div class="pr-0 col-9">' +
-                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.lastTime).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
+                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.lastTime || Date.now()).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
                     '</div>' +
                 '</div>' +
 
@@ -1766,13 +1909,13 @@
                     '<label class="px-0 col-3 col-form-label">' + transJson['Assigned'] + '</label>' +
                     '<div class="pr-0 col-9 btn-group btn-block multi-select-wrapper">' +
                         '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
-                            '<span class="multi-select-values">' + assignerNamesText + '</span>' +
+                            '<span class="multi-select-values">' + assigneeNamesText + '</span>' +
                             '<span class="caret"></span>' +
                         '</button>' +
-                        '<div class="multi-select-container dropdown-menu assigners-select">' +
+                        '<div class="multi-select-container dropdown-menu assignees-select">' +
                             (function() {
                                 return Object.keys(agents).map(function(agentUserId) {
-                                    var isAssigned = assignedIds.indexOf(agentUserId) >= 0;
+                                    var isAssigned = assigneeIds.indexOf(agentUserId) >= 0;
                                     return (
                                         '<div class="px-3 dropdown-item">' +
                                             '<div class="form-check form-check-inline">' +
@@ -1796,8 +1939,8 @@
                     var fields = appsFields[appId].fields;
                     var fieldIds = Object.keys(fields);
 
-                    var SETS_TYPES = api.appsFields.enums.setsType;
-                    var FIELD_TYPES = api.appsFields.enums.type;
+                    var SETS_TYPES = api.appsFields.SETS_TYPES;
+                    var FIELD_TYPES = api.appsFields.TYPES;
                     fieldIds.sort(function(a, b) {
                         let fieldsA = appsFields[appId].fields[a];
                         let fieldsB = appsFields[appId].fields[b];
@@ -1805,10 +1948,10 @@
                         // DEFAULT, SYSTEM 在前 CUSTOM 在後
                         if (FIELD_TYPES.CUSTOM !== fieldsA.type &&
                             FIELD_TYPES.CUSTOM === fieldsB.type) {
-                            return false;
+                            return -1;
                         } else if (FIELD_TYPES.CUSTOM === fieldsA.type &&
                             FIELD_TYPES.CUSTOM !== fieldsB.type) {
-                            return true;
+                            return 1;
                         }
                         return fieldsA.order - fieldsB.order;
                     });
@@ -1822,7 +1965,7 @@
                         }
 
                         var fieldValue;
-                        if (field.type === api.appsFields.enums.type.CUSTOM) {
+                        if (field.type === api.appsFields.TYPES.CUSTOM) {
                             fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
                         } else {
                             fieldValue = undefined !== messager[field.alias] ? messager[field.alias] : '';
@@ -2159,15 +2302,29 @@
 
         // 如果 1vs1 聊天室中的客戶已經封鎖或解除關注，則無法發送任何訊息給對方
         if (!chatroom.platformGroupId) {
-            var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
-            if (!chatroom.platformGroupId && messager.isUnfollow) {
+            let messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+            let emojioneAreaData = $submitMessageInput.data('emojioneArea');
+
+            if (!chatroom.platformGroupId && messager.isUnfollowed) {
                 $messageInputContainer.find('button').attr('disabled', true);
                 $messageInputContainer.find('input').attr('disabled', true);
-                $submitMessageInput.attr('placeholder', '對方已取消關注');
+
+                if (emojioneAreaData) {
+                    emojioneAreaData.disable();
+                    emojioneAreaData.editor.attr('placeholder', '對方已取消關注');
+                } else {
+                    $submitMessageInput.attr('placeholder', '對方已取消關注');
+                }
             } else {
                 $messageInputContainer.find('button').removeAttr('disabled');
                 $messageInputContainer.find('input').removeAttr('disabled');
-                $submitMessageInput.attr('placeholder', '輸入訊息...');
+
+                if (emojioneAreaData) {
+                    emojioneAreaData.enable();
+                    emojioneAreaData.editor.attr('placeholder', '輸入訊息...');
+                } else {
+                    $submitMessageInput.attr('placeholder', '輸入訊息...');
+                }
             }
         }
     }
@@ -2207,7 +2364,7 @@
     }
 
     function submitMessage(ev) {
-        ev.preventDefault();
+        ev.preventDefault && ev.preventDefault();
         var $evElem = $(ev.target);
         var $contentPanel = $evElem.parentsUntil('.chat-content-panel');
         var $messageView = $contentPanel.siblings('.chatroom-body').find('.chat-content.shown');
@@ -2252,6 +2409,8 @@
 
         return new Promise(function(resolve, reject) {
             $submitMessageInput.val('');
+            !isMobile && $submitMessageInput.data('emojioneArea').setText('');
+
             chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
                 if (err) {
                     console.error(err);
@@ -2319,7 +2478,7 @@
         }
 
         // 傳送檔案時，帶上檔案大小當成文字訊息
-        var fileText = 'file' === messageType ? '小幫手傳送檔案給你:\n檔案大小: ' + fileSize + '\n' : '';
+        var fileText = 'file' === messageType ? '小幫手傳送檔案給你\n檔案名稱: ' + file.name + '\n檔案大小: ' + fileSize : '';
 
         /** @type {ChatshierMessage} */
         var messageToSend = {
@@ -2447,7 +2606,7 @@
         return api.appsImagemaps.findOne(appId, imagemapId, userId).then((resJson) => {
             let imagemap = {
                 type: resJson.data[imagemapId].type,
-                baseUri: resJson.data[imagemapId].baseUri,
+                baseUrl: resJson.data[imagemapId].baseUrl,
                 altText: resJson.data[imagemapId].altText,
                 baseSize: resJson.data[imagemapId].baseSize,
                 actions: resJson.data[imagemapId].actions,
@@ -2474,6 +2633,8 @@
 
             return new Promise(function(resolve, reject) {
                 $submitMessageInput.val('');
+                !isMobile && $submitMessageInput.data('emojioneArea').setText('');
+
                 chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
                     if (err) {
                         console.error(err);
@@ -2543,7 +2704,8 @@
         var _messagerSelf = {
             type: CHATSHIER,
             platformUid: userId,
-            unRead: 0
+            unRead: 0,
+            chatCount: 0
         };
         messagers[userId] = _messagerSelf;
         return _messagerSelf;
@@ -2666,7 +2828,10 @@
 
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
             $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
 
             return new Promise(function(resolve, reject) {
@@ -2717,7 +2882,10 @@
 
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
             $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
 
             return new Promise(function(resolve, reject) {
@@ -2759,7 +2927,10 @@
 
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
-            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+
+            var shouldHide = $profileGroup.hasClass('d-none');
+            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            shouldHide && $profileGroup.addClass('d-none');
 
             // 將聊天訊息的名稱以及聊天室的名稱做更新
             var consumer = consumers[platformUid];
@@ -2782,38 +2953,38 @@
 
         var $fieldRows = $profileGroup.find('.fields-form .user-info');
         var fields = appsFields[appId].fields;
-        var setsTypeEnums = api.appsFields.enums.setsType;
+        var SETS_TYPES = api.appsFields.SETS_TYPES;
 
         var putMessager = {};
-        $fieldRows.each(function() {
-            var $fieldRow = $(this);
+        $fieldRows.each(function(i, elem) {
+            var $fieldRow = $(elem);
             var fieldId = $fieldRow.attr('field-id');
             var field = fields[fieldId];
 
             var value = '';
             var $fieldValue = $fieldRow.find('.field-value');
             switch (field.setsType) {
-                case setsTypeEnums.NUMBER:
+                case SETS_TYPES.NUMBER:
                     value = parseInt($fieldValue.val(), 10);
                     value = !isNaN(value) ? value : '';
                     break;
-                case setsTypeEnums.DATE:
+                case SETS_TYPES.DATE:
                     value = $fieldValue.val();
                     value = value ? new Date(value).getTime() : 0;
                     break;
-                case setsTypeEnums.CHECKBOX:
+                case SETS_TYPES.CHECKBOX:
                     value = $fieldValue.prop('checked');
                     break;
-                case setsTypeEnums.MULTI_SELECT:
+                case SETS_TYPES.MULTI_SELECT:
                     var $checkboxes = $fieldValue.find('input[type="checkbox"]:checked');
                     var selectVals = [];
-                    $checkboxes.each(function() {
-                        selectVals.push($(this).val());
+                    $checkboxes.each(function(i, elem) {
+                        selectVals.push($(elem).val());
                     });
                     value = selectVals;
                     break;
-                case setsTypeEnums.TEXT:
-                case setsTypeEnums.SELECT:
+                case SETS_TYPES.TEXT:
+                case SETS_TYPES.SELECT:
                 default:
                     value = $fieldValue.val();
                     break;
@@ -2924,18 +3095,19 @@
         var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
         var messagerId = messager._id;
 
-        var assignedIds = messager.assigned_ids || [];
+        var agents = appsAgents[appId].agents;
+        var assigneeIds = (messager.assigned_ids || []).filter((agentUserId) => !!agents[agentUserId]);
         var assignedId = $checkInput.val();
-        var idx = assignedIds.indexOf(assignedId);
 
+        var idx = assigneeIds.indexOf(assignedId);
         if (isChecked) {
-            idx < 0 && assignedId && assignedIds.push(assignedId);
+            idx < 0 && assignedId && assigneeIds.push(assignedId);
         } else {
-            idx >= 0 && assignedIds.splice(idx, 1);
+            idx >= 0 && assigneeIds.splice(idx, 1);
         }
 
         var putMessager = {
-            assigned_ids: assignedIds
+            assigned_ids: assigneeIds
         };
 
         var $dropdownToggle = $(ev.target).parents('.dropdown-menu').siblings('.dropdown-toggle');
@@ -2944,7 +3116,9 @@
             var _appsChatroomsMessagers = resJson.data;
             var _messager = _appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
-            assignedIds = _messager.assigned_ids || [];
+
+            var agents = appsAgents[appId].agents;
+            assigneeIds = (_messager.assigned_ids || []).filter((agentUserId) => !!agents[agentUserId]);
 
             return new Promise(function(resolve, reject) {
                 chatshierSocket.emit(SOCKET_EVENTS.BROADCAST_MESSAGER_TO_SERVER, {
@@ -2960,12 +3134,12 @@
                 });
             });
         }).then(function() {
-            var assignerNames = assignedIds.map(function(assignedId) {
+            var assigneeNames = assigneeIds.map(function(assignedId) {
                 return users[assignedId].name;
             });
-            var displayText = assignerNames.join(',');
-            if (assignerNames.length > 1) {
-                displayText = assignerNames[0] + ' 及其他 ' + (assignerNames.length - 1) + ' 名';
+            var displayText = assigneeNames.join(',');
+            if (assigneeNames.length > 1) {
+                displayText = assigneeNames[0] + ' 及其他 ' + (assigneeNames.length - 1) + ' 名';
             }
             $dropdownToggle.find('.multi-select-values').text(displayText);
 
@@ -2974,7 +3148,7 @@
             var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
             var $appChatroom = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + apps[appId].type + '"] ' + tablinksSelectQuery);
 
-            if (assignedIds.indexOf(userId) >= 0) {
+            if (assigneeIds.indexOf(userId) >= 0) {
                 $unassignedCollapse.find(tablinksSelectQuery).remove();
                 var $assignedChatroom = $assignedCollapse.find(tablinksSelectQuery);
                 if (0 === $assignedChatroom.length) {
@@ -2988,6 +3162,10 @@
                 }
             }
 
+            $dropdownToggle.removeAttr('disabled');
+        }).catch(function() {
+            $.notify('指派失敗', { type: 'danger' });
+            $checkInput.prop('checked', false);
             $dropdownToggle.removeAttr('disabled');
         });
     }
@@ -3008,9 +3186,9 @@
         var valArr = [];
         var textArr = [];
         var $checkboxes = $selectContainer.find('input[type="checkbox"]');
-        $checkboxes.each(function() {
-            var $checkbox = $(this);
-            if ($checkbox.is(':checked')) {
+        $checkboxes.each(function(i, elem) {
+            var $checkbox = $(elem);
+            if ($checkbox.prop('checked')) {
                 valArr.push($checkbox.val());
                 textArr.push($checkbox.parents('.dropdown-item').text());
             }
@@ -3038,8 +3216,8 @@
             $searchWapper.find('.search-results').addClass('d-none');
             displayAll();
 
-            $('.tablinks').each(function() {
-                var $tablink = $(this);
+            $('.tablinks').each(function(i, elem) {
+                var $tablink = $(elem);
                 var appId = $tablink.attr('app-id');
                 var chatroomId = $tablink.attr('chatroom-id');
                 var $chatContent = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
@@ -3062,8 +3240,10 @@
 
         var count = 0;
         $tablinks.length = $panels.length = $clientNameOrTexts.length = 0;
-        $('.tablinks').each(function() {
-            var $tablinkElem = $(this);
+
+        var $targetElems = $('[app-type] .tablinks');
+        $targetElems.each(function(i, elem) {
+            var $tablinkElem = $(elem);
             var appId = $tablinkElem.attr('app-id');
             var chatroomId = $tablinkElem.attr('chatroom-id');
             var panel = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
@@ -3071,27 +3251,21 @@
             var display = false;
 
             // 客戶名單搜尋
-            $tablinkElem.find('.client-name').each(function() {
-                var $content = $(this).find('.content');
-                var text = $(this).text();
+            $tablinkElem.find('.app-name').each(function(i, elem) {
+                var $content = $(elem).parents('.tablinks');
+                var text = $(elem).text();
 
                 if (text.toLowerCase().indexOf(searchStr) !== -1) {
-                    if (0 === count) {
-                        $tablinkElem.trigger('click');
-                    }
-                    $tablinks.push($tablinkElem);
-                    $panels.push(null);
-                    $clientNameOrTexts.push(null);
-                    count += 1;
-                    $content.addClass('found');
+                    $content.parents('.collapse').addClass('show');
+                    $content.removeClass('d-none');
                     display = true;
                 } else {
-                    $content.removeClass('found');
+                    $content.addClass('d-none');
                 }
             });
             // 聊天室搜尋
-            panel.find('.message').each(function() {
-                var $message = $(this);
+            panel.find('.message').each(function(i, elem) {
+                var $message = $(elem);
                 var $content = $message.find('.content');
                 var text = $content.text();
 
@@ -3179,10 +3353,9 @@
     });
 
     function displayAll() {
-        $('.tablinks-area .tablinks').each(function() {
-            var $tablinkElem = $(this);
-            $tablinkElem.removeClass('d-none');
-            $tablinkElem.css({
+        $('.tablinks-area .tablinks').each(function(i, elem) {
+            var $tablinkElem = $(elem);
+            $tablinkElem.removeClass('d-none').css({
                 'background-color': ''
             });
 

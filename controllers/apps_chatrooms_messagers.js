@@ -25,7 +25,7 @@ module.exports = (function() {
                     if (!appsChatroomsMessagers) {
                         return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                     }
-                    return appsChatroomsMessagers;
+                    return Promise.resolve(appsChatroomsMessagers);
                 });
             }).then((appsChatroomsMessagers) => {
                 let suc = {
@@ -47,8 +47,8 @@ module.exports = (function() {
 
             // 只允許更新 API 可編輯的屬性，且傳送的型別必須嚴謹
             let putMessager = {};
-            ('number' === typeof req.body.unRead) && (putMessager.unRead = req.body.unRead);
-            ('number' === typeof req.body.age) && (putMessager.age = req.body.age);
+            !isNaN(parseInt(req.body.unRead, 10)) && (putMessager.unRead = parseInt(req.body.unRead, 10));
+            !isNaN(parseInt(req.body.age, 10)) && (putMessager.age = parseInt(req.body.age, 10));
             ('string' === typeof req.body.email) && (putMessager.email = req.body.email);
             ('string' === typeof req.body.phone) && (putMessager.phone = req.body.phone);
             ('string' === typeof req.body.gender) && (putMessager.gender = req.body.gender);
@@ -67,7 +67,7 @@ module.exports = (function() {
                 if (!appsChatroomsMessagers) {
                     return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                 }
-                return appsChatroomsMessagers;
+                return Promise.resolve(appsChatroomsMessagers);
             }).then((data) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,

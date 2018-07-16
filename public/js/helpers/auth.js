@@ -1,3 +1,5 @@
+/// <reference path='../../../typings/client/index.d.ts' />
+
 (function() {
     var HAS_COOKIES = parseInt('001', 2);
     var HAS_USER = parseInt('010', 2);

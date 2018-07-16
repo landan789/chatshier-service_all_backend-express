@@ -26,7 +26,7 @@ module.exports = (function() {
                     if (!appsRichmenus) {
                         return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                     }
-                    return appsRichmenus;
+                    return Promise.resolve(appsRichmenus);
                 });
             }).then((appsRichmenus) => {
                 let suc = {
@@ -61,14 +61,14 @@ module.exports = (function() {
                     if (!richmenus[richmenuId]) {
                         return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
                     }
-                    return richmenus;
+                    return Promise.resolve(richmenus);
                 });
             }).then(() => {
                 return appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
                         return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                     }
-                    return appsRichmenus;
+                    return Promise.resolve(appsRichmenus);
                 });
             }).then((appsRichmenus) => {
                 let suc = {
@@ -161,7 +161,7 @@ module.exports = (function() {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
                         return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
                     }
-                    return appsRichmenus;
+                    return Promise.resolve(appsRichmenus);
                 });
             }).then((appsRichmenus) => {
                 if (!postRichmenu.src) {
@@ -214,14 +214,14 @@ module.exports = (function() {
                 if (!richmenuId) {
                     return Promise.reject(API_ERROR.RICHMENUID_WAS_EMPTY);
                 }
-                return appsRichmenusMdl.findRichmenus(appId);
-            }).then((richmenus) => {
-                if (!richmenus) {
+                return appsRichmenusMdl.find(appId, richmenuId);
+            }).then((appsRichmenus) => {
+                if (!(appsRichmenus && appsRichmenus[appId])) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
 
                 // 判斷 richmenus 中是否有目前 richmenuId
-                let richmenu = richmenus[richmenuId];
+                let richmenu = appsRichmenus[appId].richmenus[richmenuId];
                 if (!richmenu) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
                 }
@@ -261,7 +261,7 @@ module.exports = (function() {
                     });
                 }
 
-                // 如果沒有上傳新的圖像，將之前放在 storge 的圖像重新上傳
+                // 如果沒有上傳新的圖像，將之前放在 storge 的圖像重新下載
                 let fileName = putRichmenu.src.split('/').pop();
                 let path = `/apps/${appId}/richmenus/${richmenuId}/src/${fileName}`;
                 return storageHlp.filesDownload(path).then((res) => {
@@ -273,31 +273,30 @@ module.exports = (function() {
                     return dropboxFile.fileBinary;
                 });
             }).then((fileBinary) => {
-                if (putRichmenu.platformMenuId) {
-                    // 由於 LINE 的限制，無法更新現有的 richmenu
-                    // 因此統一將舊的 richmenu 刪除，在建立新的 richmenu
-                    return botSvc.deleteRichMenu(putRichmenu.platformMenuId, appId).catch((err) => {
-                        if (err && 404 === err.statusCode) {
-                            return Promise.resolve();
-                        }
-                        return Promise.reject(err);
-                    }).then(() => {
-                        return botSvc.createRichMenu(putRichmenu, appId);
-                    }).then((_platformMenuId) => {
+                return Promise.resolve().then(() => {
+                    if (putRichmenu.platformMenuId) {
+                        // 由於 LINE 的限制，無法更新現有的 richmenu
+                        // 因此統一將舊的 richmenu 刪除，再建立新的 richmenu
+                        return botSvc.deleteRichMenu(putRichmenu.platformMenuId, appId).catch((err) => {
+                            if (err && 404 === err.statusCode) {
+                                return Promise.resolve();
+                            }
+                            return Promise.reject(err);
+                        });
+                    }
+                }).then(() => {
+                    return botSvc.createRichMenu(putRichmenu, appId).then((_platformMenuId) => {
                         putRichmenu.platformMenuId = _platformMenuId;
-                        return fileBinary;
+                        return botSvc.setRichMenuImage(_platformMenuId, fileBinary, richmentImgMimeType, appId);
                     });
-                }
-                return fileBinary;
-            }).then((fileBinary) => {
-                return botSvc.setRichMenuImage(putRichmenu.platformMenuId, fileBinary, richmentImgMimeType, appId);
+                });
             }).then(() => {
                 // 更新目前 richmenu
                 return appsRichmenusMdl.update(appId, richmenuId, putRichmenu).then((appsRichmenus) => {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
                         return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
                     }
-                    return appsRichmenus;
+                    return Promise.resolve(appsRichmenus);
                 });
             }).then((appsRichmenus) => {
                 let suc = {
@@ -349,7 +348,7 @@ module.exports = (function() {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
                         return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_REMOVE);
                     }
-                    return appsRichmenus;
+                    return Promise.resolve(appsRichmenus);
                 });
             }).then((appsRichmenus) => {
                 let suc = {

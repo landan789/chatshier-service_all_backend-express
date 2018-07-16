@@ -49,24 +49,21 @@ module.exports = (function() {
                 let info;
 
                 return Promise.resolve().then(() => {
-                    return new Promise((resolve, reject) => {
-                        let userId = payload.uid;
+                    let userId = payload.uid;
 
-                        if (payload.exp < Date.now()) {
-                            reject(API_ERROR.JWT_HAD_EXPIRED);
-                            return;
+                    if (payload.exp < Date.now()) {
+                        return Promise.reject(API_ERROR.JWT_HAD_EXPIRED);
+                    }
+
+                    if (payload.uid !== req.params.userid) {
+                        return Promise.reject(API_ERROR.USER_WAS_NOT_PERMITTED);
+                    }
+
+                    return usersMdl.find(userId).then((users) => {
+                        if (!(users && users[userId])) {
+                            return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                         }
-                        if (payload.uid !== req.params.userid) {
-                            reject(API_ERROR.USER_WAS_NOT_PERMITTED);
-                            return;
-                        }
-                        usersMdl.find(userId, null, (users) => {
-                            if (!users) {
-                                reject(API_ERROR.USER_FAILED_TO_FIND);
-                                return;
-                            };
-                            resolve(users);
-                        });
+                        return Promise.resolve(users);
                     });
                 }).then((_users) => {
                     err = null;
@@ -85,7 +82,7 @@ module.exports = (function() {
                 // this function is called after passport fails to verify string of jwt or after next() in passport.use called
                 let ERROR = info;
                 if (err || !users) {
-                    var json = {
+                    let json = {
                         status: 0,
                         msg: ERROR.MSG || API_ERROR.USER_WAS_NOT_AUTHORIZED.MSG,
                         code: ERROR.CODE || API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE
@@ -120,6 +117,7 @@ module.exports = (function() {
             let token = jsonwebtoken.sign(payload, CHATSHIER.JWT.SECRET);
             return token;
         }
-    };
+    }
+
     return new JwtHelper();
 })();

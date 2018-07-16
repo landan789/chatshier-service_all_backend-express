@@ -12,17 +12,13 @@ module.exports = (function() {
          * 輸入全部的 appId 取得該 App 所有自動回覆的資料
          *
          * @param {string|string[]} appIds
-         * @param {any|string|string[]} [autoreplyIds]
-         * @param {(appsAutoreplies: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {string|string[]} [autoreplyIds]
+         * @param {(appsAutoreplies: Chatshier.Models.AppsAutoreplies | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.AppsAutoreplies | null>}
          */
         find(appIds, autoreplyIds, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
-            }
-
-            if (autoreplyIds && !(autoreplyIds instanceof Array)) {
-                autoreplyIds = [autoreplyIds];
             }
 
             let query = {
@@ -34,6 +30,10 @@ module.exports = (function() {
             };
 
             if (autoreplyIds) {
+                if (!(autoreplyIds instanceof Array)) {
+                    autoreplyIds = [autoreplyIds];
+                }
+
                 query['autoreplies._id'] = {
                     $in: autoreplyIds.map((autoreplyId) => this.Types.ObjectId(autoreplyId))
                 };
@@ -77,8 +77,8 @@ module.exports = (function() {
          * 找到 自動回覆未刪除的資料包，不含 apps 結構
          *
          * @param {string|string[]} appIds
-         * @param {(appsAutoreplies: any) => any} [callback]
-         * @return {Promise<any>}
+         * @param {(appsAutoreplies: Chatshier.Models.Autoreplies | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.Autoreplies | null>}
          */
         findAutoreplies(appIds, callback) {
             if ('string' === typeof appIds) {
@@ -130,8 +130,8 @@ module.exports = (function() {
          *
          * @param {string} appId
          * @param {any} postAutoreply
-         * @param {(appsAutoreplies: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsAutoreplies: Chatshier.Models.AppsAutoreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsAutoreplies | null>}
          */
         insert(appId, postAutoreply, callback) {
             let autoreplyId = this.Types.ObjectId();
@@ -142,7 +142,7 @@ module.exports = (function() {
                 app.autoreplies.push(postAutoreply);
                 return app.save();
             }).then(() => {
-                return this.find(appId, autoreplyId);
+                return this.find(appId, autoreplyId.toHexString());
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);
                 return appsAutoreplies;
@@ -158,8 +158,8 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} autoreplyId
          * @param {any} putAutoreply
-         * @param {(appsAutoreplies: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsAutoreplies: Chatshier.Models.AppsAutoreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsAutoreplies | null>}
          */
         update(appId, autoreplyId, putAutoreply, callback) {
             putAutoreply._id = autoreplyId;
@@ -191,8 +191,8 @@ module.exports = (function() {
          *
          * @param {string} appId
          * @param {string} autoreplyId
-         * @param {(appsAutoreplies: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsAutoreplies: Chatshier.Models.AppsAutoreplies | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsAutoreplies | null>}
          */
         remove(appId, autoreplyId, callback) {
             let query = {

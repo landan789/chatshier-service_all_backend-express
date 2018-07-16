@@ -9,6 +9,9 @@ module.exports = (function() {
     });
     const POLL_INTERVAL = 250; // 每秒詢問 4 次
 
+    const FDL_API_ENDPOINT = 'https://firebasedynamiclinks.googleapis.com/v1/shortLinks';
+    const FDL_REFERER = 'https://service.chatshier.com';
+
     class StorageHelper {
         constructor() {
             this.tempPath = '/temp';
@@ -27,7 +30,7 @@ module.exports = (function() {
                 contents: contents
             };
             return dbx.filesUpload(args).catch((err) => {
-                return this.handleTooMenyRequests(err).then(() => {
+                return this._handleTooMenyRequests(err).then(() => {
                     return this.filesUpload(path, contents);
                 });
             });
@@ -44,7 +47,7 @@ module.exports = (function() {
                 to_path: toPath
             };
             return dbx.filesMoveV2(args).catch((err) => {
-                return this.handleTooMenyRequests(err).then(() => {
+                return this._handleTooMenyRequests(err).then(() => {
                     return this.filesMoveV2(fromPath, toPath);
                 });
             });
@@ -83,7 +86,7 @@ module.exports = (function() {
                     return this.sharingCreateSharedLink(path).then(resolve);
                 }).catch(reject);
             }).catch((err) => {
-                return this.handleTooMenyRequests(err).then(() => {
+                return this._handleTooMenyRequests(err).then(() => {
                     return this.filesSaveUrl(path, url);
                 });
             });
@@ -91,16 +94,26 @@ module.exports = (function() {
 
         /**
          * @param {string} path
+         * @param {boolean} [useShortUrl=false]
          * @returns {Promise<string>}
          */
-        sharingCreateSharedLink(path) {
+        sharingCreateSharedLink(path, useShortUrl = false) {
             return dbx.sharingCreateSharedLink({ path: path }).then((response) => {
                 if (!response) {
                     return '';
                 }
                 return response.url.replace('www.dropbox', this.sharedLinkPrefix).replace('?dl=0', '');
+            }).then((url) => {
+                if (useShortUrl) {
+                    return this.FDLcreate(url).then((res) => {
+                        return res.shortLink;
+                    }).catch(() => {
+                        return url;
+                    });
+                }
+                return url;
             }).catch((err) => {
-                return this.handleTooMenyRequests(err).then(() => {
+                return this._handleTooMenyRequests(err).then(() => {
                     return this.sharingCreateSharedLink(path);
                 });
             });
@@ -111,7 +124,7 @@ module.exports = (function() {
          */
         filesDownload(path) {
             return dbx.filesDownload({ path: path }).catch((err) => {
-                return this.handleTooMenyRequests(err).then(() => {
+                return this._handleTooMenyRequests(err).then(() => {
                     return this.filesDownload(path);
                 });
             });
@@ -143,7 +156,39 @@ module.exports = (function() {
             });
         }
 
-        handleTooMenyRequests(err) {
+        /**
+         * https://firebase.google.com/docs/reference/dynamic-links/link-shortener
+         * Firebase Dynamic Links create
+         *
+         * @param {string} url
+         * @returns {Promise<{ shortLink: string, previewLink: string }>}
+         */
+        FDLcreate(url) {
+            let apiEndpoint = FDL_API_ENDPOINT + '?key=' + chatshierCfg.GOOGLE.serverAPIKey;
+            let reqHeaders = new Headers({
+                'Content-Type': 'application/json',
+                'referer': FDL_REFERER
+            });
+
+            let args = {
+                dynamicLinkInfo: {
+                    dynamicLinkDomain: chatshierCfg.GOOGLE.FDLdomain,
+                    link: url
+                },
+                suffix: {
+                    option: 'UNGUESSABLE' // SHORT or UNGUESSABLE
+                }
+            };
+
+            let reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(args)
+            };
+            return fetch(apiEndpoint, reqInit).then((res) => res.json());
+        }
+
+        _handleTooMenyRequests(err) {
             if (429 === err.status) {
                 return new Promise((resolve) => setTimeout(resolve, err.error.error.retry_after));
             }

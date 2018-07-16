@@ -14,12 +14,12 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string|string[]} appIds
-         * @param {string|null} [chatroomId]
-         * @param {any|null} [messagerIds]
+         * @param {string | string[]} appIds
+         * @param {string} [chatroomId]
+         * @param {string | string[]} [messagerIds]
          * @param {string} [messagerType]
-         * @param {(appsChatroomMessager: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsChatroomMessager: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         find(appIds, chatroomId, messagerIds, messagerType, callback) {
             if (!(appIds instanceof Array)) {
@@ -73,6 +73,9 @@ module.exports = (function() {
                 };
 
                 if (messagerIds) {
+                    if (!(messagerIds instanceof Array)) {
+                        messagerIds = [messagerIds];
+                    }
                     return {
                         $or: messagerIds.map((messagerId) => prepareCond(messagerId))
                     };
@@ -149,8 +152,8 @@ module.exports = (function() {
          * @param {string|null} [chatroomId]
          * @param {string|string[]} platformUids
          * @param {boolean} shouldIncludeGroupRoom
-         * @param {(appsChatroomMessager: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsChatroomMessager: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         findByPlatformUid(appId, chatroomId, platformUids, shouldIncludeGroupRoom = false, callback) {
             if (!(platformUids instanceof Array)) {
@@ -254,8 +257,8 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {string} chatroomId
-         * @param {(appChatroomMessager: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appChatroomMessager: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         replace(appId, chatroomId, messager, callback) {
             messager = messager || {};
@@ -287,8 +290,8 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {string} chatroomId
-         * @param {(appChatroomMessager: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appChatroomMessager: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         insert(appId, chatroomId, messager, callback) {
             let messagerId = this.Types.ObjectId();
@@ -323,7 +326,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, doc, options).then(() => {
-                return this.find(appId, chatroomId, messagerId);
+                return this.find(appId, chatroomId, messagerId.toHexString());
             }).then((appsChatroomsMessagers) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessagers);
                 return appsChatroomsMessagers;
@@ -337,8 +340,8 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} chatroomId
          * @param {string} messagerId
-         * @param {(appChatroomMessager: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appChatroomMessager: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         update(appId, chatroomId, messagerId, messager, callback) {
             messager = messager || {};
@@ -380,8 +383,8 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} chatroomId
          * @param {string} platformUid
-         * @param {(appChatroomMessager: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appChatroomMessager: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         updateByPlatformUid(appId, chatroomId, platformUid, messager, callback) {
             messager = messager || {};
@@ -422,10 +425,10 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {string} chatroomId
-         * @param {string|string[]} platformUids
-         * @param {number} [unReadCount]
-         * @param {(appsChatroomsMessagers: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {string | string[]} platformUids
+         * @param {number} [unReadCount=1]
+         * @param {(appsChatroomsMessagers: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         increaseUnReadByPlatformUid(appId, chatroomId, platformUids, unReadCount, callback) {
             if (!(platformUids instanceof Array)) {
@@ -496,8 +499,8 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} chatroomId
          * @param {string} platformUid
-         * @param {(appsChatroomsMessagers: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsChatroomsMessagers: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         resetUnReadByPlatformUid(appId, chatroomId, platformUid, callback) {
             let messager = {
@@ -538,10 +541,10 @@ module.exports = (function() {
 
         /**
          * @param {string|string[]} appIds
-         * @param {string|string[]|null} chatroomIds
+         * @param {string|string[]} [chatroomIds]
          * @param {string} platformUid
-         * @param {(appsChatroomsMessagers: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {(appsChatroomsMessagers: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         remove(appIds, chatroomIds, platformUid, callback) {
             if (!(appIds instanceof Array)) {

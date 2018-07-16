@@ -43,6 +43,12 @@ module.exports = (function() {
             sets: [],
             setsType: SetsTypes.TEXT
         }, {
+            text: 'Address',
+            alias: 'address',
+            type: FieldsTypes.DEFAULT,
+            sets: [],
+            setsType: SetsTypes.TEXT
+        }, {
             text: 'Remark',
             alias: 'remark',
             type: FieldsTypes.DEFAULT,
@@ -63,9 +69,10 @@ module.exports = (function() {
         /**
          * 根據輸入的 appId 陣列清單取得所有的客戶分類條件
          *
-         * @param {string|string[]} appIds
-         * @param {any} [fieldId]
-         * @param {(appsField: any|null) => any} [callback]
+         * @param {string | string[]} appIds
+         * @param {string} [fieldId]
+         * @param {(appsField: Chatshier.Models.AppsFields | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsFields | null>}
          */
         find(appIds, fieldId, callback) {
             if (!(appIds instanceof Array)) {
@@ -125,7 +132,8 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {any} field
-         * @param {(appsField: any|null) => any} [callback]
+         * @param {(appsField: Chatshier.Models.AppsFields | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsFields | null>}
          */
         insert(appId, field, callback) {
             field = field || {};
@@ -145,7 +153,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                return this.find(appId, fieldId);
+                return this.find(appId, fieldId.toHexString());
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
                 return appsFields;
@@ -159,7 +167,8 @@ module.exports = (function() {
          * 將預設的 field 資料批次新增到指定的 app 裡，完成插入後回傳所有 field ID
          *
          * @param {string} appId
-         * @param {(appsFields: any|null) => any} [callback]
+         * @param {(appsFields: Chatshier.Models.AppsFields | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsFields | null>}
          */
         insertDefaultFields(appId, callback) {
             let appsFields = {
@@ -187,7 +196,8 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} fieldId
          * @param {any} field
-         * @param {(appsField: any|null) => any} [callback]
+         * @param {(appsField: Chatshier.Models.AppsFields | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsFields | null>}
          */
         update(appId, fieldId, field, callback) {
             field = field || {};
@@ -217,7 +227,8 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {string} fieldId
-         * @param {(appsField: any|null) => any} [callback]
+         * @param {(appsField: Chatshier.Models.AppsFields | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsFields | null>}
          */
         remove(appId, fieldId, callback) {
             let field = {

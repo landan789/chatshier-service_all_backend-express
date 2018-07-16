@@ -12,9 +12,10 @@ module.exports = (function() {
          * 根據 App ID, Chatroom ID, Message ID 找到 AppsChatroomsMessages 資訊
          *
          * @param {string[]|string} appIds
-         * @param {string|null} chatroomId
-         * @param {any[]|null} messageIds
-         * @param {(appsChatroomsMessages: any) => any} [callback]
+         * @param {string} [chatroomId]
+         * @param {string[]} [messageIds]
+         * @param {(appsChatroomsMessages: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         find(appIds, chatroomId, messageIds, callback) {
             if (!(appIds instanceof Array)) {
@@ -120,9 +121,9 @@ module.exports = (function() {
          *
          * @param {string} appId
          * @param {string} chatroomId
-         * @param {Object[]|Object} messages
-         * @param {(newMessage: any) => any} [callback]
-         * @returns {Promise<any>}
+         * @param {any[]} messages
+         * @param {(appsChatroomsMessages: Chatshier.Models.AppsChatrooms | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
         insert(appId, chatroomId, messages, callback) {
             if (!(messages instanceof Array)) {
@@ -139,14 +140,14 @@ module.exports = (function() {
                     text: message.text || '',
                     time: Date.now() + i,
                     type: message.type,
-                    src: message.src || message.baseUri || ''
+                    src: message.src || message.baseUrl || ''
                 };
 
                 if (message.template) {
                     _message.template = message.template;
                 }
 
-                if (message.baseUri) {
+                if (message.baseUrl) {
                     _message.imagemap = message;
                 }
 

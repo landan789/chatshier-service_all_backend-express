@@ -180,19 +180,20 @@
     font-size: 1rem; }
 .message[message-type="template"] .content .template .template-desc {
     overflow: hidden;
-    overflow: hidden;
     height: 3.5rem;
     font-size: 1rem; }
-.message[message-type="template"] .content .template .template-button, .message[message-type="template"] .content .template-sm-buttons .template-confirm {
+.message[message-type="template"] .content .template .template-button,
+.message[message-type="template"] .content .template-sm-buttons .template-confirm {
     overflow: hidden;
     font-weight: bold;
     font-size: 1rem; }
+
 .message {
     width: 100%;
     padding: 0 10px;
     line-height: normal; }
     .message .content {
-        max-width: 60%; }
+        max-width: 80%; }
         .message .content.words {
             padding: .75rem;
             border: 1px solid #b5e7a0;
@@ -204,10 +205,12 @@
         .message .content.found {
             color:white;
             background-color: #33ccff !important; }
-        .message .content.media.buttons-format, .message .content.media.carousel-format {
+        .message .content.media.buttons-format,
+        .message .content.media.confirm-format,
+        .message .content.media.carousel-format {
             position: relative;
-            overflow-x: scroll;
-            height: 27rem; }
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; }
         .message .content.media.confirm-format {
             position: relative;
             height: 10rem; }
@@ -266,6 +269,11 @@
         .message .content .location-icon {
             margin-right: .5rem;
             color: red; }
+        .message .content .emojioneemoji {
+            width: 2.1ex;
+            height: 2ex;
+            min-height: 20px;
+            min-width: 20px; }
     .message .messager-name {
         margin-bottom: .25rem; }
         .message .messager-name .sender-name {
@@ -275,7 +283,6 @@
         .message .messager-name .template-btn {
             font-size: 1rem;
             color: #fff; }
-
     .message .box {
         position: relative; 
         text-align: center; }
@@ -287,6 +294,7 @@
         .message .box .imagemap-text-space a {
             color: #ffffff;
             text-decoration: none; }
+
 .message-group {
     display: flex;
     align-items: flex-end; }
@@ -417,6 +425,13 @@
         transform-origin: bottom center;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch; }
+    .message-input-container .emojionearea-editor {
+        height: 100%;
+        min-height: initial;
+        max-height: initial;
+        padding-left: 0;
+        overflow-y: hidden;
+    }
 
 .message-input {
     display: flex;
@@ -435,7 +450,6 @@
         .message-input.form-lower .submit-message-input {
             width: calc(100% - 2.5rem);
             height: 80%;
-            border: none;
             resize: none; }
     .message-input .submit-message-btn {
         position: relative;
@@ -443,7 +457,8 @@
         height: 2rem;
         cursor: pointer;
         color: transparent;
-        border: none; }
+        border: none;
+        background-color: white; }
         .message-input .submit-message-btn::before {
             content: "";
             position: absolute;
@@ -592,21 +607,28 @@
         white-space: normal;
         word-break: break-word; }
 
+.template-container {
+    min-width: 18.5rem;
+    min-height: 10rem; }
+.right-side .template,
+.right-side .template-sm {
+    margin-left: auto; }
+
 .template {
     position: relative;
+    min-width: 18rem;
     border: 0.0625rem solid #efefef;
     border-radius: 1rem;
-    width: 18rem;
-    min-width: 18rem;
-    height: 25rem;
     word-break: break-all; }
+    .template div:first-child {
+        border-radius: 1rem 1rem 0 0; }
     .template .top-img-container {
         position: relative;
         width: 100%;
-        height: 43%; }
+        height: 12.5rem;
+        overflow-y: hidden;
+        background-color: white; }
         .template .top-img-container img {
-            width: 100%;
-            height: 100%;
             border-radius: 1rem 1rem 0 0; }
     .template .template-title {
         font-weight: bold;
@@ -616,7 +638,6 @@
         background-color: #fff;
         font-size: 1rem; }
     .template .template-buttons {
-        height: 44%;
         color: #7caeff;
         background-color: #fff;
         border: 0.0625rem solid #efefef;
@@ -632,8 +653,7 @@
 /* small template */
 .template-sm {
     position: relative;
-    width: 20rem;
-    height: 10rem;
+    min-width: 18rem;
     border: 0.0625rem solid #efefef;
     border-radius: 1rem;
     word-break: break-all; }
@@ -660,7 +680,7 @@
     .message .content.media.carousel-format {
         position: relative;
         overflow-x: visible;
-        height: 27rem; }
+        height: 28rem; }
     .message .content {
         max-width: 90%; }
 }
