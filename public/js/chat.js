@@ -2014,7 +2014,7 @@
                                                 '<span class="multi-select-values">' + multiSelectText + '</span>' +
                                                 '<span class="caret"></span>' +
                                             '</button>' +
-                                            '<div class="multi-select-container dropdown-menu fields-select">' +
+                                            '<div class="multi-select-container dropdown-menu fields-select field-value">' +
                                                 (function(sets) {
                                                     return sets.map(function(set, i) {
                                                         return (
@@ -3218,7 +3218,7 @@
 
         var displayText = textArr.join(',');
         if (textArr.length > 1) {
-            displayText = textArr[0] + ' 及其他 ' + (textArr.length - 1) + ' 名';
+            displayText = textArr[0] + ' 及其他 ' + (textArr.length - 1) + ' 項';
         }
         $selectValues.text(displayText).attr('rel', valArr.join(','));
     }

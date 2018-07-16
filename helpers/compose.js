@@ -48,8 +48,14 @@ module.exports = (function() {
             /** @type {{ [type: string]: Chatshier.Models.ComposeCondition[] }} */
             let conditionsSets = conditions.reduce((output, condition) => {
                 let type = condition.type;
-                output[type] = output[type] || [];
-                output[type].push(condition);
+                if (condition.field_id) {
+                    let fieldId = condition.field_id;
+                    output[fieldId] = output[fieldId] || [];
+                    output[fieldId].push(condition);
+                } else {
+                    output[type] = output[type] || [];
+                    output[type].push(condition);
+                }
                 return output;
             }, {});
 
@@ -82,7 +88,7 @@ module.exports = (function() {
                             continue;
                         }
 
-                        let isAvailable = !conditions.length;
+                        let isAvailable = true;
                         for (let conditionType in conditionsSets) {
                             let _conditions = conditionsSets[conditionType];
                             let isAccept = !_conditions.length;
@@ -149,15 +155,15 @@ module.exports = (function() {
                                         }
                                         isAccept = isAccept || hasContainTag;
                                     }
-                                } else if (CONDITION_TYPES.CUSTOM_FIELD === condition.type) {
+                                } else {
                                     let fieldId = condition.field_id || '';
                                     let customField = messager.custom_fields[fieldId];
 
-                                    if (!customField) {
+                                    if (!(customField && customField.value)) {
                                         isAccept = isAccept || false;
                                     } else if (appsFields[appId]) {
                                         let field = appsFields[appId].fields[fieldId];
-                                        let customFieldValue = customField.value;
+                                        let customFieldValue = customField.value || [];
                                         let SETS_TYPES = appsFieldsMdl.SetsTypes;
 
                                         switch (field.setsType) {
@@ -194,7 +200,7 @@ module.exports = (function() {
                                     }
                                 }
                             }
-                            isAvailable = isAccept;
+                            isAvailable = isAvailable && isAccept;
                         }
 
                         if (isAvailable) {
