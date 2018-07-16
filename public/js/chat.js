@@ -721,6 +721,11 @@
             var senderMsger;
             consumersFromSocket && Object.assign(consumers, consumersFromSocket);
 
+            var app = apps[appId];
+            if (!app) {
+                return;
+            }
+
             // 根據發送的時間從早到晚排序
             messages.sort(function(a, b) {
                 return new Date(a.time).getTime() - new Date(b.time).getTime();
@@ -747,6 +752,7 @@
                 chatroom.platformGroupType = chatroomFromSocket.platformGroupType;
                 messagers = chatroom.messagers = Object.assign(chatrooms[chatroomId].messagers, chatroomFromSocket.messagers);
             }
+
             var messagerSelf = findMessagerSelf(appId, chatroomId);
             var isNewChatroom = chatroomList.indexOf(chatroomId) < 0;
 
@@ -798,7 +804,6 @@
                     chatroom.messages[message._id] = message;
                     senderUid !== userId && CHATSHIER === message.from && messagerSelf.unRead++;
 
-                    var app = apps[appId];
                     var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
 
                     if (isNewChatroom) {
