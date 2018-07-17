@@ -87,7 +87,7 @@ module.exports = (function() {
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                 let putMessager = {};
                 ('string' === typeof req.body.name) && (putMessager.namings = { [platformUid]: req.body.name });
-                ('string' === typeof req.body.email) && (putMessager.email = req.body.email);
+                ('string' === typeof req.body.email) && (putMessager.email = req.body.email.toLowerCase());
                 ('string' === typeof req.body.phone) && (putMessager.phone = req.body.phone);
                 ('string' === typeof req.body.county) && (putMessager.county = req.body.county);
                 ('string' === typeof req.body.district) && (putMessager.district = req.body.district);

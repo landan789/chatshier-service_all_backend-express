@@ -2110,10 +2110,8 @@
 
                             return api.users.find(userId, emailPattern, true).then(function(resJson) {
                                 let users = resJson.data || {};
-                                let userIds = Object.keys(resJson.data);
-                                return userIds.map(function(userId) {
-                                    return users[userId];
-                                });
+                                let userIds = Object.keys(users).filter((_userId) => _userId !== userId);
+                                return userIds.map((_userId) => users[_userId]);
                             });
                         }).then(function(searchResults) {
                             // 將搜尋到的結果存到快取中，相同的搜尋字不需再搜尋兩次
