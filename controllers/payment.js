@@ -404,7 +404,7 @@ module.exports = (function() {
                     tradeAmount: 'string' === typeof params.amount ? parseInt(params.amount, 10) : params.amount,
                     tradeDescription: params.tradeDescription,
                     payerName: params.payerName || messager.namings[consumerUid],
-                    payerEmail: params.payerEmail || messager.email,
+                    payerEmail: (params.payerEmail || messager.email).toLowerCase(),
                     payerPhone: params.payerPhone || messager.phone,
                     payerAddress: params.payerAddress || messager.address
                 };

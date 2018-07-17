@@ -89,15 +89,15 @@ module.exports = (function() {
 
             let _user = new this.Model();
             _user._id = user._id || '';
-            _user.email = user.email || '';
+            _user.email = (user.email || '').toLowerCase();
             _user.name = user.name || '';
             _user.company = user.company || '';
             _user.password = user.password;
             _user.group_ids = user.group_ids || [];
             _user.createdTime = user.updatedTime = Date.now();
 
-            if (user.email) {
-                query['email'] = user.email;
+            if (_user.email) {
+                query['email'] = _user.email;
             }
             return this.Model.findOne(query).then((__user) => {
                 if (__user) {
