@@ -127,6 +127,8 @@ module.exports = (function() {
                 }
 
                 return res.send(plainHtml);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
