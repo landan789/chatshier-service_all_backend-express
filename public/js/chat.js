@@ -1533,12 +1533,11 @@
                 );
             case 'text':
                 var messageText = message.text || '';
-                messageText = linkify(messageText);
-
                 if (emojiData) {
                     emojiData.setText(messageText);
                     messageText = emojiData.editor ? emojiData.editor.html() : messageText;
                 }
+                messageText = linkify(messageText);
                 return '<span class="text-content">' + messageText + '</span>';
             default:
                 return '';
@@ -3437,7 +3436,10 @@
      */
     function linkify(text) {
         return text.replace(urlRegex, function(url) {
-            return '<a href="' + url + '" target="_blank">' + url + '</a>';
+            if (url.startsWith('https://cdn.jsdelivr.net/emojione')) {
+                return url;
+            }
+            return '<a href="' + url + '" target="_blank" rel="noopener">' + url + '</a>';
         });
     }
 
