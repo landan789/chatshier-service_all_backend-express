@@ -1,7 +1,6 @@
 // 智付通 Spgateway 串接 API
 module.exports = (function() {
     const request = require('request');
-    const chatshierCfg = require('../config/chatshier');
     const cipherHlp = require('./cipher');
 
     const TEST = 'TEST';
@@ -18,7 +17,7 @@ module.exports = (function() {
 
     class SpgatewayHelper {
         constructor() {
-            this._mode = chatshierCfg.PAYMENT.MODE || TEST;
+            this._mode = PRODUCTION;
         }
 
         /**

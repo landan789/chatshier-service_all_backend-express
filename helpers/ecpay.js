@@ -1,6 +1,4 @@
 module.exports = (function() {
-    const chatshierCfg = require('../config/chatshier');
-
     const ECPayPayment = require('ecpay_payment_nodejs');
     const ECPayInvoice = require('ecpay_invoice_nodejs');
     const ecpayPayment = new ECPayPayment();
@@ -8,11 +6,18 @@ module.exports = (function() {
 
     class ECPayHelper {
         constructor() {
-            this.paymentHelper.op_mode = 'PRODUCTION' === chatshierCfg.PAYMENT.MODE ? 'Production' : 'Test'; // Test or Production
+            this.paymentHelper.op_mode = 'Production';
 
             // 由自己自行設定 SDK 內的忽略支付清單
             // 支援的支付類型: 'Credit', 'WebATM', 'ATM', 'CVS', 'BARCODE', 'AndroidPay'
             this.paymentHelper.ignore_payment = ['ATM', 'CVS', 'BARCODE', 'AndroidPay'];
+        }
+
+        /**
+         * @param {'Test' | 'Production'} value
+         */
+        set mode(value) {
+            this.paymentHelper.op_mode = value;
         }
 
         get paymentClient() {
