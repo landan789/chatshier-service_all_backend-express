@@ -49,7 +49,7 @@ module.exports = (function() {
             let putMessager = {};
             !isNaN(parseInt(req.body.unRead, 10)) && (putMessager.unRead = parseInt(req.body.unRead, 10));
             !isNaN(parseInt(req.body.age, 10)) && (putMessager.age = parseInt(req.body.age, 10));
-            ('string' === typeof req.body.email) && (putMessager.email = req.body.email);
+            ('string' === typeof req.body.email) && (putMessager.email = req.body.email.toLowerCase());
             ('string' === typeof req.body.phone) && (putMessager.phone = req.body.phone);
             ('string' === typeof req.body.gender) && (putMessager.gender = req.body.gender);
             ('string' === typeof req.body.remark) && (putMessager.remark = req.body.remark);

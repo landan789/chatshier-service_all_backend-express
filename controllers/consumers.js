@@ -82,7 +82,7 @@ module.exports = (function() {
             let consumer = {};
             ('string' === typeof req.body.photo) && (consumer.photo = req.body.photo);
             ('number' === typeof req.body.age) && (consumer.age = req.body.age);
-            ('string' === typeof req.body.email) && (consumer.email = req.body.email);
+            ('string' === typeof req.body.email) && (consumer.email = req.body.email.toLowerCase());
             ('string' === typeof req.body.phone) && (consumer.phone = req.body.phone);
             ('string' === typeof req.body.gender) && (consumer.gender = req.body.gender);
             ('string' === typeof req.body.remark) && (consumer.remark = req.body.remark);

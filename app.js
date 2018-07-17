@@ -23,7 +23,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
 
-app.use(cors(CHATSHIER['CORS']));
+app.use(cors(CHATSHIER.CORS));
 app.use(cookieParser());
 
 app.use('/webhook', webhook);
