@@ -261,17 +261,8 @@ module.exports = (function() {
                     });
                 }
 
-                // 如果沒有上傳新的圖像，將之前放在 storge 的圖像重新下載
-                let fileName = putRichmenu.src.split('/').pop();
-                let path = `/apps/${appId}/richmenus/${richmenuId}/src/${fileName}`;
-                return storageHlp.filesDownload(path).then((res) => {
-                    /** @type {any} */
-                    let dropboxFile = res;
-                    if (!dropboxFile.fileBinary) {
-                        return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
-                    }
-                    return dropboxFile.fileBinary;
-                });
+                // 如果沒有上傳新的圖像，將之前放在 storage 的圖像重新下載
+                return putRichmenu.src && storageHlp.downloadUrlToBuffer(putRichmenu.src);
             }).then((fileBinary) => {
                 return Promise.resolve().then(() => {
                     if (putRichmenu.platformMenuId) {
@@ -287,7 +278,7 @@ module.exports = (function() {
                 }).then(() => {
                     return botSvc.createRichMenu(putRichmenu, appId).then((_platformMenuId) => {
                         putRichmenu.platformMenuId = _platformMenuId;
-                        return botSvc.setRichMenuImage(_platformMenuId, fileBinary, richmentImgMimeType, appId);
+                        return fileBinary && botSvc.setRichMenuImage(_platformMenuId, fileBinary, richmentImgMimeType, appId);
                     });
                 });
             }).then(() => {
