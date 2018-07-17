@@ -835,19 +835,18 @@
                     var person = CHATSHIER === message.from ? consumers[recipientUid] : consumers[senderUid];
                     var consumerUid = person ? person.platformUid : '';
 
-                    var shouldHide = false;
                     if (isGroupChatroom) {
                         person = Object.assign({}, users[userId]);
                         person.photo = LINE === app.type ? LOGOS[LINE_GROUP] : 'image/group.png';
                         var $chatroomProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-                        shouldHide = $chatroomProfileGroup.hasClass('d-none');
-                        $chatroomProfileGroup = $chatroomProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
-                        shouldHide && $chatroomProfileGroup.addClass('d-none');
+                        var _$chatroomProfileGroup = $(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                        $chatroomProfileGroup.hasClass('d-none') && _$chatroomProfileGroup.addClass('d-none');
+                        $chatroomProfileGroup.replaceWith(_$chatroomProfileGroup);
                     } else if (senderUid && person) {
                         var $personProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + consumerUid + '"]');
-                        shouldHide = $personProfileGroup.hasClass('d-none');
-                        $personProfileGroup = $personProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, person));
-                        shouldHide && $personProfileGroup.addClass('d-none');
+                        var _$personProfileGroup = $(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                        $personProfileGroup.hasClass('d-none') && _$personProfileGroup.addClass('d-none');
+                        $personProfileGroup.replaceWith(_$personProfileGroup);
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
@@ -937,9 +936,9 @@
             person.photo = person.photo || 'image/user_large.png';
 
             var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]');
-            var shouldHide = $profileGroup.hasClass('d-none');
-            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
-            shouldHide && $profileGroup.addClass('d-none');
+            var _$profileGroup = $(generateProfileHtml(appId, chatroomId, platformUid, person));
+            $profileGroup.hasClass('d-none') && _$profileGroup.addClass('d-none');
+            $profileGroup.replaceWith(_$profileGroup);
 
             var tagsNew = messager.tags || [];
             var tagsAdd = tagsNew.filter(function(tag) {
@@ -1035,7 +1034,8 @@
 
             /** @type {Chatshier.Models.Consumer} */
             let consumer = consumers[messager.platformUid];
-            $.notify('[' + consumer.type + '] 用戶 "' + consumer.name + '" 已封鎖機器人 "' + apps[appId].name + '"', { type: 'warning' });
+            let app = apps[appId];
+            consumer && app && $.notify('[' + consumer.type + '] 用戶 "' + consumer.name + '" 已封鎖機器人 "' + app.name + '"', { type: 'warning' });
         });
 
         socket.on(SOCKET_EVENTS.USER_ADD_GROUP_MEMBER_TO_CLIENT, function(data) {
@@ -1533,12 +1533,11 @@
                 );
             case 'text':
                 var messageText = message.text || '';
-                messageText = linkify(messageText);
-
                 if (emojiData) {
                     emojiData.setText(messageText);
                     messageText = emojiData.editor ? emojiData.editor.html() : messageText;
                 }
+                messageText = linkify(messageText);
                 return '<span class="text-content">' + messageText + '</span>';
             default:
                 return '';
@@ -2851,9 +2850,9 @@
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
 
-            var shouldHide = $profileGroup.hasClass('d-none');
-            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
-            shouldHide && $profileGroup.addClass('d-none');
+            var _$profileGroup = $(generateProfileHtml(appId, chatroomId, platformUid, person));
+            $profileGroup.hasClass('d-none') && _$profileGroup.addClass('d-none');
+            $profileGroup.replaceWith(_$profileGroup);
             $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
 
             return new Promise(function(resolve, reject) {
@@ -2905,9 +2904,9 @@
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
 
-            var shouldHide = $profileGroup.hasClass('d-none');
-            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
-            shouldHide && $profileGroup.addClass('d-none');
+            var _$profileGroup = $(generateProfileHtml(appId, chatroomId, platformUid, person));
+            $profileGroup.hasClass('d-none') && _$profileGroup.addClass('d-none');
+            $profileGroup.replaceWith(_$profileGroup);
             $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
 
             return new Promise(function(resolve, reject) {
@@ -2950,9 +2949,9 @@
             var person = consumers[platformUid];
             person.photo = person.photo || 'image/user_large.png';
 
-            var shouldHide = $profileGroup.hasClass('d-none');
-            $profileGroup = $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
-            shouldHide && $profileGroup.addClass('d-none');
+            var _$profileGroup = $(generateProfileHtml(appId, chatroomId, platformUid, person));
+            $profileGroup.hasClass('d-none') && _$profileGroup.addClass('d-none');
+            $profileGroup.replaceWith(_$profileGroup);
 
             // 將聊天訊息的名稱以及聊天室的名稱做更新
             var consumer = consumers[platformUid];
@@ -3437,7 +3436,10 @@
      */
     function linkify(text) {
         return text.replace(urlRegex, function(url) {
-            return '<a href="' + url + '" target="_blank">' + url + '</a>';
+            if (url.startsWith('https://cdn.jsdelivr.net/emojione')) {
+                return url;
+            }
+            return '<a href="' + url + '" target="_blank" rel="noopener">' + url + '</a>';
         });
     }
 
