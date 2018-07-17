@@ -1,5 +1,6 @@
 module.exports = (function() {
     require('isomorphic-fetch'); // polyfill fetch method for Dropbox SDK
+    const request = require('request');
     const PassThrough = require('stream').PassThrough;
     const chatshierCfg = require('../config/chatshier');
 
@@ -126,6 +127,25 @@ module.exports = (function() {
             return dbx.filesDownload({ path: path }).catch((err) => {
                 return this._handleTooMenyRequests(err).then(() => {
                     return this.filesDownload(path);
+                });
+            });
+        }
+
+        /**
+         * @param {string} url
+         */
+        downloadUrlToBuffer(url) {
+            return new Promise((resolve, reject) => {
+                let options = {
+                    url: url,
+                    encoding: null
+                };
+
+                request(options, (err, res, buffer) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve(buffer);
                 });
             });
         }
