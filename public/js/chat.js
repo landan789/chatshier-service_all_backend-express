@@ -806,11 +806,6 @@
             };
 
             return nextMessage(0).then(function() {
-                if (!hasUserFocus) {
-                    blinkPageTitle(newMessageTipText);
-                    return playNewMessageSound();
-                }
-
                 var $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
                 var _appId = $openedChatroomNow.attr('app-id');
                 var _chatroomId = $openedChatroomNow.attr('chatroom-id');
@@ -826,6 +821,11 @@
                     } else {
                         $submitMessageInput.attr('placeholder', '輸入訊息...');
                     }
+                }
+
+                if (!hasUserFocus) {
+                    blinkPageTitle(newMessageTipText);
+                    return playNewMessageSound();
                 }
             });
         });
@@ -1259,7 +1259,7 @@
 
         var contentType = imageContentType(message);
         return (
-            '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
+            '<div class="mb-3 message" id="' + (message._id || '') + '" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
                     imageContentBadge(message.type) +
                     '<span class="sender-name">' + senderName + '</span>' +
@@ -2108,6 +2108,12 @@
 
         // 當點擊同一個聊天室時，不用重複處理聊天資料
         if (isSameRoom) {
+            $('#chatWrapper .message .content').removeClass('found');
+            for (let i = 0; i < searchedMessages.length; i++) {
+                let searched = searchedMessages[i];
+                let $messageContent = $('#chatWrapper .message#' + searched.messageId + ' .content');
+                $messageContent.addClass('found');
+            }
             return;
         }
 
@@ -2175,6 +2181,12 @@
         );
         $chatroomBody.empty().append($chatContent);
         scrollMessagePanelToBottom(appId, chatroomId);
+        $('#chatWrapper .message .content').removeClass('found');
+        for (let i = 0; i < searchedMessages.length; i++) {
+            let searched = searchedMessages[i];
+            let $messageContent = $('#chatWrapper .message#' + searched.messageId + ' .content');
+            $messageContent.addClass('found');
+        }
 
         var $messageInputContainer = $submitMessageInput.parents('.message-input-container');
         $messageInputContainer.removeClass('d-none');
@@ -3148,28 +3160,17 @@
     // =====end profile function=====
 
     // =====start search input change func=====
-    var searchedMessages = {};
-    var $panels = [];
-    var $clientNameOrTexts = [];
+    var searchedMessages = [];
     var $searchWapper = $('#ctrlPanel .message-search');
     var $searchInput = $searchWapper.find('.search-box');
 
     $searchInput.on('keyup', function(ev) {
         var searchStr = $(ev.target).val().toLowerCase();
-        if ('' === searchStr) {
+        if (!searchStr) {
             $searchWapper.find('.search-results').addClass('d-none');
-            displayAll();
-
             $('.tablinks').removeClass('d-none');
-            // $('.tablinks').each(function(i, elem) {
-            //     var $tablink = $(elem);
-            //     var appId = $tablink.attr('app-id');
-            //     var chatroomId = $tablink.attr('chatroom-id');
-            //     var $chatContent = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-            //     $chatContent.find('.message .content').removeClass('found');
-            //     $tablink.removeClass('d-none');
-            // });
-            // return;
+            $('#chatWrapper .message .content').removeClass('found');
+            return;
         }
 
         var code = ev.keyCode || ev.which;
@@ -3183,93 +3184,59 @@
             return;
         }
 
-        var count = 0;
-        $panels.length = $clientNameOrTexts.length = 0;
-
-        searchedMessages = {};
+        // 聊天室搜尋
+        searchedMessages.length = 0;
+        let chatroomList = [];
         for (let appId in appsChatrooms) {
             let chatrooms = appsChatrooms[appId].chatrooms;
-            searchedMessages[appId] = {};
-
             for (let chatroomId in chatrooms) {
                 let messages = chatrooms[chatroomId].messages;
-                searchedMessages[appId][chatroomId] = {};
-
                 for (let messageId in messages) {
                     let message = messages[messageId];
                     let text = message.text;
 
                     if (text.toLowerCase().indexOf(searchStr) >= 0) {
-                        searchedMessages[appId][chatroomId][messageId] = true;
+                        searchedMessages.push({
+                            appId: appId,
+                            chatroomId: chatroomId,
+                            messageId: messageId
+                        });
+                        chatroomList.push(chatroomId);
                     }
                 }
             }
         }
 
-        var $targetElems = $('[app-type] .tablinks');
+        var $targetElems = $('.tablinks .app-name');
         $targetElems.each(function(i, elem) {
-            var $tablinkElem = $(elem);
-            var appId = $tablinkElem.attr('app-id');
+            var $tablinkElem = $(elem).parents('.tablinks');
             var chatroomId = $tablinkElem.attr('chatroom-id');
-            var panel = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-            var color = '';
-            var display = false;
+            var text = $(elem).text();
 
-            // 客戶名單搜尋
-            $tablinkElem.find('.app-name').each(function(i, elem) {
-                var $content = $(elem).parents('.tablinks');
-                var text = $(elem).text();
-
-                if (text.toLowerCase().indexOf(searchStr) !== -1) {
-                    $content.parents('.collapse').addClass('show');
-                    $content.removeClass('d-none');
-                    display = true;
-                } else {
-                    $content.addClass('d-none');
-                }
-            });
-
-            // 聊天室搜尋
-            panel.find('.message').each(function(i, elem) {
-                var $message = $(elem);
-                var $content = $message.find('.content');
-                var text = $content.text();
-
-                if (text.toLowerCase().indexOf(searchStr) !== -1) {
-                    // match 的字標黃
-                    if (0 === count) {
-                        $tablinkElem.trigger('click');
-                        var offsetTop = $message.prop('offsetTop') - $message.height();
-                        panel.scrollTop(offsetTop);
-                    }
-                    $tablinks.push($tablinkElem);
-                    $panels.push(panel);
-                    $clientNameOrTexts.push($message);
-                    $content.addClass('found');
-                    count += 1;
-
-                    // 顯示"找到訊息"並標紅
-                    var $tablinkMsg = $('.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .client-message');
-                    $tablinkMsg.css('color', COLOR.FIND).text('找到訊息');
-                    display = true;
-                } else {
-                    $content.removeClass('found');
-                }
-            });
-
-            if (1 <= count) {
-                $('#currentNumber').html(1);
-                $('#totalNumber').html(count);
-                $searchWapper.find('.search-results').removeClass('d-none');
-                $(this).css('color', color);
+            // 客戶名單搜尋=
+            if (text.toLowerCase().indexOf(searchStr) !== -1 || chatroomList.includes(chatroomId)) {
+                $tablinkElem.removeClass('d-none').parents('.collapse').addClass('show');
+            } else {
+                $tablinkElem.addClass('d-none');
             }
-
-            display ? $(this).removeClass('d-none') : $(this).addClass('d-none');
         });
+
+        if (searchedMessages.length > 0) {
+            $('#currentNumber').html(1);
+            $('#totalNumber').html(searchedMessages.length);
+            $searchWapper.find('.search-results').removeClass('d-none');
+
+            let firstSearched = searchedMessages[0];
+            let appId = firstSearched.appId;
+            let chatroomId = firstSearched.chatroomId;
+            let messageId = firstSearched.messageId;
+            $('[app-type] .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]').trigger('click');
+            return scrollToMessage(appId, chatroomId, messageId);
+        }
     });
 
     $searchWapper.on('click', '.fa-chevron-up', function() {
-        if (!($panels.length && $tablinks.length)) {
+        if (!searchedMessages.length) {
             return;
         }
 
@@ -3281,20 +3248,18 @@
         } else {
             i -= 1;
         }
-        var $panel = $panels[(i - 1)];
-        var $tablink = $tablinks[(i - 1)];
-        $tablink.trigger('click');
-
-        if ($clientNameOrTexts[(i - 1)]) {
-            var $clientNameOrText = $clientNameOrTexts[(i - 1)];
-            var offsetTop = $clientNameOrText.prop('offsetTop') - $clientNameOrText.height();
-            $panel.scrollTop(offsetTop);
-        }
         $('#currentNumber').html(i);
+
+        var searched = searchedMessages[i - 1];
+        var appId = searched.appId;
+        var chatroomId = searched.chatroomId;
+        var messageId = searched.messageId;
+        $('[app-type] .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]').trigger('click');
+        return scrollToMessage(appId, chatroomId, messageId);
     });
 
     $searchWapper.on('click', '.fa-chevron-down', function() {
-        if (!($panels.length && $tablinks.length)) {
+        if (!searchedMessages.length) {
             return;
         }
 
@@ -3306,49 +3271,26 @@
         } else {
             i += 1;
         }
-        var $panel = $panels[(i - 1)];
-        var $tablink = $tablinks[(i - 1)];
-        $tablink.trigger('click');
-
-        if ($clientNameOrTexts[(i - 1)]) {
-            var $clientNameOrText = $clientNameOrTexts[(i - 1)];
-            var offsetTop = $clientNameOrText.prop('offsetTop') - $clientNameOrText.height();
-            $panel.scrollTop(offsetTop);
-        }
         $('#currentNumber').html(i);
+
+        var searched = searchedMessages[i - 1];
+        var appId = searched.appId;
+        var chatroomId = searched.chatroomId;
+        var messageId = searched.messageId;
+        $('[app-type] .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]').trigger('click');
+        return scrollToMessage(appId, chatroomId, messageId);
     });
 
-    function displayAll() {
-        $('.tablinks-area .tablinks').each(function(i, elem) {
-            var $tablinkElem = $(elem);
-            $tablinkElem.removeClass('d-none').css({
-                'background-color': ''
-            });
-
-            var appId = $tablinkElem.attr('app-id');
-            var chatroomId = $tablinkElem.attr('chatroom-id');
-            var $MessagePanel = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-            var $tablinkMsg = $tablinkElem.find('.client-message');
-            var $lastMessage = $MessagePanel.find('.message').last();
-
-            var srcHtml = messageToClientHtml({
-                text: $lastMessage.find('.content').text().trim(),
-                type: $lastMessage.attr('message-type'),
-                time: parseInt($lastMessage.attr('message-time'), 10)
-            });
-            $tablinkMsg.html(srcHtml).css('color', 'black');
-
-            $MessagePanel.find('.message .content').css({
-                color: 'black',
-                'background-color': '#b5e7a0'
-            });
-
-            $tablinkElem.find('.client-name').css({
-                color: 'black',
-                'background-color': ''
-            });
-        });
+    function scrollToMessage(appId, chatroomId, messageId) {
+        return new Promise((resolve) => window.setTimeout(() => {
+            let $chatWrapper = $('#chatWrapper');
+            let $messagePanel = $chatWrapper.find('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
+            let $messageContent = $messagePanel.find('.message#' + messageId + ' .content');
+            $messagePanel.scrollTop($messageContent.prop('offsetTop') - 32);
+            resolve();
+        }, 1));
     }
+
     // =====end search input change func=====
 
     // =====start utility function
