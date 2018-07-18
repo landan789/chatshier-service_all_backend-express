@@ -880,11 +880,11 @@
 
         socket.on(SOCKET_EVENTS.BROADCAST_MESSAGER_TO_CLIENT, function(data) {
             var senderUid = data.senderUid;
-            if (senderUid === userId) {
+            var appId = data.appId;
+            if (senderUid === userId || !(apps[appId] && appsChatrooms[appId])) {
                 return;
             }
 
-            var appId = data.appId;
             var chatroomId = data.chatroomId;
             var messager = data.messager;
             var messagerId = messager._id;
@@ -1282,7 +1282,11 @@
             var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
         }
 
-        var senderName = (messagerSelf && messagerSelf.namings && messagerSelf.namings[platformUid]) || (sender && sender.name) || '';
+        var senderName = (
+            (messagerSelf && messagerSelf.namings && messagerSelf.namings[platformUid]) ||
+            (messager && messager.namings && messager.namings[platformUid]) ||
+            (sender && sender.name) || ''
+        );
         if (SYSTEM === message.from) {
             senderName = '由系統發送';
         } else if (VENDOR === message.from) {
@@ -1365,6 +1369,7 @@
 
         // 左邊的客戶清單排列
         var messagers = chatroom.messagers || {};
+        var messager = findChatroomMessager(appId, chatroomId, appType);
         var messagerSelf = findMessagerSelf(appId, chatroomId);
         var clientUiOpts = {
             appId: appId,
@@ -1373,7 +1378,7 @@
             chatroom: chatroom,
             chatroomId: chatroomId,
             platformUid: platformUid,
-            clientName: (messagerSelf.namings && messagerSelf.namings[platformUid]) || person.name,
+            clientName: (messagerSelf.namings && messagerSelf.namings[platformUid]) || (messager.namings && messager.namings[platformUid]) || person.name,
             clientPhoto: person.photo,
             iconSrc: LOGOS[appType] || '',
             unRead: messagerSelf.unRead || 0,
@@ -1870,7 +1875,8 @@
 
         var messagerSelf = findMessagerSelf(appId, chatroomId);
         var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
-        var personDisplayName = (messagerSelf.namings && messagerSelf.namings[platformUid]) || '';
+        var defaultDisplayName = (messager.namings && messager.namings[platformUid]) || person.name || '';
+        var personDisplayName = (messagerSelf.namings && messagerSelf.namings[platformUid]) || defaultDisplayName;
 
         var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
         var agents = appsAgents[appId].agents;
@@ -1883,7 +1889,7 @@
                 '<div class="px-2 d-flex align-items-center form-group user-info">' +
                     '<label class="px-0 col-3 col-form-label">' + transJson['Name'] + '</label>' +
                     '<div class="pr-0 col-9 d-flex">' +
-                        '<input class="form-control" type="text" placeholder="' + person.name + '" value="' + personDisplayName + '" autocapitalize="none" />' +
+                        '<input class="form-control" type="text" placeholder="' + defaultDisplayName + '" value="' + personDisplayName + '" autocapitalize="none" />' +
                         '<button type="button" class="ml-2 btn btn-primary btn-update-name">變更</button>' +
                     '</div>' +
                 '</div>' +
@@ -2749,14 +2755,10 @@
             var platformUid = messager.platformUid;
             var consumer = consumers[platformUid];
             if (consumer) {
-                if (consumer.photo) {
-                    $chatroomTablinks.find('.app-icon').attr('src', consumer.photo);
-                }
+                consumer.photo && $chatroomTablinks.find('.app-icon').attr('src', consumer.photo);
 
-                if (consumer.name) {
-                    var displayName = (messagerSelf.namings && messagerSelf.namings[platformUid]) || consumer.name;
-                    $chatroomTablinks.find('.app-name').text(displayName);
-                }
+                var displayName = (messagerSelf.namings && messagerSelf.namings[platformUid]) || (messager.namings && messager.namings[platformUid]) || consumer.name;
+                $chatroomTablinks.find('.app-name').text(displayName);
             }
         }
 
