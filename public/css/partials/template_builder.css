@@ -1,0 +1,39 @@
+.template-builder .template-image-input {
+    width: 100%;
+    height: 16rem;
+    cursor: pointer; }
+    .template-builder .template-image-input .image-upload-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 1;
+        opacity: .3;
+        -webkit-transform: translate(-50%,-50%);
+        transform: translate(-50%,-50%);
+        cursor: pointer;
+        outline: none;
+        background: transparent;
+        border: none; }
+    .template-builder .template-image-input:hover .image-upload-btn {
+        opacity: 1; }
+.template-builder .image-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    background-color: #ecf0f5;
+    overflow-y: hidden; }
+    .template-builder .image-container .image-fit {
+        width: 100%;
+        max-height: initial; }
+.template-builder .swiper-slide {
+    width: calc(90% - 1rem);
+    min-height: 30rem; }
+    .template-builder .swiper-slide .insert-template-card {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        -webkit-transform: translateY(-50%);
+        transform: translateY(-50%);
+    }

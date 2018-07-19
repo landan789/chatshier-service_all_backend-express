@@ -21,6 +21,7 @@ declare module Chatshier {
                 imageSize?: string,
                 title?: string,
                 actions: TemplateAction[],
+                defaultAction?: TemplateAction,
                 columns?: TemplateColumn[]
             }
         }

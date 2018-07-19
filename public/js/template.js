@@ -1,29 +1,28 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var api = window.restfulAPI;
-    var $jqDoc = $(document);
+    let api = window.restfulAPI;
+    let $jqDoc = $(document);
 
     const ICONS = {
         LINE: 'fab fa-line fa-fw line-color',
         FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
     };
-    var nowSelectAppId = '';
+    let nowSelectAppId = '';
 
-    var previewImage = '';
-    var file;
-    var imageFile = {};
-    var btnImage;
-    var carouselImage = [];
+    let appsTemplates = {};
     const NO_PERMISSION_CODE = '3.16';
 
-    var userId;
+    let userId;
     try {
-        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        let payload = window.jwt_decode(window.localStorage.getItem('jwt'));
         userId = payload.uid;
     } catch (ex) {
         userId = '';
     }
+
+    const TemplateBuilder = window.TemplateBuilder;
+    let templateBuilder = new TemplateBuilder(document.getElementById('templateWrapper'));
 
     (function modelProcess() {
         const handleMessages = {
@@ -32,493 +31,172 @@
             editFinished: '修改'
         };
 
-        let $modal = $('#template-modal');
-        $modal.on('change', '.image-ghost', uploadImage);
-        $modal.on('change', '#template-type', switchTemplateType);
-        $modal.on('click', '.image-upload', clickImageUpload);
-        $modal.on('click', '#image-upload', uploadImageFromButton);
-        $modal.on('click', '#modal-save', insertTemplate);
-        $modal.on('click', '#edit-modal-save', updateTemplate);
-        $modal.on('focus', 'input[type="text"]', function() {
-            $(this).select();
-        });
-        $('#carousel-container').on('slide.bs.carousel', checkCarouselSide);
+        let $templateModal = $('#templateModal');
+        $templateModal.on('click', '#insertTemplateBtn, #updateTemplateBtn', replaceTemplate);
 
-        $modal.on('show.bs.modal', initTemplateModal);
-        $modal.on('hide.bs.modal', function() {
+        let $insertTemplateBtn = $templateModal.find('#insertTemplateBtn');
+        let $updateTemplateBtn = $templateModal.find('#updateTemplateBtn');
+
+        $templateModal.on('show.bs.modal', initTemplateModal);
+        $templateModal.on('shown.bs.modal', () => templateBuilder && templateBuilder.updateSwiper());
+        $templateModal.on('hide.bs.modal', function() {
             let modalAppId = $appSelector.val();
             if (nowSelectAppId !== modalAppId) {
                 $appDropdown.find('#' + modalAppId).trigger('click');
             }
         });
 
-        function clearModal() {
-            imageFile = {
-                0: '',
-                1: '',
-                2: ''
-            };
-
-            let modal = $('#template-modal');
-            elementShow($('.template-upload-desc'));
-            $('#template-type').val('').trigger('change');
-            modal.find('input').val('');
-            modal.find('textarea').val('');
-            modal.find('.line-thumbnailImageUrl').val('');
-            modal.find('.image-upload').attr('src', 'image/upload.png');
-            modal.find('.carousel-inner').find('.carousel-item:first').addClass('active').siblings('.carousel-item').removeClass('active');
-            elementShow(modal.find('.app-select-bar'));
-            elementHide(modal.find('#edit-modal-save'));
-            elementShow(modal.find('#modal-save'));
-            checkCarouselSide();
-        }
-
         function initTemplateModal(ev) {
             let $relatedBtn = $(ev.relatedTarget);
-            clearModal();
 
-            if ('show-template-modal' === $relatedBtn.attr('id')) {
+            if ($relatedBtn.hasClass('insert-btn')) {
+                elementShow($appSelector.parents('.app-select-bar'));
+                elementShow($insertTemplateBtn);
+                elementHide($updateTemplateBtn);
+
                 $appSelector.val(nowSelectAppId);
+                $templateModal.find('#templateId').val('');
+                templateBuilder.initTemplates();
                 return;
             }
 
+            elementHide($appSelector.parents('.app-select-bar'));
+            elementHide($insertTemplateBtn);
+            elementShow($updateTemplateBtn);
+
             let $templateRow = $relatedBtn.parents('tr');
-            let templateId = $templateRow.attr('id');
-            let appId = $templateRow.attr('rel');
+            let templateId = $templateRow.attr('template-id');
+            let appId = $templateRow.attr('app-id');
             $appSelector.val(appId);
+            $templateModal.find('#templateId').val(templateId);
 
-            elementShow($('#show-template-modal'));
-            $('.carousel-inner').carousel(0);
-            $('.carousel-inner').carousel('pause');
-            imageFile = {
-                0: '',
-                1: '',
-                2: ''
-            };
-            carouselImage = [];
-            btnImage = '';
-            elementHide($modal.find('.app-select-bar'));
-            elementHide($modal.find('#modal-save'));
-            elementShow($modal.find('#edit-modal-save'));
-
-            return api.appsTemplates.findOne(appId, templateId, userId).then(function(resJson) {
-                let data = resJson.data;
-                let templates = data[appId].templates[templateId];
-                let template = data[appId].templates[templateId].template;
-                let type = template.type;
-                $('#template-id').text(templateId);
-                $('#template-keyword').val(templates.keyword);
-                $('#template-type').val(template.type).trigger('change');
-                $('#template-altText').val(templates.altText);
-                if ('confirm' === type) {
-                    showConfirm(template);
-                } ;
-                if ('buttons' === type) {
-                    showButtons(template);
-                };
-                if ('carousel' === type) {
-                    showCarousel(template);
-                };
-            }).catch((ERR) => {
-                return $.notify('載入失敗', { type: 'danger' });
-            });
+            templateBuilder.initTemplates();
         }
 
-        function showConfirm(template) {
-            let container = $('.template-view[rel="confirm"] .rounded-border');
-            container.find('.line-text').val(template.text);
-            showAction(container, template.actions);
-        }
-
-        function showCarousel(template) {
-            elementHide($('.template-upload-desc'));
-            let items = $('#carousel-container .carousel-item .rounded-border');
-            for (let i = 0; i < template.columns.length; i++) {
-                showColumn(items.eq(i), template.columns[i]);
-                carouselImage[i] = template.columns[i].thumbnailImageUrl;
+        function replaceTemplate() {
+            let templateAltText = $('#templateForm input[name="templateAltText"]').val();
+            if (!templateAltText) {
+                $.notify('模板顯示文字不可為空', { type: 'warning' });
+                return;
             }
-        }
 
-        function showButtons(template) {
-            elementHide($('.template-upload-desc'));
-            let container = $('#carousel-container .carousel-item.active .rounded-border');
-            btnImage = template.thumbnailImageUrl;
-            container.find('.line-thumbnailImageUrl').val(template.thumbnailImageUrl);
-            container.find('.line-thumbnailImageUrl>img').attr('src', template.thumbnailImageUrl);
-            container.find('.line-title').val(template.title);
-            container.find('.line-text').val(template.text);
-            showAction(container, template.actions);
-        }
+            let appId = $appSelector.val();
+            let templateId = $templateModal.find('#templateId').val();
+            let isUpdate = !!templateId;
+            let fileMoveTasks = [];
 
-        function checkCarouselSide() {
-            let container = $('#carousel-container');
-            if ($('.carousel-inner .carousel-item:first').hasClass('.active')) {
-                elementHide(container.find('.carousel-item-left.carousel-control'));
-                elementShow(container.find('.carousel-item-right.carousel-control'));
-            } else if ($('.carousel-inner .carousel-item:last').hasClass('active')) {
-                elementHide(container.find('.carousel-item-right.carousel-control'));
-                elementShow(container.find('.carousel-item-left.carousel-control'));
-            } else {
-                elementShow(container.find('.carousel-control'));
-            }
-        }
+            elementDisabled(isUpdate ? $updateTemplateBtn : $insertTemplateBtn, isUpdate ? handleMessages.addFinished : handleMessages.working);
+            return templateBuilder.getTemplateJSON().then((templateMessage) => {
+                templateMessage.altText = templateAltText;
 
-        function createTemplate(type) {
-            let altText = $('#template-altText').val();
-            if (!altText) {
-                elementEnabled($('#modal-save'), handleMessages.addFinished);
-                elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                $.notify('電腦版替代文字不可為空', { type: 'warning' });
-                return null;
-            } else {
-                let template = null;
-                if ('confirm' === type) {
-                    template = createConfirm();
-                } else if ('buttons' === type) {
-                    template = createButtons();
-                } else if ('carousel' === type) {
-                    template = createCarousel();
+                return Promise.resolve().then(() => {
+                    if (templateMessage.template.thumbnailImageUrl instanceof File) {
+                        let imageUrl = templateMessage.template.thumbnailImageUrl;
+                        return api.image.uploadFile(userId, imageUrl).then((resJson) => {
+                            let url = resJson.data.url;
+                            templateMessage.template.thumbnailImageUrl = url;
+                            fileMoveTasks.push(resJson.data.originalFilePath);
+                            return templateMessage;
+                        });
+                    } else if (templateMessage.template.columns) {
+                        let columns = templateMessage.template.columns;
+                        let _columns = [];
+
+                        let nextColumn = (i) => {
+                            if (i >= columns.length) {
+                                return Promise.resolve(_columns);
+                            }
+
+                            let column = columns[i];
+                            if (column.thumbnailImageUrl instanceof File) {
+                                let imageUrl = column.thumbnailImageUrl;
+                                return api.image.uploadFile(userId, imageUrl).then((resJson) => {
+                                    let url = resJson.data.url;
+                                    column.thumbnailImageUrl = url;
+                                    fileMoveTasks[i] = resJson.data.originalFilePath;
+                                    _columns[i] = column;
+                                    return nextColumn(i + 1);
+                                });
+                            }
+                            _columns[i] = column;
+                            return nextColumn(i + 1);
+                        };
+
+                        return nextColumn(0).then((_columns) => {
+                            templateMessage.template.columns = _columns;
+                            return templateMessage;
+                        });
+                    }
+                    return templateMessage;
+                });
+            }).then((templateMessage) => {
+                if (isUpdate) {
+                    return api.appsTemplates.update(appId, templateId, userId, templateMessage);
+                }
+                return api.appsTemplates.insert(appId, userId, templateMessage);
+            }).then((resJson) => {
+                let _appsTemplates = resJson.data;
+                if (!appsTemplates[appId]) {
+                    appsTemplates[appId] = { templates: {} };
+                }
+                Object.assign(appsTemplates[appId].templates, _appsTemplates[appId].templates);
+                let templateId = Object.keys(_appsTemplates[appId].templates).shift();
+
+                return Promise.all(fileMoveTasks.map((fromPath) => {
+                    let fileName = fromPath.split('/').pop();
+                    let toPath = `/apps/${appId}/template/${templateId}/src/${fileName}`;
+                    return api.image.moveFile(userId, fromPath, toPath);
+                }));
+            }).then(() => {
+                $templateModal.modal('hide');
+                $appDropdown.find('#' + appId).trigger('click');
+                elementEnabled(isUpdate ? $updateTemplateBtn : $insertTemplateBtn, isUpdate ? handleMessages.addFinished : handleMessages.working);
+                $.notify(isUpdate ? '更新成功！' : '新增成功！', { type: 'success' });
+            }).catch((err) => {
+                elementEnabled(isUpdate ? $updateTemplateBtn : $insertTemplateBtn, isUpdate ? handleMessages.addFinished : handleMessages.working);
+                if (!err) {
+                    return;
                 }
 
-                if (!template) {
-                    return null;
+                if (NO_PERMISSION_CODE === err.code) {
+                    $templateModal.modal('hide');
+                    return $.notify('無此權限', { type: 'danger' });
                 }
 
-                let postTemplate = {
-                    type: 'template',
-                    altText: altText,
-                    template: template
-                };
-                return postTemplate;
-            }
-        }
-
-        function createConfirm() {
-            let container = $('.template-view[rel="confirm"] .rounded-border');
-            let text = container.find('.line-text').val();
-            if (!text) {
-                elementEnabled($('#modal-save'), handleMessages.addFinished);
-                elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                $.notify('說明文字不可為空', { type: 'warning' });
-                return null;
-            }
-
-            let actions = getAction(container);
-            let template = {
-                'type': 'confirm',
-                'text': text,
-                'actions': actions
-            };
-            return template;
-        }
-
-        function createButtons() {
-            let container = $('#carousel-container .carousel-item.active .rounded-border');
-            let thumbnailImageUrl = previewImage;
-            let title = container.find('.line-title').val();
-            let text = container.find('.line-text').val();
-            let actions = getAction(container);
-
-            if (!text) {
-                elementEnabled($('#modal-save'), handleMessages.addFinished);
-                elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                $.notify('說明文字不可為空', { type: 'warning' });
-                return null;
-            }
-
-            let template = {
-                'type': 'buttons',
-                'text': text,
-                'title': title,
-                'thumbnailImageUrl': thumbnailImageUrl,
-                'actions': actions
-            };
-            return template;
-        }
-
-        function createCarousel() {
-            let items = $('#carousel-container .carousel-item .rounded-border');
-            let columns = [];
-            items.each(function() {
-                let col = getColumn($(this));
-                col && columns.push(col);
-            });
-
-            if (columns.length > 0) {
-                let template = {
-                    type: 'carousel',
-                    columns: columns
-                };
-                return template;
-            } else {
-                return null;
-            }
-        }
-
-        function getColumn(container) {
-            let thumbnailImageUrl = previewImage;
-            let title = container.find('.line-title').val();
-            let text = container.find('.line-text').val();
-
-            if (!text) {
-                return null;
-            }
-
-            let column = {
-                text: text || '',
-                title: title || '',
-                actions: getAction(container),
-                thumbnailImageUrl: thumbnailImageUrl || ''
-            };
-            return column;
-        }
-
-        function getAction(container) {
-            let $actions = container.find('.line-action');
-            let actionArr = [];
-            let textslice;
-            $actions.each(function() {
-                let label = $(this).find('.row-label').val();
-                let text = $(this).find('.row-text').val();
-                if (!label) label = '---';
-                if ('---' === label) text = ' ';
-                else if (!text) text = label;
-                textslice = text.slice(0, 5);
-                if ('https' === textslice) {
-                    actionArr.push({
-                        'type': 'uri',
-                        'label': label,
-                        'uri': text
-                    });
-                } else {
-                    actionArr.push({
-                        'type': 'message',
-                        'label': label,
-                        'text': text
-                    });
+                switch (err.message) {
+                    case TemplateBuilder.ERRORS.TEMPLATES_EMPTY:
+                        return $.notify('模板訊息內容不能為空', { type: 'warning' });
+                    case TemplateBuilder.ERRORS.TITLE_AND_TEXT_IS_REQUIRED:
+                        return $.notify('有附加圖像時，模板訊息必須要有標題及描述文字', { type: 'warning' });
+                    case TemplateBuilder.ERRORS.TEXT_IS_REQUIRED:
+                        return $.notify('每個模板訊息必須要有描述文字', { type: 'warning' });
+                    case TemplateBuilder.ERRORS.AT_LEAST_ONE_ACTION:
+                        return $.notify('每個模板訊息至少要設定 1 個按鈕動作', { type: 'warning' });
+                    case TemplateBuilder.ERRORS.MUST_UPLOAD_A_IMAGE:
+                        return $.notify('如果設置了圖片網址鏈接，則必須上傳圖片', { type: 'warning' });
+                    case TemplateBuilder.ERRORS.INVALID_URL:
+                        return $.notify('訊息中的設定連結，含有不合法的連結', { type: 'warning' });
+                    default:
+                        return $.notify('新增失敗', { type: 'danger' });
                 }
             });
-            return actionArr;
-        }
-
-        function showColumn(container, column) {
-            container.find('.line-thumbnailImageUrl').val(column.thumbnailImageUrl);
-            container.find('.line-thumbnailImageUrl>img').attr('src', column.thumbnailImageUrl);
-            container.find('.line-title').val(column.title);
-            container.find('.line-text').val(column.text);
-            showAction(container, column.actions);
-        }
-
-        function showAction(container, action) {
-            let $actions = container.find('.line-action');
-            for (let i = 0; i < action.length; i++) {
-                let dom = $actions.eq(i);
-                let data = action[i];
-                dom.find('.row-label').val(data.label);
-                if (!data.text) {
-                    dom.find('.row-text').val(data.uri);
-                } else {
-                    dom.find('.row-text').val(data.text);
-                }
-            }
-        }
-
-        function switchTemplateType() {
-            let type = $(this).val();
-            let viewClass = '.template-view';
-            let typeSelect = '[rel~="' + type + '"]';
-            elementHide($(viewClass + ':not(' + typeSelect + ')'));
-            elementShow($(viewClass + typeSelect));
-            if ('carousel' === type) {
-                elementShow($('.carousel-control.text-info'));
-                checkCarouselSide();
-            } else {
-                elementHide($('.carousel-control.text-info'));
-            }
-        }
-
-        function clickImageUpload() {
-            $(this).parents('.line-thumbnailImageUrl').find('.image-ghost').click();
-        }
-
-        function uploadImageFromButton() {
-            let name = $(this).attr('id');
-            $(`.carousel-item.template-view.active .${name}`).parents('.line-thumbnailImageUrl').find('.image-ghost').click();
-        }
-
-        function uploadImage() {
-            /** @type {HTMLInputElement} */
-            let input = this;
-            let activeIndex = $(this).parents('.carousel-item.active').index();
-
-            if (input.files && input.files[0]) {
-                /** @type {File} */
-                file = input.files[0];
-                imageFile[activeIndex] = file;
-
-                var kiloByte = 1024;
-                var megaByte = kiloByte * 1024;
-                var config = window.chatshier.config;
-                if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
-                    elementEnabled($('#modal-save'), handleMessages.addFinished);
-                    elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                    return $.notify('圖像檔案過大，檔案大小限制為: ' + (Math.floor(config.imageFileMaxSize / megaByte)) + ' MB');
-                }
-
-                return new Promise(function(resolve, reject) {
-                    var fileReader = new FileReader();
-                    fileReader.onloadend = function() {
-                        resolve(fileReader.result);
-                    };
-                    fileReader.readAsDataURL(file);
-                }).then(function(imgBase64) {
-                    previewImage = imgBase64;
-                    $(input).siblings('img').attr('src', imgBase64);
-                    elementHide($('.template-upload-desc'));
-                }).catch((ERR) => {
-                    return $.notify('載入失敗', { type: 'danger' });
-                });
-            }
-        }
-
-        function insertTemplate() {
-            elementDisabled($('#modal-save'), handleMessages.working);
-            let appId = $('#app-select').val();
-            let type = $('#template-type').val();
-
-            if (!type) {
-                elementEnabled($('#modal-save'), handleMessages.addFinished);
-                return $.notify('類型不可為空', { type: 'warning' });
-            } else {
-                let template = createTemplate(type);
-                if (!template) {
-                    elementEnabled($('#modal-save'), handleMessages.addFinished);
-                    return $.notify('模板資料輸入有誤，請完成正確的模板設定', { type: 'warning' });
-                }
-
-                return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
-                    return Promise.resolve().then(() => {
-                        if (imageFile[imageFileNum]) {
-                            return api.image.uploadFile(userId, imageFile[imageFileNum]).then((resJson) => {
-                                return resJson.data.url;
-                            });
-                        }
-                        return '';
-                    });
-                })).then((imageUrls) => {
-                    if (!(template && template.template)) {
-                        return;
-                    }
-
-                    if ('buttons' === template.template.type) {
-                        template.template.thumbnailImageUrl = imageUrls[0];
-                    } else if ('carousel' === template.template.type) {
-                        for (let i in template.template.columns) {
-                            template.template.columns[i].thumbnailImageUrl = imageUrls[i];
-                        }
-                    }
-                }).then(() => {
-                    return api.appsTemplates.insert(appId, userId, template);
-                }).then(() => {
-                    $('#template-modal').modal('hide');
-                    $appDropdown.find('#' + appId).click();
-                    elementEnabled($('#modal-save'), handleMessages.addFinished);
-                    $.notify('新增成功！', { type: 'success' });
-                }).catch(() => {
-                    elementEnabled($('#modal-save'), handleMessages.addFinished);
-                    $.notify('新增失敗', { type: 'danger' });
-                });
-            }
-        }
-
-        function updateTemplate() {
-            elementDisabled($('#edit-modal-save'), handleMessages.working);
-            let appId = $('#app-select').val();
-            let altText = $('#template-altText').val();
-            let keyword = $('#template-keyword').val();
-            let type = $('#template-type').val();
-            let templateId = $('#template-id').text();
-
-            if (!altText) {
-                elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                return $.notify('電腦版替代文字不可為空', { type: 'warning' });
-            } else {
-                let template = null;
-                if ('confirm' === type) {
-                    template = createConfirm();
-                } else if ('buttons' === type) {
-                    template = createButtons();
-                } else if ('carousel' === type) {
-                    template = createCarousel();
-                } else {
-                    return Promise.resolve([]);
-                }
-
-                let putTemplate = {
-                    type: 'template',
-                    keyword: keyword,
-                    altText: altText,
-                    template: template
-                };
-
-                return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
-                    return Promise.resolve().then(() => {
-                        if (imageFile[imageFileNum]) {
-                            return api.image.uploadFile(userId, imageFile[imageFileNum]).then((resJson) => {
-                                return resJson.data.url;
-                            });
-                        }
-                        return '';
-                    });
-                })).then((imageUrls) => {
-                    if ('buttons' === putTemplate.template.type) {
-                        putTemplate.template.thumbnailImageUrl = imageUrls[0] || btnImage || carouselImage[0];
-                    }
-
-                    if ('carousel' === putTemplate.template.type) {
-                        for (let i in putTemplate.template.columns) {
-                            putTemplate.template.columns[i].thumbnailImageUrl = imageUrls[i] || carouselImage[i] || btnImage;
-                        }
-                    }
-                }).then(() => {
-                    return api.appsTemplates.update(appId, templateId, userId, putTemplate);
-                }).then(() => {
-                    $('#template-modal').modal('hide');
-                    $appDropdown.find('#' + appId).click();
-                    $.notify('修改成功！', { type: 'success' });
-                    elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                }).catch((resJson) => {
-                    if (undefined === resJson.status) {
-                        $('#template-modal').modal('hide');
-                        elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                        return $.notify('失敗', { type: 'danger' });
-                    }
-
-                    if (NO_PERMISSION_CODE === resJson.code) {
-                        $('#template-modal').modal('hide');
-                        elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
-                        return $.notify('無此權限', { type: 'danger' });
-                    }
-                });
-            }
         }
     })();
 
-    elementHide($('.template-view'));
-    $(document).on('click', '#delete-btn', removeTemplate);
+    let $appDropdown = $('#appsDropdown');
+    let $appSelector = $('#appSelector');
 
-    var $appDropdown = $('.app-dropdown');
-    var $appSelector = $('#app-select');
+    $jqDoc.on('click', '.template-row .remove-btn', removeTemplate);
 
     return api.apps.findAll(userId).then(function(respJson) {
-        var apps = respJson.data;
-        var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+        let apps = respJson.data;
+        let $dropdownMenu = $appDropdown.find('.dropdown-menu');
         let config = window.chatshier.config;
-        $jqDoc.find('button.inner-add').attr('disabled', true);
+        $jqDoc.find('.insert-btn').attr('disabled', true);
         $('.template-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1024)))}MB`);
 
-        for (var appId in apps) {
-            var app = apps[appId];
+        for (let appId in apps) {
+            let app = apps[appId];
 
             // 目前只有 LINE 支援此功能
             if (app.isDeleted ||
@@ -541,7 +219,7 @@
         if (nowSelectAppId) {
             loadTemplates(nowSelectAppId, userId);
             $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
-            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $jqDoc.find('.insert-btn').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
 
@@ -565,12 +243,12 @@
                 let template = templates[templateId];
 
                 $('#template-tables').append(
-                    '<tr id="' + templateId + '" rel="' + appId + '">' +
+                    '<tr class="template-row" app-id="' + appId + '" template-id="' + templateId + '">' +
                         '<th id="altText" data-title="data-title">' + template.altText + '</th>' +
                         '<td id="type">' + template.template.type + '</td>' +
                         '<td>' +
-                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" id="edit-btn" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>' +
-                            '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#templateModal" aria-hidden="true"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove-btn"></button>' +
                         '</td>' +
                     '</tr>'
                 );
@@ -581,8 +259,8 @@
     function removeTemplate() {
         let $removeBtn = $(this);
         let $templateRow = $removeBtn.parents('tr');
-        let appId = $templateRow.attr('rel');
-        let templateId = $templateRow.attr('id');
+        let appId = $templateRow.attr('app-id');
+        let templateId = $templateRow.attr('template-id');
 
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
@@ -609,8 +287,8 @@
         return new Promise(function(resolve) {
             $('#textContent').text(textContent);
 
-            var isOK = false;
-            var $dialogModal = $('#dialog_modal');
+            let isOK = false;
+            let $dialogModal = $('#dialog_modal');
 
             $dialogModal.find('.btn-primary').off('click').on('click', function() {
                 isOK = true;
@@ -631,11 +309,11 @@
     }
 
     function elementDisabled(element, message) {
-        element.attr('disabled', true).empty().append(message);
+        element.attr('disabled', true).html(message);
     }
 
     function elementEnabled(element, message) {
-        element.removeAttr('disabled').empty().text(message);
+        element.removeAttr('disabled').html(message);
     }
 
     function elementShow(element) {

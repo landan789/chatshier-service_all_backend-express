@@ -6,6 +6,8 @@
     <% include ./partials/favicon.ejs %>
     <title><%= title %></title>
     <% include ./partials/require_css.ejs %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.3.3/css/swiper.min.css">
+    <link rel="stylesheet" href="/css/partials/template_builder.css" />
     <link rel="stylesheet" href="/css/table.css" />
     <link rel="stylesheet" href="/css/template.css" />
 </head>
@@ -16,21 +18,22 @@
         <% include ./partials/control_panel.ejs %>
         <div class="ml-auto w-100 page-wrapper">
             <% include ./partials/toolbar.ejs %>
+
             <div class="container my-5">
                 <div class="chsr card">
                     <div class="title">
                         <h3 class="pt-3 pb-0 px-5">模板訊息</h3>
                         <p class="pt-0 pb-4 px-5">首頁 / 圖文影音內容 / 模板訊息</p>
                     </div>
-                    <div class="px-5 my-3" id="appSelector">
+                    <div class="px-5 my-3" id="appsDropdown">
                         <div class="dropdown app-dropdown">
-                            <button class="btn btn-primary dropdown-toggle" type="button" id="appsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                 <span class="dropdown-text">請選擇聊天機器人</span>
                             </button>
                             <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
                         </div>
                         <div class="search-add mb-2">
-                            <button type="button" class="btn btn-light btn-border insert" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true">
+                            <button type="button" class="btn btn-light btn-border insert-btn" data-toggle="modal" data-target="#templateModal" aria-hidden="true">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -54,7 +57,7 @@
     </div>
 
     <!-- new modal -->
-    <div class="chsr modal fade" id="template-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="chsr modal fade" id="templateModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -64,184 +67,25 @@
                 </div>
 
                 <div class="modal-body">
-                    <form class="template-form">
-                        <div class="form-group d-none">
-                            <label class="col-form-label font-weight-bold">ID</label>
-                            <span id="template-id"></span>
-                        </div>
+                    <form class="template-form" id="templateForm">
+                        <input type="hidden" id="templateId" name="templateId" />
 
                         <div class="form-group app-select-bar">
                             <label class="col-form-label font-weight-bold">目標機器人:</label>
-                            <select class="form-control" id="app-select"></select>
+                            <select class="form-control" id="appSelector"></select>
                         </div>
 
                         <div class="form-group">
-                            <label class="col-form-label font-weight-bold">版型:</label>
-                            <select class="form-control" id="template-type">
-                                <option disabled value="">-- 請選擇 --</option>
-                                <option value="buttons">按鈕</option>
-                                <option value="confirm">是非題</option>
-                                <option value="carousel">多欄</option>
-                                <!-- <option value="image_carousel">圖片多欄</option> -->
-                            </select>
+                            <label class="col-form-label font-weight-bold">模板顯示文字:</label>
+                            <input class="form-control" type="text" name="templateAltText" placeholder="輸入模板名稱" />
                         </div>
 
-                        <div class="form-group template-view" rel="confirm carousel buttons">
-                            <label class="col-form-label font-weight-bold">電腦版替代文字:</label>
-                            <input class="form-control" type="text" id="template-altText">
-                        </div>
-
-                        <!-- button, carousel field -->
-                        <div id="carousel-container" class="template-view carousel slide" rel="carousel buttons" data-ride="carousel" data-interval="false">
-                            <!-- Wrapper for slides -->
-                            <div class="d-flex mb-3">
-                                <label class="w-auto mr-2 col-form-label font-weight-bold">
-                                    <span>內容設定:</span>
-                                </label>
-                                <div class="col-form-label btn btn-light btn-border" id="image-upload">
-                                    <span class="font-weight-bold">上傳圖片</span>
-                                </div>
-                                <!-- <i class="fa fa-info-circle btn" aria-hidden="true"></i> -->
-                            </div>
-
-                            <span class="badge badge-pill badge-danger mb-2 template-image-warning"></span>
-
-                            <div class="carousel-inner">
-                                <div class="carousel-item active template-view" rel="carousel buttons" data-slide-to="0">
-                                    <div class="rounded-border">
-                                        <div class="line-content">
-                                            <div class="line-thumbnailImageUrl">
-                                                <input type="file" class="image-ghost" accept="image/png,image/jpg,image/jpeg">
-                                                <img alt="請點選以上傳圖片，長寬比請設定為1:1.51" class="image-upload" src="">
-                                                <span class="template-upload-desc">請點選以上傳圖片，長寬比請設定為1:1.51</span>
-                                            </div>
-                                        </div>
-                                        <div class="divider-line"></div>
-                                        <div class="line-content">
-                                            <input class="line-title form-control" type="text" placeholder="標題1" maxlength="40" />
-                                        </div>
-                                        <div class="line-content">
-                                            <input class="line-text form-control" type="text" placeholder="說明文字 (字數限制：48)" maxlength="48">
-                                        </div>
-                                        <div class="divider-line"></div>
-                                        <div class="line-content">
-                                            <div class="line-action" id="row-1">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
-                                            </div>
-                                            <div class="line-action" id="row-2">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
-                                            </div>
-                                            <div class="line-action" id="row-3">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="carousel-item template-view" rel="carousel" data-slide-to="1">
-                                    <div class="rounded-border">
-                                        <div class="line-content">
-                                            <div class="line-thumbnailImageUrl">
-                                                <input type="file" class="image-ghost" accept="image/png,image/jpg,image/jpeg">
-                                                <img alt="請點選以上傳圖片，長寬比請設定為1:1.51" class="image-upload" src="">
-                                                <span class="template-upload-desc">請點選以上傳圖片，長寬比請設定為1:1.51</span>
-                                            </div>
-                                        </div>
-                                        <div class="divider-line"></div>
-                                        <div class="line-content">
-                                            <input class="line-title form-control" type="text" placeholder="標題2" maxlength="40" />
-                                        </div>
-                                        <div class="line-content">
-                                            <input class="line-text form-control" type="text" placeholder="說明文字 (字數限制：48)" maxlength="48">
-                                        </div>
-                                        <div class="divider-line"></div>
-                                        <div class="line-content">
-                                            <div class="line-action" id="row-1">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
-                                            </div>
-                                            <div class="line-action" id="row-2">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
-                                            </div>
-                                            <div class="line-action" id="row-3">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="carousel-item template-view" rel="carousel"data-slide-to="2">
-                                    <div class="rounded-border">
-                                        <div class="line-content">
-                                            <div class="line-thumbnailImageUrl">
-                                                <input type="file" class="image-ghost" accept="image/png,image/jpg,image/jpeg">
-                                                <img alt="請點選以上傳圖片，長寬比請設定為1:1.51" class="image-upload" src="">
-                                                <span class="template-upload-desc">請點選以上傳圖片，長寬比請設定為1:1.51</span>
-                                            </div>
-                                        </div>
-                                        <div class="divider-line"></div>
-                                        <div class="line-content">
-                                            <input class="line-title form-control" type="text" placeholder="標題3" maxlength="40">
-                                        </div>
-                                        <div class="line-content">
-                                            <input class="line-text form-control" type="text" placeholder="說明文字 (字數限制：48)" maxlength="48">
-                                        </div>
-                                        <div class="divider-line"></div>
-                                        <div class="line-content">
-                                            <div class="line-action" id="row-1">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
-                                            </div>
-                                            <div class="line-action" id="row-2">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
-                                            </div>
-                                            <div class="line-action" id="row-3">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Left and right controls -->
-                            <a class="carousel-item-left carousel-control-prev carousel-control text-info" href="#carousel-container" data-slide="prev" role="button">
-                                <span class="fas fa-chevron-left"></span>
-                            </a>
-                            <a class="carousel-item-right carousel-control-next carousel-control text-info" href="#carousel-container" data-slide="next" role="button">
-                                <span class="fas fa-chevron-right"></span>
-                            </a>
-                        </div>
-
-                        <!-- button carousel field end -->
-                        <div class="template-view" rel="confirm">
-                            <div class="rounded-border">
-                                <div class="line-content">
-                                    <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="240">
-                                </div>
-                                <div class="divider-line"></div>
-                                <div class="line-content">
-                                    <div class="line-action" id="row-1">
-                                        <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
-                                        <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
-                                    </div>
-                                    <div class="line-action" id="row-2">
-                                        <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
-                                        <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="template-wrapper" id="templateWrapper"></div>
 
                         <div class="modal-footer px-0">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                            <button type="button" class="btn btn-primary" id="modal-save">新增</button>
-                            <button type="button" class="btn btn-primary" id="edit-modal-save">修改</button>
+                            <button type="button" class="btn btn-primary" id="insertTemplateBtn">新增</button>
+                            <button type="button" class="btn btn-primary" id="updateTemplateBtn">修改</button>
                         </div>
                     </form>
                 </div>
@@ -265,6 +109,8 @@
     </div>
 
     <% include ./partials/require_js.ejs %>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.3.3/js/swiper.min.js"></script>
+    <script src="/js/partials/template_builder.js"></script>
     <script src="/js/template.js"></script>
 </body>
 
