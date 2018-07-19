@@ -211,19 +211,17 @@ window.TemplateBuilder = (function() {
         }
 
         /**
-         * @param {any[]} [templates]
+         * @param {Chatshier.Models.Template} [templateMessage]
          */
-        initTemplates(templates) {
-            if (!(templates instanceof Array)) {
-                templates = [];
-            }
-
+        initTemplate(templateMessage) {
             this.templateSwiper.removeAllSlides();
-            if (0 === templates.length) {
-                this.insertTemplateCard();
+
+            let columns = templateMessage.template.columns || [];
+            if (0 === columns.length) {
+                this.insertTemplateCard(0, templateMessage.template);
             } else {
-                for (let i = 0; i < templates.length; i++) {
-                    this.insertTemplateCard(i, templates[i]);
+                for (let i = 0; i < columns.length; i++) {
+                    this.insertTemplateCard(i, columns[i]);
                 }
             }
 
@@ -238,7 +236,11 @@ window.TemplateBuilder = (function() {
             this.templateSwiper.update();
         }
 
-        insertTemplateCard(idx, template) {
+        /**
+         * @param {number} [idx]
+         * @param {Chatshier.Models.TemplateColumn} [column]
+         */
+        insertTemplateCard(idx, column) {
             if (!this.templateSwiper) {
                 return;
             }
@@ -257,26 +259,26 @@ window.TemplateBuilder = (function() {
                     '<input class="image-input d-none" type="file" accept="image/*" />' +
                     '<div class="position-relative mb-2 p-2 template-image-input">' +
                         '<div class="image-container">' +
-                            '<button type="button" class="image-upload-btn">' +
+                            (!column.thumbnailImageUrl ? '<button type="button" class="image-upload-btn">' +
                                 '<div><i class="fas fa-image"></i></div>' +
                                 '<div>上傳圖片</div>' +
-                            '</button>' +
-                            '<img class="image-fit" src="" alt="" />' +
+                            '</button>' : '') +
+                            '<img class="image-fit" src="' + (column.thumbnailImageUrl || '') + '" alt="" />' +
                         '</div>' +
                     '</div>' +
                     '<div class="mb-2 input-group">' +
                         '<div class="input-group-prepend">' +
                             '<span class="input-group-text"><i class="fas fa-link"></i></span>' +
                         '</div>' +
-                        '<input class="form-control image-url-link" type="url" value="" placeholder="輸入圖片連結" />' +
+                        '<input class="form-control image-url-link" type="url" value="' + ((column.defaultAction && column.defaultAction.uri) || '') + '" placeholder="輸入圖片連結" />' +
                     '</div>' +
 
                     '<div class="mb-2 input-container">' +
-                        '<input class="w-100 form-control template-title" placeholder="標題" maxlength="40" />' +
+                        '<input class="w-100 form-control template-title" placeholder="標題" maxlength="40" value="' + (column.title || '') + '" />' +
                     '</div>' +
 
                     '<div class="mb-2 input-container">' +
-                        '<input class="w-100 form-control template-text" placeholder="副標題" maxlength="60" />' +
+                        '<input class="w-100 form-control template-text" placeholder="副標題" maxlength="60" value="' + (column.text || '') + '" />' +
                     '</div>' +
 
                     '<div class="buttons-container" id="buttonsContainer"></div>' +

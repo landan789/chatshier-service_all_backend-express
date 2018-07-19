@@ -1,18 +1,19 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    let api = window.restfulAPI;
-    let $jqDoc = $(document);
-
     const ICONS = {
         LINE: 'fab fa-line fa-fw line-color',
         FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
     };
     let nowSelectAppId = '';
 
+    /** @type {Chatshier.Models.AppsTemplates} */
     let appsTemplates = {};
+
     const NO_PERMISSION_CODE = '3.16';
 
+    let $jqDoc = $(document);
+    let api = window.restfulAPI;
     let userId;
     try {
         let payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -56,7 +57,7 @@
 
                 $appSelector.val(nowSelectAppId);
                 $templateModal.find('#templateId').val('');
-                templateBuilder.initTemplates();
+                templateBuilder.initTemplate();
                 return;
             }
 
@@ -65,12 +66,14 @@
             elementShow($updateTemplateBtn);
 
             let $templateRow = $relatedBtn.parents('tr');
-            let templateId = $templateRow.attr('template-id');
             let appId = $templateRow.attr('app-id');
+            let templateId = $templateRow.attr('template-id');
             $appSelector.val(appId);
             $templateModal.find('#templateId').val(templateId);
 
-            templateBuilder.initTemplates();
+            let template = appsTemplates[appId].templates[templateId];
+            $('#templateForm input[name="templateAltText"]').val(template.altText || '');
+            templateBuilder.initTemplate(template);
         }
 
         function replaceTemplate() {
@@ -232,11 +235,16 @@
 
     function loadTemplates(appId, userId) {
         $('#template-tables').empty();
+        if (!appsTemplates[appId]) {
+            appsTemplates[appId] = { templates: {} };
+        }
+
         return api.appsTemplates.findAll(appId, userId).then(function(resJson) {
-            let appsTemplates = resJson.data;
-            if (!(appsTemplates && appsTemplates[appId])) {
+            let _appsTemplates = resJson.data;
+            if (!(_appsTemplates && _appsTemplates[appId])) {
                 return;
             }
+            Object.assign(appsTemplates[appId].templates, _appsTemplates[appId].templates);
 
             let templates = appsTemplates[appId].templates;
             for (let templateId in templates) {
