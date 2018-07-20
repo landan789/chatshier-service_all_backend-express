@@ -170,7 +170,7 @@ module.exports = (function() {
                 };
 
                 return this.AppsModel.update(query, updateOper, options).then(() => {
-                    return messageId;
+                    return messageId.toHexString();
                 });
             })).then((messageIds) => {
                 return this.find(appId, chatroomId, messageIds);
