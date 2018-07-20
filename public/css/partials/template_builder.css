@@ -37,3 +37,6 @@
         -webkit-transform: translateY(-50%);
         transform: translateY(-50%);
     }
+.template-builder .action-editor .label-finish {
+    cursor: pointer;
+}

@@ -7,15 +7,25 @@
 window.TemplateBuilder = (function() {
     let chatshierCfg = window.chatshier && window.chatshier.config;
 
+    const KILO_BYTE = 1024;
+    const MEGA_BYTE = KILO_BYTE * 1024;
     const MAX_TEMPLATE_CARD = 10;
     const MAX_BUTTON_ACTION = 3;
+
     const BUTTON_ACTIONS = Object.freeze({
         URL: 'URL',
+        TEL: 'TEL',
         KEYWORD: 'KEYWORD',
-        IMAGE: 'IMAGE',
-        TEMPLATE: 'TEMPLATE',
         IMAGEMAP: 'IMAGEMAP',
-        TEL: 'TEL'
+        TEMPLATE: 'TEMPLATE'
+    });
+
+    const BUTTON_ACTIONS_DISPLAY_TEXT = Object.freeze({
+        [BUTTON_ACTIONS.URL]: '前往連結',
+        [BUTTON_ACTIONS.TEL]: '撥打電話',
+        [BUTTON_ACTIONS.KEYWORD]: '進行關鍵字回覆',
+        [BUTTON_ACTIONS.IMAGEMAP]: '發送指定圖文訊息',
+        [BUTTON_ACTIONS.TEMPLATE]: '發送指定模板訊息'
     });
 
     const ERRORS = Object.freeze({
@@ -24,102 +34,243 @@ window.TemplateBuilder = (function() {
         TEXT_IS_REQUIRED: 'TEXT_IS_REQUIRED',
         AT_LEAST_ONE_ACTION: 'AT_LEAST_ONE_ACTION',
         MUST_UPLOAD_A_IMAGE: 'MUST_UPLOAD_A_IMAGE',
-        INVALID_URL: 'INVALID_URL'
+        INVALID_URL: 'INVALID_URL',
+        NOT_A_IMAGE: 'NOT_A_IMAGE',
+        IMAGE_SIZE_TOO_LARGE: 'IMAGE_SIZE_TOO_LARGE',
+        ACTIONS_COUNT_SHOULD_SAME: 'ACTIONS_COUNT_SHOULD_SAME',
+        HAS_UNCHECKED_ACTION: 'HAS_UNCHECKED_ACTION'
     });
 
     const Swiper = window.Swiper;
 
     class ActionEditor {
-        constructor() {
+        /**
+         * @param {HTMLElement} parentElem
+         * @param {any} params
+         * @param {Chatshier.Models.TemplateAction} [action]
+         */
+        constructor(parentElem, params, action) {
+            this.$parentElem = $(parentElem);
+            params = params || {};
+
+            /** @type {Chatshier.Models.Keywordreplies} */
+            this._keywordreplies = params.keywordreplies || {};
+            /** @type {string} */
+            this._keywords = [];
+
+            /** @type {Chatshier.Models.Imagemaps} */
+            this._imagemaps = params.imagemaps || {};
+
+            /** @type {Chatshier.Models.Templates} */
+            this._templates = params.templates || {};
+
+            let hasAction = !!action;
+            action = action || {};
+            let actionData = ((actionDataStr) => {
+                if ('string' !== typeof actionDataStr) {
+                    return {};
+                }
+
+                try {
+                    return JSON.parse(actionDataStr);
+                } catch (ex) {
+                    return {};
+                }
+            })(action.data);
+
+            let buttonAction = '';
+            if ('uri' === action.type && action.uri.startsWith('http')) {
+                buttonAction = BUTTON_ACTIONS.URL;
+            } else if ('uri' === action.type && action.uri.startsWith('tel')) {
+                buttonAction = BUTTON_ACTIONS.TEL;
+            } else if ('message' === action.type && action.text) {
+                buttonAction = BUTTON_ACTIONS.KEYWORD;
+            } else if ('postback' === action.type && actionData.imagemapId) {
+                buttonAction = BUTTON_ACTIONS.IMAGEMAP;
+            } else if ('postback' === action.type && actionData.templateId) {
+                buttonAction = BUTTON_ACTIONS.TEMPLATE;
+            }
+
             this.$elem = $(
-                '<form class="mb-2 p-2 card card-body action-editor">' +
-                    '<div class="text-center label-finish d-none">' +
-                        '<span class="text-primary label-text"></span>' +
+                '<form class="mb-2 p-2 card card-body animated fadeIn action-editor">' +
+                    '<div class="mb-2 text-right finish-edit-container">' +
+                        '<button type="button" class="btn btn-info btn-sm edit-btn d-none">' +
+                            '<i class="fas fa-edit"></i>' +
+                        '</button>' +
+                        '<button type="button" class="btn btn-success btn-sm confirm-btn">' +
+                            '<i class="fas fa-check"></i>' +
+                        '</button>' +
+                        '<button type="button" class="ml-2 btn btn-danger btn-sm cancel-btn">' +
+                            '<i class="fas fa-times"></i>' +
+                        '</button>' +
                     '</div>' +
-                    '<div class="mb-2 input-container editable">' +
-                        '<input class="w-100 form-control button-label" type="text" name="buttonLabel" placeholder="按鈕名稱" maxlength="20" />' +
+
+                    '<div class="text-center label-finish d-none" data-originLabel="' + (action.label || '') + '">' +
+                        '<span class="text-primary label-text">' + (action.label || '') + ' (' + (BUTTON_ACTIONS_DISPLAY_TEXT[buttonAction] || '未選擇') + ')</span>' +
                     '</div>' +
-                    '<div class="mb-1 input-group select-container editable">' +
+                    '<div class="mb-2 input-container editable animated fadeIn">' +
+                        '<input class="w-100 form-control button-label" type="text" name="buttonLabel" placeholder="按鈕名稱" maxlength="20" value="' + (action.label || '') + '" />' +
+                    '</div>' +
+                    '<div class="mb-1 input-group select-container editable animated fadeIn">' +
                         '<div class="input-group-prepend">' +
                             '<span class="input-group-text">觸發動作</span>' +
                         '</div>' +
-                        '<select class="form-control button-action" name="buttonAction" value="">' +
+                        '<select class="form-control button-action" name="buttonAction" value="' + buttonAction + '">' +
                             '<option value="" disabled>未選擇</option>' +
-                            '<option value="' + BUTTON_ACTIONS.URL + '">前往連結</option>' +
-                            '<option value="' + BUTTON_ACTIONS.KEYWORD + '">進行關鍵字回覆</option>' +
-                            '<option value="' + BUTTON_ACTIONS.IMAGE + '">發送圖片</option>' +
-                            '<option value="' + BUTTON_ACTIONS.TEMPLATE + '">發送指定模板訊息</option>' +
-                            '<option value="' + BUTTON_ACTIONS.IMAGEMAP + '">發送指定圖文訊息</option>' +
-                            '<option value="' + BUTTON_ACTIONS.TEL + '">撥打電話</option>' +
+                            Object.keys(BUTTON_ACTIONS).map((BUTTON_ACTION) => {
+                                return '<option value="' + BUTTON_ACTION + '">' + BUTTON_ACTIONS_DISPLAY_TEXT[BUTTON_ACTION] + '</option>';
+                            }).join('') +
                         '</select>' +
                     '</div>' +
-                    '<div class="mb-2 action-content editable"></div>' +
-
-                    '<div class="mb-2 text-right finish-edit-container">' +
-                        '<button type="button" class="btn btn-danger btn-sm cancel-btn">' +
-                            '<i class="fas fa-times"></i>' +
-                        '</button>' +
-                        '<button type="button" class="ml-2 btn btn-success btn-sm confirm-btn">' +
-                            '<i class="fas fa-check"></i>' +
-                        '</button>' +
-                        '<button type="button" class="ml-2 btn btn-info btn-sm edit-btn d-none">' +
-                            '<i class="fas fa-edit"></i>' +
-                        '</button>' +
-                    '</div>' +
+                    '<div class="mb-2 action-content editable animated fadeIn"></div>' +
                 '</form>'
             );
             this.onDestroy = void 0;
+            this.$parentElem.append(this.$elem);
 
             this.$elem.on('click', '.confirm-btn', this._finishEdit.bind(this));
-            this.$elem.on('click', '.edit-btn', this._startEdit.bind(this));
+            this.$elem.on('click', '.edit-btn, .label-finish', this._startEdit.bind(this));
             this.$elem.on('click', '.cancel-btn', this.destroy.bind(this));
 
             this.$buttonActionSelect = this.$elem.find('select.button-action');
-            this.$buttonActionSelect.on('change', (ev) => {
-                let buttonAction = ev.target.value;
-                let $actionContent = this.$elem.find('.action-content');
+            this.$buttonActionSelect.on('change', this._buttonActionChanged.bind(this));
+            this.buttonAction = buttonAction;
+            this._buttonActionChanged({ target: this.$buttonActionSelect.get(0) }, action);
 
-                let actionElemsHtml = '';
-                switch (buttonAction) {
-                    case BUTTON_ACTIONS.URL:
-                        actionElemsHtml = (
-                            '<div class="mt-2 input-group">' +
-                                '<div class="input-group-prepend">' +
-                                    '<span class="input-group-text"><i class="fas fa-link"></i></span>' +
-                                '</div>' +
-                                '<input class="form-control action-url-link" type="url" value="" placeholder="輸入按鈕連結" maxlength="1000" />' +
-                            '</div>'
-                        );
-                        break;
-                    case BUTTON_ACTIONS.TEL:
-                        actionElemsHtml = (
-                            '<div class="mt-2 input-group">' +
-                                '<div class="input-group-prepend">' +
-                                    '<span class="input-group-text"><i class="fas fa-phone"></i></span>' +
-                                '</div>' +
-                                '<input class="form-control action-tel-number" type="tel" value="" placeholder="輸入電話號碼" maxlength="10" />' +
-                            '</div>'
-                        );
-                        break;
-                    default:
-                        break;
-                }
-                $actionContent.html(actionElemsHtml);
-            });
+            hasAction && this._finishEdit();
         }
 
-        set buttonAction(value) {
-            this.$buttonActionSelect.val(value || '');
+        set buttonAction(buttonAction) {
+            this.$buttonActionSelect.val(buttonAction || '');
         }
 
         get buttonAction() {
             return this.$buttonActionSelect.val();
         }
 
+        set keywordreplies(_keywordreplies) {
+            this._keywordreplies = _keywordreplies || {};
+            this._keywords = Object.keys(this._keywordreplies).map((keywordreplyId) => this._keywordreplies[keywordreplyId].keyword);
+        }
+
+        set imagemaps(_imagemaps) {
+            this._imagemaps = _imagemaps || {};
+        }
+
+        set templates(_templates) {
+            this._templates = _templates || {};
+        }
+
         destroy() {
             this.$elem.remove();
-            this.$elem = void 0;
+            delete this.$elem;
+            delete this.$parentElem;
+
+            delete this._keywordreplies;
+            delete this._imagemaps;
+            delete this._templates;
+
             ('function' === typeof this.onDestroy) && this.onDestroy(this);
+        }
+
+        /**
+         * @param {Event} ev
+         * @param {Chatshier.Models.TemplateAction} [action]
+         */
+        _buttonActionChanged(ev, action) {
+            let buttonAction = ev.target.value;
+            let $actionContent = this.$elem.find('.action-content');
+
+            $actionContent.empty();
+            if (!BUTTON_ACTIONS[buttonAction]) {
+                return;
+            }
+
+            action = action || {};
+            let actionData = action.data ? JSON.parse(action.data) : {};
+            let inputDefaultValue;
+            let selectDefaultValue;
+
+            let $actionElem = $(
+                '<div class="mt-2 input-group">' +
+                    (() => {
+                        switch (buttonAction) {
+                            case BUTTON_ACTIONS.URL:
+                                inputDefaultValue = action.uri || '';
+                                return (
+                                    '<div class="input-group-prepend">' +
+                                        '<span class="input-group-text"><i class="fas fa-link"></i></span>' +
+                                    '</div>' +
+                                    '<input class="form-control action-url-link" type="url" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入按鈕連結" maxlength="1000" />'
+                                );
+                            case BUTTON_ACTIONS.TEL:
+                                inputDefaultValue = (action.uri || '').replace('tel:', '');
+                                return (
+                                    '<div class="input-group-prepend">' +
+                                        '<span class="input-group-text"><i class="fas fa-phone"></i></span>' +
+                                    '</div>' +
+                                    '<input class="form-control action-tel-number" type="tel" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入電話號碼" maxlength="10" />'
+                                );
+                            case BUTTON_ACTIONS.KEYWORD:
+                                let keyword = action.text || '';
+                                selectDefaultValue = '';
+                                for (let keywordreplyId in this._keywordreplies) {
+                                    let keywordreply = this._keywordreplies[keywordreplyId];
+                                    if (keyword === keywordreply.keyword) {
+                                        selectDefaultValue = keywordreplyId;
+                                        break;
+                                    }
+                                }
+
+                                return (
+                                    '<div class="input-group-prepend">' +
+                                        '<span class="input-group-text"><i class="fas fa-comment"></i></span>' +
+                                    '</div>' +
+                                    '<select class="form-control action-keyword-select" value="' + selectDefaultValue + '" data-prevValue="' + selectDefaultValue + '">' +
+                                        '<option value="" disabled>未選擇</option>' +
+                                        Object.keys(this._keywordreplies).map((keywordreplyId) => {
+                                            let keywordreply = this._keywordreplies[keywordreplyId];
+                                            return '<option value="' + keywordreplyId + '">' + keywordreply.keyword + '</option>';
+                                        }).join('') +
+                                    '</select>'
+                                );
+                            case BUTTON_ACTIONS.IMAGEMAP:
+                                selectDefaultValue = actionData.imagemapId || '';
+                                return (
+                                    '<div class="input-group-prepend">' +
+                                        '<span class="input-group-text"><i class="fas fa-map"></i></span>' +
+                                    '</div>' +
+                                    '<select class="form-control action-imagemap-select" value="' + selectDefaultValue + '" data-prevValue="' + selectDefaultValue + '">' +
+                                        '<option value="" disabled>未選擇</option>' +
+                                        Object.keys(this._imagemaps).map((imagemapId) => {
+                                            let imagemap = this._imagemaps[imagemapId];
+                                            return '<option value="' + imagemapId + '">' + imagemap.altText + '</option>';
+                                        }).join('') +
+                                    '</select>'
+                                );
+                            case BUTTON_ACTIONS.TEMPLATE:
+                                selectDefaultValue = actionData.templateId || '';
+                                return (
+                                    '<div class="input-group-prepend">' +
+                                        '<span class="input-group-text"><i class="fas fa-clipboard-list"></i></span>' +
+                                    '</div>' +
+                                    '<select class="form-control action-template-select" value="' + selectDefaultValue + '" data-prevValue="' + selectDefaultValue + '">' +
+                                        '<option value="" disabled>未選擇</option>' +
+                                        Object.keys(this._templates).map((templateId) => {
+                                            let template = this._templates[templateId];
+                                            return '<option value="' + templateId + '">' + template.altText + '</option>';
+                                        }).join('') +
+                                    '</select>'
+                                );
+                            default:
+                                return '';
+                        }
+                    })() +
+                '</div>'
+            );
+
+            $actionContent.append($actionElem);
+            undefined !== selectDefaultValue && $actionElem.find('select').val(selectDefaultValue);
         }
 
         _startEdit() {
@@ -134,7 +285,12 @@ window.TemplateBuilder = (function() {
         _finishEdit() {
             let buttonLabel = this.$elem.find('input[name="buttonLabel"]').val();
             if (!buttonLabel) {
-                return $.notify('按鈕文字不可設定為空', { type: 'warning' });
+                $.notify('按鈕文字不可設定為空', { type: 'warning' });
+                return;
+            }
+
+            if (!this._checkButtonContent()) {
+                return;
             }
 
             this.$elem.addClass('finished');
@@ -144,7 +300,31 @@ window.TemplateBuilder = (function() {
             this.$elem.find('.edit-btn').removeClass('d-none');
 
             let $labelFinish = this.$elem.find('.label-finish');
-            $labelFinish.removeClass('d-none').find('.label-text').text(buttonLabel);
+            $labelFinish.data('originLabel', buttonLabel);
+            $labelFinish.removeClass('d-none').find('.label-text').text(buttonLabel + ' (' + (BUTTON_ACTIONS_DISPLAY_TEXT[this.buttonAction] || '未選擇') + ')');
+        }
+
+        _checkButtonContent() {
+            let $actionContent = this.$elem.find('.action-content');
+            let buttonAction = this.buttonAction;
+            if (buttonAction === BUTTON_ACTIONS.URL) {
+                let $actionUrlLink = $actionContent.find('.action-url-link');
+                let urlLink = $actionUrlLink.val();
+                if (!urlLink) {
+                    $.notify('連結不可設定為空', { type: 'warning' });
+                    return false;
+                }
+                $actionUrlLink.data('prevValue', urlLink);
+            } else if (buttonAction === BUTTON_ACTIONS.TEL) {
+                let $actionTelNumber = $actionContent.find('.action-tel-number');
+                let telNumber = $actionTelNumber.val();
+                if (!(telNumber && /^0\d{9,}$/.test(telNumber))) {
+                    $.notify('電話號碼格式錯誤', { type: 'warning' });
+                    return false;
+                }
+                $actionTelNumber.data('prevValue', telNumber);
+            }
+            return true;
         }
     }
 
@@ -162,7 +342,6 @@ window.TemplateBuilder = (function() {
                 '</div>'
             );
             this.$parentElem.empty().append(this.$elem);
-            this._apiUserId = '';
 
             this.$elem.on('click', '.add-action-btn', this._addActionEditor.bind(this));
             this.$elem.on('click', '.insert-template-card', () => this.insertTemplateCard());
@@ -201,6 +380,27 @@ window.TemplateBuilder = (function() {
             });
         }
 
+        /**
+         * @param {Chatshier.Models.Keywordreplies} _keywordreplies
+         */
+        set keywordreplies(_keywordreplies) {
+            this._keywordreplies = _keywordreplies || {};
+        }
+
+        /**
+         * @param {Chatshier.Models.Imagemaps} _imagemaps
+         */
+        set imagemaps(_imagemaps) {
+            this._imagemaps = _imagemaps || {};
+        }
+
+        /**
+         * @param {Chatshier.Models.Templates} _templates
+         */
+        set templates(_templates) {
+            this._templates = _templates || {};
+        }
+
         destroy() {
             this.templateSwiper.detachEvents();
             this.templateSwiper.removeAllSlides();
@@ -216,9 +416,10 @@ window.TemplateBuilder = (function() {
         initTemplate(templateMessage) {
             this.templateSwiper.removeAllSlides();
 
-            let columns = templateMessage.template.columns || [];
+            templateMessage = templateMessage || {};
+            let columns = (templateMessage.template && templateMessage.template.columns) || [];
             if (0 === columns.length) {
-                this.insertTemplateCard(0, templateMessage.template);
+                this.insertTemplateCard(void 0, templateMessage.template);
             } else {
                 for (let i = 0; i < columns.length; i++) {
                     this.insertTemplateCard(i, columns[i]);
@@ -244,11 +445,14 @@ window.TemplateBuilder = (function() {
             if (!this.templateSwiper) {
                 return;
             }
-            idx = idx || Math.max(0, this.templateSwiper.slides.length - 1);
+            idx = undefined === idx ? Math.max(0, this.templateSwiper.slides.length - 1) : idx;
+            column = column || {};
 
             let canRemove = idx > 0;
+
+            let templateCardId = 'templateCard' + Date.now();
             this.templateSwiper.addSlide(idx, [
-                '<div class="swiper-slide p-2 card card-body template-card" data-index="' + idx + '">' +
+                '<div class="swiper-slide p-2 card card-body template-card" id="' + templateCardId + '" data-index="' + idx + '">' +
                     '<div class="mb-2 d-flex align-items-center template-card-header">' +
                         '<div class="text-dark font-weight-bold">卡片 <span class="card-index">' + (idx + 1) + '</span></div>' +
                         (canRemove ? '<button type="button" class="ml-auto btn btn-danger btn-sm remove-template-card">' +
@@ -259,11 +463,13 @@ window.TemplateBuilder = (function() {
                     '<input class="image-input d-none" type="file" accept="image/*" />' +
                     '<div class="position-relative mb-2 p-2 template-image-input">' +
                         '<div class="image-container">' +
-                            (!column.thumbnailImageUrl ? '<button type="button" class="image-upload-btn">' +
+                            (!column.thumbnailImageUrl
+                                ? '<button type="button" class="image-upload-btn">' +
                                 '<div><i class="fas fa-image"></i></div>' +
                                 '<div>上傳圖片</div>' +
+                                '<div class="text-danger small">(圖片大小不能超過 ' + Math.floor(chatshierCfg.imageFileMaxSize / MEGA_BYTE) + ' MB)</div>' +
                             '</button>' : '') +
-                            '<img class="image-fit" src="' + (column.thumbnailImageUrl || '') + '" alt="" />' +
+                            '<img class="image-fit" src="' + ((column.thumbnailImageUrl) || '') + '" alt="" />' +
                         '</div>' +
                     '</div>' +
                     '<div class="mb-2 input-group">' +
@@ -280,14 +486,38 @@ window.TemplateBuilder = (function() {
                     '<div class="mb-2 input-container">' +
                         '<input class="w-100 form-control template-text" placeholder="副標題" maxlength="60" value="' + (column.text || '') + '" />' +
                     '</div>' +
-
-                    '<div class="buttons-container" id="buttonsContainer"></div>' +
-                    '<button type="button" class="btn btn-light btn-block add-action-btn" data-count="0">' +
-                        '<i class="mr-1 fas fa-plus fa-fw"></i>' +
-                        '<span>新增按鈕</span>' +
-                    '</button>' +
                 '</div>'
             ]);
+
+            let $addActionBtn = $(
+                '<button type="button" class="btn btn-light btn-block add-action-btn">' +
+                    '<i class="mr-1 fas fa-plus fa-fw"></i>' +
+                    '<span>新增按鈕</span>' +
+                '</button>'
+            );
+
+            let actions = column.actions || [];
+            let $actionsContainer = $('<div class="actions-container" id="actionsContainer" data-count="' + actions.length + '"></div>');
+            let params = {
+                keywordreplies: this._keywordreplies,
+                imagemaps: this._imagemaps,
+                templates: this._templates
+            };
+
+            actions.forEach((action) => {
+                let actionEditor = new ActionEditor($actionsContainer.get(0), params, action);
+                actionEditor.onDestroy = () => {
+                    let actionCount = parseInt($actionsContainer.data('count'), 10);
+                    $actionsContainer.data('count', --actionCount);
+                    if (actionCount < MAX_BUTTON_ACTION) {
+                        $addActionBtn.removeClass('d-none');
+                    }
+                };
+                actionEditor.keywordreplies = this._keywordreplies;
+                actionEditor.imagemaps = this._imagemaps;
+                actionEditor.templates = this._templates;
+            });
+            $(this.templateSwiper.$el).find('#' + templateCardId).append($actionsContainer, $addActionBtn);
             this.templateSwiper.slideTo(idx);
 
             let $insertTemplateCardBtn = this.$elem.find('.insert-template-card');
@@ -330,8 +560,17 @@ window.TemplateBuilder = (function() {
                         template.type = 'carousel';
                         template.columns = [];
 
+                        let actionCount = void 0;
                         for (let i = 0; i < $templateCards.length; i++) {
                             let column = this._retrieveTemplateCard($($templateCards.get(i)), template.type);
+                            if (undefined === actionCount) {
+                                actionCount = column.actions.length;
+                            }
+
+                            if (actionCount !== column.actions.length) {
+                                throw new Error(ERRORS.ACTIONS_COUNT_SHOULD_SAME);
+                            }
+
                             template.columns.push(column);
                         }
                     } else {
@@ -376,7 +615,7 @@ window.TemplateBuilder = (function() {
             templateTitle && (column.title = templateTitle);
             templateText && (column.text = templateText);
 
-            let $actionEditors = $templateCard.find('.action-editor.finished');
+            let $actionEditors = $templateCard.find('.action-editor');
             if (0 === $actionEditors.length) {
                 throw new Error(ERRORS.AT_LEAST_ONE_ACTION);
             }
@@ -384,9 +623,13 @@ window.TemplateBuilder = (function() {
 
             for (let j = 0; j < $actionEditors.length; j++) {
                 let $actionEditor = $($actionEditors.get(j));
+                if (!$actionEditor.hasClass('finished')) {
+                    throw new Error(ERRORS.HAS_UNCHECKED_ACTION);
+                }
+
                 let $actionContent = $actionEditor.find('.action-content');
                 let buttonAction = $actionEditor.find('select[name="buttonAction"]').val();
-                let buttonLabel = $actionEditor.find('.label-finish .label-text').text();
+                let buttonLabel = $actionEditor.find('.label-finish').data('originLabel');
 
                 /** @type {Chatshier.Models.TemplateAction} */
                 let action = {
@@ -396,16 +639,35 @@ window.TemplateBuilder = (function() {
                 switch (buttonAction) {
                     case BUTTON_ACTIONS.URL:
                         action.type = 'uri';
-                        action.uri = $actionContent.find('.action-url-link').val();
+
+                        let $actionUrlLink = $actionContent.find('.action-url-link');
+                        action.uri = $actionEditor.hasClass('finished') ? $actionUrlLink.val() : $actionUrlLink.data('prevValue');
                         if (!(action.uri.startsWith('http://') || action.uri.startsWith('https://'))) {
                             action.uri = 'http://' + action.uri;
                         }
                         break;
                     case BUTTON_ACTIONS.TEL:
                         action.type = 'uri';
-                        action.uri = 'tel:' + $actionContent.find('.action-tel-number').val();
+                        let $actionTelNumber = $actionContent.find('.action-tel-number');
+                        action.uri = 'tel:' + ($actionEditor.hasClass('finished') ? $actionTelNumber.val() : $actionTelNumber.data('prevValue'));
                         break;
                     case BUTTON_ACTIONS.KEYWORD:
+                        action.type = 'message';
+                        let $actionKeywordSelect = $actionContent.find('.action-keyword-select');
+                        let keywordreplyId = $actionKeywordSelect.val();
+                        action.text = keywordreplyId ? this._keywordreplies[keywordreplyId].keyword : '';
+                        break;
+                    case BUTTON_ACTIONS.IMAGEMAP:
+                        action.type = 'postback';
+                        let $actionImagemapSelect = $actionContent.find('.action-imagemap-select');
+                        let imagemapId = $actionImagemapSelect.val();
+                        action.data = imagemapId ? JSON.stringify({ action: 'SEND_IMAGEMAP', imagemapId: imagemapId }) : 'none';
+                        break;
+                    case BUTTON_ACTIONS.TEMPLATE:
+                        action.type = 'postback';
+                        let $actionTemplateSelect = $actionContent.find('.action-template-select');
+                        let templateId = $actionTemplateSelect.val();
+                        action.data = templateId ? JSON.stringify({ action: 'SEND_TEMPLATE', templateId: templateId }) : 'none';
                         break;
                     default:
                         action.type = 'postback';
@@ -449,14 +711,12 @@ window.TemplateBuilder = (function() {
             }
 
             if (!imageFile.type.startsWith('image')) {
-                return Promise.reject(new Error('NOT_A_IMAGE'));
+                return Promise.reject(new Error(ERRORS.NOT_A_IMAGE));
             }
 
-            let kiloByte = 1024;
-            let megaByte = kiloByte * 1024;
             if (imageFile.size > chatshierCfg.imageFileMaxSize) {
-                $.notify('圖像檔案過大，檔案大小限制為: ' + (Math.floor(chatshierCfg.imageFileMaxSize / megaByte)) + ' MB');
-                return Promise.reject(new Error('IMAGE_SIZE_TOO_LARGE'));
+                $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(chatshierCfg.imageFileMaxSize / MEGA_BYTE) + ' MB');
+                return Promise.reject(new Error(ERRORS.IMAGE_SIZE_TOO_LARGE));
             }
 
             return new Promise((resolve, reject) => {
@@ -467,26 +727,37 @@ window.TemplateBuilder = (function() {
             });
         }
 
+        /**
+         * @param {Event} ev
+         */
         _addActionEditor(ev) {
             let $targetBtn = $(ev.target);
             $targetBtn = $targetBtn.hasClass('add-action-btn') ? $targetBtn : $targetBtn.parents('.add-action-btn');
 
-            let actionEditor = new ActionEditor();
+            let $actionsContainer = $targetBtn.siblings('#actionsContainer');
+            let params = {
+                keywordreplies: this._keywordreplies,
+                imagemaps: this._imagemaps,
+                templates: this._templates
+            };
+            let actionEditor = new ActionEditor($actionsContainer.get(0), params);
             actionEditor.onDestroy = () => {
-                let actionCount = parseInt($targetBtn.data('count'), 10);
-                $targetBtn.data('count', --actionCount);
+                let actionCount = parseInt($actionsContainer.data('count'), 10);
+                $actionsContainer.data('count', --actionCount);
                 if (actionCount < MAX_BUTTON_ACTION) {
                     $targetBtn.removeClass('d-none');
                 }
             };
-            actionEditor.$elem.insertBefore($targetBtn);
-            actionEditor.buttonAction = '';
+            actionEditor.keywordreplies = this._keywordreplies;
+            actionEditor.imagemaps = this._imagemaps;
+            actionEditor.templates = this._templates;
 
-            let actionCount = parseInt($targetBtn.data('count'), 10);
-            $targetBtn.data('count', ++actionCount);
+            let actionCount = parseInt($actionsContainer.data('count'), 10);
+            $actionsContainer.data('count', ++actionCount);
             if (actionCount >= MAX_BUTTON_ACTION) {
                 $targetBtn.addClass('d-none');
             }
+            return actionEditor;
         }
     }
 

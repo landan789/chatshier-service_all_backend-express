@@ -7,6 +7,10 @@
     };
     let nowSelectAppId = '';
 
+    /** @type {Chatshier.Models.AppsKeywordreplies} */
+    let appsKeywordreplies = {};
+    /** @type {Chatshier.Models.AppsImagemaps} */
+    let appsImagemaps = {};
     /** @type {Chatshier.Models.AppsTemplates} */
     let appsTemplates = {};
 
@@ -57,8 +61,17 @@
 
                 $appSelector.val(nowSelectAppId);
                 $templateModal.find('#templateId').val('');
-                templateBuilder.initTemplate();
-                return;
+
+                return Promise.all([
+                    getKeywordreplies(nowSelectAppId),
+                    getImagemaps(nowSelectAppId),
+                    getTemplates(nowSelectAppId)
+                ]).then(([ keywordreplies, imagemaps, templates ]) => {
+                    templateBuilder.keywordreplies = keywordreplies;
+                    templateBuilder.imagemaps = imagemaps;
+                    templateBuilder.templates = templates;
+                    templateBuilder.initTemplate();
+                });
             }
 
             elementHide($appSelector.parents('.app-select-bar'));
@@ -73,7 +86,20 @@
 
             let template = appsTemplates[appId].templates[templateId];
             $('#templateForm input[name="templateAltText"]').val(template.altText || '');
-            templateBuilder.initTemplate(template);
+
+            return Promise.all([
+                getKeywordreplies(appId),
+                getImagemaps(appId),
+                getTemplates(appId)
+            ]).then(([ keywordreplies, imagemaps, templates ]) => {
+                templateBuilder.keywordreplies = keywordreplies;
+                templateBuilder.imagemaps = imagemaps;
+
+                let _templates = Object.assign({}, templates);
+                delete _templates[templateId];
+                templateBuilder.templates = _templates;
+                templateBuilder.initTemplate(template);
+            });
         }
 
         function replaceTemplate() {
@@ -133,6 +159,7 @@
                     return templateMessage;
                 });
             }).then((templateMessage) => {
+                console.log(templateMessage);
                 if (isUpdate) {
                     return api.appsTemplates.update(appId, templateId, userId, templateMessage);
                 }
@@ -179,6 +206,10 @@
                         return $.notify('如果設置了圖片網址鏈接，則必須上傳圖片', { type: 'warning' });
                     case TemplateBuilder.ERRORS.INVALID_URL:
                         return $.notify('訊息中的設定連結，含有不合法的連結', { type: 'warning' });
+                    case TemplateBuilder.ERRORS.ACTIONS_COUNT_SHOULD_SAME:
+                        return $.notify('使用多個模板卡片時，設定的動作按鈕數量必須一致', { type: 'warning' });
+                    case TemplateBuilder.ERRORS.HAS_UNCHECKED_ACTION:
+                        return $.notify('你有尚未完成的按鈕編輯', { type: 'warning' });
                     default:
                         return $.notify('新增失敗', { type: 'danger' });
                 }
@@ -220,7 +251,7 @@
         }
 
         if (nowSelectAppId) {
-            loadTemplates(nowSelectAppId, userId);
+            loadTemplates(nowSelectAppId);
             $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             $jqDoc.find('.insert-btn').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
@@ -230,23 +261,63 @@
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
-        return loadTemplates(nowSelectAppId, userId);
+        return loadTemplates(nowSelectAppId);
     }
 
-    function loadTemplates(appId, userId) {
-        $('#template-tables').empty();
-        if (!appsTemplates[appId]) {
-            appsTemplates[appId] = { templates: {} };
-        }
-
-        return api.appsTemplates.findAll(appId, userId).then(function(resJson) {
-            let _appsTemplates = resJson.data;
-            if (!(_appsTemplates && _appsTemplates[appId])) {
-                return;
+    function getKeywordreplies(appId) {
+        return Promise.resolve().then(() => {
+            if (!appsKeywordreplies[appId]) {
+                return api.appsKeywordreplies.findAll(appId, userId).then((resJson) => {
+                    let _appsKeywordreplies = resJson.data;
+                    appsKeywordreplies[appId] = { keywordreplies: {} };
+                    if (!(_appsKeywordreplies && _appsKeywordreplies[appId])) {
+                        return appsKeywordreplies[appId].keywordreplies;
+                    }
+                    Object.assign(appsKeywordreplies[appId].keywordreplies, _appsKeywordreplies[appId].keywordreplies);
+                    return appsKeywordreplies[appId].keywordreplies;
+                });
             }
-            Object.assign(appsTemplates[appId].templates, _appsTemplates[appId].templates);
+            return appsKeywordreplies[appId].keywordreplies;
+        });
+    }
 
-            let templates = appsTemplates[appId].templates;
+    function getImagemaps(appId) {
+        return Promise.resolve().then(() => {
+            if (!appsImagemaps[appId]) {
+                return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
+                    let _appsImagemaps = resJson.data;
+                    appsImagemaps[appId] = { imagemaps: {} };
+                    if (!(_appsImagemaps && _appsImagemaps[appId])) {
+                        return appsImagemaps[appId].imagemaps;
+                    }
+                    Object.assign(appsImagemaps[appId].imagemaps, _appsImagemaps[appId].imagemaps);
+                    return appsImagemaps[appId].imagemaps;
+                });
+            }
+            return appsImagemaps[appId].imagemaps;
+        });
+    }
+
+    function getTemplates(appId) {
+        return Promise.resolve().then(() => {
+            if (!appsTemplates[appId]) {
+                return api.appsTemplates.findAll(appId, userId).then((resJson) => {
+                    let _appsTemplates = resJson.data;
+                    appsTemplates[appId] = { templates: {} };
+                    if (!(_appsTemplates && _appsTemplates[appId])) {
+                        return appsTemplates[appId].templates;
+                    }
+                    Object.assign(appsTemplates[appId].templates, _appsTemplates[appId].templates);
+                    return appsTemplates[appId].templates;
+                });
+            }
+            return appsTemplates[appId].templates;
+        });
+    }
+
+    function loadTemplates(appId) {
+        $('#template-tables').empty();
+        return getTemplates(appId).then(function(templates) {
             for (let templateId in templates) {
                 let template = templates[templateId];
 
