@@ -64,6 +64,8 @@ window.TemplateBuilder = (function() {
             /** @type {Chatshier.Models.Templates} */
             this._templates = params.templates || {};
 
+            this.ButtonActions = params.enabledActions || BUTTON_ACTIONS;
+
             let hasAction = !!action;
             action = action || {};
             let actionData = ((actionDataStr) => {
@@ -117,8 +119,8 @@ window.TemplateBuilder = (function() {
                         '</div>' +
                         '<select class="form-control button-action" name="buttonAction" value="' + buttonAction + '">' +
                             '<option value="" disabled>未選擇</option>' +
-                            Object.keys(BUTTON_ACTIONS).map((BUTTON_ACTION) => {
-                                return '<option value="' + BUTTON_ACTION + '">' + BUTTON_ACTIONS_DISPLAY_TEXT[BUTTON_ACTION] + '</option>';
+                            Object.keys(this.ButtonActions).map((actionType) => {
+                                return '<option value="' + actionType + '">' + BUTTON_ACTIONS_DISPLAY_TEXT[actionType] + '</option>';
                             }).join('') +
                         '</select>' +
                     '</div>' +
@@ -182,7 +184,7 @@ window.TemplateBuilder = (function() {
             let $actionContent = this.$elem.find('.action-content');
 
             $actionContent.empty();
-            if (!BUTTON_ACTIONS[buttonAction]) {
+            if (!this.ButtonActions[buttonAction]) {
                 return;
             }
 
@@ -333,6 +335,8 @@ window.TemplateBuilder = (function() {
          * @param {HTMLElement} parentElem
          */
         constructor(parentElem) {
+            this.enabledActions = Object.assign({}, BUTTON_ACTIONS);
+
             this._id = 'templateBuilder_' + Date.now();
             this.$parentElem = $(parentElem);
             this.$elem = $(
@@ -501,7 +505,8 @@ window.TemplateBuilder = (function() {
             let params = {
                 keywordreplies: this._keywordreplies,
                 imagemaps: this._imagemaps,
-                templates: this._templates
+                templates: this._templates,
+                enabledActions: this.enabledActions
             };
 
             actions.forEach((action) => {
@@ -590,6 +595,20 @@ window.TemplateBuilder = (function() {
                 };
                 return templateMesssage;
             });
+        }
+
+        enableButtonAction(actionType) {
+            if (!BUTTON_ACTIONS[actionType]) {
+                return;
+            }
+            this.enabledActions[actionType] = BUTTON_ACTIONS[actionType];
+        }
+
+        disableButtonAction(actionType) {
+            if (!BUTTON_ACTIONS[actionType]) {
+                return;
+            }
+            delete this.enabledActions[actionType];
         }
 
         updateSwiper() {
@@ -738,7 +757,8 @@ window.TemplateBuilder = (function() {
             let params = {
                 keywordreplies: this._keywordreplies,
                 imagemaps: this._imagemaps,
-                templates: this._templates
+                templates: this._templates,
+                enabledActions: this.enabledActions
             };
             let actionEditor = new ActionEditor($actionsContainer.get(0), params);
             actionEditor.onDestroy = () => {
@@ -761,6 +781,7 @@ window.TemplateBuilder = (function() {
         }
     }
 
+    TemplateBuilder.BUTTON_ACTIONS = BUTTON_ACTIONS;
     TemplateBuilder.ERRORS = ERRORS;
     return TemplateBuilder;
 })();

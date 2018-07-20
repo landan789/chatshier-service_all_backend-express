@@ -3,11 +3,11 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error.json');
     const SOCKET_EVENTS = require('../config/socket-events');
 
-    const line = require('@line/bot-sdk');
+    const LineBotSdk = require('@line/bot-sdk');
+    const FacebookBotSdk = require('facebook-bot-messenger');
     const Wechat = require('wechat');
     const WechatAPI = require('wechat-api');
     const bodyParser = require('body-parser');
-    const facebook = require('facebook-bot-messenger'); // facebook串接
     const chatshierCfg = require('../config/chatshier');
 
     const appsMdl = require('../models/apps');
@@ -65,7 +65,7 @@ module.exports = (function() {
                     };
 
                     return new Promise((resolve, reject) => {
-                        line.middleware(lineConfig)(req, res, (err) => {
+                        LineBotSdk.middleware(lineConfig)(req, res, (err) => {
                             if (err) {
                                 reject(err);
                                 return;
@@ -98,7 +98,7 @@ module.exports = (function() {
                             channelSecret: app.secret,
                             channelAccessToken: app.token1
                         };
-                        let lineBot = new line.Client(lineConfig);
+                        let lineBot = new LineBotSdk.Client(lineConfig);
                         this.bots[appId] = lineBot;
                         return lineBot;
                     case FACEBOOK:
@@ -110,7 +110,7 @@ module.exports = (function() {
                             pageToken: app.token2 || ''
                         };
                         // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
-                        let facebookBot = facebook.create(facebookConfig);
+                        let facebookBot = FacebookBotSdk.create(facebookConfig);
                         this.bots[appId] = facebookBot;
                         return facebookBot;
                     case WECHAT:
@@ -864,6 +864,60 @@ module.exports = (function() {
                                 } else if ('video' === message.type) {
                                     return bot.sendVideoMessage(platformUid, message.src, true);
                                 }
+                            }
+
+                            if ('template' === message.type) {
+                                /** @type {Chatshier.Models.Template} */
+                                let templateMessage = message;
+                                let template = templateMessage.template;
+                                let columns = template.columns ? template.columns : [template];
+                                let elements = columns.map((column) => {
+                                    let element = {
+                                        title: column.title,
+                                        subtitle: column.text,
+                                        image_url: column.thumbnailImageUrl
+                                    };
+
+                                    if (column.defaultAction) {
+                                        element.default_action = {
+                                            type: 'web_url',
+                                            url: column.defaultAction.uri
+                                        };
+                                    }
+
+                                    let actions = column.actions || [];
+                                    element.buttons = actions.map((action) => {
+                                        /** @type {string} */
+                                        let type = action.type;
+                                        if ('uri' === type) {
+                                            type = 'web_url';
+                                        }
+
+                                        let button = {
+                                            type: type,
+                                            title: action.label
+                                        };
+                                        action.uri && (button.url = action.uri);
+                                        action.data && (button.payload = action.data);
+                                        return button;
+                                    });
+                                    return element;
+                                });
+
+                                let GenericTemplateBuilder = FacebookBotSdk.GenericTemplateBuilder;
+                                let templateBuilder = new GenericTemplateBuilder(elements);
+                                let templateJson = {
+                                    recipient: {
+                                        id: platformUid
+                                    },
+                                    message: {
+                                        attachment: {
+                                            type: message.type,
+                                            payload: templateBuilder.buildTemplate()
+                                        }
+                                    }
+                                };
+                                return bot.sendJsonMessage(templateJson);
                             }
 
                             if (!message.text) {

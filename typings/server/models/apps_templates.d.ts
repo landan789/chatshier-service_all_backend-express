@@ -13,17 +13,14 @@ declare module Chatshier {
         interface Template extends BaseProperty {
             altText: string,
             type: 'template',
-            template: {
-                type: 'buttons' | 'confirm' | 'carousel' | 'image_carousel',
-                text?: string,
-                thumbnailImageUrl?: string,
-                imageAspectRatio?: string,
-                imageSize?: string,
-                title?: string,
-                actions: TemplateAction[],
-                defaultAction?: TemplateAction,
-                columns?: TemplateColumn[]
-            }
+            template: TemplateContent
+        }
+
+        interface TemplateContent extends TemplateColumn {
+            type: 'buttons' | 'confirm' | 'carousel' | 'image_carousel',
+            imageAspectRatio?: string,
+            imageSize?: string,
+            columns?: TemplateColumn[]
         }
 
         interface TemplateColumn {

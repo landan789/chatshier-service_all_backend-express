@@ -7,6 +7,8 @@
     };
     let nowSelectAppId = '';
 
+    /** @type {Chatshier.Models.Apps} */
+    let apps = {};
     /** @type {Chatshier.Models.AppsKeywordreplies} */
     let appsKeywordreplies = {};
     /** @type {Chatshier.Models.AppsImagemaps} */
@@ -54,38 +56,38 @@
         function initTemplateModal(ev) {
             let $relatedBtn = $(ev.relatedTarget);
 
+            let $templateRow = $relatedBtn.parents('tr');
+            let appId = (0 !== $templateRow.length && $templateRow.attr('app-id')) || nowSelectAppId;
+            let templateId;
+            let template;
+            let app = apps[appId];
+            $appSelector.val(appId);
+
             if ($relatedBtn.hasClass('insert-btn')) {
                 elementShow($appSelector.parents('.app-select-bar'));
                 elementShow($insertTemplateBtn);
                 elementHide($updateTemplateBtn);
 
-                $appSelector.val(nowSelectAppId);
                 $templateModal.find('#templateId').val('');
+            } else {
+                elementHide($appSelector.parents('.app-select-bar'));
+                elementHide($insertTemplateBtn);
+                elementShow($updateTemplateBtn);
 
-                return Promise.all([
-                    getKeywordreplies(nowSelectAppId),
-                    getImagemaps(nowSelectAppId),
-                    getTemplates(nowSelectAppId)
-                ]).then(([ keywordreplies, imagemaps, templates ]) => {
-                    templateBuilder.keywordreplies = keywordreplies;
-                    templateBuilder.imagemaps = imagemaps;
-                    templateBuilder.templates = templates;
-                    templateBuilder.initTemplate();
-                });
+                $templateRow = $relatedBtn.parents('tr');
+                templateId = $templateRow.attr('template-id');
+                $templateModal.find('#templateId').val(templateId);
+                template = appsTemplates[appId].templates[templateId];
+                $('#templateForm input[name="templateAltText"]').val(template.altText || '');
             }
 
-            elementHide($appSelector.parents('.app-select-bar'));
-            elementHide($insertTemplateBtn);
-            elementShow($updateTemplateBtn);
-
-            let $templateRow = $relatedBtn.parents('tr');
-            let appId = $templateRow.attr('app-id');
-            let templateId = $templateRow.attr('template-id');
-            $appSelector.val(appId);
-            $templateModal.find('#templateId').val(templateId);
-
-            let template = appsTemplates[appId].templates[templateId];
-            $('#templateForm input[name="templateAltText"]').val(template.altText || '');
+            if (api.apps.TYPES.FACEBOOK === app.type) {
+                templateBuilder.disableButtonAction(TemplateBuilder.BUTTON_ACTIONS.TEL);
+                templateBuilder.disableButtonAction(TemplateBuilder.BUTTON_ACTIONS.IMAGEMAP);
+            } else {
+                templateBuilder.enableButtonAction(TemplateBuilder.BUTTON_ACTIONS.TEL);
+                templateBuilder.enableButtonAction(TemplateBuilder.BUTTON_ACTIONS.IMAGEMAP);
+            }
 
             return Promise.all([
                 getKeywordreplies(appId),
@@ -95,10 +97,14 @@
                 templateBuilder.keywordreplies = keywordreplies;
                 templateBuilder.imagemaps = imagemaps;
 
-                let _templates = Object.assign({}, templates);
-                delete _templates[templateId];
-                templateBuilder.templates = _templates;
-                templateBuilder.initTemplate(template);
+                if (templateId && template) {
+                    let _templates = Object.assign({}, templates);
+                    delete _templates[templateId];
+                    templateBuilder.templates = _templates;
+                    templateBuilder.initTemplate(template);
+                } else {
+                    templateBuilder.initTemplate();
+                }
             });
         }
 
@@ -223,7 +229,7 @@
     $jqDoc.on('click', '.template-row .remove-btn', removeTemplate);
 
     return api.apps.findAll(userId).then(function(respJson) {
-        let apps = respJson.data;
+        apps = respJson.data;
         let $dropdownMenu = $appDropdown.find('.dropdown-menu');
         let config = window.chatshier.config;
         $jqDoc.find('.insert-btn').attr('disabled', true);
@@ -232,9 +238,8 @@
         for (let appId in apps) {
             let app = apps[appId];
 
-            // 目前只有 LINE 支援此功能
             if (app.isDeleted ||
-                app.type !== api.apps.TYPES.LINE) {
+                app.type === api.apps.TYPES.CHATSHIER) {
                 delete apps[appId];
                 continue;
             }
