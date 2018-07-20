@@ -370,7 +370,7 @@ window.TemplateBuilder = (function() {
 
             this.templateSwiper = new Swiper(this.$elem.get(0), {
                 loop: false,
-                allowTouchMove: false,
+                // allowTouchMove: false,
                 slidesPerView: 'auto',
                 spaceBetween: 8,
                 pagination: {
