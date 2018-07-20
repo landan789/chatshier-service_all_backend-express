@@ -20,22 +20,10 @@ declare module Webhook {
         }
 
         interface PostbackData {
-            action: 'CHANGE_RICHMENU' | 'SEND_TEMPLATE' | 'SEND_CONSUMER_FORM' | 'PAYMENT_CONFIRM',
+            action: 'CHANGE_RICHMENU' | 'SEND_TEMPLATE' | 'SEND_IMAGEMAP' | 'SEND_CONSUMER_FORM' | 'PAYMENT_CONFIRM',
             richmenuId?: string,
             templateId?: string,
-            context?: {
-                altText: string,
-                templateTitle?: string,
-                templateText: string,
-                donateAmounts?: number[],
-                currency?: string,
-                paymentId?: string,
-
-                // ECPay
-                TotalAmount?: string,
-                TradeDesc?: string,
-                ItemName?: string
-            }
+            imagemapId?: string
         }
     }
     

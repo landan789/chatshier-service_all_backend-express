@@ -15,10 +15,6 @@
     background-color: #eee;
 }
 
-.modal-body {
-    margin-bottom: 20px;
-}
-
 label {
     width: 100%;
 }
@@ -114,13 +110,6 @@ label *:not(strong) {
 .title {
     text-align: left;
     background-color: #F4F4F4;
-}
-
-.card {
-    background-color: #ffffff;
-    margin-top: 30px;
-    box-shadow: 1px 1px 1px 3px #dddddd;
-    height: 950px;
 }
 
 .chsr.table {

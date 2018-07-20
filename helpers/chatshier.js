@@ -27,6 +27,7 @@ module.exports = (function() {
     const POSTBACK_ACTIONS = Object.freeze({
         CHANGE_RICHMENU: 'CHANGE_RICHMENU',
         SEND_TEMPLATE: 'SEND_TEMPLATE',
+        SEND_IMAGEMAP: 'SEND_IMAGEMAP',
         SEND_CONSUMER_FORM: 'SEND_CONSUMER_FORM',
         PAYMENT_CONFIRM: 'PAYMENT_CONFIRM'
     });
@@ -97,6 +98,25 @@ module.exports = (function() {
                                 repliedMessages.push(templateMessage);
                             });
                             promises.push(templatePromise);
+                            break;
+                        case POSTBACK_ACTIONS.SEND_IMAGEMAP:
+                            let imagemapId = dataJson.imagemapId || '';
+                            let imagemapPromise = appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
+                                if (!(appsImagemaps && appsImagemaps[appId])) {
+                                    return Promise.resolve();
+                                }
+
+                                let imagemap = appsImagemaps[appId].imagemaps[imagemapId];
+                                let imagemapMessage = {
+                                    type: imagemap.type,
+                                    altText: imagemap.altText,
+                                    baseUrl: imagemap.baseUrl,
+                                    baseSize: imagemap.baseSize,
+                                    actions: imagemap.actions
+                                };
+                                repliedMessages.push(imagemapMessage);
+                            });
+                            promises.push(imagemapPromise);
                             break;
                         case POSTBACK_ACTIONS.SEND_CONSUMER_FORM:
                             let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);

@@ -83,34 +83,6 @@ module.exports = (function() {
                     return Promise.resolve(appsTemplates);
                 });
             }).then((appsTemplates) => {
-                let templateId = Object.keys(appsTemplates[appId].templates)[0];
-                let template = appsTemplates[appId].templates[templateId];
-
-                if (template.template.thumbnailImageUrl) {
-                    let fromPathArray = template.template.thumbnailImageUrl.split('/');
-                    let src = fromPathArray[fromPathArray.length - 1];
-                    let fromPath = `/temp/${src}`;
-                    let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
-                    return storageHlp.filesMoveV2(fromPath, toPath).then(() => {
-                        return appsTemplates;
-                    });
-                } else if (template.template.columns) {
-                    return Promise.all(template.template.columns.map((column) => {
-                        if (!column.thumbnailImageUrl) {
-                            return Promise.resolve();
-                        }
-
-                        let fromPathArray = column.thumbnailImageUrl.split('/');
-                        let src = fromPathArray[fromPathArray.length - 1];
-                        let fromPath = `/temp/${src}`;
-                        let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
-                        return storageHlp.filesMoveV2(fromPath, toPath);
-                    })).then(() => {
-                        return appsTemplates;
-                    });
-                }
-                return appsTemplates;
-            }).then((appsTemplates) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsTemplates

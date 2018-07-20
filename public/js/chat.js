@@ -1440,12 +1440,6 @@
                     '<span class="text-content">地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
                 );
             case 'template':
-                // 目前錢掌櫃的模板訊息尚未支援 FACEBOOK
-                // 因此不顯示模板訊息
-                if (FACEBOOK === appType) {
-                    return '';
-                }
-
                 if (!message.template) {
                     let messageText = linkify(message.text || '');
                     return '<span class="text-content">' + messageText + '</span>';
