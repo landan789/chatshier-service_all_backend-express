@@ -58,14 +58,14 @@ module.exports = (function() {
                     }
 
                     /** @type {Webhook.Chatshier.PostbackData} */
-                    let dataJson = JSON.parse(postback.data);
+                    let postbackData = JSON.parse(postback.data);
                     let serverAddr = webhookInfo.serverAddress;
                     let platformUid = webhookInfo.platformUid;
                     let url = serverAddr;
 
-                    switch (dataJson.action) {
+                    switch (postbackData.action) {
                         case POSTBACK_ACTIONS.CHANGE_RICHMENU:
-                            let richmenuId = dataJson.richmenuId || '';
+                            let richmenuId = postbackData.richmenuId || '';
                             let richmenuPromise = appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
                                 if (!(appsRichmenus && appsRichmenus[appId])) {
                                     return;
@@ -83,13 +83,22 @@ module.exports = (function() {
                             promises.push(richmenuPromise);
                             break;
                         case POSTBACK_ACTIONS.SEND_TEMPLATE:
-                            let templateId = dataJson.templateId || '';
+                            let templateId = postbackData.templateId || '';
                             let templatePromise = appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
                                 if (!(appsTemplates && appsTemplates[appId])) {
                                     return Promise.resolve();
                                 }
 
                                 let template = appsTemplates[appId].templates[templateId];
+
+                                if (postbackData.additionalText) {
+                                    let additionalTextMessage = {
+                                        type: 'text',
+                                        text: postbackData.additionalText
+                                    };
+                                    repliedMessages.push(additionalTextMessage);
+                                }
+
                                 let templateMessage = {
                                     type: template.type,
                                     altText: template.altText,
@@ -100,10 +109,18 @@ module.exports = (function() {
                             promises.push(templatePromise);
                             break;
                         case POSTBACK_ACTIONS.SEND_IMAGEMAP:
-                            let imagemapId = dataJson.imagemapId || '';
+                            let imagemapId = postbackData.imagemapId || '';
                             let imagemapPromise = appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
                                 if (!(appsImagemaps && appsImagemaps[appId])) {
                                     return Promise.resolve();
+                                }
+
+                                if (postbackData.additionalText) {
+                                    let additionalTextMessage = {
+                                        type: 'text',
+                                        text: postbackData.additionalText
+                                    };
+                                    repliedMessages.push(additionalTextMessage);
                                 }
 
                                 let imagemap = appsImagemaps[appId].imagemaps[imagemapId];
@@ -124,7 +141,7 @@ module.exports = (function() {
 
                             let formMessage = {
                                 type: 'template',
-                                altText: '填寫基本資料模板訊息',
+                                altText: '填寫基本資料範本訊息',
                                 template: {
                                     type: 'buttons',
                                     title: '填寫基本資料',
@@ -156,7 +173,7 @@ module.exports = (function() {
                                     }
 
                                     // 當 consumer 點擊捐款時，檢查此 consumer 是否已經填寫完個人基本資料
-                                    // 如果沒有填寫完基本資料，則發送填寫基本資料模板給使用者
+                                    // 如果沒有填寫完基本資料，則發送填寫基本資料範本給使用者
                                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                                     let chatroomId = Object.keys(chatrooms).shift() || '';
                                     let messager = chatrooms[chatroomId].messagers[platformUid];
@@ -179,7 +196,7 @@ module.exports = (function() {
 
                                         let formMessage = {
                                             type: 'template',
-                                            altText: '填寫基本資料模板訊息',
+                                            altText: '填寫基本資料範本訊息',
                                             template: {
                                                 type: 'buttons',
                                                 title: '填寫基本資料',
@@ -389,7 +406,7 @@ module.exports = (function() {
                         }
                         let templateId = reply.template_id;
                         return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
-                            // 此關鍵字回覆的模板訊息可能已被刪除或找不到，因此刪除回復訊息
+                            // 此關鍵字回覆的範本訊息可能已被刪除或找不到，因此刪除回復訊息
                             if (!(appsTemplates && appsTemplates[appId])) {
                                 delete replies[replyId];
                                 return;

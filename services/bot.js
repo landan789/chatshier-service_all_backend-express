@@ -874,9 +874,17 @@ module.exports = (function() {
                                 let elements = columns.map((column) => {
                                     let element = {
                                         title: column.title,
-                                        subtitle: column.text,
-                                        image_url: column.thumbnailImageUrl
+                                        subtitle: column.text
                                     };
+
+                                    if (!element.title && element.subtitle) {
+                                        element.title = element.subtitle;
+                                        delete element.subtitle;
+                                    }
+
+                                    if (column.thumbnailImageUrl) {
+                                        element.image_url = column.thumbnailImageUrl;
+                                    }
 
                                     if (column.defaultAction) {
                                         element.default_action = {
@@ -886,21 +894,23 @@ module.exports = (function() {
                                     }
 
                                     let actions = column.actions || [];
-                                    element.buttons = actions.map((action) => {
-                                        /** @type {string} */
-                                        let type = action.type;
-                                        if ('uri' === type) {
-                                            type = 'web_url';
-                                        }
+                                    if (actions.length > 0) {
+                                        element.buttons = actions.map((action) => {
+                                            /** @type {string} */
+                                            let type = action.type;
+                                            if ('uri' === type) {
+                                                type = 'web_url';
+                                            }
 
-                                        let button = {
-                                            type: type,
-                                            title: action.label
-                                        };
-                                        action.uri && (button.url = action.uri);
-                                        action.data && (button.payload = action.data);
-                                        return button;
-                                    });
+                                            let button = {
+                                                type: type,
+                                                title: action.label
+                                            };
+                                            action.uri && (button.url = action.uri);
+                                            action.data && (button.payload = action.data);
+                                            return button;
+                                        });
+                                    }
                                     return element;
                                 });
 
