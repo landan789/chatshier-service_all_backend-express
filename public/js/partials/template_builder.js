@@ -274,7 +274,7 @@ window.TemplateBuilder = (function() {
                                 '<option value="" disabled>未選擇</option>' +
                                 Object.keys(this._templates).map((templateId) => {
                                     let template = this._templates[templateId];
-                                    return '<option value="' + templateId + '">' + template.altText + '</option>';
+                                    return '<option value="' + templateId + '">' + (template.name || template.altText) + '</option>';
                                 }).join('') +
                             '</select>' +
                         '</div>'
