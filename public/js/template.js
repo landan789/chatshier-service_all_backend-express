@@ -381,7 +381,7 @@
                         (app.type === api.apps.TYPES.LINE ? '<td data-title="' + template.altText + '">' + template.altText + '</td>' : '') +
                         '<td>' + (TEMPLATE_TYPE_DISPLAY_TEXT[displayType] || '未知版型') + '</td>' +
                         '<td>' +
-                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#templateModal" aria-hidden="true"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-backdrop="static" data-target="#templateModal" aria-hidden="true"></button>' +
                             '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove-btn"></button>' +
                         '</td>' +
                     '</tr>'
