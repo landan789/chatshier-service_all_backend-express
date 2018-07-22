@@ -968,14 +968,14 @@ const ConditionSelector = (function() {
 
             for (let i in composeContents) {
                 let content = composeContents[i];
-                // 目前 Facebook 無法實作圖文訊息及模板訊息的發送
-                // 會顯示警告訊息告知 Facebook 無法收到圖文訊息及模板訊息的發送
+                // 目前 Facebook 無法實作圖文訊息的發送
+                // 會顯示警告訊息告知 Facebook 無法收到圖文訊息的發送
                 content.isFacebookAlertShow = isIncludeFacebook;
-                // 由於每個機器人都各自設定的圖文訊息及模板訊息
+                // 由於每個機器人都各自設定的圖文訊息及範本訊息
                 // 因此當要發送給多個機器人時，目前暫無法選擇各自的圖文訊息去發送
-                // TODO: 每個機器人可選擇各自的圖文訊息或模板訊息去發送
+                // TODO: 每個機器人可選擇各自的圖文訊息或範本訊息去發送
                 content.toggleImageMap(!isIncludeFacebook && 1 === appIds.length);
-                content.toggleTemplate(!isIncludeFacebook && 1 === appIds.length);
+                content.toggleTemplate(1 === appIds.length);
                 content.appId = appIds[appIds.length - 1];
             }
 
@@ -1266,7 +1266,7 @@ const ConditionSelector = (function() {
                         } else if ('imagemap' === compose.type) {
                             return '<td class="text-pre search-source">圖文訊息</td>';
                         } else if ('template' === compose.type) {
-                            return '<td class="text-pre search-source">模板訊息</td>';
+                            return '<td class="text-pre search-source">範本訊息</td>';
                         }
                         return '<td class="text-pre"></td>';
                     })() +

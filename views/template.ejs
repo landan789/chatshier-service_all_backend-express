@@ -22,8 +22,8 @@
             <div class="container my-5">
                 <div class="chsr card">
                     <div class="title">
-                        <h3 class="pt-3 pb-0 px-5">模板訊息</h3>
-                        <p class="pt-0 pb-4 px-5">首頁 / 圖文影音內容 / 模板訊息</p>
+                        <h3 class="pt-3 pb-0 px-5">範本訊息</h3>
+                        <p class="pt-0 pb-4 px-5">首頁 / 圖文影音內容 / 範本訊息</p>
                     </div>
                     <div class="px-5 my-3" id="appsDropdown">
                         <div class="dropdown app-dropdown">
@@ -39,15 +39,16 @@
                         </div>
                     </div>
                     <div class="py-0 px-5 chsr table">
-                        <table class="chsr table">
+                        <table class="chsr table" id="templateTable">
                             <thead>
                                 <tr>
-                                    <th scope="col">標題</th>
+                                    <th scope="col">範本名稱</th>
+                                    <th scope="col" id="colOfAltText">訊息標題文字</th>
                                     <th scope="col">版型</th>
                                     <th scope="col">操作</th>
                                 </tr>
                             </thead>
-                            <tbody id="template-tables"></tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
@@ -76,8 +77,13 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="col-form-label font-weight-bold">模板顯示文字:</label>
-                            <input class="form-control" type="text" name="templateAltText" placeholder="輸入模板名稱" />
+                            <label class="col-form-label font-weight-bold">範本名稱:</label>
+                            <input class="form-control" type="text" name="templateName" placeholder="輸入範本名稱" maxlength="50" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-form-label font-weight-bold">訊息標題文字:</label>
+                            <input class="form-control" type="text" name="templateAltText" placeholder="輸入範本訊息標題文字" maxlength="400" />
                         </div>
 
                         <div class="template-wrapper" id="templateWrapper"></div>

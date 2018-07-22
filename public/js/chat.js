@@ -1286,7 +1286,7 @@
     function imageContentBadge(type) {
         switch (type) {
             case 'template':
-                return `<span class="mr-2 px-2 py-1 template-btn badge badge-pill badge-dark">模板訊息</span>`;
+                return `<span class="mr-2 px-2 py-1 template-btn badge badge-pill badge-dark">範本訊息</span>`;
             case 'imagemap':
                 return `<span class="mr-2 px-2 py-1 template-btn badge badge-pill badge-dark">圖文訊息</span>`;
             default:

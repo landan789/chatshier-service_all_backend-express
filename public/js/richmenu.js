@@ -281,7 +281,7 @@
                             '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.URI + '" data-toggle="tooltip" data-placement="top" title="前往指定連結">' +
                                 '<i class="fas fa-link"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.TEMPLATE + '" data-toggle="tooltip" data-placement="top" title="發送指定模板訊息">' +
+                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.TEMPLATE + '" data-toggle="tooltip" data-placement="top" title="發送指定範本訊息">' +
                                 '<i class="fas fa-clipboard-list"></i>' +
                             '</button>' +
                             '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.RICHMENU + '" data-toggle="tooltip" data-placement="top" title="切換圖文選單">' +
@@ -404,7 +404,7 @@
                         }).then((templates) => {
                             return (
                                 '<select class="form-control content-input action-data" action-property="templateId" value="">' +
-                                    '<option value="" disabled selected>-- 請選擇目標模板 --</option>' +
+                                    '<option value="" disabled selected>-- 請選擇目標範本 --</option>' +
                                     (function() {
                                         return Object.keys(templates).map((templateId) => {
                                             return '<option value="' + templateId + '">' + templates[templateId].altText + '</option>';
@@ -1085,7 +1085,7 @@
                 if (actionData.indexOf(POSTBACK_DATA_TYPES.CHANGE_RICHMENU) >= 0) {
                     return '切換圖文選單';
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_TEMPLATE) >= 0) {
-                    return '發送模板';
+                    return '發送範本';
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM) >= 0) {
                     return '要求填寫個人資料';
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.PAYMENT_CONFIRM) >= 0) {
