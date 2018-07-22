@@ -320,7 +320,7 @@ window.ReplyMessageSelector = (function() {
                                         (() => {
                                             return Object.keys(templates).map((templateId) => {
                                                 let template = templates[templateId];
-                                                return '<option value="' + templateId + '">' + template.altText + '</option>';
+                                                return '<option value="' + templateId + '">' + (template.name || template.altText) + '</option>';
                                             }).join('');
                                         })() +
                                     '</select>' +
