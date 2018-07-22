@@ -247,7 +247,7 @@ window.TemplateBuilder = (function() {
                 case BUTTON_ACTIONS.IMAGEMAP:
                     selectDefaultValue = actionData.imagemapId || '';
                     $actionElem = $(
-                        this._generateTextInputHtml(actionData.additionalText, 'action-imagemap-text', '輸入附加訊息文字') +
+                        this._generateTextInputHtml(actionData.additionalText, 'action-imagemap-text', '輸入附加訊息文字 (選填)') +
                         '<div class="mt-2 input-group">' +
                             '<div class="input-group-prepend">' +
                                 '<span class="input-group-text"><i class="fas fa-map"></i></span>' +
@@ -265,7 +265,7 @@ window.TemplateBuilder = (function() {
                 case BUTTON_ACTIONS.TEMPLATE:
                     selectDefaultValue = actionData.templateId || '';
                     $actionElem = $(
-                        this._generateTextInputHtml(actionData.additionalText, 'action-template-text', '輸入附加訊息文字') +
+                        this._generateTextInputHtml(actionData.additionalText, 'action-template-text', '輸入附加訊息文字 (選填)') +
                         '<div class="mt-2 input-group">' +
                             '<div class="input-group-prepend">' +
                                 '<span class="input-group-text"><i class="fas fa-clipboard-list"></i></span>' +
