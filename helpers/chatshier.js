@@ -1,6 +1,7 @@
 module.exports = (function() {
     /** @type {any} */
     const API_ERROR = require('../config/api_error.json');
+    const GenericTemplateBuilder = require('facebook-bot-messenger').GenericTemplateBuilder;
 
     const appsGreetingsMdl = require('../models/apps_greetings');
     const appsAutorepliesMdl = require('../models/apps_autoreplies');
@@ -436,6 +437,71 @@ module.exports = (function() {
             })).then(() => {
                 return replies;
             });
+        }
+
+        /**
+         * @param {string} recipientUid
+         * @param {Chatshier.Models.Template} templateMessage
+         */
+        convertTemplateToFB(recipientUid, templateMessage) {
+            let template = templateMessage.template;
+            let columns = template.columns ? template.columns : [template];
+            let elements = columns.map((column) => {
+                let element = {
+                    title: column.title,
+                    subtitle: column.text
+                };
+
+                if (!element.title && element.subtitle) {
+                    element.title = element.subtitle;
+                    delete element.subtitle;
+                }
+
+                if (column.thumbnailImageUrl) {
+                    element.image_url = column.thumbnailImageUrl;
+                }
+
+                if (column.defaultAction) {
+                    element.default_action = {
+                        type: 'web_url',
+                        url: column.defaultAction.uri
+                    };
+                }
+
+                let actions = column.actions || [];
+                if (actions.length > 0) {
+                    element.buttons = actions.map((action) => {
+                        /** @type {string} */
+                        let type = action.type;
+                        if ('uri' === type) {
+                            type = 'web_url';
+                        }
+
+                        let button = {
+                            type: type,
+                            title: action.label
+                        };
+                        action.uri && (button.url = action.uri);
+                        action.data && (button.payload = action.data);
+                        return button;
+                    });
+                }
+                return element;
+            });
+
+            let templateBuilder = new GenericTemplateBuilder(elements);
+            let templateJson = {
+                recipient: {
+                    id: recipientUid
+                },
+                message: {
+                    attachment: {
+                        type: 'template',
+                        payload: templateBuilder.buildTemplate()
+                    }
+                }
+            };
+            return templateJson;
         }
     }
 

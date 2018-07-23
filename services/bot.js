@@ -17,6 +17,7 @@ module.exports = (function() {
     const consumersMdl = require('../models/consumers');
     const storageHlp = require('../helpers/storage');
     const socketHlp = require('../helpers/socket');
+    const chatshierHlp = require('../helpers/chatshier');
     const wechatSvc = require('./wechat');
 
     // app type defined
@@ -867,67 +868,7 @@ module.exports = (function() {
                             }
 
                             if ('template' === message.type) {
-                                /** @type {Chatshier.Models.Template} */
-                                let templateMessage = message;
-                                let template = templateMessage.template;
-                                let columns = template.columns ? template.columns : [template];
-                                let elements = columns.map((column) => {
-                                    let element = {
-                                        title: column.title,
-                                        subtitle: column.text
-                                    };
-
-                                    if (!element.title && element.subtitle) {
-                                        element.title = element.subtitle;
-                                        delete element.subtitle;
-                                    }
-
-                                    if (column.thumbnailImageUrl) {
-                                        element.image_url = column.thumbnailImageUrl;
-                                    }
-
-                                    if (column.defaultAction) {
-                                        element.default_action = {
-                                            type: 'web_url',
-                                            url: column.defaultAction.uri
-                                        };
-                                    }
-
-                                    let actions = column.actions || [];
-                                    if (actions.length > 0) {
-                                        element.buttons = actions.map((action) => {
-                                            /** @type {string} */
-                                            let type = action.type;
-                                            if ('uri' === type) {
-                                                type = 'web_url';
-                                            }
-
-                                            let button = {
-                                                type: type,
-                                                title: action.label
-                                            };
-                                            action.uri && (button.url = action.uri);
-                                            action.data && (button.payload = action.data);
-                                            return button;
-                                        });
-                                    }
-                                    return element;
-                                });
-
-                                let GenericTemplateBuilder = FacebookBotSdk.GenericTemplateBuilder;
-                                let templateBuilder = new GenericTemplateBuilder(elements);
-                                let templateJson = {
-                                    recipient: {
-                                        id: platformUid
-                                    },
-                                    message: {
-                                        attachment: {
-                                            type: message.type,
-                                            payload: templateBuilder.buildTemplate()
-                                        }
-                                    }
-                                };
-                                return bot.sendJsonMessage(templateJson);
+                                return bot.sendJsonMessage(chatshierHlp.convertTemplateToFB(platformUid, message));
                             }
 
                             if (!message.text) {
@@ -1069,6 +1010,10 @@ module.exports = (function() {
                         if ('file' === message.type) {
                             return bot.sendFileMessage(recipientUid, message.src, true);
                         }
+
+                        if ('template' === message.type) {
+                            return bot.sendJsonMessage(chatshierHlp.convertTemplateToFB(recipientUid, message));
+                        }
                         return bot.sendTextMessage(recipientUid, message.text);
                     case WECHAT:
                         return Promise.resolve().then(() => {
@@ -1208,6 +1153,10 @@ module.exports = (function() {
 
                                         if ('image' === message.type) {
                                             return bot.sendImageMessage(recipientUid, message.src, true);
+                                        }
+
+                                        if ('template' === message.type) {
+                                            return bot.sendJsonMessage(chatshierHlp.convertTemplateToFB(recipientUid, message));
                                         }
                                     }).then(() => {
                                         return nextPromise(i + 1);
