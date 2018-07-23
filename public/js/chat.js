@@ -2174,7 +2174,7 @@
             '</div>'
         );
         $chatroomBody.empty().append($chatContent);
-        scrollMessagePanelToBottom(appId, chatroomId);
+
         $('#chatWrapper .message .content').removeClass('found');
         for (let i = 0; i < searchedMessages.length; i++) {
             let searched = searchedMessages[i];
@@ -2268,6 +2268,7 @@
             $ticketToggle.removeClass('active');
             $ticketPanel.removeClass('d-none');
         }
+        scrollMessagePanelToBottom(appId, chatroomId);
 
         if ($profileToggle.hasClass('active')) {
             $profilePanel.removeClass('d-none');
@@ -2673,12 +2674,14 @@
     function scrollMessagePanelToBottom(appId, chatroomId) {
         var $messageWrapper = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $messagePanel = $messageWrapper.find('.message-panel');
-        $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
+        var maxScrollTop = $messagePanel.prop('scrollHeight') - $messagePanel.prop('clientHeight');
+        $messagePanel.scrollTop(maxScrollTop);
 
         var $messageImgs = $messagePanel.find('.image-content, .sticker-content');
         $messageImgs.off('load').one('load', function(ev) {
             let imgOffsetTop = $(ev.target).prop('offsetTop');
-            if (imgOffsetTop > $messagePanel.prop('scrollTop')) {
+            let scrollTop = $messagePanel.prop('scrollTop');
+            if (imgOffsetTop > scrollTop) {
                 $messagePanel.scrollTop(imgOffsetTop);
             }
         });
