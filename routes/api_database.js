@@ -12,6 +12,7 @@ const appsImagemapsCtl = require('../controllers/apps_imagemaps');
 const appsCtl = require('../controllers/apps');
 const appsTicketsCtl = require('../controllers/apps_tickets');
 const calendarsEventsCtl = require('../controllers/calendars_events');
+const appsPaymentsCtl = require('../controllers/apps_payments');
 const appsRichmenusCtl = require('../controllers/apps_richmenus');
 const appsFieldsCtl = require('../controllers/apps_fields');
 const appsGreetingsCtl = require('../controllers/apps_greetings');
@@ -169,6 +170,13 @@ router.post('/apps-appointments-members/apps/:appid/users/:userid', appsAppointm
 router.put('/apps-appointments-members/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsMembersCtl.putOne);
 router.delete('/apps-appointments-members/apps/:appid/appointments/:appointmentid/users/:userid', appsAppointmentsMembersCtl.deleteOne);
 // ==========
+
+router.get('/apps-payments/users/:userid', appsPaymentsCtl.getAll);
+router.get('/apps-payments/apps/:appid/users/:userid', appsPaymentsCtl.getAll);
+router.get('/apps-payments/apps/:appid/payments/:paymentid/users/:userid', appsPaymentsCtl.getOne);
+router.post('/apps-payments/apps/:appid/users/:userid', appsPaymentsCtl.postOne);
+router.put('/apps-payments/apps/:appid/payments/:paymentid/users/:userid', appsPaymentsCtl.putOne);
+router.delete('/apps-payments/apps/:appid/payments/:paymentid/users/:userid', appsPaymentsCtl.deleteOne);
 
 // ===============
 // consumer 個人資料訊息相關

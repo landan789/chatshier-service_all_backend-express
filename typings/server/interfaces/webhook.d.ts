@@ -1,6 +1,7 @@
 declare module Webhook {
     namespace Chatshier {
         interface Information {
+            serverAddress: string,
             eventType?: string,
             isEcho?: boolean,
             platfromAppId?: string,
@@ -19,15 +20,14 @@ declare module Webhook {
         }
 
         interface PostbackData {
-            action: 'CHANGE_RICHMENU' | 'SEND_TEMPLATE' | 'SEND_CONSUMER_FORM',
+            action: 'CHANGE_RICHMENU' | 'SEND_TEMPLATE' | 'SEND_IMAGEMAP' | 'SEND_CONSUMER_FORM' | 'PAYMENT_CONFIRM',
             richmenuId?: string,
             templateId?: string,
-            context?: {
-                altText: string,
-                templateTitle: string,
-                templateText: string,
-                buttonText: string
-            }
+            imagemapId?: string,
+            /**
+             * SEND_TEMPLATE 或者 SEND_IMAGEMAP 選填項目
+             */
+            additionalText?: string
         }
     }
     

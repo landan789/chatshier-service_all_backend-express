@@ -132,7 +132,7 @@ module.exports = (function() {
                 app.imagemaps.push(postImagemap);
                 return app.save();
             }).then(() => {
-                return this.find(appId, imagemapId);
+                return this.find(appId, imagemapId.toHexString());
             }).then((appsImagemaps) => {
                 ('function' === typeof callback) && callback(appsImagemaps);
                 return appsImagemaps;

@@ -11,7 +11,11 @@ body, html {
 }
 
 .fb-messsenger-color {
-    color: #407fff
+    color: #407fff;
+}
+
+.wechat-color {
+    color: #40b035;
 }
 
 /* disable input 時間元素時一併隱藏內建按鈕 */
@@ -308,4 +312,20 @@ button:focus {
 
 .chsr caption {
     caption-side: top;
+}
+
+.image-container {
+    background-color: transparent;
+}
+
+.image-fit {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: initial;
+    margin: auto;
+    border-radius: .25rem;
 }

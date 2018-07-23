@@ -20,7 +20,7 @@ module.exports = (function() {
 
         getOne(req, res, next) {
             let userId = req.params.userid;
-            let queryEmail = req.query.email;
+            let queryEmail = (req.query.email || '').toLowerCase();
             let useFuzzy = !!req.query.fuzzy;
 
             // searchUser 回傳的型態為陣列與 model 回傳的型態不同

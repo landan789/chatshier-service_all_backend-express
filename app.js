@@ -12,6 +12,7 @@ let apiDatabase = require('./routes/api_database');
 let apiSign = require('./routes/api_sign');
 let apiBot = require('./routes/api_bot');
 let webhook = require('./routes/webhook');
+let payment = require('./routes/payment');
 let apiImage = require('./routes/api_image');
 
 const CHATSHIER = require('./config/chatshier');
@@ -22,10 +23,11 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
 
-app.use(cors(CHATSHIER['CORS']));
+app.use(cors(CHATSHIER.CORS));
 app.use(cookieParser());
 
 app.use('/webhook', webhook);
+app.use('/payment', payment);
 
 // API JWT 權限驗證
 app.use('/api/*/users/:userid', jwtHlp.authenticate);

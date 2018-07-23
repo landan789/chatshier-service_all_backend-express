@@ -28,6 +28,9 @@
     var $ticketAddModal = $('#ticketAddModal');
 
     $jqDoc.on('click', '#ticketAdd', addTicket);
+    // 停用所有 form 的提交
+    $jqDoc.on('submit', 'form', function(ev) { return ev.preventDefault(); });
+
     $ticketBody.on('click', '.ticket-row', showTicketDetail);
     $ticketEditModal.on('click', '#ticket_info_modify', updateTicket);
     $ticketAddModal.on('show.bs.modal', showAddTicketModal);

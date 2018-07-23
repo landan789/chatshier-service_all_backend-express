@@ -64,11 +64,14 @@ module.exports = (function() {
             let isImmediately = !!req.body.isImmediately;
 
             let postCompose = {
-                type: req.body.type,
-                text: req.body.text,
-                time: req.body.time,
+                type: req.body.type || '',
+                text: req.body.text || '',
+                time: undefined !== req.body.time ? req.body.time : 0,
                 status: !!req.body.status,
-                conditions: req.body.conditions
+                conditions: req.body.conditions instanceof Array ? req.body.conditions : [],
+                src: req.body.src || '',
+                template_id: req.body.template_id || '',
+                imagemap_id: req.body.imagemap_id || ''
             };
 
             return Promise.resolve().then(() => {
@@ -99,6 +102,7 @@ module.exports = (function() {
         putOne(req, res) {
             let appId = req.params.appid;
             let composeId = req.params.composeid;
+            let isImmediately = !!req.body.isImmediately;
 
             let putCompose = {};
             ('string' === typeof req.body.type) && (putCompose.type = req.body.type);
@@ -106,14 +110,17 @@ module.exports = (function() {
             ('number' === typeof req.body.time) && (putCompose.time = req.body.time);
             (undefined !== req.body.status) && (putCompose.status = !!req.body.status);
             (req.body.conditions instanceof Array) && (putCompose.conditions = req.body.conditions);
+            ('string' === typeof req.body.src) && (putCompose.src = req.body.src);
+            ('string' === typeof req.body.template_id) && (putCompose.template_id = req.body.template_id);
+            ('string' === typeof req.body.imagemap_id) && (putCompose.imagemap_id = req.body.imagemap_id);
 
             return this.appsRequestVerify(req).then(() => {
                 if (!composeId) {
                     return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
-                };
+                }
 
                 // 檢查欲更新的群發發送時間比現在的時間還早的話不允許更新
-                if (putCompose.time && new Date(putCompose.time).getTime() < Date.now()) {
+                if (!isImmediately && putCompose.status && (!putCompose.time || new Date(putCompose.time).getTime() < Date.now())) {
                     return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
                 }
 

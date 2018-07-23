@@ -2,22 +2,23 @@
 <html>
 
 <head>
-    <% include ../views/partials/meta_tags.ejs %>
-    <% include ../views/partials/favicon.ejs %>
+    <% include ./partials/meta_tags.ejs %>
+    <% include ./partials/favicon.ejs %>
     <title><%= title %></title>
 
-    <% include ../views/partials/require_css.ejs %>
-    <link rel="stylesheet" href="css/table.css" />
+    <% include ./partials/require_css.ejs %>
+    <link rel="stylesheet" href="/lib/css/emojionearea.min.css" />
+    <link rel="stylesheet" href="/css/table.css" />
 </head>
 
 <body>
-    <% include ../views/partials/loading.ejs %>
+    <% include ./partials/loading.ejs %>
 
     <div class="root d-flex w-100 h-100">
-        <% include ../views/partials/control_panel.ejs %>
+        <% include ./partials/control_panel.ejs %>
 
         <div class="ml-auto w-100 page-wrapper">
-            <% include ../views/partials/toolbar.ejs %>
+            <% include ./partials/toolbar.ejs %>
 
             <div class="container my-5">
                 <div class="chsr card">
@@ -38,7 +39,7 @@
                             <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
                         </div>
                         <div class="search-add mb-2">
-                            <button type="button" id="add-btn" class="btn btn-light btn-border inner-add insert" data-toggle="modal" data-target="#greeting_modal" aria-hidden="true">
+                            <button type="button" class="btn btn-light btn-border btn-insert" id="insertBtn" data-toggle="modal" data-target="#greetingModal" aria-hidden="true">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -47,12 +48,12 @@
                         <table class="chsr table">
                             <thead>
                                 <tr>
-                                    <th scope="col">文字</th>
+                                    <th scope="col">內容</th>
                                     <th scope="col">時間</th>
                                     <th scope="col">操作</th>
                                 </tr>
                             </thead>
-                            <tbody id="MsgCanvas"></tbody>
+                            <tbody id="greetingsBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -60,32 +61,23 @@
         </div>
     </div>
 
-    <div id="greeting_modal" class="chsr modal fade" tabindex="-1" role="dialog">
+    <div class="chsr modal fade" id="greetingModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group d-none">
-                            <input class="form-control" type="text" name="greeting=text" id="modal-greeting-id" />
+                <form class="modal-body">
+                    <div class="form-group" id="rowOfAppSelect">
+                        <label for="greetingAppId" class="col-form-label font-weight-bold">目標機器人:</label>
+                        <div class="select-container">
+                            <select class="form-control" name="greetingAppId" id="greetingAppId">
+                                <option value=''>載入中...</option>
+                            </select>
                         </div>
-                        <div class="form-group">
-                            <label for="greeting-app-name" class="col-form-label font-weight-bold">目標機器人:</label>
-                            <div class="select-container">
-                                <select class="form-control" name="greeting-app-name">
-                                    <option value=''>載入中...</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="greeting=text" class="col-form-label font-weight-bold">文字:</label>
-                            <textarea class="form-control" type="text" name="greeting=text" id="modal-greeting-text"></textarea>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="modal-insert-btn">新增</button>
-                    <button type="button" class="btn btn-primary" id="modal-update-btn">修改</button>
+                    <button type="button" class="btn btn-primary" id="modalInsertBtn">新增</button>
+                    <button type="button" class="btn btn-primary" id="modalUpdateBtn">修改</button>
                 </div>
             </div>
         </div>
@@ -105,8 +97,10 @@
             </div>
         </div>
     </div>
-    <% include ../views/partials/require_js.ejs %>
-    <script src="js/greeting.js"></script>
+    <% include ./partials/require_js.ejs %>
+    <script src="/lib/js/emojionearea.min.js"></script>
+    <script src="/js/partials/reply_message_selector.js"></script>
+    <script src="/js/greeting.js"></script>
 </body>
 
 </html>

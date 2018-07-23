@@ -85,30 +85,27 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.Users | null>}
          */
         insert(user, callback) {
-            let users;
             let query = {};
-            let _query = {};
 
             let _user = new this.Model();
             _user._id = user._id || '';
-            _user.email = user.email || '';
+            _user.email = (user.email || '').toLowerCase();
             _user.name = user.name || '';
             _user.company = user.company || '';
             _user.password = user.password;
             _user.group_ids = user.group_ids || [];
             _user.createdTime = user.updatedTime = Date.now();
 
-            if (user.email) {
-                query['email'] = user.email;
+            if (_user.email) {
+                query['email'] = _user.email;
             }
             return this.Model.findOne(query).then((__user) => {
                 if (__user) {
                     return Promise.reject(new Error('USER_IS_EXIST'));
-                };
-            }).then(() => {
+                }
                 return _user.save();
             }).then((__user) => {
-                _query = {
+                let _query = {
                     '_id': __user._id
                 };
                 return this.Model.findOne(_query);
@@ -121,7 +118,7 @@ module.exports = (function() {
                     company: user.company,
                     name: user.name
                 };
-                users = {
+                let users = {
                     [user._id]: _user
                 };
                 return users;
@@ -157,7 +154,7 @@ module.exports = (function() {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
-                return this.Model.findOne(query);
+                return this.Model.findOne(query).lean();
             }).then((user) => {
                 let users = {
                     [user._id]: user

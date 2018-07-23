@@ -42,11 +42,6 @@
     .field-content .field-drag-icon i {
         color: #c0c0c0; }
 
-.long-token {
-    max-width: 600px;
-    word-wrap: break-word;
-}
-
 .chsr.nav-pills .nav-link.active {
     color: white;
     background-color: #33ccff;
@@ -85,10 +80,6 @@ p:empty:not(:focus)::before {
     padding: 0 1rem; }
     [data-toggle="collapse"].collapsed:after {
         content: "\f078"; }
-
-.app-table-space {
-    padding: 1%;
-}
 
 /*******************/
 /* #region 內部群組相關設置 */
@@ -233,3 +224,17 @@ p:empty:not(:focus)::before {
     cursor: pointer; }
     .fb-import-button:focus {
         outline: none; }
+
+.app-webhook-id {
+    cursor: pointer;
+}
+
+@media (min-width: 768px) {
+    .apps-body.card-columns {
+        column-count: 2; }
+}
+
+@media (min-width: 992px) {
+    .apps-body.card-columns {
+        column-count: 3; }
+}

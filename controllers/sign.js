@@ -42,24 +42,24 @@ module.exports = (function() {
             let users;
             let userId;
             let user = {
-                email: req.body.email || '',
+                email: (req.body.email || '').toLowerCase(),
                 password: req.body.password || ''
             };
 
             let domain = domainHlp.get(req.hostname);
             return Promise.resolve().then(() => {
-                if (!req.body.email) {
+                if (!user.email) {
                     return Promise.reject(API_ERROR.EMAIL_WAS_EMPTY);
                 };
 
-                if (!req.body.password) {
+                if (!user.password) {
                     return Promise.reject(API_ERROR.PASSWORD_WAS_EMPTY);
                 };
 
                 return Promise.resolve();
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(void 0, req.body.email, (_users) => {
+                    usersMdl.find(void 0, user.email, (_users) => {
                         // If the user email deoes not exist then REST API can not sign up
                         if (!_users || (_users && 0 === Object.keys(_users).length)) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
@@ -130,13 +130,15 @@ module.exports = (function() {
             let groups;
             let groupId;
             let domain = domainHlp.get(req.hostname);
+            let userName = req.body.name || '';
+            let userEmail = (req.body.email || '').toLowerCase();
 
             return Promise.resolve().then(() => {
-                if (!req.body.name) {
+                if (!userName) {
                     return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
                 };
 
-                if (!req.body.email) {
+                if (!userEmail) {
                     return Promise.reject(API_ERROR.EMAIL_WAS_EMPTY);
                 };
 
@@ -147,7 +149,7 @@ module.exports = (function() {
                 return Promise.resolve();
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(void 0, req.body.email, (users) => {
+                    usersMdl.find(void 0, userEmail, (users) => {
                         // If the user email exists then REST API can not insert any user
                         if (users && 0 < Object.keys(users).length) {
                             reject(API_ERROR.USER_EMAIL_HAD_BEEN_SIGNED_UP);
@@ -176,7 +178,7 @@ module.exports = (function() {
                 let user = {
                     _id: userId,
                     name: req.body.name,
-                    email: req.body.email,
+                    email: userEmail,
                     password: ciperHlp.encode(req.body.password),
                     group_ids: [groupId]
                 };
@@ -295,12 +297,12 @@ module.exports = (function() {
         }
 
         postResetPassword(req, res) {
-            let email = req.body.email;
+            let userEmail = (req.body.email || '').toLowerCase();
             let recaptchaResponse = req.body.recaptchaResponse;
             let domain = domainHlp.get(req.hostname);
 
             return Promise.resolve().then(() => {
-                if (!email) {
+                if (!userEmail) {
                     return Promise.reject(API_ERROR.EMAIL_WAS_EMPTY);
                 }
 
@@ -313,7 +315,7 @@ module.exports = (function() {
                 if (!resJson.success) {
                     return Promise.reject(API_ERROR.PASSWORD_FAILED_TO_RESET);
                 }
-                return usersMdl.find(void 0, email);
+                return usersMdl.find(void 0, userEmail);
             }).then((users) => {
                 if (!users || (users && 1 !== Object.keys(users).length)) {
                     return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
@@ -323,8 +325,8 @@ module.exports = (function() {
                 let token = jwtHlp.sign(userId, 5 * 60 * 1000); // 使用者必須在 5 分鐘之內完成此次重設密碼動作
                 let serverAddr = req.protocol + '://' + req.hostname + (req.subdomains.includes('fea') ? ':3002' : '');
 
-                return emailHlp.sendResetPWMail(serverAddr, email, token).then((result) => {
-                    if (result.rejected.indexOf(email) >= 0) {
+                return emailHlp.sendResetPWMail(serverAddr, userEmail, token).then((result) => {
+                    if (result.rejected.indexOf(userEmail) >= 0) {
                         return Promise.reject(API_ERROR.EMAIL_FAILED_TO_SEND);
                     }
                     return result;

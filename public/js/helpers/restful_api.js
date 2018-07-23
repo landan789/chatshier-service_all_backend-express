@@ -1,9 +1,16 @@
-/// <reference path='../../../typings/client/config.d.ts' />
+/// <reference path='../../../typings/client/index.d.ts' />
 
 window.restfulAPI = (function() {
     var jwt = window.localStorage.getItem('jwt');
     var reqHeaders = new Headers();
     reqHeaders.set('Content-Type', 'application/json');
+
+    // ======================
+    // urlConfig undefined error handle
+    !window.urlConfig && (window.urlConfig = {});
+    !window.urlConfig.apiUrl && (window.urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
+    // ======================
+    var urlConfig = window.urlConfig;
 
     var apiDatabaseUrl = urlConfig.apiUrl + '/api/database/';
     var apiSignUrl = urlConfig.apiUrl + '/api/sign/';
@@ -18,6 +25,7 @@ window.restfulAPI = (function() {
         appsGreetings: apiDatabaseUrl + 'apps-greetings/',
         appsKeywordreplies: apiDatabaseUrl + 'apps-keywordreplies/',
         appsTemplates: apiDatabaseUrl + 'apps-templates/',
+        appsPayments: apiDatabaseUrl + 'apps-payments/',
         appsRichmenus: apiDatabaseUrl + 'apps-richmenus/',
         appsImagemaps: apiDatabaseUrl + 'apps-imagemaps/',
         appsFields: apiDatabaseUrl + 'apps-fields/',
@@ -33,12 +41,6 @@ window.restfulAPI = (function() {
         signOut: apiSignUrl + 'signout/',
         changePassword: apiSignUrl + 'change-password/'
     });
-
-    // ======================
-    // urlConfig undefined error handle
-    !window.urlConfig && (window.urlConfig = {});
-    !window.urlConfig.apiUrl && (window.urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
-    // ======================
 
     /**
      * 設定 API 驗證身份所需的 JSON Web Token
@@ -130,13 +132,11 @@ window.restfulAPI = (function() {
             this.urlPrefix = apiUrlTable.apps;
         }
 
-        AppAPI.prototype.enums = Object.freeze({
-            type: {
-                SYSTEM: 'SYSTEM',
-                CHATSHIER: 'CHATSHIER',
-                LINE: 'LINE',
-                FACEBOOK: 'FACEBOOK'
-            }
+        AppAPI.prototype.TYPES = Object.freeze({
+            SYSTEM: 'SYSTEM',
+            CHATSHIER: 'CHATSHIER',
+            LINE: 'LINE',
+            FACEBOOK: 'FACEBOOK'
         });
 
         /**
@@ -603,20 +603,19 @@ window.restfulAPI = (function() {
             this.urlPrefix = apiUrlTable.appsFields;
         }
 
-        AppsFieldsAPI.prototype.enums = Object.freeze({
-            type: {
-                SYSTEM: 'SYSTEM',
-                DEFAULT: 'DEFAULT',
-                CUSTOM: 'CUSTOM'
-            },
-            setsType: {
-                TEXT: 'TEXT',
-                NUMBER: 'NUMBER',
-                DATE: 'DATE',
-                SELECT: 'SELECT',
-                MULTI_SELECT: 'MULTI_SELECT',
-                CHECKBOX: 'CHECKBOX'
-            }
+        AppsFieldsAPI.prototype.TYPES = Object.freeze({
+            SYSTEM: 'SYSTEM',
+            DEFAULT: 'DEFAULT',
+            CUSTOM: 'CUSTOM'
+        });
+
+        AppsFieldsAPI.prototype.SETS_TYPES = Object.freeze({
+            TEXT: 'TEXT',
+            NUMBER: 'NUMBER',
+            DATE: 'DATE',
+            SELECT: 'SELECT',
+            MULTI_SELECT: 'MULTI_SELECT',
+            CHECKBOX: 'CHECKBOX'
         });
 
         /**
@@ -862,13 +861,11 @@ window.restfulAPI = (function() {
             this.urlPrefix = apiUrlTable.groupsMembers;
         };
 
-        GroupsMembersAPI.prototype.enums = Object.freeze({
-            type: {
-                OWNER: 'OWNER',
-                ADMIN: 'ADMIN',
-                WRITE: 'WRITE',
-                READ: 'READ'
-            }
+        GroupsMembersAPI.prototype.TYPES = Object.freeze({
+            OWNER: 'OWNER',
+            ADMIN: 'ADMIN',
+            WRITE: 'WRITE',
+            READ: 'READ'
         });
 
         GroupsMembersAPI.prototype.findAll = function(userId) {
@@ -1144,6 +1141,87 @@ window.restfulAPI = (function() {
         };
 
         return AppsTemplatesAPI;
+    })();
+
+    var AppsPaymentsAPI = (function() {
+        function AppsPaymentsAPI() {
+            this.urlPrefix = apiUrlTable.appsPayments;
+        }
+
+        /**
+         * @param {string} [appId='']
+         * @param {string} userId
+         */
+        AppsPaymentsAPI.prototype.findAll = function(appId, userId) {
+            var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} paymentId
+         * @param {string} userId
+         */
+        AppsPaymentsAPI.prototype.findOne = function(appId, paymentId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/payments/' + paymentId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} userId
+         * @param {any} postPayment
+         */
+        AppsPaymentsAPI.prototype.insert = function(appId, userId, postPayment) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(postPayment)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} paymentId
+         * @param {string} userId
+         * @param {any} putPayment
+         */
+        AppsPaymentsAPI.prototype.update = function(appId, paymentId, userId, putPayment) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/payments/' + paymentId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(putPayment)
+            };
+
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} paymentId
+         * @param {string} userId
+         */
+        AppsPaymentsAPI.prototype.remove = function(appId, paymentId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/payments/' + paymentId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return AppsPaymentsAPI;
     })();
 
     var AppsRichmenusAPI = (function() {
@@ -1544,12 +1622,11 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * @param {string} appId
          * @param {string} userId
          * @param {File} file
          */
-        ImageAPI.prototype.uploadFile = function(appId, userId, file) {
-            var destUrl = `${this.urlPrefix}upload-file/users/${userId}?appid=${appId}`;
+        ImageAPI.prototype.uploadFile = function(userId, file) {
+            var destUrl = `${this.urlPrefix}upload-file/users/${userId}`;
             var formData = new FormData();
             formData.append('file', file);
             formData.append('fileName', file.name);
@@ -1567,13 +1644,12 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * @param {string} appId
          * @param {string} richMenuId
          * @param {string} userId
          * @param {string} path
          */
-        ImageAPI.prototype.moveFile = function(appId, richMenuId, userId, path) {
-            var destUrl = `${this.urlPrefix}move-file/users/${userId}?appid=${appId}&richmenuid=${richMenuId}&path=${path}`;
+        ImageAPI.prototype.moveFile = function(userId, fromPath, toPath) {
+            var destUrl = `${this.urlPrefix}move-file/users/${userId}?frompath=${fromPath}&topath=${toPath}`;
 
             var reqInit = {
                 method: 'POST',
@@ -1595,6 +1671,7 @@ window.restfulAPI = (function() {
         appsComposes: new AppsComposesAPI(),
         appsGreetings: new AppsGreetingsAPI(),
         appsKeywordreplies: new AppsKeywordrepliesAPI(),
+        appsPayments: new AppsPaymentsAPI(),
         appsRichmenus: new AppsRichmenusAPI(),
         appsImagemaps: new AppsImagemapsAPI(),
         appsFields: new AppsFieldsAPI(),

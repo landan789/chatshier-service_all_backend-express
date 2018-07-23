@@ -10,10 +10,13 @@ interface Window {
         appsGreetings: AppsGreetingsAPI,
         appsKeywordreplies: AppsKeywordrepliesAPI,
         appsTemplates: AppsTemplatesAPI,
+        appsPayments: AppsPaymentsAPI,
         appsRichmenus: AppsRichmenusAPI,
+        appsImagemaps: AppsImagemapsAPI,
         appsFields: AppsFieldsAPI,
         appsTickets: AppsTicketsAPI,
         bot: BotAPI,
+        image: ImageAPI,
         calendarsEvents: CalendarsEventsAPI,
         consumers: ConsumersAPI,
         groupsMembers: GroupsMembersAPI,
@@ -49,21 +52,19 @@ interface AppAPI {
     insert: (userId: string, postAppData: any) => Promise<any>;
     update: (appId: string, userId: string, putAppData: any) => Promise<any>;
     remove: (appId: string, userId: string) => Promise<any>;
-    enums: {
-        type: {
-            SYSTEM: 'SYSTEM',
-            CHATSHIER: 'CHATSHIER',
-            LINE: 'LINE',
-            FACEBOOK: 'FACEBOOK'
-        }
-    };
+    TYPES: {
+        SYSTEM: 'SYSTEM',
+        CHATSHIER: 'CHATSHIER',
+        LINE: 'LINE',
+        FACEBOOK: 'FACEBOOK'
+    }
 }
 
 interface AppsAutorepliesAPI {
-    findAll: (appId: string, userId: string) => Promise<any>;
-    insert: (appId: string, userId: string, autoreplyData: any) => Promise<any>;
-    update: (appId: string, autoreplyId: string, userId: string, autoreplyData: any) => Promise<any>;
-    remove: (appId: string, autoreplyId: string, userId: string) => Promise<any>;
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsAutoreplies }>;
+    insert: (appId: string, userId: string, autoreplyData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsAutoreplies }>;
+    update: (appId: string, autoreplyId: string, userId: string, autoreplyData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsAutoreplies }>;
+    remove: (appId: string, autoreplyId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsAutoreplies }>;
 }
 
 interface AppsAppointmentsAPI {
@@ -74,119 +75,131 @@ interface AppsAppointmentsAPI {
 }
 
 interface AppsChatroomsAPI {
-    findAll: (userId: string) => Promise<any>;
-    update: (appId: string, chatroomId: string, chatroom: any, userId: string) => Promise<any>;
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsChatrooms }>;
+    update: (appId: string, chatroomId: string, chatroom: any, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsChatrooms }>;
 }
 
 interface AppsChatroomsMessagersAPI {
-    findAll: (userId: string) => Promise<any>;
-    findOne: (appId: string, chatroomId: string, messagerId: string, userId: string) => Promise<any>;
-    update: (appId: string, chatroomId: string, messagerId: string, userId: string, messager: any) => Promise<any>;
-    updateByPlatformUid: (appId: string, chatroomId: string, platformUid: string, userId: string, messager: any) => Promise<any>;
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsChatrooms }>;
+    findOne: (appId: string, chatroomId: string, messagerId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsChatrooms }>;
+    update: (appId: string, chatroomId: string, messagerId: string, userId: string, messager: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsChatrooms }>;
+    updateByPlatformUid: (appId: string, chatroomId: string, platformUid: string, userId: string, messager: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsChatrooms }>;
 }
 
 interface AppsComposesAPI {
-    findAll: (appId: string, userId: string) => Promise<any>;
-    insert: (appId: string, userId: string, composeData: any) => Promise<any>;
-    update: (appId: string, composeId: string, userId: string, composeData: any) => Promise<any>;
-    remove: (appId: string, composeId: string, userId: string) => Promise<any>;
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsComposes }>;
+    insert: (appId: string, userId: string, composeData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsComposes }>;
+    update: (appId: string, composeId: string, userId: string, composeData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsComposes }>;
+    remove: (appId: string, composeId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsComposes }>;
 }
 
 interface AppsGreetingsAPI {
-    findAll: (appId: string, userId: string) => Promise<any>;
-    insert: (appId: string, userId: string, greetingData: any) => Promise<any>;
-    remove: (appId: string, greetingId: string, userId: string) => Promise<any>;
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsGreetings }>;
+    insert: (appId: string, userId: string, greetingData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsGreetings }>;
+    remove: (appId: string, greetingId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsGreetings }>;
 }
 
 interface AppsKeywordrepliesAPI {
-    findAll: (appId: string, userId: string) => Promise<any>;
-    insert: (appId: string, userId: string, keywordreplyData: any) => Promise<any>;
-    update: (appId: string, keywordreplyId: string, userId: string, keywordreplyData: any) => Promise<any>;
-    remove: (appId: string, keywordreplyId: string, userId: string) => Promise<any>;
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsKeywordreplies }>;
+    insert: (appId: string, userId: string, keywordreplyData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsKeywordreplies }>;
+    update: (appId: string, keywordreplyId: string, userId: string, keywordreplyData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsKeywordreplies }>;
+    remove: (appId: string, keywordreplyId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsKeywordreplies }>;
 }
 
 interface AppsTemplatesAPI {
-    findAll: (appId: string, userId: string) => Promise<any>;
-    findOne: (appId: string, templateId: string, userId: string) => Promise<any>;
-    insert: (appId: string, userId: string, templateData: any) => Promise<any>;
-    update: (appId: string, templateId: string, userId: string, templateData: any) => Promise<any>;
-    remove: (appId: string, templateId: string, userId: string) => Promise<any>;
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTemplates }>;
+    findOne: (appId: string, templateId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTemplates }>;
+    insert: (appId: string, userId: string, postTemplate: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTemplates }>;
+    update: (appId: string, templateId: string, userId: string, putTemplate: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTemplates }>;
+    remove: (appId: string, templateId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTemplates }>;
+}
+
+interface AppsPaymentsAPI {
+    findAll: (appId?: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
+    findOne: (appId: string, paymentId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
+    insert: (appId: string, userId: string, postPayment: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
+    update: (appId: string, paymentId: string, userId: string, putPayment: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
+    remove: (appId: string, paymentId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
 }
 
 interface AppsRichmenusAPI {
-    findAll: (appId: string, userId: string) => Promise<any>;
-    findOne: (appId: string, richmenuId: string, userId: string) => Promise<any>;
-    insert: (appId: string, userId: string, postRichmenu: any, postImageFile: File) => Promise<any>;
-    update: (appId: string, richmenuId: string, userId: string, putRichmenu: any, putImageFile: File) => Promise<any>;
-    remove: (appId: string, richmenuId: string, userId: string) => Promise<any>;
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsRichmenus }>;
+    findOne: (appId: string, richmenuId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsRichmenus }>;
+    insert: (appId: string, userId: string, postRichmenu: any, postImageFile: File) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsRichmenus }>;
+    update: (appId: string, richmenuId: string, userId: string, putRichmenu: any, putImageFile: File) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsRichmenus }>;
+    remove: (appId: string, richmenuId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsRichmenus }>;
+}
+
+interface AppsImagemapsAPI {
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsImagemaps }>;
+    findOne: (appId: string, imagemapId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsImagemaps }>;
+    insert: (appId: string, userId: string, postImagemap: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsImagemaps }>;
+    update: (appId: string, imagemapId: string, userId: string, putImagemap: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsImagemaps }>;
+    remove: (appId: string, imagemapId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsImagemaps }>;
 }
 
 interface AppsFieldsAPI {
-    findAll: (userId: string) => Promise<any>;
-    insert: (appId: string, userId: string, field: any) => Promise<any>;
-    update: (appId: string, fieldId: string, userId: string, field: any) => Promise<any>;
-    remove: (appId: string, fieldId: string, userId: string) => Promise<any>;
-    enums: {
-        type: {
-            SYSTEM: 'SYSTEM',
-            DEFAULT: 'DEFAULT',
-            CUSTOM: 'CUSTOM'
-        },
-        setsType: {
-            TEXT: 'TEXT',
-            NUMBER: 'NUMBER',
-            DATE: 'DATE',
-            SELECT: 'SELECT',
-            MULTI_SELECT: 'MULTI_SELECT',
-            CHECKBOX: 'CHECKBOX'
-        }
-    };
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsFields }>;
+    insert: (appId: string, userId: string, postField: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsFields }>;
+    update: (appId: string, fieldId: string, userId: string, putField: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsFields }>;
+    remove: (appId: string, fieldId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsFields }>;
+    TYPES: {
+        SYSTEM: 'SYSTEM',
+        DEFAULT: 'DEFAULT',
+        CUSTOM: 'CUSTOM'
+    },
+    SETS_TYPES: {
+        TEXT: 'TEXT',
+        NUMBER: 'NUMBER',
+        DATE: 'DATE',
+        SELECT: 'SELECT',
+        MULTI_SELECT: 'MULTI_SELECT',
+        CHECKBOX: 'CHECKBOX'
+    }
 }
 
 interface AppsTicketsAPI {
-    findAll: (appId: string, userId: string) => Promise<any>;
-    insert: (appId: string, userId: string, newTicketData: any) => Promise<any>;
-    update: (appId: string, ticketId: string, userId: string, modifiedTicketData: any) => Promise<any>;
-    remove: (appId: string, ticketId: string, userId: string) => Promise<any>;
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTickets }>;
+    insert: (appId: string, userId: string, postTicket: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTickets }>;
+    update: (appId: string, ticketId: string, userId: string, putTicket: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTickets }>;
+    remove: (appId: string, ticketId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsTickets }>;
 }
 
 interface CalendarsEventsAPI {
-    findAll: (userId: string) => Promise<any>;
-    insert: (userId: string, calendarData: any) => Promise<any>;
-    update: (calendarId: string, eventId: string, userId: string, calendarData: any) => Promise<any>;
-    remove: (calendarId: string, eventId: string, userId: string) => Promise<any>;
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Calendars }>;
+    insert: (userId: string, postCalendar: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Calendars }>;
+    update: (calendarId: string, eventId: string, userId: string, putCalendar: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Calendars }>;
+    remove: (calendarId: string, eventId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Calendars }>;
 }
 
 interface ConsumersAPI {
-    findAll: (userId: string) => Promise<any>;
-    findOne: (platformUid: string, userId: string) => Promise<any>;
-    update: (platformUid: string, userId: string, consumer: any) => Promise<any>;
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Consumers }>;
+    findOne: (platformUid: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Consumers }>;
+    update: (platformUid: string, userId: string, putConsumer: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Consumers }>;
 }
 
 interface GroupsMembersAPI {
-    findAll: (groupId: string, userId: string) => Promise<any>;
-    insert: (groupId: string, userId: string, groupMemberData: any) => Promise<any>;
-    update: (groupId: string, memberId: string, userId: string, groupMemberData: any) => Promise<any>;
-    remove: (groupId: string, memberId: string, userId: string) => Promise<any>;
-    enums: {
-        type: {
-            OWNER: 'OWNER',
-            ADMIN: 'ADMIN',
-            WRITE: 'WRITE',
-            READ: 'READ'
-        }
-    };
+    findAll: (groupId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
+    insert: (groupId: string, userId: string, postGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
+    update: (groupId: string, memberId: string, userId: string, putGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
+    remove: (groupId: string, memberId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
+    TYPES: {
+        OWNER: 'OWNER',
+        ADMIN: 'ADMIN',
+        WRITE: 'WRITE',
+        READ: 'READ'
+    }
 }
 
 interface GroupsAPI {
-    findAll: (userId: string) => Promise<any>;
-    insert: (userId: string, group: any) => Promise<any>;
-    update: (groupId: string, userId: string, group: any) => Promise<any>;
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
+    insert: (userId: string, group: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
+    update: (groupId: string, userId: string, putGroup: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
 }
 
 interface UsersAPI {
-    find: (userId: string, email?: string, useFuzzy = false) => Promise<any>;
-    update: (userId: string, userData: any) => Promise<any>;
+    find: (userId: string, email?: string, useFuzzy?: boolean) => Promise<{ status: number, msg: string, data: Chatshier.Models.Users | Chatshier.Models.User[] }>;
+    update: (userId: string, putUser: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Users }>;
 }
 
 interface UserChangePassword {
@@ -210,4 +223,9 @@ interface BotAPI {
     uploadFile: (appId: string, userId: string, file: File) => Promise<any>;
     moveFile: (appId: string, richMenuId: string, userId: string, path: string) => Promise<any>;
     leaveGroupRoom: (appId: string, chatroomId: string, userId: string) => Promise<any>;
+}
+
+interface ImageAPI {
+    uploadFile: (userId: string, file: File) => Promise<{ status: number, msg: string, data: { url: string, originalFilePath: string } }>;
+    moveFile: (userId: string, fromPath: string, toPath: string) => Promise<{ status: number, msg: string }>;
 }

@@ -22,7 +22,7 @@ module.exports = (function() {
         /**
          * @param {string | string[]} appIds
          * @param {string} [ticketId]
-         * @param {(appTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
+         * @param {(appsTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsTickets | null>}
          */
         find(appIds, ticketId, callback) {
@@ -74,7 +74,7 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {any} ticket
-         * @param {(appTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
+         * @param {(appsTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsTickets | null>}
          */
         insert(appId, ticket, callback) {
@@ -95,7 +95,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                return this.find(appId, ticketId);
+                return this.find(appId, ticketId.toHexString());
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
                 return appsTickets;
@@ -109,7 +109,7 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} ticketId
          * @param {any} ticket
-         * @param {(appTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
+         * @param {(appsTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsTickets | null>}
          */
         update(appId, ticketId, ticket, callback) {
@@ -140,7 +140,7 @@ module.exports = (function() {
         /**
          * @param {string | string[]} appIds
          * @param {string} ticketId
-         * @param {(appTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
+         * @param {(appsTickets: Chatshier.Models.AppsTickets | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsTickets | null>}
          */
         remove(appIds, ticketId, callback) {

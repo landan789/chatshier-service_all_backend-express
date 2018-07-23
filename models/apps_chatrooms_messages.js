@@ -121,7 +121,7 @@ module.exports = (function() {
          *
          * @param {string} appId
          * @param {string} chatroomId
-         * @param {any} messages
+         * @param {any[]} messages
          * @param {(appsChatroomsMessages: Chatshier.Models.AppsChatrooms | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
@@ -140,14 +140,14 @@ module.exports = (function() {
                     text: message.text || '',
                     time: Date.now() + i,
                     type: message.type,
-                    src: message.src || message.baseUri || ''
+                    src: message.src || message.baseUrl || ''
                 };
 
                 if (message.template) {
                     _message.template = message.template;
                 }
 
-                if (message.baseUri) {
+                if (message.baseUrl) {
                     _message.imagemap = message;
                 }
 
@@ -170,7 +170,7 @@ module.exports = (function() {
                 };
 
                 return this.AppsModel.update(query, updateOper, options).then(() => {
-                    return messageId;
+                    return messageId.toHexString();
                 });
             })).then((messageIds) => {
                 return this.find(appId, chatroomId, messageIds);

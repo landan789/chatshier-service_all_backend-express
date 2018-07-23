@@ -10,23 +10,18 @@ declare module Chatshier {
             [templateId: string]: Template
         }
 
-        interface Template {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
-            altText: string,
+        interface Template extends BaseProperty {
             type: 'template',
-            template: {
-                type: 'buttons' | 'confirm' | 'carousel' | 'image_carousel',
-                text?: string,
-                thumbnailImageUrl?: string,
-                imageAspectRatio?: string,
-                imageSize?: string,
-                title?: string,
-                actions: TemplateAction[],
-                columns?: TemplateColumn[]
-            }
+            name: string,
+            altText: string,
+            template: TemplateContent
+        }
+
+        interface TemplateContent extends TemplateColumn {
+            type: 'buttons' | 'confirm' | 'carousel' | 'image_carousel',
+            imageAspectRatio?: string,
+            imageSize?: string,
+            columns?: TemplateColumn[]
         }
 
         interface TemplateColumn {

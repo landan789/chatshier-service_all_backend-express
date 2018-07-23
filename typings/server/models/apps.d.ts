@@ -4,10 +4,7 @@ declare module Chatshier {
             [appId: string]: App
         }
 
-        interface App {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
+        interface App extends BaseProperty {
             group_id: string,
             id1: string,
             id2: string,
@@ -16,8 +13,7 @@ declare module Chatshier {
             token1: string,
             token2: string,
             type: 'LINE' | 'FACEBOOK' | 'WECHAT' | 'CHATSHIER',
-            webhook_id: string,
-            isDeleted: boolean
+            webhook_id: string
         }
     }
 }

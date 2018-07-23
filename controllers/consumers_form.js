@@ -5,7 +5,6 @@ module.exports = (function() {
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
-    let appsMdl = require('../models/apps');
     let appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     let appsFieldsMdl = require('../models/apps_fields');
 
@@ -21,7 +20,6 @@ module.exports = (function() {
             let platformUid = req.params.platformuid;
 
             let response = {
-                /** @type {Chatshier.Models.Fields} */
                 fields: {},
                 messager: {}
             };
@@ -35,21 +33,25 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
                 }
 
-                return appsFieldsMdl.find(appId);
-            }).then((appsFields) => {
+                return Promise.all([
+                    appsFieldsMdl.find(appId),
+                    appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid)
+                ]);
+            }).then(([ appsFields, appsChatroomsMessagers ]) => {
                 if (!(appsFields && appsFields[appId])) {
                     return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_FIND);
                 }
-                Object.assign(response.fields, appsFields[appId].fields);
-                return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid);
-            }).then((appsChatroomsMessagers) => {
+
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
                     return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                 }
 
+                let fields = appsFields[appId].fields;
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                 let chatroomId = Object.keys(chatrooms).shift() || '';
                 let messager = Object.values(chatrooms[chatroomId].messagers).shift() || {};
+
+                Object.assign(response.fields, fields);
                 Object.assign(response.messager, messager);
                 return Promise.resolve(response);
             }).then(() => {
@@ -85,14 +87,15 @@ module.exports = (function() {
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                 let putMessager = {};
                 ('string' === typeof req.body.name) && (putMessager.namings = { [platformUid]: req.body.name });
-                ('number' === typeof req.body.age) && (putMessager.age = req.body.age);
-                ('string' === typeof req.body.email) && (putMessager.email = req.body.email);
+                ('string' === typeof req.body.email) && (putMessager.email = req.body.email.toLowerCase());
                 ('string' === typeof req.body.phone) && (putMessager.phone = req.body.phone);
                 ('string' === typeof req.body.county) && (putMessager.county = req.body.county);
                 ('string' === typeof req.body.district) && (putMessager.district = req.body.district);
                 ('string' === typeof req.body.address) && (putMessager.address = req.body.address);
                 ('string' === typeof req.body.birthday) && (putMessager.birthday = req.body.birthday);
                 ('string' === typeof req.body.gender) && (putMessager.gender = req.body.gender);
+                !isNaN(parseInt(req.body.age, 10)) && (putMessager.age = parseInt(req.body.age, 10));
+                ('object' === typeof req.body.custom_fields) && (putMessager.custom_fields = req.body.custom_fields);
 
                 return Promise.all(Object.keys(chatrooms).map((chatroomId) => {
                     return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, putMessager).then((_appsChatroomsMessagers) => {

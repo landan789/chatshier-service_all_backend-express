@@ -10,11 +10,7 @@ declare module Chatshier {
             [chatroomId: string]: Chatroom
         }
 
-        interface Chatroom {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Chatroom extends BaseProperty {
             name: string,
             platformGroupId: string,
             platformGroupType: string,
@@ -26,15 +22,13 @@ declare module Chatshier {
             [messagerId: string]: Messager
         }
 
-        interface Messager {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
+        interface Messager extends BaseProperty {
             type: 'CHATSHIER' | 'LINE' | 'FACEBOOK' | 'WECHAT',
             namings: {
                 [platformUid: string]: string
             },
             age: number,
+            address: string,
             custom_fields: {
                 [fieldId: string]: {
                     value: any
@@ -44,14 +38,13 @@ declare module Chatshier {
             gender: 'MALE' | 'FEMALE',
             phone: string,
             platformUid: string,
-            isDeleted: boolean,
             lastTime: Date | number,
             chatCount: number,
             unRead: number,
             remark: string,
             assigned_ids: string[],
             tags: string[],
-            isUnfollow: boolean
+            isUnfollowed: boolean
         }
 
         interface Messages {
@@ -60,8 +53,8 @@ declare module Chatshier {
 
         interface Message {
             _id: any,
-            from: 'SYSTEM' | 'CHATSHIER' | 'LINE' | 'FACEBOOK' | 'WECHAT',
             isDeleted: boolean,
+            from: 'SYSTEM' | 'CHATSHIER' | 'LINE' | 'FACEBOOK' | 'WECHAT',
             messager_id: string,
             src: string,
             text: string,
@@ -76,7 +69,7 @@ declare module Chatshier {
             },
             imagemap?: {
                 type: 'imagemap',
-                baseUri: string,
+                baseUrl: string,
                 altText: string,
                 baseSize: {
                     width: number,

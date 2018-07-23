@@ -1,3 +1,5 @@
+/// <reference path='../../../typings/client/index.d.ts' />
+
 window.chatshierCookie = (function() {
     var CHSR_COOKIE = {
         USER_EMAIL: '_chsr_email',

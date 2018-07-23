@@ -10,13 +10,9 @@ declare module Chatshier {
             [imagemapId: string]: Imagemap
         }
 
-        interface Imagemap {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Imagemap extends BaseProperty {
             type: 'imagemap',
-            baseUri: string,
+            baseUrl: string,
             altText: string,
             form: 'form1' | 'form2' | 'form3' | 'form4' | 'form5' | 'form6' | 'form7' | 'form8'
             title: string,

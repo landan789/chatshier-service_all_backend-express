@@ -10,17 +10,12 @@ declare module Chatshier {
             [keywordreplyId: string]: Keywordreply
         }
 
-        interface Keywordreply {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Keywordreply extends BaseProperty, Reply {
             keyword: string,
+            subKeywords: string[],
             replyCount: number,
             // false 為草稿，true 為開放
-            status: boolean,
-            text: string,
-            type: 'text'
+            status: boolean
         }
     }
 }

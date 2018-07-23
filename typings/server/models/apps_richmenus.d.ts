@@ -10,11 +10,7 @@ declare module Chatshier {
             [richmenuId: string]: Richmenu
         }
 
-        interface Richmenu {
-            _id: any,
-            createdTime: Date | number,
-            updatedTime: Date | number,
-            isDeleted: boolean,
+        interface Richmenu extends BaseProperty {
             selected: boolean,
             chatBarText: string,
             form: 'form1' | 'form2' | 'form3' | 'form4' | 'form5' | 'form6' | 'form7' | 'form8' | 'form9',

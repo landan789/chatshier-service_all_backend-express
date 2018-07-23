@@ -1,0 +1,23 @@
+<div class="chsr modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form class="modal-body payment-setting-form" id="paymentSettingForm">
+                <div class="form-group">
+                    <label class="col-form-label font-weight-bold">金流平台:</label>
+                    <select id="paymentSelect" class="form-control" value="">
+                        <option value="">無設定</option>
+                        <option value="ECPAY">綠界 ECPay</option>
+                        <option value="SPGATEWAY">智付通 Spgateway</option>
+                    </select>
+                </div>
+
+                <div class="payment-items-container" id="paymentItemsContainer"></div>
+
+                <div class="mt-3 button-container text-right">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary" id="paymentModalSubmitBtn">確認</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

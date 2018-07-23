@@ -1,3 +1,4 @@
+/// <reference path='../../../typings/client/index.d.ts' />
 
 (function() {
     // 檢查 url config 的 wwwUrl 的設定

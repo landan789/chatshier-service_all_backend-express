@@ -2,23 +2,23 @@
 <html>
 
 <head>
-    <% include ../views/partials/meta_tags.ejs %>
-    <% include ../views/partials/favicon.ejs %>
+    <% include ./partials/meta_tags.ejs %>
+    <% include ./partials/favicon.ejs %>
     <title><%= title %></title>
 
-    <% include ../views/partials/require_css.ejs %>
-    <link rel="stylesheet" href="css/table.css" />
-    <link rel="stylesheet" href="css/richmenu.css" />
+    <% include ./partials/require_css.ejs %>
+    <link rel="stylesheet" href="/css/table.css" />
+    <link rel="stylesheet" href="/css/richmenu.css" />
 </head>
 
 <body>
-    <% include ../views/partials/loading.ejs %>
+    <% include ./partials/loading.ejs %>
 
     <div class="root d-flex w-100 h-100">
-        <% include ../views/partials/control_panel.ejs %>
+        <% include ./partials/control_panel.ejs %>
 
         <div class="ml-auto w-100 page-wrapper">
-            <% include ../views/partials/toolbar.ejs %>
+            <% include ./partials/toolbar.ejs %>
 
             <div class="container my-5">
                 <div class="chsr card">
@@ -86,6 +86,8 @@
                 </div>
                 <div class="modal-body">
                     <form class="richmenu-form">
+                        <input type="hidden" id="richmenuId" name="richmenuId" />
+
                         <!-- app -->
                         <div class="form-group">
                             <label class="col-form-label"><strong>目標機器人:</strong></label>
@@ -221,9 +223,9 @@
         </div>
     </div>
 
-    <% include ../views/partials/require_js.ejs %>
+    <% include ./partials/require_js.ejs %>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-    <script src="js/richmenu.js"></script>
+    <script src="/js/richmenu.js"></script>
     <script>
         if (575 < $(window).width()) {
             $('.row.col-12 .form-group.col-4:nth-child(1)').addClass('pr-4 pl-0');

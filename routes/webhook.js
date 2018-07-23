@@ -26,6 +26,7 @@ const router = express.Router();
 const LINE = 'LINE';
 const FACEBOOK = 'FACEBOOK';
 const CHATSHIER = 'CHATSHIER';
+const SYSTEM = 'SYSTEM';
 
 const SKIP_PROCESS_APP = 'SKIP_PROCESS_APP';
 
@@ -147,6 +148,7 @@ router.post('/:webhookid', (req, res, next) => {
                 let _messages;
 
                 let webhookChatroomId = '';
+                /** @type {Chatshier.Models.Consumers} */
                 let consumers = {};
 
                 let webhookInfo = botSvc.retrieveWebhookInfo(req, app);
@@ -158,43 +160,45 @@ router.post('/:webhookid', (req, res, next) => {
                         return Promise.reject(SKIP_PROCESS_APP);
                     }
 
-                    return botSvc.getProfile(webhookInfo, appId, app).then((profile) => {
-                        if (!platformUid) {
-                            return Promise.resolve(null);
+                    if (!platformUid) {
+                        return Promise.resolve(null);
+                    }
+
+                    return Promise.all([
+                        botSvc.getProfile(webhookInfo, appId, app),
+                        consumersMdl.find(platformUid)
+                    ]).then(([ profile, consumers ]) => {
+                        if (!profile.photo) {
+                            return consumersMdl.replace(platformUid, profile);
                         }
 
-                        return consumersMdl.find(platformUid).then((consumers) => {
-                            if (!consumers) {
-                                return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
-                            }
+                        if (!consumers) {
+                            return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                        }
 
-                            let consumer = consumers[platformUid];
-                            if (!consumer || (consumer && !consumer.photoOriginal)) {
-                                return consumersMdl.replace(platformUid, profile);
-                            }
+                        let consumer = consumers[platformUid];
+                        let isUnsafe = profile && profile.photoOriginal.startsWith('http://');
+                        let shouldUpdate = consumer && (consumer.photo.startsWith('http://') || profile.photoOriginal !== consumer.photoOriginal);
 
-                            let shouldUpload = (
-                                consumer.photo.startsWith('http://') ||
-                                (profile.photo.startsWith('http://') && profile.photo !== consumer.photoOriginal)
-                            );
-
-                            if (shouldUpload) {
+                        if (!consumer || shouldUpdate) {
+                            if (isUnsafe) {
                                 let fileName = `${platformUid}_${Date.now()}.jpg`;
                                 let filePath = `${storageHlp.tempPath}/${fileName}`;
-                                let putConsumer = Object.assign({}, profile);
+                                let _profile = Object.assign({}, profile);
 
-                                return storageHlp.filesSaveUrl(filePath, profile.photo).then((url) => {
-                                    putConsumer.photo = url;
+                                return storageHlp.filesSaveUrl(filePath, profile.photoOriginal).then((url) => {
+                                    _profile.photo = url;
                                     let toPath = `/consumers/${platformUid}/photo/${fileName}`;
                                     return storageHlp.filesMoveV2(filePath, toPath);
                                 }).then(() => {
-                                    return consumersMdl.replace(platformUid, putConsumer);
+                                    return consumersMdl.replace(platformUid, _profile);
                                 });
                             }
-
-                            delete profile.photo;
                             return consumersMdl.replace(platformUid, profile);
-                        });
+                        }
+
+                        delete profile.photo;
+                        return consumersMdl.replace(platformUid, profile);
                     });
                 }).then((_consumers) => {
                     if (!_consumers) {
@@ -244,9 +248,9 @@ router.post('/:webhookid', (req, res, next) => {
                                 webhookChatroomId = _chatroomId;
 
                                 // 更新顧客的 follow 狀態
-                                if (messager.isUnfollow) {
+                                if (messager.isUnfollowed) {
                                     let messageId = messager._id;
-                                    return appsChatroomsMessagersMdl.update(appId, _chatroomId, messageId, { isUnfollow: false }).then((_appsChatroomsMessagers) => {
+                                    return appsChatroomsMessagersMdl.update(appId, _chatroomId, messageId, { isUnfollowed: false }).then((_appsChatroomsMessagers) => {
                                         if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
                                             return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                                         }
@@ -257,9 +261,21 @@ router.post('/:webhookid', (req, res, next) => {
                                         let socketBody = {
                                             appId: appId,
                                             chatroomId: _chatroomId,
-                                            messager: _messager
+                                            messager: _messager,
+                                            consumer: consumers[messager.platformUid]
                                         };
-                                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.CONSUMER_FOLLOW, socketBody).then(() => platformMessager);
+
+                                        return appsChatroomsMessagersMdl.find(appId, _chatroomId, void 0, CHATSHIER).then((__appsChatroomsMessagers) => {
+                                            if (!(__appsChatroomsMessagers && __appsChatroomsMessagers[appId])) {
+                                                return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                            }
+
+                                            let __chatrooms = __appsChatroomsMessagers[appId].chatrooms;
+                                            let __messagers = __chatrooms[_chatroomId].messagers;
+
+                                            let _recipientUserIds = Object.values(__messagers).map((__messager) => __messager.platformUid);
+                                            return socketHlp.emitToAll(_recipientUserIds, SOCKET_EVENTS.CONSUMER_FOLLOW, socketBody).then(() => platformMessager);
+                                        });
                                     });
                                 }
                                 platformMessager = messager;
@@ -309,7 +325,7 @@ router.post('/:webhookid', (req, res, next) => {
                     }
                     return botSvc.getReceivedMessages(req, res, platformMessager._id, appId, app);
                 }).then((messages) => {
-                    // webhook 的訊息不用處理聊天室的訊息時，不用查找回覆訊息
+                    // webhook 不用處理聊天室的訊息時，不用查找回覆訊息
                     if (!webhookChatroomId) {
                         return [];
                     }
@@ -336,7 +352,7 @@ router.post('/:webhookid', (req, res, next) => {
                     // 待訊息回覆後直接做 http response
                     return botSvc.replyMessage(res, platformUid, replyToken, repliedMessages, appId, app);
                 }).then(() => {
-                    return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
+                    return chatshierHlp.getKeywordreplies(receivedMessages, appId);
                 }).then((keywordreplies) => {
                     return Promise.all(keywordreplies.map((keywordreply) => {
                         return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
@@ -404,7 +420,9 @@ router.post('/:webhookid', (req, res, next) => {
                     }
                     _messages = messages;
                     let messageId = Object.keys(messages).shift() || '';
-                    if (webhookChatroomId && messageId && messages[messageId] && messages[messageId].src.includes(storageHlp.sharedLinkPrefix)) {
+                    if (webhookChatroomId && messageId &&
+                        messages[messageId] && messages[messageId].src.includes(storageHlp.sharedLinkPrefix) &&
+                        SYSTEM !== messages[messageId].from) {
                         toPath = `/apps/${appId}/chatrooms/${webhookChatroomId}/messages/${messageId}/src${fromPath}`;
                         return storageHlp.filesMoveV2(fromPath, toPath);
                     }

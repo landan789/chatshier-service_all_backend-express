@@ -1,3 +1,5 @@
+/// <reference path='../../../typings/client/index.d.ts' />
+
 // 由於目前沒有引用任何翻譯模組
 // 此檔案只是暫時實作簡單的操作
 window.translate = (function() {

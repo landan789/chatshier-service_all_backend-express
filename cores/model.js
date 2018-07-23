@@ -20,13 +20,15 @@ module.exports = (function() {
     // endregion
 
     // region DB Schema
-    const RootsSchema = new mongoose.Schema();
+    const Schema = mongoose.Schema;
+    const RootsSchema = new Schema();
 
-    const AutorepliesSchema = new mongoose.Schema({
+    const AutorepliesSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
-        'endedTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'startedTime': {type: Date, default: Date.now()},
+        'endedTime': {type: Date, default: Date.now()},
         'timezoneOffset': {type: Number, default: 0},
         'periods': [{
             'days': {type: Array, default: []},
@@ -36,10 +38,12 @@ module.exports = (function() {
         'text': {type: String, default: ''},
         'title': {type: String, default: ''},
         'type': {type: String, default: 'text'},
-        'updatedTime': {type: Date, default: Date.now()}
+        'src': {type: String, default: ''},
+        'template_id': {type: String, default: ''},
+        'imagemap_id': {type: String, default: ''}
     });
 
-    const ChatroomsSchema = new mongoose.Schema({
+    const ChatroomsSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'name': {type: String, default: ''},
@@ -59,7 +63,7 @@ module.exports = (function() {
             'email': {type: String, default: ''},
             'gender': {type: String, default: ''},
             'isDeleted': {type: Boolean, default: false},
-            'isUnfollow': {type: Boolean, default: false},
+            'isUnfollowed': {type: Boolean, default: false},
             'lastTime': {type: Date, default: Date.now()},
             'namings': {type: Object, default: {}},
             'phone': {type: String, default: ''},
@@ -83,18 +87,22 @@ module.exports = (function() {
         }]
     }, { minimize: false });
 
-    const KeywordrepliesSchema = new mongoose.Schema({
+    const KeywordrepliesSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'keyword': {type: String, default: ''},
+        'subKeywords': {type: Array, default: []},
         'replyCount': {type: Number, default: 0},
         'status': {type: Boolean, default: false}, // false 為草稿，true 為開放
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
-        'updatedTime': {type: Date, default: Date.now()}
+        'src': {type: String, default: ''},
+        'template_id': {type: String, default: ''},
+        'imagemap_id': {type: String, default: ''}
     });
 
-    const ComposesSchema = new mongoose.Schema({
+    const ComposesSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'text': {type: String, default: ''},
@@ -107,27 +115,33 @@ module.exports = (function() {
             'field_id': {type: String, default: ''}
         }],
         'status': {type: Boolean, default: false}, // false 為草稿，true 為開放
-        'time': {type: Date, default: Date.now() - 60000} // 立刻群發後讓訊息變成歷史訊息
+        'time': {type: Date, default: Date.now() - 60000}, // 立刻群發後讓訊息變成歷史訊息
+        'template_id': {type: String, default: ''},
+        'imagemap_id': {type: String, default: ''}
     }, { minimize: false });
 
-    const GreetingsSchema = new mongoose.Schema({
+    const GreetingsSchema = new Schema({
         'isDeleted': {type: Boolean, default: false},
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
-        'createdTime': {type: Date, default: Date.now()}
+        'createdTime': {type: Date, default: Date.now()},
+        'src': {type: String, default: ''},
+        'template_id': {type: String, default: ''},
+        'imagemap_id': {type: String, default: ''}
     });
 
-    const TemplatesSchema = new mongoose.Schema({
-        'isDeleted': {type: Boolean, default: false},
-        'altText': {type: String, default: ''},
-        'type': {type: String, default: 'template'},
-        'template': {type: Object, default: {}},
+    const TemplatesSchema = new Schema({
+        'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'createdTime': {type: Date, default: Date.now()}
+        'isDeleted': {type: Boolean, default: false},
+        'name': {type: String, default: ''},
+        'type': {type: String, default: 'template'},
+        'altText': {type: String, default: ''},
+        'template': {type: Object, default: {}}
     });
 
-    const RichmenusSchema = new mongoose.Schema({
+    const RichmenusSchema = new Schema({
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
@@ -146,12 +160,12 @@ module.exports = (function() {
         }]
     }, { minimize: false });
 
-    const ImagemapsSchema = new mongoose.Schema({
+    const ImagemapsSchema = new Schema({
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'type': {type: String, default: 'imagemap'},
-        'baseUri': {type: String, default: ''},
+        'baseUrl': {type: String, default: ''},
         'altText': {type: String, default: ''},
         'form': {type: String, default: ''},
         'title': {type: String, default: ''},
@@ -164,7 +178,7 @@ module.exports = (function() {
         }]
     }, { minimize: false });
 
-    const AppointmentsSchema = new mongoose.Schema({
+    const AppointmentsSchema = new Schema({
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
@@ -184,12 +198,12 @@ module.exports = (function() {
             'timetable': [{
                 'isDeleted': {type: Boolean, default: false},
                 'createdTime': {type: Date, default: Date.now()},
-                'updatedTime': {type: Date, default: Date.now()},
+                'updatedTime': {type: Date, default: Date.now()}
             }]
         }]
     });
 
-    const FieldsSchema = new mongoose.Schema({
+    const FieldsSchema = new Schema({
         'text': {type: String, default: ''},
         'alias': {type: String, default: ''},
         'type': {type: String, default: 'CUSTOM'},
@@ -198,10 +212,11 @@ module.exports = (function() {
         'order': {type: Number, default: 0},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false}
+        'isDeleted': {type: Boolean, default: false},
+        'canShowingOnForm': {type: Boolean, default: false}
     });
 
-    const TicketsSchema = new mongoose.Schema({
+    const TicketsSchema = new Schema({
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()},
         'description': {type: String, default: ''},
@@ -213,7 +228,21 @@ module.exports = (function() {
         'status': {type: Number, default: 0} // TODO 三個 型態建議用字串大寫
     });
 
-    const AppsSchema = new mongoose.Schema({
+    const PaymentsSchema = new Schema({
+        'updatedTime': {type: Date, default: Date.now()},
+        'createdTime': {type: Date, default: Date.now()},
+        'isDeleted': {type: Boolean, default: false},
+        'type': {type: String, default: ''},
+        'merchantId': {type: String, default: ''},
+        'hashKey': {type: String, default: ''},
+        'hashIV': {type: String, default: ''},
+        'canIssueInvoice': {type: Boolean, default: false},
+        'invoiceMerchantId': {type: String, default: ''},
+        'invoiceHashKey': {type: String, default: ''},
+        'invoiceHashIV': {type: String, default: ''}
+    });
+
+    const AppsSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'group_id': {type: String, default: ''},
@@ -227,6 +256,7 @@ module.exports = (function() {
         'webhook_id': {type: String, default: ''},
         'isDeleted': {type: Boolean, default: false},
 
+        'payments': [PaymentsSchema],
         'autoreplies': [AutorepliesSchema],
         'chatrooms': [ChatroomsSchema],
         'keywordreplies': [KeywordrepliesSchema],
@@ -240,7 +270,7 @@ module.exports = (function() {
         'appointments': [AppointmentsSchema]
     });
 
-    const EventsSchema = new mongoose.Schema({
+    const EventsSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'description': {type: String, default: ''},
@@ -251,14 +281,14 @@ module.exports = (function() {
         'title': {type: String, default: ''}
     });
 
-    const CalendarsSchema = new mongoose.Schema({
+    const CalendarsSchema = new Schema({
         'events': [EventsSchema],
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()}
     });
 
-    const MembersSchema = new mongoose.Schema({
+    const MembersSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
@@ -267,7 +297,7 @@ module.exports = (function() {
         'user_id': {type: String, default: ''}
     });
 
-    const GroupsSchema = new mongoose.Schema({
+    const GroupsSchema = new Schema({
         'app_ids': {type: [{type: String}], default: []},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
@@ -276,7 +306,7 @@ module.exports = (function() {
         'name': {type: String, default: ''}
     });
 
-    const UsersSchema = new mongoose.Schema({
+    const UsersSchema = new Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'address': {type: String, default: ''},
@@ -290,7 +320,7 @@ module.exports = (function() {
         'group_ids': {type: [{type: String}], default: []}
     });
 
-    const ConsumersSchema = new mongoose.Schema({
+    const ConsumersSchema = new Schema({
         'type': {type: String, default: ''},
         'platformUid': {type: String, default: ''},
         'updatedTime': {type: Date, default: Date.now()},
@@ -299,6 +329,37 @@ module.exports = (function() {
         'name': {type: String, default: ''},
         'photo': {type: String, default: ''},
         'photoOriginal': {type: String, default: ''}
+    });
+
+    const OrdersSchema = new Schema({
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'isDeleted': {type: Boolean, default: false},
+        'commodities': [{
+            'commodity_id': {type: String, default: ''},
+            'name': {type: String, default: ''},
+            'description': {type: String, default: ''},
+            'count': {type: Number, default: 0},
+            'unitPrice': {type: Number, default: 0},
+            'unit': {type: String, default: ''},
+            'remark': {type: String, default: ''}
+        }],
+        'tradeId': {type: String, default: ''},
+        'tradeDate': {type: Date, default: Date.now()},
+        'tradeAmount': {type: Number, default: 0},
+        'tradeDescription': {type: String, default: ''},
+        'isPaid': {type: Boolean, default: false},
+        'isInvoiceIssued': {type: Boolean, default: false},
+        'invoiceId': {type: String, default: ''},
+        'invoiceNumber': {type: String, default: ''},
+        'invoiceRandomNumber': {type: String, default: ''},
+        'taxId': {type: String, default: ''},
+        'consumerUid': {type: String, default: ''},
+        'payerName': {type: String, default: ''},
+        'payerEmail': {type: String, default: ''},
+        'payerPhone': {type: String, default: ''},
+        'payerAddress': {type: String, default: ''},
+        'app_id': {type: String, default: ''}
     });
 
     // endregion
@@ -343,6 +404,8 @@ module.exports = (function() {
             }, {});
         }
     };
+
+    ModelCore.OrdersSchema = OrdersSchema;
 
     return ModelCore;
 })();

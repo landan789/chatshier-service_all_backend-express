@@ -43,6 +43,12 @@ module.exports = (function() {
             sets: [],
             setsType: SetsTypes.TEXT
         }, {
+            text: 'Address',
+            alias: 'address',
+            type: FieldsTypes.DEFAULT,
+            sets: [],
+            setsType: SetsTypes.TEXT
+        }, {
             text: 'Remark',
             alias: 'remark',
             type: FieldsTypes.DEFAULT,
@@ -147,7 +153,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                return this.find(appId, fieldId);
+                return this.find(appId, fieldId.toHexString());
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
                 return appsFields;

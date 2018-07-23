@@ -23,14 +23,19 @@ module.exports = {
         PATH: '.log'
     },
     LINE: {
-        PREVIEW_IMAGE_URL: 'https://service.chatshier.com/image/logo-no-transparent.png',
-        DOWNLOAD_IMAGE_URL: 'https://service.chatshier.com/image/download.jpg'
+        VIDEO_PREVIEW_IMAGE_URL: 'https://service.dev.chatshier.com/image/video.png',
+        // LINE 的 App 會根據行動裝置存取 5 種不同的解析度圖像
+        // 可能存取的像素值有240px, 300px, 460px, 700px, 1040px，例如:
+        // [FILE_IMAGE_BASE_URL]/1040
+        // [FILE_IMAGE_BASE_URL]/700
+        // https://developers.line.me/en/reference/messaging-api/#base-url
+        FILE_IMAGE_BASE_URL: 'https://service.dev.chatshier.com/image/download'
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
-        appId: '178381762879392',
-        appSecret: '27aad72319bf154c059f696bce055ac2',
-        appAccessToken: '8eeabaf3c836d295edb26264ec76e975',
+        appId: '1569929989761572',
+        appSecret: '8e21836de6f01a6a5d1d0876e4f2c1d1',
+        appAccessToken: 'd83ed3a87f6aef9eb7982e5ef5acb187',
         apiVersion: 'v3.0'
     },
     GOOGLE: {
@@ -73,5 +78,40 @@ module.exports = {
         // 1. 使用者解除授權 app
         // 2. 使用者授權 app 時，授權的 scope 發生變更
         refreshToken: '1/rBgB_AywuhwQuZpqnYSAfqtVK8u5ll6Vp2S-XDaLY2hzDFEHIU9C9wNXHivtmo-X'
+    },
+    PAYMENT_TEST: {
+        // https://vendor-stage.ecpay.com.tw
+        // 帳號: StageTest
+        // 密碼: test1234
+        ECPAY: {
+            MERCHANT_ID: '2000132',
+            HASHKEY: '5294y06JbISpM5x9',
+            HASHIV: 'v77hoKGq4kWxNNIS'
+        },
+        // https://vendor-stage.ecpay.com.tw/Einvoice/Index
+        // 帳號: StageTest
+        // 密碼: test1234
+        ECPAY_INVOICE: {
+            MERCHANT_ID: '2000132',
+            HASHKEY: 'ejCk326UnaZWKisg',
+            HASHIV: 'q9jcZX8Ib9LM8wYk'
+        },
+        // https://cwww.spgateway.com/main/login_center/single_login
+        // 帳號: chatshierTest
+        // 密碼: chatshier2018
+        SPGATEWAY: {
+            MERCHANT_ID: 'MS14252185',
+            HASHKEY: 'iPHEdSO5VGjEomtL0jzUl4VfyLxXhUuK',
+            HASHIV: 'XvE76gjbleESG5Ng'
+        },
+        // https://cinv.pay2go.com/main/Login_center/single_login
+        // 統編: 53212539
+        // 帳號: chatshierTest
+        // 密碼: chatshier2018
+        SPGATEWAY_INVOICE: {
+            MERCHANT_ID: '31104030',
+            HASHKEY: 'FrlNPVjLFPwYRz8cyRg67L4ZTyxunv7W',
+            HASHIV: 'GTCrWZHkx3ySlEs0'
+        }
     }
 };

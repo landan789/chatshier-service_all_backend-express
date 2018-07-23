@@ -3,22 +3,20 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error.json');
     const SOCKET_EVENTS = require('../config/socket-events');
 
-    const line = require('@line/bot-sdk');
+    const LineBotSdk = require('@line/bot-sdk');
+    const FacebookBotSdk = require('facebook-bot-messenger');
     const Wechat = require('wechat');
     const WechatAPI = require('wechat-api');
     const bodyParser = require('body-parser');
-    const facebook = require('facebook-bot-messenger'); // facebook串接
     const chatshierCfg = require('../config/chatshier');
 
     const appsMdl = require('../models/apps');
     const appsChatroomsMdl = require('../models/apps_chatrooms');
     const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     const appsRichmenusMdl = require('../models/apps_richmenus');
-    const appsTemplatesMdl = require('../models/apps_templates');
     const consumersMdl = require('../models/consumers');
     const storageHlp = require('../helpers/storage');
     const socketHlp = require('../helpers/socket');
-    const jwtHlp = require('../helpers/jwt');
     const wechatSvc = require('./wechat');
 
     // app type defined
@@ -67,7 +65,7 @@ module.exports = (function() {
                     };
 
                     return new Promise((resolve, reject) => {
-                        line.middleware(lineConfig)(req, res, (err) => {
+                        LineBotSdk.middleware(lineConfig)(req, res, (err) => {
                             if (err) {
                                 reject(err);
                                 return;
@@ -100,7 +98,7 @@ module.exports = (function() {
                             channelSecret: app.secret,
                             channelAccessToken: app.token1
                         };
-                        let lineBot = new line.Client(lineConfig);
+                        let lineBot = new LineBotSdk.Client(lineConfig);
                         this.bots[appId] = lineBot;
                         return lineBot;
                     case FACEBOOK:
@@ -112,7 +110,7 @@ module.exports = (function() {
                             pageToken: app.token2 || ''
                         };
                         // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
-                        let facebookBot = facebook.create(facebookConfig);
+                        let facebookBot = FacebookBotSdk.create(facebookConfig);
                         this.bots[appId] = facebookBot;
                         return facebookBot;
                     case WECHAT:
@@ -169,6 +167,7 @@ module.exports = (function() {
 
             /** @type {Webhook.Chatshier.Information} */
             let webhookInfo = {
+                serverAddress: 'https://' + req.hostname,
                 platformUid: ''
             };
 
@@ -249,10 +248,10 @@ module.exports = (function() {
                         }).then(() => (shouldContinue = true));
                     }
 
-                    // 如果 LINE 用戶封鎖 LINE@ 時，將聊天室中的 messager 的 isUnfollow 設為 true
+                    // 如果 LINE 用戶封鎖 LINE@ 時，將聊天室中的 messager 的 isUnfollowed 設為 true
                     // 來表示用戶已取消關注 LINE@, 此時無法傳送任何訊息給 LINE 用戶
-                    let isUnfollow = webhookInfo.eventType === this.LINE_EVENT_TYPES.UNFOLLOW;
-                    if (isUnfollow) {
+                    let isUnfollowed = webhookInfo.eventType === this.LINE_EVENT_TYPES.UNFOLLOW;
+                    if (isUnfollowed) {
                         return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, webhookInfo.platformUid).then((appsChatroomsMessagers) => {
                             if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
                                 return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
@@ -261,7 +260,7 @@ module.exports = (function() {
                             let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                             let platformMessager;
                             let putMessagers = {
-                                isUnfollow: true
+                                isUnfollowed: true
                             };
 
                             return Promise.all(Object.keys(chatrooms).map((_chatroomId) => {
@@ -341,47 +340,47 @@ module.exports = (function() {
                                     return Promise.all(groupMemberIds.map((groupMemberId) => {
                                         /** @type {Webhook.Chatshier.Information} */
                                         let _webhookInfo = {
+                                            serverAddress: 'https://' + req.hostname,
                                             platformUid: groupMemberId,
                                             platformGroupId: platformGroupId,
                                             platformGroupType: platformGroupType
                                         };
-                                        return this.getProfile(_webhookInfo, appId, app).then((groupMemberProfile) => {
+
+                                        return Promise.all([
+                                            this.getProfile(_webhookInfo, appId, app),
+                                            consumersMdl.find(groupMemberId)
+                                        ]).then(([ groupMemberProfile, consumers ]) => {
                                             if (!groupMemberProfile.photo) {
                                                 return consumersMdl.replace(groupMemberId, groupMemberProfile);
                                             }
 
-                                            return consumersMdl.find(groupMemberId).then((consumers) => {
-                                                if (!consumers) {
-                                                    return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
-                                                }
+                                            if (!consumers) {
+                                                return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                                            }
 
-                                                let consumer = consumers[groupMemberId];
-                                                if (!consumer || (consumer && !consumer.photoOriginal)) {
-                                                    return consumersMdl.replace(platformUid, groupMemberProfile);
-                                                }
+                                            let consumer = consumers[platformUid];
+                                            let isUnsafe = groupMemberProfile && groupMemberProfile.photoOriginal.startsWith('http://');
+                                            let shouldUpdate = consumer && (consumer.photo.startsWith('http://') || groupMemberProfile.photoOriginal !== consumer.photoOriginal);
 
-                                                let shouldUpload = (
-                                                    consumer.photo.startsWith('http://') ||
-                                                    (groupMemberProfile.photo.startsWith('http://') && groupMemberProfile.photo !== consumer.photoOriginal)
-                                                );
-
-                                                if (shouldUpload) {
-                                                    let fileName = `${groupMemberId}_${Date.now()}.jpg`;
+                                            if (!consumer || shouldUpdate) {
+                                                if (isUnsafe) {
+                                                    let fileName = `${platformUid}_${Date.now()}.jpg`;
                                                     let filePath = `${storageHlp.tempPath}/${fileName}`;
-                                                    let putConsumer = Object.assign({}, groupMemberProfile);
+                                                    let _groupMemberProfile = Object.assign({}, groupMemberProfile);
 
-                                                    return storageHlp.filesSaveUrl(filePath, groupMemberProfile.photo).then((url) => {
-                                                        putConsumer.photo = url;
-                                                        let toPath = `/consumers/${groupMemberId}/photo/${fileName}`;
+                                                    return storageHlp.filesSaveUrl(filePath, groupMemberProfile.photoOriginal).then((url) => {
+                                                        _groupMemberProfile.photo = url;
+                                                        let toPath = `/consumers/${platformUid}/photo/${fileName}`;
                                                         return storageHlp.filesMoveV2(filePath, toPath);
                                                     }).then(() => {
-                                                        return consumersMdl.replace(groupMemberId, putConsumer);
+                                                        return consumersMdl.replace(platformUid, _groupMemberProfile);
                                                     });
                                                 }
-
-                                                delete groupMemberProfile.photo;
                                                 return consumersMdl.replace(platformUid, groupMemberProfile);
-                                            });
+                                            }
+
+                                            delete groupMemberProfile.photo;
+                                            return consumersMdl.replace(platformUid, groupMemberProfile);
                                         }).then(() => {
                                             let _messager = {
                                                 type: app.type,
@@ -408,94 +407,6 @@ module.exports = (function() {
                                 return appsChatroomsMdl.remove(appId, chatroomId);
                             }).then(() => (shouldContinue = false));
                         }
-                    }
-
-                    let isPostback = webhookInfo.eventType === this.LINE_EVENT_TYPES.POSTBACK;
-                    if (isPostback) {
-                        /** @type {Webhook.Line.Event[]} */
-                        let events = req.body.events;
-                        return Promise.all(events.map((event) => {
-                            let postback = event.postback;
-                            let canParseData = 'string' === typeof postback.data && postback.data.startsWith('{');
-                            if (!canParseData) {
-                                return Promise.resolve();
-                            }
-
-                            /** @type {Webhook.Chatshier.PostbackData} */
-                            let dataJson = JSON.parse(postback.data);
-                            let replyToken = event.replyToken;
-
-                            switch (dataJson.action) {
-                                case 'CHANGE_RICHMENU':
-                                    return this.create(appId, app).then((bot) => {
-                                        let richmenuId = dataJson.richmenuId || '';
-                                        return appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
-                                            let unableMessage = [{
-                                                type: 'text',
-                                                text: 'Unable to switch rich menu'
-                                            }];
-
-                                            if (!(appsRichmenus && appsRichmenus[appId])) {
-                                                return bot.replyMessage(replyToken, unableMessage);
-                                            }
-
-                                            let richmenu = appsRichmenus[appId].richmenus[richmenuId];
-                                            if (!(richmenu && richmenu.isActivated)) {
-                                                return bot.replyMessage(replyToken, unableMessage);
-                                            }
-
-                                            return this.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId, app);
-                                        });
-                                    });
-                                case 'SEND_TEMPLATE':
-                                    return this.create(appId, app).then((bot) => {
-                                        let templateId = dataJson.templateId || '';
-                                        return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
-                                            if (!(appsTemplates && appsTemplates[appId])) {
-                                                return Promise.resolve();
-                                            }
-
-                                            let template = appsTemplates[appId].templates[templateId];
-                                            let templateMessage = {
-                                                type: template.type,
-                                                altText: template.altText,
-                                                template: template.template
-                                            };
-                                            return bot.replyMessage(replyToken, [templateMessage]);
-                                        });
-                                    });
-                                case 'SEND_CONSUMER_FORM':
-                                    return this.create(appId, app).then((bot) => {
-                                        let serverAddr = 'https://' + req.hostname;
-                                        let platformUid = webhookInfo.platformUid;
-                                        let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                                        let url = serverAddr + '/consumer-form?aid=' + appId + '&t=' + token;
-
-                                        let formMessage = {
-                                            type: 'template',
-                                            altText: dataJson.context ? dataJson.context.altText : 'Template created by Chatshier',
-                                            template: {
-                                                type: 'buttons',
-                                                title: dataJson.context ? dataJson.context.templateTitle : 'Fill your profile',
-                                                text: dataJson.context ? dataJson.context.templateText : 'Open this link for continue',
-                                                actions: [
-                                                    {
-                                                        type: 'uri',
-                                                        label: dataJson.context ? dataJson.context.buttonText : 'Click here',
-                                                        uri: url
-                                                    }
-                                                ]
-                                            }
-                                        };
-                                        return bot.replyMessage(replyToken, [formMessage]);
-                                    });
-                                default:
-                                    return Promise.resolve();
-                            }
-                        })).then(() => {
-                            shouldContinue = false;
-                            return shouldContinue;
-                        });
                     }
                 } else if (FACEBOOK === app.type) {
                     // Facebook 如果使用 "粉絲專頁收件夾" 或 "專頁小助手" 回覆時
@@ -542,6 +453,11 @@ module.exports = (function() {
                         return Promise.all(events.map((event) => {
                             // LINE 系統 webhook 測試不理會
                             if (LINE_WEBHOOK_VERIFY_UID === event.source.userId) {
+                                return;
+                            }
+
+                            if (LINE_EVENT_TYPES.POSTBACK === event.type) {
+                                messages.push({ postback: event.postback });
                                 return;
                             }
 
@@ -599,6 +515,7 @@ module.exports = (function() {
                                     messages.push(_message);
                                 });
                             }
+
                             messages.push(_message);
                         })).then(() => {
                             return messages;
@@ -923,8 +840,8 @@ module.exports = (function() {
                 switch (app.type) {
                     case LINE:
                         return Promise.all(messages.map((message) => {
-                            if ('template' === message.type) {
-                                // TODO
+                            if ('image' === message.type) {
+                                message.originalContentUrl = message.previewImageUrl = message.src;
                             }
                             return Promise.resolve(message);
                         })).then((_messages) => {
@@ -949,6 +866,70 @@ module.exports = (function() {
                                 }
                             }
 
+                            if ('template' === message.type) {
+                                /** @type {Chatshier.Models.Template} */
+                                let templateMessage = message;
+                                let template = templateMessage.template;
+                                let columns = template.columns ? template.columns : [template];
+                                let elements = columns.map((column) => {
+                                    let element = {
+                                        title: column.title,
+                                        subtitle: column.text
+                                    };
+
+                                    if (!element.title && element.subtitle) {
+                                        element.title = element.subtitle;
+                                        delete element.subtitle;
+                                    }
+
+                                    if (column.thumbnailImageUrl) {
+                                        element.image_url = column.thumbnailImageUrl;
+                                    }
+
+                                    if (column.defaultAction) {
+                                        element.default_action = {
+                                            type: 'web_url',
+                                            url: column.defaultAction.uri
+                                        };
+                                    }
+
+                                    let actions = column.actions || [];
+                                    if (actions.length > 0) {
+                                        element.buttons = actions.map((action) => {
+                                            /** @type {string} */
+                                            let type = action.type;
+                                            if ('uri' === type) {
+                                                type = 'web_url';
+                                            }
+
+                                            let button = {
+                                                type: type,
+                                                title: action.label
+                                            };
+                                            action.uri && (button.url = action.uri);
+                                            action.data && (button.payload = action.data);
+                                            return button;
+                                        });
+                                    }
+                                    return element;
+                                });
+
+                                let GenericTemplateBuilder = FacebookBotSdk.GenericTemplateBuilder;
+                                let templateBuilder = new GenericTemplateBuilder(elements);
+                                let templateJson = {
+                                    recipient: {
+                                        id: platformUid
+                                    },
+                                    message: {
+                                        attachment: {
+                                            type: message.type,
+                                            payload: templateBuilder.buildTemplate()
+                                        }
+                                    }
+                                };
+                                return bot.sendJsonMessage(templateJson);
+                            }
+
                             if (!message.text) {
                                 return Promise.resolve();
                             }
@@ -971,187 +952,201 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} recipientUid
+         * @param {any} message
+         * @param {Buffer} [srcBuffer]
+         * @param {string} appId
+         * @param {Chatshier.Models.App} [app]
+         */
         pushMessage(recipientUid, message, srcBuffer, appId, app) {
-            let bot = this.bots[appId];
-            switch (app.type) {
-                case LINE:
-                    let messages = [];
-                    if ('text' === message.type) {
-                        messages.push({
-                            type: message.type,
-                            text: message.text
-                        });
-                    }
+            return this._protectApps(appId, app).then((_app) => {
+                app = _app;
+                return this._protectBot(appId, app);
+            }).then((_bot) => {
+                let bot = _bot;
+                let appType = app ? app.type : '';
 
-                    if ('image' === message.type) {
-                        messages.push({
-                            type: message.type,
-                            previewImageUrl: message.src,
-                            originalContentUrl: message.src
-                        });
-                    }
-
-                    if ('audio' === message.type) {
-                        messages.push({
-                            type: message.type,
-                            duration: message.duration ? message.duration : 240000,
-                            originalContentUrl: message.src
-                        });
-                    }
-
-                    if ('video' === message.type) {
-                        messages.push({
-                            type: message.type,
-                            previewImageUrl: chatshierCfg.LINE.PREVIEW_IMAGE_URL,
-                            originalContentUrl: message.src
-                        });
-                    }
-
-                    if ('sticker' === message.type) {
-                        let stickerStr = message.text;
-                        messages.push({
-                            type: message.type,
-                            stickerId: stickerStr.substr(stickerStr.lastIndexOf(' ')),
-                            packageId: stickerStr.substr(stickerStr.indexOf(' '))
-                        });
-                    }
-
-                    if ('file' === message.type) {
-                        let textSplits = message.text.split('\n');
-                        let fileTitle = textSplits.shift();
-
-                        messages.push({
-                            type: 'text',
-                            text: message.text
-                        }, {
-                            type: 'imagemap',
-                            baseUrl: chatshierCfg.LINE.DOWNLOAD_IMAGE_URL,
-                            altText: fileTitle,
-                            baseSize: {
-                                height: 1040,
-                                width: 1040
-                            },
-                            actions: [{
-                                type: 'uri',
-                                linkUri: message.src,
-                                area: {
-                                    x: 0,
-                                    y: 0,
-                                    width: 1040,
-                                    height: 1040
-                                }
-                            }]
-                        });
-                    }
-
-                    if ('imagemap' === message.type) {
-                        messages.push({
-                            type: message.type,
-                            baseUrl: message.baseUri,
-                            altText: message.altText,
-                            baseSize: message.baseSize,
-                            actions: message.actions
-                        });
-                    }
-
-                    return bot.pushMessage(recipientUid, messages);
-                case FACEBOOK:
-                    if ('text' === message.type) {
-                        return bot.sendTextMessage(recipientUid, message.text);
-                    }
-
-                    if ('image' === message.type) {
-                        return bot.sendImageMessage(recipientUid, message.src, true);
-                    }
-
-                    if ('audio' === message.type) {
-                        return bot.sendAudioMessage(recipientUid, message.src, true);
-                    }
-
-                    if ('video' === message.type) {
-                        return bot.sendVideoMessage(recipientUid, message.src, true);
-                    }
-
-                    if ('file' === message.type) {
-                        return bot.sendFileMessage(recipientUid, message.src, true);
-                    }
-                    return bot.sendTextMessage(recipientUid, message.text);
-                case WECHAT:
-                    return Promise.resolve().then(() => {
-                        if (message.src && srcBuffer) {
-                            // wechat 在傳送多媒體資源時，必須先將資源上傳至 wechat 伺服器
-                            // 成功上傳後會取得 media_id, 使用此 ID 來發送多媒體訊息
-                            // 暫時性的多媒體檔案只會在 wechat 伺服器裡存在 3 天後就會被 wechat 刪除
-                            return new Promise((resolve, reject) => {
-                                bot.getToken((err, token) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
-                                    }
-                                    resolve(token);
-                                });
-                            }).then((token) => {
-                                let filename = message.src.split('/').pop();
-                                let mediaType = message.type;
-                                if ('audio' === mediaType) {
-                                    mediaType = 'voice';
-                                }
-                                return wechatSvc.uploadMedia(mediaType, srcBuffer, filename, token.accessToken);
+                switch (appType) {
+                    case LINE:
+                        let messages = [];
+                        if ('text' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                text: message.text
                             });
                         }
-                    }).then((mediaResult) => {
-                        return new Promise((resolve, reject) => {
-                            if (!mediaResult) {
-                                bot.sendText(recipientUid, message.text, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
-                                    }
-                                    resolve(result);
-                                });
-                                return;
-                            }
 
-                            if ('image' === message.type) {
-                                bot.sendImage(recipientUid, mediaResult.media_id, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
+                        if ('image' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                previewImageUrl: message.src,
+                                originalContentUrl: message.src
+                            });
+                        }
+
+                        if ('audio' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                duration: message.duration ? message.duration : 240000,
+                                originalContentUrl: message.src
+                            });
+                        }
+
+                        if ('video' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                previewImageUrl: chatshierCfg.LINE.VIDEO_PREVIEW_IMAGE_URL,
+                                originalContentUrl: message.src
+                            });
+                        }
+
+                        if ('sticker' === message.type) {
+                            let stickerStr = message.text;
+                            messages.push({
+                                type: message.type,
+                                stickerId: stickerStr.substr(stickerStr.lastIndexOf(' ')),
+                                packageId: stickerStr.substr(stickerStr.indexOf(' '))
+                            });
+                        }
+
+                        if ('file' === message.type) {
+                            let textSplits = message.text.split('\n');
+                            let fileTitle = textSplits.shift();
+
+                            messages.push({
+                                type: 'text',
+                                text: message.text
+                            }, {
+                                type: 'imagemap',
+                                baseUrl: chatshierCfg.LINE.FILE_IMAGE_BASE_URL,
+                                altText: fileTitle,
+                                baseSize: {
+                                    height: 1040,
+                                    width: 1040
+                                },
+                                actions: [{
+                                    type: 'uri',
+                                    linkUri: message.src,
+                                    area: {
+                                        x: 0,
+                                        y: 0,
+                                        width: 1040,
+                                        height: 1040
                                     }
-                                    resolve();
-                                });
-                                return;
-                            } else if ('audio' === message.type) {
-                                bot.sendVoice(recipientUid, mediaResult.media_id, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
+                                }]
+                            });
+                        }
+
+                        if ('imagemap' === message.type) {
+                            messages.push({
+                                type: message.type,
+                                baseUrl: message.baseUrl,
+                                altText: message.altText,
+                                baseSize: message.baseSize,
+                                actions: message.actions
+                            });
+                        }
+
+                        return bot.pushMessage(recipientUid, messages);
+                    case FACEBOOK:
+                        if ('text' === message.type) {
+                            return bot.sendTextMessage(recipientUid, message.text);
+                        }
+
+                        if ('image' === message.type) {
+                            return bot.sendImageMessage(recipientUid, message.src, true);
+                        }
+
+                        if ('audio' === message.type) {
+                            return bot.sendAudioMessage(recipientUid, message.src, true);
+                        }
+
+                        if ('video' === message.type) {
+                            return bot.sendVideoMessage(recipientUid, message.src, true);
+                        }
+
+                        if ('file' === message.type) {
+                            return bot.sendFileMessage(recipientUid, message.src, true);
+                        }
+                        return bot.sendTextMessage(recipientUid, message.text);
+                    case WECHAT:
+                        return Promise.resolve().then(() => {
+                            if (message.src && srcBuffer) {
+                                // wechat 在傳送多媒體資源時，必須先將資源上傳至 wechat 伺服器
+                                // 成功上傳後會取得 media_id, 使用此 ID 來發送多媒體訊息
+                                // 暫時性的多媒體檔案只會在 wechat 伺服器裡存在 3 天後就會被 wechat 刪除
+                                return new Promise((resolve, reject) => {
+                                    bot.getToken((err, token) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve(token);
+                                    });
+                                }).then((token) => {
+                                    let filename = message.src.split('/').pop();
+                                    let mediaType = message.type;
+                                    if ('audio' === mediaType) {
+                                        mediaType = 'voice';
                                     }
-                                    resolve();
+                                    return wechatSvc.uploadMedia(mediaType, srcBuffer, filename, token.accessToken);
                                 });
-                                return;
-                            } else if ('video' === message.type) {
-                                bot.sendVideo(recipientUid, mediaResult.media_id, mediaResult.thumb_media_id, (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                        return;
-                                    }
-                                    resolve();
-                                });
-                                return;
-                            };
+                            }
+                        }).then((mediaResult) => {
+                            return new Promise((resolve, reject) => {
+                                if (!mediaResult) {
+                                    bot.sendText(recipientUid, message.text, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve(result);
+                                    });
+                                    return;
+                                }
+
+                                if ('image' === message.type) {
+                                    bot.sendImage(recipientUid, mediaResult.media_id, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve();
+                                    });
+                                    return;
+                                } else if ('audio' === message.type) {
+                                    bot.sendVoice(recipientUid, mediaResult.media_id, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve();
+                                    });
+                                    return;
+                                } else if ('video' === message.type) {
+                                    bot.sendVideo(recipientUid, mediaResult.media_id, mediaResult.thumb_media_id, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve();
+                                    });
+                                    return;
+                                };
+                            });
                         });
-                    });
-                default:
-                    return Promise.resolve();
-            }
+                    default:
+                        return Promise.resolve();
+                }
+            });
         }
 
         /**
          * @param {string[]} recipientUids
          * @param {any[]} messages
          * @param {string} appId
-         * @param {any} app
+         * @param {Chatshier.Models.App} app
          */
         multicast(recipientUids, messages, appId, app) {
             let _multicast;
@@ -1161,8 +1156,14 @@ module.exports = (function() {
 
                 switch (app.type) {
                     case LINE:
+                        /**
+                         * @param {string[]} _recipientUids
+                         * @param {any[]} messages
+                         */
                         _multicast = (_recipientUids, messages) => {
+                            /** @type {any[][]} */
                             let multicasts = [];
+
                             // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
                             while (messages.length > 5) {
                                 multicasts.push(messages.splice(0, 5));
@@ -1172,8 +1173,14 @@ module.exports = (function() {
                             let nextPromise = (i) => {
                                 if (i >= multicasts.length) {
                                     return Promise.resolve();
-                                };
-                                let messages = multicasts[i];
+                                }
+
+                                let messages = multicasts[i].map((message) => {
+                                    if ('image' === message.type) {
+                                        message.previewImageUrl = message.originalContentUrl = message.src;
+                                    }
+                                    return message;
+                                });
                                 return bot.multicast(_recipientUids, messages).then(() => {
                                     return nextPromise(i + 1);
                                 });
@@ -1182,15 +1189,27 @@ module.exports = (function() {
                         };
                         return _multicast(recipientUids, messages);
                     case FACEBOOK:
-                        _multicast = (messagerIds, messages) => {
-                            return Promise.all(messagerIds.map((messagerId) => {
+                        /**
+                         * @param {string[]} _recipientUids
+                         * @param {any[]} messages
+                         */
+                        _multicast = (_recipientUids, messages) => {
+                            return Promise.all(_recipientUids.map((recipientUid) => {
                                 let nextPromise = (i) => {
                                     if (i >= messages.length) {
                                         return Promise.resolve();
                                     };
 
                                     let message = messages[i];
-                                    return bot.sendTextMessage(messagerId, message.text).then(() => {
+                                    return Promise.resolve().then(() => {
+                                        if ('text' === message.type) {
+                                            return bot.sendTextMessage(recipientUid, message.text);
+                                        }
+
+                                        if ('image' === message.type) {
+                                            return bot.sendImageMessage(recipientUid, message.src, true);
+                                        }
+                                    }).then(() => {
                                         return nextPromise(i + 1);
                                     });
                                 };
@@ -1246,7 +1265,7 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {Chatshier.Models.App} [app]
-         * @returns {Promise<Array>}
+         * @returns {Promise<any[]>}
          */
         getRichmenuList(appId, app) {
             return this._protectApps(appId, app).then((_app) => {

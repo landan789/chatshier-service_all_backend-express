@@ -47,9 +47,9 @@ module.exports = (function() {
 
             // 只允許更新 API 可編輯的屬性，且傳送的型別必須嚴謹
             let putMessager = {};
-            ('number' === typeof req.body.unRead) && (putMessager.unRead = req.body.unRead);
-            ('number' === typeof req.body.age) && (putMessager.age = req.body.age);
-            ('string' === typeof req.body.email) && (putMessager.email = req.body.email);
+            !isNaN(parseInt(req.body.unRead, 10)) && (putMessager.unRead = parseInt(req.body.unRead, 10));
+            !isNaN(parseInt(req.body.age, 10)) && (putMessager.age = parseInt(req.body.age, 10));
+            ('string' === typeof req.body.email) && (putMessager.email = req.body.email.toLowerCase());
             ('string' === typeof req.body.phone) && (putMessager.phone = req.body.phone);
             ('string' === typeof req.body.gender) && (putMessager.gender = req.body.gender);
             ('string' === typeof req.body.remark) && (putMessager.remark = req.body.remark);

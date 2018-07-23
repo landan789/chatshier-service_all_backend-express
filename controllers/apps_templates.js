@@ -67,6 +67,7 @@ module.exports = (function() {
             let appId = req.params.appid;
             let postTemplate = {
                 type: req.body.type || '',
+                name: req.body.name || '',
                 altText: req.body.altText || '',
                 template: req.body.template || ''
             };
@@ -83,34 +84,6 @@ module.exports = (function() {
                     return Promise.resolve(appsTemplates);
                 });
             }).then((appsTemplates) => {
-                let templateId = Object.keys(appsTemplates[appId].templates)[0];
-                let template = appsTemplates[appId].templates[templateId];
-
-                if (template.template.thumbnailImageUrl) {
-                    let fromPathArray = template.template.thumbnailImageUrl.split('/');
-                    let src = fromPathArray[fromPathArray.length - 1];
-                    let fromPath = `/temp/${src}`;
-                    let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
-                    return storageHlp.filesMoveV2(fromPath, toPath).then(() => {
-                        return appsTemplates;
-                    });
-                } else if (template.template.columns) {
-                    return Promise.all(template.template.columns.map((column) => {
-                        if (!column.thumbnailImageUrl) {
-                            return Promise.resolve();
-                        }
-
-                        let fromPathArray = column.thumbnailImageUrl.split('/');
-                        let src = fromPathArray[fromPathArray.length - 1];
-                        let fromPath = `/temp/${src}`;
-                        let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
-                        return storageHlp.filesMoveV2(fromPath, toPath);
-                    })).then(() => {
-                        return appsTemplates;
-                    });
-                }
-                return appsTemplates;
-            }).then((appsTemplates) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsTemplates
@@ -125,11 +98,11 @@ module.exports = (function() {
             let appId = req.params.appid;
             let templateId = req.params.templateid;
 
-            let putTemplateData = {
-                type: req.body.type || '',
-                altText: req.body.altText || '',
-                template: req.body.template || ''
-            };
+            let putTemplateData = {};
+            ('string' === typeof req.body.type) && (putTemplateData.type = req.body.type);
+            ('string' === typeof req.body.name) && (putTemplateData.name = req.body.name);
+            ('string' === typeof req.body.altText) && (putTemplateData.altText = req.body.altText);
+            ('object' === typeof req.body.template) && (putTemplateData.template = req.body.template);
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
