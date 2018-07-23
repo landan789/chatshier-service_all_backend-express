@@ -16,7 +16,6 @@ window.TemplateBuilder = (function() {
         URL: 'URL',
         TEL: 'TEL',
         TEXT: 'TEXT',
-        KEYWORD: 'KEYWORD',
         IMAGEMAP: 'IMAGEMAP',
         TEMPLATE: 'TEMPLATE'
     });
@@ -25,7 +24,6 @@ window.TemplateBuilder = (function() {
         [BUTTON_ACTIONS.URL]: '前往連結',
         [BUTTON_ACTIONS.TEL]: '撥打電話',
         [BUTTON_ACTIONS.TEXT]: '發送文字',
-        [BUTTON_ACTIONS.KEYWORD]: '進行關鍵字動作',
         [BUTTON_ACTIONS.IMAGEMAP]: '發送指定圖文訊息',
         [BUTTON_ACTIONS.TEMPLATE]: '發送指定範本訊息'
     });
@@ -92,8 +90,8 @@ window.TemplateBuilder = (function() {
                 buttonAction = BUTTON_ACTIONS.IMAGEMAP;
             } else if ('postback' === action.type && actionData.templateId) {
                 buttonAction = BUTTON_ACTIONS.TEMPLATE;
-            } else if ('message' === action.type && action.text) {
-                buttonAction = this._keywords.includes(action.text) ? BUTTON_ACTIONS.KEYWORD : BUTTON_ACTIONS.TEXT;
+            } else if ('message' === action.type) {
+                buttonAction = BUTTON_ACTIONS.TEXT;
             }
 
             this.$elem = $(
@@ -223,26 +221,6 @@ window.TemplateBuilder = (function() {
                     break;
                 case BUTTON_ACTIONS.TEXT:
                     $actionElem = $(this._generateTextInputHtml(action.text, 'action-single-text'));
-                    break;
-                case BUTTON_ACTIONS.KEYWORD:
-                    let keyword = action.text || '';
-                    let keywordIdx = this._keywords.indexOf(keyword);
-                    selectDefaultValue = Object.keys(this._keywordreplies)[keywordIdx] || '';
-
-                    $actionElem = $(
-                        '<div class="mt-2 input-group">' +
-                            '<div class="input-group-prepend">' +
-                                '<span class="input-group-text"><i class="fas fa-comment"></i></span>' +
-                            '</div>' +
-                            '<select class="form-control action-keyword-select" value="' + selectDefaultValue + '" data-prevValue="' + selectDefaultValue + '">' +
-                                '<option value="" disabled>未選擇</option>' +
-                                Object.keys(this._keywordreplies).map((keywordreplyId) => {
-                                    let keywordreply = this._keywordreplies[keywordreplyId];
-                                    return '<option value="' + keywordreplyId + '">' + keywordreply.keyword + '</option>';
-                                }).join('') +
-                            '</select>' +
-                        '</div>'
-                    );
                     break;
                 case BUTTON_ACTIONS.IMAGEMAP:
                     selectDefaultValue = actionData.imagemapId || '';
@@ -713,12 +691,6 @@ window.TemplateBuilder = (function() {
                     case BUTTON_ACTIONS.TEXT:
                         action.type = 'message';
                         action.text = $actionContent.find('.action-single-text').val() || '';
-                        break;
-                    case BUTTON_ACTIONS.KEYWORD:
-                        action.type = 'message';
-                        let $actionKeywordSelect = $actionContent.find('.action-keyword-select');
-                        let keywordreplyId = $actionKeywordSelect.val();
-                        action.text = keywordreplyId ? this._keywordreplies[keywordreplyId].keyword : '';
                         break;
                     case BUTTON_ACTIONS.IMAGEMAP:
                         action.type = 'postback';

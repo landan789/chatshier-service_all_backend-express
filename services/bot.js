@@ -169,7 +169,8 @@ module.exports = (function() {
             /** @type {Webhook.Chatshier.Information} */
             let webhookInfo = {
                 serverAddress: 'https://' + req.hostname,
-                platformUid: ''
+                platformUid: '',
+                isPostback: false
             };
 
             switch (app.type) {
@@ -181,6 +182,7 @@ module.exports = (function() {
                         if (LINE_WEBHOOK_VERIFY_UID === ev.source.userId) {
                             return;
                         }
+                        webhookInfo.isPostback = webhookInfo.isPostback || LINE_EVENT_TYPES.POSTBACK === ev.type;
                         webhookInfo.eventType = webhookInfo.eventType || ev.type;
                         webhookInfo.platformGroupId = webhookInfo.platformGroupId || ev.source.roomId || ev.source.groupId;
                         webhookInfo.platformGroupType = webhookInfo.platformGroupType || ev.source.type;
@@ -195,12 +197,14 @@ module.exports = (function() {
                         let messagings = fbEntries[i].messaging || [];
                         for (let j in messagings) {
                             let messaging = messagings[j];
-                            webhookInfo.isEcho = !!messaging.message.is_echo;
-                            webhookInfo.platfromAppId = webhookInfo.platfromAppId || messaging.message.app_id;
+                            let message = messaging.message;
+                            webhookInfo.isEcho = !!(message && message.is_echo);
+                            webhookInfo.platfromAppId = webhookInfo.platfromAppId || (message && message.app_id);
 
                             // 正常時，發送者是顧客，接收者是粉絲專頁
                             // echo 時，發送者是粉絲專頁，接收者是顧客
-                            webhookInfo.platformUid = webhookInfo.platformUid || (messaging.message.is_echo ? messaging.recipient.id : messaging.sender.id);
+                            webhookInfo.platformUid = webhookInfo.platformUid || (message && message.is_echo ? messaging.recipient.id : messaging.sender.id);
+                            webhookInfo.isPostback = webhookInfo.isPostback || !!messaging.postback;
                         }
                     }
                     break;
@@ -525,29 +529,35 @@ module.exports = (function() {
                         /** @type {Webhook.Facebook.Entry[]} */
                         let entries = body.entry;
                         for (let i in entries) {
-                            let messaging = entries[i].messaging || [];
-                            for (let j in messaging) {
-                                let msg = messaging[j];
+                            let messagings = entries[i].messaging || [];
+                            for (let j in messagings) {
+                                let messaging = messagings[j];
+                                let message = messaging.message;
                                 // 如果有 is_echo 的 flag 並且有 fb 的 app_id
                                 // 代表是從 Chatshier 透過 API 發送，此訊息不用再進行處理
-                                if (msg.message.is_echo && msg.message.app_id) {
+                                if (message && message.is_echo && message.app_id) {
                                     continue;
                                 }
 
-                                let attachments = msg.message.attachments;
-                                let text = msg.message.text || '';
+                                if (messaging.postback) {
+                                    messages.push({ postback: messaging.postback });
+                                    continue;
+                                }
+
+                                let attachments = message && message.attachments;
+                                let text = message ? message.text || '' : '';
 
                                 // !attachments 沒有夾帶檔案
                                 if (!attachments && text) {
                                     let _message = {
                                         messager_id: messagerId,
                                         // 有 is_echo 的 flag 代表從粉絲專頁透過 Messenger 來回覆用戶的
-                                        from: msg.message.is_echo ? VENDOR : FACEBOOK,
+                                        from: message && message.is_echo ? VENDOR : FACEBOOK,
                                         text: text,
                                         type: 'text',
                                         time: Date.now(), // 將要回覆的訊息加上時戳
                                         src: '',
-                                        message_id: msg.message.mid // FACEBOOK 平台的 訊息 id
+                                        message_id: message.mid // FACEBOOK 平台的 訊息 id
                                     };
                                     messages.push(_message);
                                     continue;
@@ -582,7 +592,7 @@ module.exports = (function() {
                                             type: attachment.type || 'text',
                                             time: Date.now(), // 將要回覆的訊息加上時戳
                                             src: src,
-                                            message_id: msg.message.mid // FACEBOOK 平台的 訊息 id
+                                            message_id: message.mid // FACEBOOK 平台的 訊息 id
                                         };
                                         return _message;
                                     }));
