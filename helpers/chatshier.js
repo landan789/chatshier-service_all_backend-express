@@ -1,6 +1,7 @@
 module.exports = (function() {
     /** @type {any} */
     const API_ERROR = require('../config/api_error.json');
+    const GenericTemplateBuilder = require('facebook-bot-messenger').GenericTemplateBuilder;
 
     const appsGreetingsMdl = require('../models/apps_greetings');
     const appsAutorepliesMdl = require('../models/apps_autoreplies');
@@ -26,6 +27,7 @@ module.exports = (function() {
 
     const POSTBACK_ACTIONS = Object.freeze({
         CHANGE_RICHMENU: 'CHANGE_RICHMENU',
+        SEND_REPLY_TEXT: 'SEND_REPLY_TEXT',
         SEND_TEMPLATE: 'SEND_TEMPLATE',
         SEND_IMAGEMAP: 'SEND_IMAGEMAP',
         SEND_CONSUMER_FORM: 'SEND_CONSUMER_FORM',
@@ -46,19 +48,21 @@ module.exports = (function() {
             let repliedMessages = [];
 
             // 針對 LINE 的 postback 訊息，有些需要回應有些只是動作，需做不同的處理
-            if (LINE === app.type && eventType === botSvc.LINE_EVENT_TYPES.POSTBACK) {
+            if (webhookInfo.isPostback) {
                 let promises = [];
 
                 while (messages.length > 0) {
                     let message = messages.shift();
                     let postback = message.postback;
-                    let canParseData = 'string' === typeof postback.data && postback.data.startsWith('{') && postback.data.endsWith('}');
+                    let postbackDataStr = postback.data || postback.payload;
+
+                    let canParseData = 'string' === typeof postbackDataStr && postbackDataStr.startsWith('{') && postbackDataStr.endsWith('}');
                     if (!canParseData) {
                         continue;
                     }
 
                     /** @type {Webhook.Chatshier.PostbackData} */
-                    let postbackData = JSON.parse(postback.data);
+                    let postbackData = JSON.parse(postbackDataStr);
                     let serverAddr = webhookInfo.serverAddress;
                     let platformUid = webhookInfo.platformUid;
                     let url = serverAddr;
@@ -81,6 +85,15 @@ module.exports = (function() {
                                 return botSvc.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId, app);
                             });
                             promises.push(richmenuPromise);
+                            break;
+                        case POSTBACK_ACTIONS.SEND_REPLY_TEXT:
+                            if (postbackData.replyText) {
+                                let replyTextMessage = {
+                                    type: 'text',
+                                    text: postbackData.replyText
+                                };
+                                repliedMessages.push(replyTextMessage);
+                            }
                             break;
                         case POSTBACK_ACTIONS.SEND_TEMPLATE:
                             let templateId = postbackData.templateId || '';
@@ -436,6 +449,81 @@ module.exports = (function() {
             })).then(() => {
                 return replies;
             });
+        }
+
+        /**
+         * @param {string} recipientUid
+         * @param {Chatshier.Models.Template} templateMessage
+         */
+        convertTemplateToFB(recipientUid, templateMessage) {
+            let template = templateMessage.template;
+            let columns = template.columns ? template.columns : [template];
+            let elements = columns.map((column) => {
+                let element = {
+                    title: column.title,
+                    subtitle: column.text
+                };
+
+                if (!element.title && element.subtitle) {
+                    element.title = element.subtitle;
+                    delete element.subtitle;
+                }
+
+                if (column.thumbnailImageUrl) {
+                    element.image_url = column.thumbnailImageUrl;
+                }
+
+                if (column.defaultAction) {
+                    element.default_action = {
+                        type: 'web_url',
+                        url: column.defaultAction.uri
+                    };
+                }
+
+                let actions = column.actions || [];
+                if (actions.length > 0) {
+                    element.buttons = actions.map((action) => {
+                        /** @type {string} */
+                        let type = action.type;
+                        let button = {
+                            type: type,
+                            title: action.label
+                        };
+
+                        if ('uri' === action.type) {
+                            if (action.uri && action.uri.startsWith('tel:')) {
+                                button.type = 'phone_number';
+                                button.payload = action.uri.replace('tel:', '');
+                            } else {
+                                button.type = 'web_url';
+                                button.url = action.uri;
+                            }
+                        } else if ('message' === action.type) {
+                            button.type = 'postback';
+                            button.payload = JSON.stringify({ action: POSTBACK_ACTIONS.SEND_REPLY_TEXT, replyText: action.text || '' });
+                        } else {
+                            button.type = 'postback';
+                            button.payload = action.data || '{}';
+                        }
+                        return button;
+                    });
+                }
+                return element;
+            });
+
+            let templateBuilder = new GenericTemplateBuilder(elements);
+            let templateJson = {
+                recipient: {
+                    id: recipientUid
+                },
+                message: {
+                    attachment: {
+                        type: 'template',
+                        payload: templateBuilder.buildTemplate()
+                    }
+                }
+            };
+            return templateJson;
         }
     }
 

@@ -97,11 +97,9 @@
 
             if (api.apps.TYPES.FACEBOOK === app.type) {
                 $templateAltText.parents('.form-group').addClass('d-none');
-                templateBuilder.disableButtonAction(TemplateBuilder.BUTTON_ACTIONS.TEL);
                 templateBuilder.disableButtonAction(TemplateBuilder.BUTTON_ACTIONS.IMAGEMAP);
             } else {
                 $templateAltText.parents('.form-group').removeClass('d-none');
-                templateBuilder.enableButtonAction(TemplateBuilder.BUTTON_ACTIONS.TEL);
                 templateBuilder.enableButtonAction(TemplateBuilder.BUTTON_ACTIONS.IMAGEMAP);
             }
 

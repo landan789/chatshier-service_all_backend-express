@@ -1587,9 +1587,9 @@
                                         }
                                         return '';
                                     })() +
-                                    `<div class="template-title py-2 px-3">
+                                    (template.title ? `<div class="template-title py-2 px-3">
                                         <span class="template-title">${template.title}</span>
-                                    </div>` +
+                                    </div>` : '') +
                                     `<div class="template-desc py-2 px-3">
                                         <span class="template-desc">${template.text}</span>
                                     </div>` +
