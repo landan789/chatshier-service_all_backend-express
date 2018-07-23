@@ -27,7 +27,7 @@
     const BOT_MENU_IMAGE_FAILED_TO_FIND = '8.62';
 
     const handleMessages = {
-        working: '<i class="fas fa-circle-notch fa-spin"></i>處理中',
+        working: '<i class="mr-1 fas fa-circle-notch fa-spin fa-fw"></i>處理中',
         addFinished: '新增',
         editFinished: '修改'
     };
@@ -848,7 +848,7 @@
                 areas: areas
             };
 
-            $(this).attr('disabled', true).html('<i class="fas fa-circle-notch fa-spin fa-fw"></i>處理中');
+            $(this).attr('disabled', true).html('<i class="mr-1 fas fa-circle-notch fa-spin fa-fw"></i>處理中');
             return api.appsRichmenus.insert(appId, userId, postRichmenu, imageFile).then((resJson) => {
                 let _appsRichmenus = resJson.data;
                 if (!appsRichmenus[appId]) {
@@ -897,7 +897,7 @@
 
             let $modalUpdateSave = $('#modal-update-save');
             elementDisabled($modalUpdateSave, handleMessages.working);
-            $modalUpdateSave.html('<i class="fas fa-circle-notch fa-spin fa-fw"></i>處理中');
+            $modalUpdateSave.html('<i class="mr-1 fas fa-circle-notch fa-spin fa-fw"></i>處理中');
             return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu, imageFile).then((resJson) => {
                 let _appsRichmenus = resJson.data;
                 Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
@@ -1138,7 +1138,7 @@
 
         let $dropdownText = $appDropdown.find('.dropdown-toggle .dropdown-text');
         let bakAppName = $dropdownText.html();
-        $dropdownText.html(bakAppName + '<i class="ml-2 fas fa-sync fa-spin"></i>');
+        $dropdownText.html(bakAppName + '<i class="ml-2 fas fa-circle-notch fa-spin fa-fw"></i>');
 
         let richmenus = appsRichmenus[appId].richmenus;
         let richmenuIds = Object.keys(richmenus);
