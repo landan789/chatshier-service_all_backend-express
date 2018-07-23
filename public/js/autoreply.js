@@ -658,7 +658,7 @@ let PeriodComponent = (function() {
                     } else if ('imagemap' === autoreply.type) {
                         return '<td class="text-pre search-source">圖文訊息</td>';
                     } else if ('template' === autoreply.type) {
-                        return '<td class="text-pre search-source">模板訊息</td>';
+                        return '<td class="text-pre search-source">範本訊息</td>';
                     }
                     return '<td class="text-pre search-source"></td>';
                 })() +

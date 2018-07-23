@@ -15,6 +15,7 @@ window.TemplateBuilder = (function() {
     const BUTTON_ACTIONS = Object.freeze({
         URL: 'URL',
         TEL: 'TEL',
+        TEXT: 'TEXT',
         KEYWORD: 'KEYWORD',
         IMAGEMAP: 'IMAGEMAP',
         TEMPLATE: 'TEMPLATE'
@@ -23,15 +24,17 @@ window.TemplateBuilder = (function() {
     const BUTTON_ACTIONS_DISPLAY_TEXT = Object.freeze({
         [BUTTON_ACTIONS.URL]: '前往連結',
         [BUTTON_ACTIONS.TEL]: '撥打電話',
-        [BUTTON_ACTIONS.KEYWORD]: '進行關鍵字回覆',
+        [BUTTON_ACTIONS.TEXT]: '發送文字',
+        [BUTTON_ACTIONS.KEYWORD]: '進行關鍵字動作',
         [BUTTON_ACTIONS.IMAGEMAP]: '發送指定圖文訊息',
-        [BUTTON_ACTIONS.TEMPLATE]: '發送指定模板訊息'
+        [BUTTON_ACTIONS.TEMPLATE]: '發送指定範本訊息'
     });
 
     const ERRORS = Object.freeze({
         TEMPLATES_EMPTY: 'TEMPLATES_EMPTY',
         TITLE_AND_TEXT_IS_REQUIRED: 'TITLE_AND_TEXT_IS_REQUIRED',
         TEXT_IS_REQUIRED: 'TEXT_IS_REQUIRED',
+        IMAGE_IS_REQUIRED: 'IMAGE_IS_REQUIRED',
         AT_LEAST_ONE_ACTION: 'AT_LEAST_ONE_ACTION',
         MUST_UPLOAD_A_IMAGE: 'MUST_UPLOAD_A_IMAGE',
         INVALID_URL: 'INVALID_URL',
@@ -56,7 +59,7 @@ window.TemplateBuilder = (function() {
             /** @type {Chatshier.Models.Keywordreplies} */
             this._keywordreplies = params.keywordreplies || {};
             /** @type {string} */
-            this._keywords = [];
+            this._keywords = Object.keys(this._keywordreplies).map((keywordreplyId) => this._keywordreplies[keywordreplyId].keyword);
 
             /** @type {Chatshier.Models.Imagemaps} */
             this._imagemaps = params.imagemaps || {};
@@ -85,12 +88,12 @@ window.TemplateBuilder = (function() {
                 buttonAction = BUTTON_ACTIONS.URL;
             } else if ('uri' === action.type && action.uri.startsWith('tel')) {
                 buttonAction = BUTTON_ACTIONS.TEL;
-            } else if ('message' === action.type && action.text) {
-                buttonAction = BUTTON_ACTIONS.KEYWORD;
             } else if ('postback' === action.type && actionData.imagemapId) {
                 buttonAction = BUTTON_ACTIONS.IMAGEMAP;
             } else if ('postback' === action.type && actionData.templateId) {
                 buttonAction = BUTTON_ACTIONS.TEMPLATE;
+            } else if ('message' === action.type && action.text) {
+                buttonAction = this._keywords.includes(action.text) ? BUTTON_ACTIONS.KEYWORD : BUTTON_ACTIONS.TEXT;
             }
 
             this.$elem = $(
@@ -193,86 +196,110 @@ window.TemplateBuilder = (function() {
             let inputDefaultValue;
             let selectDefaultValue;
 
-            let $actionElem = $(
-                '<div class="mt-2 input-group">' +
-                    (() => {
-                        switch (buttonAction) {
-                            case BUTTON_ACTIONS.URL:
-                                inputDefaultValue = action.uri || '';
-                                return (
-                                    '<div class="input-group-prepend">' +
-                                        '<span class="input-group-text"><i class="fas fa-link"></i></span>' +
-                                    '</div>' +
-                                    '<input class="form-control action-url-link" type="url" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入按鈕連結" maxlength="1000" />'
-                                );
-                            case BUTTON_ACTIONS.TEL:
-                                inputDefaultValue = (action.uri || '').replace('tel:', '');
-                                return (
-                                    '<div class="input-group-prepend">' +
-                                        '<span class="input-group-text"><i class="fas fa-phone"></i></span>' +
-                                    '</div>' +
-                                    '<input class="form-control action-tel-number" type="tel" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入電話號碼" maxlength="10" />'
-                                );
-                            case BUTTON_ACTIONS.KEYWORD:
-                                let keyword = action.text || '';
-                                selectDefaultValue = '';
-                                for (let keywordreplyId in this._keywordreplies) {
+            let $actionElem;
+
+            switch (buttonAction) {
+                case BUTTON_ACTIONS.URL:
+                    inputDefaultValue = action.uri || '';
+                    $actionElem = $(
+                        '<div class="mt-2 input-group">' +
+                            '<div class="input-group-prepend">' +
+                                '<span class="input-group-text"><i class="fas fa-link"></i></span>' +
+                            '</div>' +
+                            '<input class="form-control action-url-link" type="url" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入按鈕連結" maxlength="1000" />' +
+                        '</div>'
+                    );
+                    break;
+                case BUTTON_ACTIONS.TEL:
+                    inputDefaultValue = (action.uri || '').replace('tel:', '');
+                    $actionElem = $(
+                        '<div class="mt-2 input-group">' +
+                            '<div class="input-group-prepend">' +
+                                '<span class="input-group-text"><i class="fas fa-phone"></i></span>' +
+                            '</div>' +
+                            '<input class="form-control action-tel-number" type="tel" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入電話號碼" maxlength="10" />' +
+                        '</div>'
+                    );
+                    break;
+                case BUTTON_ACTIONS.TEXT:
+                    $actionElem = $(this._generateTextInputHtml(action.text, 'action-single-text'));
+                    break;
+                case BUTTON_ACTIONS.KEYWORD:
+                    let keyword = action.text || '';
+                    let keywordIdx = this._keywords.indexOf(keyword);
+                    selectDefaultValue = Object.keys(this._keywordreplies)[keywordIdx] || '';
+
+                    $actionElem = $(
+                        '<div class="mt-2 input-group">' +
+                            '<div class="input-group-prepend">' +
+                                '<span class="input-group-text"><i class="fas fa-comment"></i></span>' +
+                            '</div>' +
+                            '<select class="form-control action-keyword-select" value="' + selectDefaultValue + '" data-prevValue="' + selectDefaultValue + '">' +
+                                '<option value="" disabled>未選擇</option>' +
+                                Object.keys(this._keywordreplies).map((keywordreplyId) => {
                                     let keywordreply = this._keywordreplies[keywordreplyId];
-                                    if (keyword === keywordreply.keyword) {
-                                        selectDefaultValue = keywordreplyId;
-                                        break;
-                                    }
-                                }
+                                    return '<option value="' + keywordreplyId + '">' + keywordreply.keyword + '</option>';
+                                }).join('') +
+                            '</select>' +
+                        '</div>'
+                    );
+                    break;
+                case BUTTON_ACTIONS.IMAGEMAP:
+                    selectDefaultValue = actionData.imagemapId || '';
+                    $actionElem = $(
+                        this._generateTextInputHtml(actionData.additionalText, 'action-imagemap-text', '輸入附加訊息文字 (選填)') +
+                        '<div class="mt-2 input-group">' +
+                            '<div class="input-group-prepend">' +
+                                '<span class="input-group-text"><i class="fas fa-map"></i></span>' +
+                            '</div>' +
+                            '<select class="form-control action-imagemap-select" value="' + selectDefaultValue + '" data-prevValue="' + selectDefaultValue + '">' +
+                                '<option value="" disabled>未選擇</option>' +
+                                Object.keys(this._imagemaps).map((imagemapId) => {
+                                    let imagemap = this._imagemaps[imagemapId];
+                                    return '<option value="' + imagemapId + '">' + imagemap.altText + '</option>';
+                                }).join('') +
+                            '</select>' +
+                        '</div>'
+                    );
+                    break;
+                case BUTTON_ACTIONS.TEMPLATE:
+                    selectDefaultValue = actionData.templateId || '';
+                    $actionElem = $(
+                        this._generateTextInputHtml(actionData.additionalText, 'action-template-text', '輸入附加訊息文字 (選填)') +
+                        '<div class="mt-2 input-group">' +
+                            '<div class="input-group-prepend">' +
+                                '<span class="input-group-text"><i class="fas fa-clipboard-list"></i></span>' +
+                            '</div>' +
+                            '<select class="form-control action-template-select" value="' + selectDefaultValue + '" data-prevValue="' + selectDefaultValue + '">' +
+                                '<option value="" disabled>未選擇</option>' +
+                                Object.keys(this._templates).map((templateId) => {
+                                    let template = this._templates[templateId];
+                                    return '<option value="' + templateId + '">' + (template.name || template.altText) + '</option>';
+                                }).join('') +
+                            '</select>' +
+                        '</div>'
+                    );
+                    break;
+                default:
+                    break;
+            }
 
-                                return (
-                                    '<div class="input-group-prepend">' +
-                                        '<span class="input-group-text"><i class="fas fa-comment"></i></span>' +
-                                    '</div>' +
-                                    '<select class="form-control action-keyword-select" value="' + selectDefaultValue + '" data-prevValue="' + selectDefaultValue + '">' +
-                                        '<option value="" disabled>未選擇</option>' +
-                                        Object.keys(this._keywordreplies).map((keywordreplyId) => {
-                                            let keywordreply = this._keywordreplies[keywordreplyId];
-                                            return '<option value="' + keywordreplyId + '">' + keywordreply.keyword + '</option>';
-                                        }).join('') +
-                                    '</select>'
-                                );
-                            case BUTTON_ACTIONS.IMAGEMAP:
-                                selectDefaultValue = actionData.imagemapId || '';
-                                return (
-                                    '<div class="input-group-prepend">' +
-                                        '<span class="input-group-text"><i class="fas fa-map"></i></span>' +
-                                    '</div>' +
-                                    '<select class="form-control action-imagemap-select" value="' + selectDefaultValue + '" data-prevValue="' + selectDefaultValue + '">' +
-                                        '<option value="" disabled>未選擇</option>' +
-                                        Object.keys(this._imagemaps).map((imagemapId) => {
-                                            let imagemap = this._imagemaps[imagemapId];
-                                            return '<option value="' + imagemapId + '">' + imagemap.altText + '</option>';
-                                        }).join('') +
-                                    '</select>'
-                                );
-                            case BUTTON_ACTIONS.TEMPLATE:
-                                selectDefaultValue = actionData.templateId || '';
-                                return (
-                                    '<div class="input-group-prepend">' +
-                                        '<span class="input-group-text"><i class="fas fa-clipboard-list"></i></span>' +
-                                    '</div>' +
-                                    '<select class="form-control action-template-select" value="' + selectDefaultValue + '" data-prevValue="' + selectDefaultValue + '">' +
-                                        '<option value="" disabled>未選擇</option>' +
-                                        Object.keys(this._templates).map((templateId) => {
-                                            let template = this._templates[templateId];
-                                            return '<option value="' + templateId + '">' + template.altText + '</option>';
-                                        }).join('') +
-                                    '</select>'
-                                );
-                            default:
-                                return '';
-                        }
-                    })() +
-                '</div>'
-            );
-
+            if (!$actionElem) {
+                return;
+            }
             $actionContent.append($actionElem);
             undefined !== selectDefaultValue && $actionElem.find('select').val(selectDefaultValue);
+        }
+
+        _generateTextInputHtml(defaultText, className, placeholder) {
+            placeholder = placeholder || '輸入訊息文字';
+            className = className || '';
+            defaultText = defaultText || '';
+            return (
+                '<div class="mt-1 textarea-container">' +
+                    '<textarea class="form-control text-input' + (className ? ' ' + className : '') + '" rows=4 style="resize: none" placeholder="' + placeholder + '">' + defaultText + '</textarea>' +
+                '</div>'
+            );
         }
 
         _startEdit() {
@@ -370,9 +397,10 @@ window.TemplateBuilder = (function() {
 
             this.templateSwiper = new Swiper(this.$elem.get(0), {
                 loop: false,
-                allowTouchMove: false,
+                // allowTouchMove: false,
                 slidesPerView: 'auto',
                 spaceBetween: 8,
+                threshold: 32,
                 pagination: {
                     el: '#' + this._id + ' .swiper-pagination',
                     type: 'bullets',
@@ -470,7 +498,7 @@ window.TemplateBuilder = (function() {
                             (!column.thumbnailImageUrl
                                 ? '<button type="button" class="image-upload-btn">' +
                                 '<div><i class="fas fa-image"></i></div>' +
-                                '<div>上傳圖片</div>' +
+                                '<div>上傳圖片 <span class="small">(選填)</span></div>' +
                                 '<div class="text-danger small">(圖片大小不能超過 ' + Math.floor(chatshierCfg.imageFileMaxSize / MEGA_BYTE) + ' MB)</div>' +
                             '</button>' : '') +
                             '<img class="image-fit" src="' + ((column.thumbnailImageUrl) || '') + '" alt="" />' +
@@ -480,7 +508,7 @@ window.TemplateBuilder = (function() {
                         '<div class="input-group-prepend">' +
                             '<span class="input-group-text"><i class="fas fa-link"></i></span>' +
                         '</div>' +
-                        '<input class="form-control image-url-link" type="url" value="' + ((column.defaultAction && column.defaultAction.uri) || '') + '" placeholder="輸入圖片連結" />' +
+                        '<input class="form-control image-url-link" type="url" value="' + ((column.defaultAction && column.defaultAction.uri) || '') + '" placeholder="輸入圖片連結 (選填)" />' +
                     '</div>' +
 
                     '<div class="mb-2 input-container">' +
@@ -488,7 +516,7 @@ window.TemplateBuilder = (function() {
                     '</div>' +
 
                     '<div class="mb-2 input-container">' +
-                        '<input class="w-100 form-control template-text" placeholder="副標題" maxlength="60" value="' + (column.text || '') + '" />' +
+                        '<input class="w-100 form-control template-text" placeholder="描述文字" maxlength="60" value="' + (column.text || '') + '" />' +
                     '</div>' +
                 '</div>'
             ]);
@@ -523,6 +551,9 @@ window.TemplateBuilder = (function() {
                 actionEditor.templates = this._templates;
             });
             $(this.templateSwiper.$el).find('#' + templateCardId).append($actionsContainer, $addActionBtn);
+            if (actions.length >= MAX_BUTTON_ACTION) {
+                $addActionBtn.addClass('d-none');
+            }
             this.templateSwiper.slideTo(idx);
 
             let $insertTemplateCardBtn = this.$elem.find('.insert-template-card');
@@ -556,7 +587,7 @@ window.TemplateBuilder = (function() {
             return Promise.resolve().then(() => {
                 let $templateCards = this.$elem.find('.template-card');
 
-                // 根據填入的內容自動決定模板訊息是什麼類型
+                // 根據填入的內容自動決定範本訊息是什麼類型
                 let template = {};
                 try {
                     if (0 === $templateCards.length) {
@@ -566,6 +597,7 @@ window.TemplateBuilder = (function() {
                         template.columns = [];
 
                         let actionCount = void 0;
+                        let hasImage = void 0;
                         for (let i = 0; i < $templateCards.length; i++) {
                             let column = this._retrieveTemplateCard($($templateCards.get(i)), template.type);
                             if (undefined === actionCount) {
@@ -574,6 +606,14 @@ window.TemplateBuilder = (function() {
 
                             if (actionCount !== column.actions.length) {
                                 throw new Error(ERRORS.ACTIONS_COUNT_SHOULD_SAME);
+                            }
+
+                            if (undefined === hasImage) {
+                                hasImage = !!column.thumbnailImageUrl;
+                            }
+
+                            if (hasImage !== !!column.thumbnailImageUrl) {
+                                throw new Error(ERRORS.IMAGE_IS_REQUIRED);
                             }
 
                             template.columns.push(column);
@@ -670,6 +710,10 @@ window.TemplateBuilder = (function() {
                         let $actionTelNumber = $actionContent.find('.action-tel-number');
                         action.uri = 'tel:' + ($actionEditor.hasClass('finished') ? $actionTelNumber.val() : $actionTelNumber.data('prevValue'));
                         break;
+                    case BUTTON_ACTIONS.TEXT:
+                        action.type = 'message';
+                        action.text = $actionContent.find('.action-single-text').val() || '';
+                        break;
                     case BUTTON_ACTIONS.KEYWORD:
                         action.type = 'message';
                         let $actionKeywordSelect = $actionContent.find('.action-keyword-select');
@@ -678,15 +722,25 @@ window.TemplateBuilder = (function() {
                         break;
                     case BUTTON_ACTIONS.IMAGEMAP:
                         action.type = 'postback';
-                        let $actionImagemapSelect = $actionContent.find('.action-imagemap-select');
-                        let imagemapId = $actionImagemapSelect.val();
-                        action.data = imagemapId ? JSON.stringify({ action: 'SEND_IMAGEMAP', imagemapId: imagemapId }) : 'none';
+                        let imagemapAdditionalText = $actionContent.find('.action-imagemap-text').val() || '';
+                        let imagemapId = $actionContent.find('.action-imagemap-select').val() || '';
+                        let imagemapPostback = {
+                            action: 'SEND_IMAGEMAP',
+                            imagemapId: imagemapId
+                        };
+                        imagemapAdditionalText && (imagemapPostback.additionalText = imagemapAdditionalText);
+                        action.data = imagemapId ? JSON.stringify(imagemapPostback) : 'none';
                         break;
                     case BUTTON_ACTIONS.TEMPLATE:
                         action.type = 'postback';
-                        let $actionTemplateSelect = $actionContent.find('.action-template-select');
-                        let templateId = $actionTemplateSelect.val();
-                        action.data = templateId ? JSON.stringify({ action: 'SEND_TEMPLATE', templateId: templateId }) : 'none';
+                        let templateAdditionalText = $actionContent.find('.action-template-text').val() || '';
+                        let templateId = $actionContent.find('.action-template-select').val() || '';
+                        let templatePostback = {
+                            action: 'SEND_TEMPLATE',
+                            templateId: templateId
+                        };
+                        templateAdditionalText && (templatePostback.additionalText = templateAdditionalText);
+                        action.data = templateId ? JSON.stringify(templatePostback) : 'none';
                         break;
                     default:
                         action.type = 'postback';

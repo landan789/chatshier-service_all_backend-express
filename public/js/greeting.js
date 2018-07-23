@@ -138,7 +138,7 @@
                 } else if ('imagemap' === json.type && !json.imagemap_id) {
                     return $.notify('必須設定一個圖文訊息', { type: 'warning' });
                 } else if ('template' === json.type && !json.template_id) {
-                    return $.notify('必須設定一個模板訊息', { type: 'warning' });
+                    return $.notify('必須設定一個範本訊息', { type: 'warning' });
                 }
 
                 filePath = json.originalFilePath;
@@ -191,7 +191,7 @@
                 } else if ('imagemap' === json.type && !json.imagemap_id) {
                     return $.notify('必須設定一個圖文訊息', { type: 'warning' });
                 } else if ('template' === json.type && !json.template_id) {
-                    return $.notify('必須設定一個模板訊息', { type: 'warning' });
+                    return $.notify('必須設定一個範本訊息', { type: 'warning' });
                 }
 
                 filePath = json.originalFilePath;
@@ -320,7 +320,7 @@
                             } else if ('imagemap' === greeting.type) {
                                 return '<td class="text-pre" data-title="圖文訊息">圖文訊息</td>';
                             } else if ('template' === greeting.type) {
-                                return '<td class="text-pre" data-title="模板訊息">模板訊息</td>';
+                                return '<td class="text-pre" data-title="範本訊息">範本訊息</td>';
                             }
                             return '<td class="text-pre" data-title=""></td>';
                         })() +
