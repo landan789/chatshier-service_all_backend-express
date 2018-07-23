@@ -367,6 +367,12 @@ window.TemplateBuilder = (function() {
                 ev.stopPropagation();
                 $(ev.target).parents('.swiper-slide').find('.image-input[type="file"]').trigger('click');
             });
+            this.$elem.on('blur', 'input[type="url"]', (ev) => {
+                if (ev.target.value.startsWith('http')) {
+                    return;
+                }
+                ev.target.value = 'http://' + ev.target.value;
+            });
 
             this.$elem.on('change', '.image-input[type="file"]', (ev) => {
                 /** @type {HTMLInputElement} */
@@ -736,14 +742,8 @@ window.TemplateBuilder = (function() {
             let imageSrc = $templateCard.find('.image-container img').attr('src');
             imageSrc && (column.thumbnailImageUrl = imageFile || imageSrc);
 
-            let $imageActionUrl = $templateCard.find('.image-url-link').val();
-            let url = $imageActionUrl.val();
+            let url = $templateCard.find('.image-url-link').val();
             if (url) {
-                if (!url.startsWith('http')) {
-                    url = 'http://' + url;
-                    $imageActionUrl.val(url);
-                }
-
                 if (!validUrlPattern.test(url)) {
                     throw new Error(ERRORS.INVALID_URL);
                 }
