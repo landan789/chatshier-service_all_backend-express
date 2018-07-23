@@ -363,7 +363,7 @@
                 let templateName = template.name || '未命名';
 
                 let displayType = '';
-                if ('buttons' === template.template.type) {
+                if ('buttons' === template.template.type || 'confirm' === template.template.type) {
                     if (template.template.thumbnailImageUrl) {
                         displayType = 'BUTTON_IMAGE';
                     } else {
