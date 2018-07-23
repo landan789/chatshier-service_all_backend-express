@@ -425,7 +425,7 @@ module.exports = (function() {
                     consumerUid: consumerUid,
                     invoiceId: params.hasRequestInvoice ? cipherHlp.generateRandomHex(30) : '',
                     taxId: params.taxId || '',
-                    commodities: [{
+                    products: [{
                         name: params.itemName,
                         description: '',
                         count: params.itemCount,

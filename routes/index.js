@@ -65,6 +65,10 @@ router.get('/appointment', function(req, res, next) {
     res.render('appointment', { title: '預約系統' + titlePostfix });
 });
 
+router.get('/product', function(req, res, next) {
+    res.render('product', { title: '商品管理' + titlePostfix });
+});
+
 router.get('/signout', (req, res, next) => {
     res.render('signout', { title: '登出' + titlePostfix });
 });
