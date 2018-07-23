@@ -3,7 +3,7 @@ declare module Webhook {
         interface Information {
             serverAddress: string,
             eventType?: string,
-            isPostback: boolean,
+            isPostback?: boolean,
             isEcho?: boolean,
             platfromAppId?: string,
             platformGroupId?: string,
