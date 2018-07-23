@@ -368,10 +368,11 @@ window.TemplateBuilder = (function() {
                 $(ev.target).parents('.swiper-slide').find('.image-input[type="file"]').trigger('click');
             });
             this.$elem.on('blur', 'input[type="url"]', (ev) => {
-                if (ev.target.value.startsWith('http')) {
+                let url = ev.target.value;
+                if (!url || (url && url.startsWith('http'))) {
                     return;
                 }
-                ev.target.value = 'http://' + ev.target.value;
+                ev.target.value = 'http://' + url;
             });
 
             this.$elem.on('change', '.image-input[type="file"]', (ev) => {

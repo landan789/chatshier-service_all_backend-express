@@ -21,7 +21,7 @@
     // const NO_PERMISSION_CODE = '3.16'; // not sure what this is for
 
     const handleMessages = {
-        working: '<i class="fas fa-circle-notch fa-spin"></i>處理中',
+        working: '<i class="mr-1 fas fa-circle-notch fa-spin fa-fw"></i>處理中',
         addFinished: '新增',
         editFinished: '修改'
     };
