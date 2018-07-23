@@ -12,6 +12,13 @@ window.TemplateBuilder = (function() {
     const MAX_TEMPLATE_CARD = 10;
     const MAX_BUTTON_ACTION = 3;
 
+    const validUrlPattern = new RegExp('^(https?:\\/\\/)?' + // protocol
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+        '(\\#[-a-z\\d_]*)?$', 'i'); // fragment locator
+
     const BUTTON_ACTIONS = Object.freeze({
         URL: 'URL',
         TEL: 'TEL',
@@ -729,17 +736,25 @@ window.TemplateBuilder = (function() {
             let imageSrc = $templateCard.find('.image-container img').attr('src');
             imageSrc && (column.thumbnailImageUrl = imageFile || imageSrc);
 
-            let imageActionUrl = $templateCard.find('.image-url-link').val();
-            if (imageActionUrl) {
-                if (!imageActionUrl.startsWith('http')) {
+            let $imageActionUrl = $templateCard.find('.image-url-link').val();
+            let url = $imageActionUrl.val();
+            if (url) {
+                if (!url.startsWith('http')) {
+                    url = 'http://' + url;
+                    $imageActionUrl.val(url);
+                }
+
+                if (!validUrlPattern.test(url)) {
                     throw new Error(ERRORS.INVALID_URL);
-                } else if (!imageFile && !imageSrc) {
+                }
+
+                if (!imageFile && !imageSrc) {
                     throw new Error(ERRORS.MUST_UPLOAD_A_IMAGE);
                 }
 
                 column.defaultAction = {
                     type: 'uri',
-                    uri: imageActionUrl
+                    uri: url
                 };
             }
 
