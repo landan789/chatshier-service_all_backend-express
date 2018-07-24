@@ -335,6 +335,9 @@ router.post('/:webhookid', (req, res, next) => {
                         fromPath = receivedMessages[0].fromPath;
                     }
 
+                    if (webhookInfo.isPostback) {
+                        return botSvc.processPostback(receivedMessages, webhookInfo, appId, app);
+                    }
                     return chatshierHlp.getRepliedMessages(receivedMessages, webhookInfo, appId, app);
                 }).then((messages) => {
                     repliedMessages = messages;

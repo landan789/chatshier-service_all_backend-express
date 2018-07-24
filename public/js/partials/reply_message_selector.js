@@ -96,7 +96,6 @@ window.ReplyMessageSelector = (function() {
             this.$selectContainer.find('[data-toggle="tooltip"]').tooltip();
 
             let $replyItem = this.$selectContainer.find('.reply-item[reply-type="' + replyType + '"]');
-            $replyItem.addClass('active').siblings().removeClass('active');
             return this._onClickReplyItem({ target: $replyItem.get(0) });
         }
 
@@ -216,7 +215,7 @@ window.ReplyMessageSelector = (function() {
                 shouldShow ? $imagemapBtn.removeClass('d-none') : $imagemapBtn.addClass('d-none');
             }
 
-            if ($imagemapBtn.hasClass('active')) {
+            if ($imagemapBtn.hasClass('active') && $imagemapBtn.hasClass('d-none')) {
                 let $replyItem = this.$selectContainer.find('.reply-item[reply-type="text"]');
                 $replyItem.addClass('active').siblings().removeClass('active');
                 return this._onClickReplyItem({ target: $replyItem.get(0) });
@@ -234,7 +233,7 @@ window.ReplyMessageSelector = (function() {
                 shouldShow ? $templateBtn.removeClass('d-none') : $templateBtn.addClass('d-none');
             }
 
-            if ($templateBtn.hasClass('active')) {
+            if ($templateBtn.hasClass('active') && $templateBtn.hasClass('d-none')) {
                 let $replyItem = this.$selectContainer.find('.reply-item[reply-type="text"]');
                 $replyItem.addClass('active').siblings().removeClass('active');
                 return this._onClickReplyItem({ target: $replyItem.get(0) });
