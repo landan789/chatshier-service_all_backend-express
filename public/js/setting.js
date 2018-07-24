@@ -975,18 +975,18 @@
                     })() +
 
                     '<div class="my-3">' +
-                        '<button type="button" class="mr-2 btn btn-light btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
+                        (FACEBOOK !== app.type ? '<button type="button" class="mr-2 btn btn-light btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
                             '<i class="fas fa-edit"></i>' +
-                        '</button>' +
+                        '</button>' : '') +
                         '<button class="btn btn-danger remove-app-btn" app-id="' + appId + '">' +
                             '<i class="fas fa-trash-alt"></i>' +
                         '</button>' +
                     '</div>' +
 
-                    '<label class="font-weight-bold">Webhook URL:</label>' +
+                    (FACEBOOK !== app.type ? '<label class="font-weight-bold">Webhook URL:</label>' +
                     '<div class="app-webhook-id" app-type="' + app.type + '" data-toggle="tooltip" data-placement="top" title="點擊複製至剪貼簿">' +
                         createWebhookUrl(baseWebhookUrl, app.webhook_id) +
-                    '</div>' +
+                    '</div>' : '') +
 
                     '<div class="mt-3">' +
                         '<button type="button" class="mr-1 btn btn-light btn-border set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
