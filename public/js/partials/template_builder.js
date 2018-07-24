@@ -35,7 +35,7 @@ window.TemplateBuilder = (function() {
         [BUTTON_ACTIONS.TEXT]: '發送文字',
         [BUTTON_ACTIONS.IMAGEMAP]: '發送指定圖文訊息',
         [BUTTON_ACTIONS.TEMPLATE]: '發送指定範本訊息',
-        [BUTTON_ACTIONS.CONSUMER_FORM]: '要求填寫個人資料',
+        [BUTTON_ACTIONS.CONSUMER_FORM]: '填寫個人資料',
         [BUTTON_ACTIONS.DONATION]: '捐款功能'
     });
 

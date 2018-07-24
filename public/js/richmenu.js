@@ -287,7 +287,7 @@
                             '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.RICHMENU + '" data-toggle="tooltip" data-placement="top" title="切換圖文選單">' +
                                 '<i class="fas fa-exchange-alt"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.CONSUMER_FORM + '" data-toggle="tooltip" data-placement="top" title="要求填寫個人資料">' +
+                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.CONSUMER_FORM + '" data-toggle="tooltip" data-placement="top" title="填寫個人資料">' +
                                 '<i class="fas fa-id-badge"></i>' +
                             '</button>' +
                             '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.DONATION + '" data-toggle="tooltip" data-placement="top" title="捐款功能">' +
@@ -1087,7 +1087,7 @@
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_TEMPLATE) >= 0) {
                     return '發送範本';
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM) >= 0) {
-                    return '要求填寫個人資料';
+                    return '填寫個人資料';
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.PAYMENT_CONFIRM) >= 0) {
                     return '捐款功能';
                 }
