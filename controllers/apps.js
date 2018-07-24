@@ -260,19 +260,29 @@ module.exports = (function() {
                             if (!apps || (apps && 0 === Object.keys(apps).length)) {
                                 return appsMdl.insert(postApp);
                             }
+
+                            let appIds = Object.keys(apps);
+                            let appId = appIds.shift() || '';
+                            if (!appId) {
+                                return appsMdl.insert(postApp);
+                            }
                             postApp.isDeleted = isNew = false;
 
-                            /** @type {Chatshier.Models.Apps} */
-                            let _apps = {};
-                            return Promise.all(Object.keys(apps).map((appId) => {
-                                return appsMdl.update(appId, postApp).then((__apps) => {
-                                    if (!(__apps && __apps[appId])) {
-                                        return Promise.reject(API_ERROR.APP_FAILED_TO_UPDATE);
+                            // 如果同一群組內的 app 有多筆同一個粉絲專頁的資料，自動刪除重複的粉絲專頁
+                            return Promise.all(appIds.map((_appId) => {
+                                if (apps[_appId].isDeleted) {
+                                    return Promise.resolve(null);
+                                }
+
+                                return appsMdl.remove(_appId).then((_apps) => {
+                                    if (!(_apps && _apps[appId])) {
+                                        return Promise.reject(API_ERROR.APP_FAILED_TO_REMOVE);
                                     }
-                                    Object.assign(_apps, __apps);
-                                    return Promise.resolve(__apps);
+                                    return Promise.resolve(_apps);
                                 });
-                            })).then(() => _apps);
+                            })).then(() => {
+                                return appsMdl.update(appId, postApp);
+                            });
                         }).then((apps) => {
                             return fbSvc.setFanPageSubscribeApp(postApp.id1, postApp.token2).then(() => {
                                 return apps;
