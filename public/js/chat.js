@@ -744,7 +744,12 @@
             messagesFromSocket.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 
             !appsChatrooms[appId] && (appsChatrooms[appId] = { chatrooms: {} });
-            !appsChatrooms[appId].chatrooms[chatroomId] && (appsChatrooms[appId].chatrooms[chatroomId] = {});
+
+            let isNewChatroom = false;
+            if (!appsChatrooms[appId].chatrooms[chatroomId]) {
+                isNewChatroom = true;
+                appsChatrooms[appId].chatrooms[chatroomId] = {};
+            }
             var chatrooms = appsChatrooms[appId].chatrooms;
 
             if (chatroomFromSocket) {
@@ -783,8 +788,35 @@
                 chatroom.messages[message._id] = message;
                 senderUid !== userId && CHATSHIER === message.from && messagerSelf.unRead++;
 
-                updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
-                updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
+                if (isNewChatroom) {
+                    isNewChatroom = false;
+                    var uiRequireData = {
+                        appId: appId,
+                        name: app.name,
+                        type: app.type,
+                        chatroomId: chatroomId,
+                        chatroom: chatroom
+                    };
+
+                    if (CHATSHIER === app.type) {
+                        uiRequireData.person = Object.assign({}, users[userId]);
+                        uiRequireData.person.photo = LOGOS[app.type];
+                        uiRequireData.platformUid = userId;
+                    } else if (chatroom.platformGroupId) {
+                        uiRequireData.person = Object.assign({}, users[userId]);
+                        uiRequireData.person.photo = LOGOS[LINE_GROUP];
+                        uiRequireData.platformUid = userId;
+                    } else {
+                        var platformMessager = findChatroomMessager(appId, chatroomId, app.type);
+                        var platformUid = platformMessager.platformUid;
+                        uiRequireData.person = consumers[platformUid];
+                        uiRequireData.platformUid = platformUid;
+                    }
+                    createChatroom(uiRequireData);
+                } else {
+                    updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
+                    updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
+                }
 
                 var person = CHATSHIER === message.from ? consumers[recipientUid] : consumers[senderUid];
                 var consumerUid = person ? person.platformUid : '';
