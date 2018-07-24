@@ -11,7 +11,7 @@ window.CHATSHIER = {
         otherFileMaxSize: 100 * 1024 * 1024 // 100 MB
     },
     FACEBOOK: {
-        appId: '203545926984167', // facebook app
+        appId: '203545926984167', // facebook appId
         cookie: true,
         xfbml: true,
         version: 'v3.0'
@@ -30,7 +30,7 @@ window.CHATSHIER = {
         index: '/',
         terms: '/terms',
         privacy: '/privacy',
-        webhookUrl: 'https://3bd160b3.ngrok.io/webhook',
+        webhookUrl: 'https://service.dev.chatshier.com/webhook',
         apiUrl: '..'
     }
 };

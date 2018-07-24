@@ -32,10 +32,10 @@ module.exports = {
         FILE_IMAGE_BASE_URL: 'https://service.dev.chatshier.com/image/download'
     },
     FACEBOOK: {
-        // https://developers.facebook.com/apps/1569929989761572
-        appId: '1569929989761572',
-        appSecret: '8e21836de6f01a6a5d1d0876e4f2c1d1',
-        appAccessToken: 'd83ed3a87f6aef9eb7982e5ef5acb187',
+        // https://developers.facebook.com/apps
+        appId: '203545926984167', // facebook appId
+        appSecret: '46aa7e2f586a202b412aca2722fd2e09', // facebook appSecret
+        appAccessToken: 'f85d12004b7a0c170c2f45d66dd50da9', // facebook appAccessToken
         apiVersion: 'v3.0'
     },
     GOOGLE: {
