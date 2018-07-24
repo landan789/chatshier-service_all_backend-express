@@ -132,12 +132,13 @@ module.exports = (function() {
     });
 
     const TemplatesSchema = new Schema({
-        'isDeleted': {type: Boolean, default: false},
-        'altText': {type: String, default: ''},
-        'type': {type: String, default: 'template'},
-        'template': {type: Object, default: {}},
+        'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'createdTime': {type: Date, default: Date.now()}
+        'isDeleted': {type: Boolean, default: false},
+        'name': {type: String, default: ''},
+        'type': {type: String, default: 'template'},
+        'altText': {type: String, default: ''},
+        'template': {type: Object, default: {}}
     });
 
     const RichmenusSchema = new Schema({

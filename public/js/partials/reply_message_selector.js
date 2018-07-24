@@ -81,7 +81,7 @@ window.ReplyMessageSelector = (function() {
                         '<button type="button" class="btn btn-light reply-item" reply-type="imagemap" data-toggle="tooltip" data-placement="top" title="圖文訊息">' +
                             '<i class="fas fa-map"></i>' +
                         '</button>' +
-                        '<button type="button" class="btn btn-light reply-item" reply-type="template" data-toggle="tooltip" data-placement="top" title="模板訊息">' +
+                        '<button type="button" class="btn btn-light reply-item" reply-type="template" data-toggle="tooltip" data-placement="top" title="範本訊息">' +
                             '<i class="fas fa-clipboard-list"></i>' +
                         '</button>' +
                     '</div>' +
@@ -96,7 +96,6 @@ window.ReplyMessageSelector = (function() {
             this.$selectContainer.find('[data-toggle="tooltip"]').tooltip();
 
             let $replyItem = this.$selectContainer.find('.reply-item[reply-type="' + replyType + '"]');
-            $replyItem.addClass('active').siblings().removeClass('active');
             return this._onClickReplyItem({ target: $replyItem.get(0) });
         }
 
@@ -216,7 +215,7 @@ window.ReplyMessageSelector = (function() {
                 shouldShow ? $imagemapBtn.removeClass('d-none') : $imagemapBtn.addClass('d-none');
             }
 
-            if ($imagemapBtn.hasClass('active')) {
+            if ($imagemapBtn.hasClass('active') && $imagemapBtn.hasClass('d-none')) {
                 let $replyItem = this.$selectContainer.find('.reply-item[reply-type="text"]');
                 $replyItem.addClass('active').siblings().removeClass('active');
                 return this._onClickReplyItem({ target: $replyItem.get(0) });
@@ -234,7 +233,7 @@ window.ReplyMessageSelector = (function() {
                 shouldShow ? $templateBtn.removeClass('d-none') : $templateBtn.addClass('d-none');
             }
 
-            if ($templateBtn.hasClass('active')) {
+            if ($templateBtn.hasClass('active') && $templateBtn.hasClass('d-none')) {
                 let $replyItem = this.$selectContainer.find('.reply-item[reply-type="text"]');
                 $replyItem.addClass('active').siblings().removeClass('active');
                 return this._onClickReplyItem({ target: $replyItem.get(0) });
@@ -314,14 +313,13 @@ window.ReplyMessageSelector = (function() {
                         }).then((templates) => {
                             return (
                                 '<label class="w-100 col-form-label font-weight-bold">' +
-                                    (this.isFacebookAlertShow ? '<p class="text-danger small facebook-warning">Facebook 的用戶尚未支援到模板訊息</p>' : '') +
-                                    '<div class="mb-2 font-weight-bold">選擇已新增的模板訊息:</div>' +
+                                    '<div class="mb-2 font-weight-bold">選擇已新增的範本訊息:</div>' +
                                     '<select class="template-select form-control" value="">' +
                                         '<option value="">未選擇</option>' +
                                         (() => {
                                             return Object.keys(templates).map((templateId) => {
                                                 let template = templates[templateId];
-                                                return '<option value="' + templateId + '">' + template.altText + '</option>';
+                                                return '<option value="' + templateId + '">' + (template.name || template.altText) + '</option>';
                                             }).join('');
                                         })() +
                                     '</select>' +

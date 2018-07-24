@@ -3,6 +3,7 @@ declare module Webhook {
         interface Information {
             serverAddress: string,
             eventType?: string,
+            isPostback?: boolean,
             isEcho?: boolean,
             platfromAppId?: string,
             platformGroupId?: string,
@@ -20,22 +21,19 @@ declare module Webhook {
         }
 
         interface PostbackData {
-            action: 'CHANGE_RICHMENU' | 'SEND_TEMPLATE' | 'SEND_CONSUMER_FORM' | 'PAYMENT_CONFIRM',
+            action: 'CHANGE_RICHMENU' | 'SEND_REPLY_TEXT' | 'SEND_TEMPLATE' | 'SEND_IMAGEMAP' | 'SEND_CONSUMER_FORM' | 'PAYMENT_CONFIRM',
             richmenuId?: string,
             templateId?: string,
-            context?: {
-                altText: string,
-                templateTitle?: string,
-                templateText: string,
-                donateAmounts?: number[],
-                currency?: string,
-                paymentId?: string,
+            imagemapId?: string,
+            /**
+             * SEND_TEMPLATE 或者 SEND_IMAGEMAP 選填項目
+             */
+            additionalText?: string,
 
-                // ECPay
-                TotalAmount?: string,
-                TradeDesc?: string,
-                ItemName?: string
-            }
+            /**
+             * SEND_REPLY_TEXT 項目
+             */
+            replyText?: string
         }
     }
     
@@ -221,7 +219,8 @@ declare module Webhook {
                 id: string
             },
             timestamp: number,
-            message: Message
+            message: Message,
+            postback?: Postback
         }
         
         /**
@@ -260,6 +259,19 @@ declare module Webhook {
                     type: string
                 }
             }[]
-        }    
+        }
+
+        /**
+         * https://developers.facebook.com/docs/messenger-platform/reference/webhook-events/messaging_postbacks
+         */
+        interface Postback {
+            title: string,  
+            payload: string,
+            referral?: {
+              ref: string,
+              source: string,
+              type: string,
+            }
+        }
     }
 }
