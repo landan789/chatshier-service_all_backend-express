@@ -36,7 +36,7 @@ window.TemplateBuilder = (function() {
         [BUTTON_ACTIONS.IMAGEMAP]: '發送指定圖文訊息',
         [BUTTON_ACTIONS.TEMPLATE]: '發送指定範本訊息',
         [BUTTON_ACTIONS.CONSUMER_FORM]: '填寫個人資料',
-        [BUTTON_ACTIONS.DONATION]: '捐款功能'
+        [BUTTON_ACTIONS.DONATION]: '候選人捐款功能'
     });
 
     const ERRORS = Object.freeze({

@@ -290,7 +290,7 @@
                             '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.CONSUMER_FORM + '" data-toggle="tooltip" data-placement="top" title="填寫個人資料">' +
                                 '<i class="fas fa-id-badge"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.DONATION + '" data-toggle="tooltip" data-placement="top" title="捐款功能">' +
+                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.DONATION + '" data-toggle="tooltip" data-placement="top" title="候選人捐款功能">' +
                                 '<i class="fas fas fa-donate"></i>' +
                             '</button>' +
                         '</div>' +
@@ -1089,7 +1089,7 @@
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM) >= 0) {
                     return '填寫個人資料';
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.PAYMENT_CONFIRM) >= 0) {
-                    return '捐款功能';
+                    return '候選人捐款功能';
                 }
                 return '未設定';
             case 'uri':
