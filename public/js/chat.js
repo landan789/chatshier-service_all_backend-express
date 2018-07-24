@@ -29,7 +29,7 @@
 
     var DEFAULT_CHATROOM_NAME = '群組聊天室';
     var SOCKET_NAMESPACE = '/chatshier';
-    var SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    var SOCKET_SERVER_URL = window.CHATSHIER.URL.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
     var SOCKET_EVENTS = window.SOCKET_EVENTS;
 
     // var BREAKPOINT_SM = 576;
@@ -2407,7 +2407,7 @@
 
         var kiloByte = 1024;
         var megaByte = kiloByte * 1024;
-        var config = window.chatshier.config;
+        var config = window.CHATSHIER.CONFIG;
         if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
             $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / megaByte) + ' MB', { type: 'warning' });
             return;

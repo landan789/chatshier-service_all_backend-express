@@ -2,7 +2,7 @@
 
 (function() {
     const SOCKET_NAMESPACE = '/chatshier';
-    const SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    const SOCKET_SERVER_URL = window.CHATSHIER.URL.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
     const SOCKET_EVENTS = window.SOCKET_EVENTS;
     const socket = io(SOCKET_SERVER_URL);
 
@@ -54,7 +54,7 @@
 
     // 動態載入 gapi
     gClientHlp.loadAPI().then(function() {
-        return gClientHlp.init(window.chatshier.GOOGLE.CALENDAR);
+        return gClientHlp.init(window.CHATSHIER.GOOGLE.CALENDAR);
     }).then(function(isSignedIn) {
         let $gCalendarRow = $('#gcalendar_row');
         $gCalendarRow.removeClass('d-none');
@@ -942,7 +942,7 @@
     }
 
     function generateAppItem(appId, app) {
-        let baseWebhookUrl = window.urlConfig.webhookUrl;
+        let baseWebhookUrl = window.CHATSHIER.URL.webhookUrl;
         let itemHtml = (
             '<div class="card text-dark" app-id="' + appId + '">' +
                 '<div class="card-body">' +

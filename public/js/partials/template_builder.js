@@ -5,7 +5,7 @@
  * @link http://idangero.us/swiper/api/
  */
 window.TemplateBuilder = (function() {
-    let chatshierCfg = window.chatshier && window.chatshier.config;
+    let chatshierCfg = window.CHATSHIER && window.CHATSHIER.CONFIG;
 
     const KILO_BYTE = 1024;
     const MEGA_BYTE = KILO_BYTE * 1024;

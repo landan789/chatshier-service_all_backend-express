@@ -224,7 +224,7 @@
             let file = input.files[0];
             input.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
-            let config = window.chatshier.config;
+            let config = window.CHATSHIER.CONFIG;
             if (file.type.indexOf('image') < 0) {
                 $('#modal-save').removeAttr('disabled');
                 $('#modal-update-save').removeAttr('disabled');
@@ -919,7 +919,7 @@
     return api.apps.findAll(userId).then(function(resJson) {
         apps = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
-        let config = window.chatshier.config;
+        let config = window.CHATSHIER.CONFIG;
         $('.richmenu-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.richmenuImageFileMaxSize / (1024 * 1024)))}MB`);
 
         nowSelectAppId = '';

@@ -6,16 +6,17 @@ window.restfulAPI = (function() {
     reqHeaders.set('Content-Type', 'application/json');
 
     // ======================
-    // urlConfig undefined error handle
-    !window.urlConfig && (window.urlConfig = {});
-    !window.urlConfig.apiUrl && (window.urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
+    // url undefined error handle
+    !window.CHATSHIER && (window.CHATSHIER = {});
+    !window.CHATSHIER.URL && (window.CHATSHIER.URL = {});
+    !window.CHATSHIER.URL.apiUrl && (window.CHATSHIER.URL.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
     // ======================
-    var urlConfig = window.urlConfig;
+    var urlCfg = window.CHATSHIER.URL;
 
-    var apiDatabaseUrl = urlConfig.apiUrl + '/api/database/';
-    var apiSignUrl = urlConfig.apiUrl + '/api/sign/';
-    var apiBotUrl = urlConfig.apiUrl + '/api/bot/';
-    var apiImageUrl = urlConfig.apiUrl + '/api/image/';
+    var apiDatabaseUrl = urlCfg.apiUrl + '/api/database/';
+    var apiSignUrl = urlCfg.apiUrl + '/api/sign/';
+    var apiBotUrl = urlCfg.apiUrl + '/api/bot/';
+    var apiImageUrl = urlCfg.apiUrl + '/api/image/';
     var apiUrlTable = Object.freeze({
         apps: apiDatabaseUrl + 'apps/',
         appsAutoreplies: apiDatabaseUrl + 'apps-autoreplies/',

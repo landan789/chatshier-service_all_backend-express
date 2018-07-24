@@ -259,7 +259,7 @@
     return api.apps.findAll(userId).then(function(respJson) {
         apps = respJson.data;
         let $dropdownMenu = $appDropdown.find('.dropdown-menu');
-        let config = window.chatshier.config;
+        let config = window.CHATSHIER.CONFIG;
         $jqDoc.find('.insert-btn').attr('disabled', true);
         $('.template-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1024)))}MB`);
 
