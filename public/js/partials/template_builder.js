@@ -24,7 +24,9 @@ window.TemplateBuilder = (function() {
         TEL: 'TEL',
         TEXT: 'TEXT',
         IMAGEMAP: 'IMAGEMAP',
-        TEMPLATE: 'TEMPLATE'
+        TEMPLATE: 'TEMPLATE',
+        CONSUMER_FORM: 'CONSUMER_FORM',
+        DONATION: 'DONATION'
     });
 
     const BUTTON_ACTIONS_DISPLAY_TEXT = Object.freeze({
@@ -32,7 +34,9 @@ window.TemplateBuilder = (function() {
         [BUTTON_ACTIONS.TEL]: '撥打電話',
         [BUTTON_ACTIONS.TEXT]: '發送文字',
         [BUTTON_ACTIONS.IMAGEMAP]: '發送指定圖文訊息',
-        [BUTTON_ACTIONS.TEMPLATE]: '發送指定範本訊息'
+        [BUTTON_ACTIONS.TEMPLATE]: '發送指定範本訊息',
+        [BUTTON_ACTIONS.CONSUMER_FORM]: '填寫個人資料',
+        [BUTTON_ACTIONS.DONATION]: '捐款功能'
     });
 
     const ERRORS = Object.freeze({
@@ -99,6 +103,10 @@ window.TemplateBuilder = (function() {
                 buttonAction = BUTTON_ACTIONS.TEMPLATE;
             } else if ('message' === action.type) {
                 buttonAction = BUTTON_ACTIONS.TEXT;
+            } else if ('SEND_CONSUMER_FORM' === actionData.action) {
+                buttonAction = BUTTON_ACTIONS.CONSUMER_FORM;
+            } else if ('PAYMENT_CONFIRM' === actionData.action) {
+                buttonAction = BUTTON_ACTIONS.DONATION;
             }
 
             this.$elem = $(
@@ -727,6 +735,14 @@ window.TemplateBuilder = (function() {
                         };
                         templateAdditionalText && (templatePostback.additionalText = templateAdditionalText);
                         action.data = templateId ? JSON.stringify(templatePostback) : 'none';
+                        break;
+                    case BUTTON_ACTIONS.CONSUMER_FORM:
+                        action.type = 'postback';
+                        action.data = JSON.stringify({ action: 'SEND_CONSUMER_FORM' });
+                        break;
+                    case BUTTON_ACTIONS.DONATION:
+                        action.type = 'postback';
+                        action.data = JSON.stringify({ action: 'PAYMENT_CONFIRM' });
                         break;
                     default:
                         action.type = 'postback';
