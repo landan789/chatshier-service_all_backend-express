@@ -744,17 +744,24 @@
             messagesFromSocket.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 
             !appsChatrooms[appId] && (appsChatrooms[appId] = { chatrooms: {} });
-            !appsChatrooms[appId].chatrooms[chatroomId] && (appsChatrooms[appId].chatrooms[chatroomId] = {});
+
+            let isNewChatroom = false;
+            if (!appsChatrooms[appId].chatrooms[chatroomId]) {
+                isNewChatroom = true;
+                appsChatrooms[appId].chatrooms[chatroomId] = {};
+            }
             var chatrooms = appsChatrooms[appId].chatrooms;
-            var chatroom = chatrooms[chatroomId];
 
             if (chatroomFromSocket) {
-                chatroom._id = chatroomFromSocket._id;
-                chatroom.platformGroupId = chatroomFromSocket.platformGroupId;
-                chatroom.platformGroupType = chatroomFromSocket.platformGroupType;
-                chatroom.messagers = Object.assign(chatrooms[chatroomId].messagers, chatroomFromSocket.messagers);
+                chatrooms[chatroomId]._id = chatroomFromSocket._id;
+                chatrooms[chatroomId].platformGroupId = chatroomFromSocket.platformGroupId;
+                chatrooms[chatroomId].platformGroupType = chatroomFromSocket.platformGroupType;
+
+                !chatrooms[chatroomId].messagers && (chatrooms[chatroomId].messagers = {});
+                chatrooms[chatroomId].messagers = Object.assign(chatrooms[chatroomId].messagers, chatroomFromSocket.messagers);
             }
 
+            var chatroom = chatrooms[chatroomId];
             !chatroom.messagers && (chatroom.messagers = {});
             !chatroom.messages && (chatroom.messages = {});
             var messagers = chatroom.messagers;
@@ -781,8 +788,35 @@
                 chatroom.messages[message._id] = message;
                 senderUid !== userId && CHATSHIER === message.from && messagerSelf.unRead++;
 
-                updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
-                updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
+                if (isNewChatroom) {
+                    isNewChatroom = false;
+                    var uiRequireData = {
+                        appId: appId,
+                        name: app.name,
+                        type: app.type,
+                        chatroomId: chatroomId,
+                        chatroom: chatroom
+                    };
+
+                    if (CHATSHIER === app.type) {
+                        uiRequireData.person = Object.assign({}, users[userId]);
+                        uiRequireData.person.photo = LOGOS[app.type];
+                        uiRequireData.platformUid = userId;
+                    } else if (chatroom.platformGroupId) {
+                        uiRequireData.person = Object.assign({}, users[userId]);
+                        uiRequireData.person.photo = LOGOS[LINE_GROUP];
+                        uiRequireData.platformUid = userId;
+                    } else {
+                        var platformMessager = findChatroomMessager(appId, chatroomId, app.type);
+                        var platformUid = platformMessager.platformUid;
+                        uiRequireData.person = consumers[platformUid];
+                        uiRequireData.platformUid = platformUid;
+                    }
+                    createChatroom(uiRequireData);
+                } else {
+                    updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
+                    updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
+                }
 
                 var person = CHATSHIER === message.from ? consumers[recipientUid] : consumers[senderUid];
                 var consumerUid = person ? person.platformUid : '';
