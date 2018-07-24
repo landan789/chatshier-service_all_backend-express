@@ -225,9 +225,10 @@ p:empty:not(:focus)::before {
     .fb-import-button:focus {
         outline: none; }
 
-.app-webhook-id {
-    cursor: pointer;
-}
+.apps-body .bot-item {
+    min-height: 18rem; }
+    .apps-body .bot-item .app-webhook-id {
+        cursor: pointer; }
 
 @media (min-width: 768px) {
     .apps-body.card-columns {

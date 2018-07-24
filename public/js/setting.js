@@ -944,7 +944,7 @@
     function generateAppItem(appId, app) {
         let baseWebhookUrl = window.CHATSHIER.URL.webhookUrl;
         let itemHtml = (
-            '<div class="card text-dark" app-id="' + appId + '">' +
+            '<div class="card text-dark bot-item" app-id="' + appId + '">' +
                 '<div class="card-body">' +
                     (function() {
                         switch (app.type) {

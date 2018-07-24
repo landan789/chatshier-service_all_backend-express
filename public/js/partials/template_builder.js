@@ -127,7 +127,7 @@ window.TemplateBuilder = (function() {
                         '<span class="text-primary label-text">' + (action.label || '') + ' (' + (BUTTON_ACTIONS_DISPLAY_TEXT[buttonAction] || '未選擇') + ')</span>' +
                     '</div>' +
                     '<div class="mb-2 input-container editable animated fadeIn">' +
-                        '<input class="w-100 form-control button-label" type="text" name="buttonLabel" placeholder="按鈕名稱" maxlength="20" value="' + (action.label || '') + '" />' +
+                        '<input class="w-100 form-control swiper-no-swiping button-label" type="text" name="buttonLabel" placeholder="按鈕名稱" maxlength="20" value="' + (action.label || '') + '" />' +
                     '</div>' +
                     '<div class="mb-1 input-group select-container editable animated fadeIn">' +
                         '<div class="input-group-prepend">' +
@@ -219,7 +219,7 @@ window.TemplateBuilder = (function() {
                             '<div class="input-group-prepend">' +
                                 '<span class="input-group-text"><i class="fas fa-link"></i></span>' +
                             '</div>' +
-                            '<input class="form-control action-url-link" type="url" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入按鈕連結" maxlength="1000" />' +
+                            '<input class="form-control swiper-no-swiping action-url-link" type="url" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入按鈕連結" maxlength="1000" />' +
                         '</div>'
                     );
                     break;
@@ -230,7 +230,7 @@ window.TemplateBuilder = (function() {
                             '<div class="input-group-prepend">' +
                                 '<span class="input-group-text"><i class="fas fa-phone"></i></span>' +
                             '</div>' +
-                            '<input class="form-control action-tel-number" type="tel" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入電話號碼" maxlength="10" />' +
+                            '<input class="form-control swiper-no-swiping action-tel-number" type="tel" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入電話號碼" maxlength="10" />' +
                         '</div>'
                     );
                     break;
@@ -290,7 +290,7 @@ window.TemplateBuilder = (function() {
             defaultText = defaultText || '';
             return (
                 '<div class="mt-1 textarea-container">' +
-                    '<textarea class="form-control text-input' + (className ? ' ' + className : '') + '" rows=4 style="resize: none" placeholder="' + placeholder + '">' + defaultText + '</textarea>' +
+                    '<textarea class="form-control swiper-no-swiping text-input' + (className ? ' ' + className : '') + '" rows=4 style="resize: none" placeholder="' + placeholder + '">' + defaultText + '</textarea>' +
                 '</div>'
             );
         }
@@ -508,15 +508,15 @@ window.TemplateBuilder = (function() {
                         '<div class="input-group-prepend">' +
                             '<span class="input-group-text"><i class="fas fa-link"></i></span>' +
                         '</div>' +
-                        '<input class="form-control image-url-link" type="url" value="' + ((column.defaultAction && column.defaultAction.uri) || '') + '" placeholder="輸入圖片連結 (選填)" />' +
+                        '<input class="form-control swiper-no-swiping image-url-link" type="url" value="' + ((column.defaultAction && column.defaultAction.uri) || '') + '" placeholder="輸入圖片連結 (選填)" />' +
                     '</div>' +
 
                     '<div class="mb-2 input-container">' +
-                        '<input class="w-100 form-control template-title" placeholder="標題" maxlength="40" value="' + (column.title || '') + '" />' +
+                        '<input class="w-100 form-control swiper-no-swiping template-title" placeholder="標題" maxlength="40" value="' + (column.title || '') + '" />' +
                     '</div>' +
 
                     '<div class="mb-2 input-container">' +
-                        '<input class="w-100 form-control template-text" placeholder="描述文字" maxlength="60" value="' + (column.text || '') + '" />' +
+                        '<input class="w-100 form-control swiper-no-swiping template-text" placeholder="描述文字" maxlength="60" value="' + (column.text || '') + '" />' +
                     '</div>' +
                 '</div>'
             ]);
