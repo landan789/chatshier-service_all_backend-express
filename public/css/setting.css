@@ -226,9 +226,20 @@ p:empty:not(:focus)::before {
         outline: none; }
 
 .apps-body .bot-item {
-    min-height: 18rem; }
+    min-height: 21rem;
+    padding-bottom: 3.5rem; }
     .apps-body .bot-item .app-webhook-id {
         cursor: pointer; }
+    .apps-body .bot-item .footer-buttons {
+        left: 0;
+        bottom: 0; }
+    .apps-body .bot-item .fa-facebook-messenger {
+        z-index: 1;
+        -webkit-transform: translate3d(10%, -10%, 0) scale(1.2);
+        transform: translate3d(10%, -10%, 0) scale(1.2); }
+    .apps-body .bot-item .fa-facebook {
+        -webkit-transform: translate3d(-30%, 15%, 0);
+        transform: translate3d(-30%, 15%, 0); }
 
 @media (min-width: 768px) {
     .apps-body.card-columns {
