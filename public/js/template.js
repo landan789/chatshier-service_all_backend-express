@@ -39,7 +39,7 @@
 
     (function modelProcess() {
         const handleMessages = {
-            working: '<i class="fas fa-circle-notch fa-spin"></i>處理中',
+            working: '<i class="mr-1 fas fa-circle-notch fa-spin fa-fw"></i>處理中',
             addFinished: '新增',
             editFinished: '修改'
         };
@@ -97,11 +97,9 @@
 
             if (api.apps.TYPES.FACEBOOK === app.type) {
                 $templateAltText.parents('.form-group').addClass('d-none');
-                templateBuilder.disableButtonAction(TemplateBuilder.BUTTON_ACTIONS.TEL);
                 templateBuilder.disableButtonAction(TemplateBuilder.BUTTON_ACTIONS.IMAGEMAP);
             } else {
                 $templateAltText.parents('.form-group').removeClass('d-none');
-                templateBuilder.enableButtonAction(TemplateBuilder.BUTTON_ACTIONS.TEL);
                 templateBuilder.enableButtonAction(TemplateBuilder.BUTTON_ACTIONS.IMAGEMAP);
             }
 
@@ -365,7 +363,7 @@
                 let templateName = template.name || '未命名';
 
                 let displayType = '';
-                if ('buttons' === template.template.type) {
+                if ('buttons' === template.template.type || 'confirm' === template.template.type) {
                     if (template.template.thumbnailImageUrl) {
                         displayType = 'BUTTON_IMAGE';
                     } else {

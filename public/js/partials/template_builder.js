@@ -12,22 +12,31 @@ window.TemplateBuilder = (function() {
     const MAX_TEMPLATE_CARD = 10;
     const MAX_BUTTON_ACTION = 3;
 
+    const validUrlPattern = new RegExp('^(https?:\\/\\/)?' + // protocol
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+        '(\\#[-a-z\\d_]*)?$', 'i'); // fragment locator
+
     const BUTTON_ACTIONS = Object.freeze({
         URL: 'URL',
         TEL: 'TEL',
         TEXT: 'TEXT',
-        KEYWORD: 'KEYWORD',
         IMAGEMAP: 'IMAGEMAP',
-        TEMPLATE: 'TEMPLATE'
+        TEMPLATE: 'TEMPLATE',
+        CONSUMER_FORM: 'CONSUMER_FORM',
+        DONATION: 'DONATION'
     });
 
     const BUTTON_ACTIONS_DISPLAY_TEXT = Object.freeze({
         [BUTTON_ACTIONS.URL]: '前往連結',
         [BUTTON_ACTIONS.TEL]: '撥打電話',
         [BUTTON_ACTIONS.TEXT]: '發送文字',
-        [BUTTON_ACTIONS.KEYWORD]: '進行關鍵字動作',
         [BUTTON_ACTIONS.IMAGEMAP]: '發送指定圖文訊息',
-        [BUTTON_ACTIONS.TEMPLATE]: '發送指定範本訊息'
+        [BUTTON_ACTIONS.TEMPLATE]: '發送指定範本訊息',
+        [BUTTON_ACTIONS.CONSUMER_FORM]: '填寫個人資料',
+        [BUTTON_ACTIONS.DONATION]: '候選人捐款功能'
     });
 
     const ERRORS = Object.freeze({
@@ -92,8 +101,12 @@ window.TemplateBuilder = (function() {
                 buttonAction = BUTTON_ACTIONS.IMAGEMAP;
             } else if ('postback' === action.type && actionData.templateId) {
                 buttonAction = BUTTON_ACTIONS.TEMPLATE;
-            } else if ('message' === action.type && action.text) {
-                buttonAction = this._keywords.includes(action.text) ? BUTTON_ACTIONS.KEYWORD : BUTTON_ACTIONS.TEXT;
+            } else if ('message' === action.type) {
+                buttonAction = BUTTON_ACTIONS.TEXT;
+            } else if ('SEND_CONSUMER_FORM' === actionData.action) {
+                buttonAction = BUTTON_ACTIONS.CONSUMER_FORM;
+            } else if ('PAYMENT_CONFIRM' === actionData.action) {
+                buttonAction = BUTTON_ACTIONS.DONATION;
             }
 
             this.$elem = $(
@@ -223,26 +236,6 @@ window.TemplateBuilder = (function() {
                     break;
                 case BUTTON_ACTIONS.TEXT:
                     $actionElem = $(this._generateTextInputHtml(action.text, 'action-single-text'));
-                    break;
-                case BUTTON_ACTIONS.KEYWORD:
-                    let keyword = action.text || '';
-                    let keywordIdx = this._keywords.indexOf(keyword);
-                    selectDefaultValue = Object.keys(this._keywordreplies)[keywordIdx] || '';
-
-                    $actionElem = $(
-                        '<div class="mt-2 input-group">' +
-                            '<div class="input-group-prepend">' +
-                                '<span class="input-group-text"><i class="fas fa-comment"></i></span>' +
-                            '</div>' +
-                            '<select class="form-control action-keyword-select" value="' + selectDefaultValue + '" data-prevValue="' + selectDefaultValue + '">' +
-                                '<option value="" disabled>未選擇</option>' +
-                                Object.keys(this._keywordreplies).map((keywordreplyId) => {
-                                    let keywordreply = this._keywordreplies[keywordreplyId];
-                                    return '<option value="' + keywordreplyId + '">' + keywordreply.keyword + '</option>';
-                                }).join('') +
-                            '</select>' +
-                        '</div>'
-                    );
                     break;
                 case BUTTON_ACTIONS.IMAGEMAP:
                     selectDefaultValue = actionData.imagemapId || '';
@@ -381,6 +374,13 @@ window.TemplateBuilder = (function() {
                 ev.preventDefault();
                 ev.stopPropagation();
                 $(ev.target).parents('.swiper-slide').find('.image-input[type="file"]').trigger('click');
+            });
+            this.$elem.on('blur', 'input[type="url"]', (ev) => {
+                let url = ev.target.value;
+                if (!url || (url && url.startsWith('http'))) {
+                    return;
+                }
+                ev.target.value = 'http://' + url;
             });
 
             this.$elem.on('change', '.image-input[type="file"]', (ev) => {
@@ -714,12 +714,6 @@ window.TemplateBuilder = (function() {
                         action.type = 'message';
                         action.text = $actionContent.find('.action-single-text').val() || '';
                         break;
-                    case BUTTON_ACTIONS.KEYWORD:
-                        action.type = 'message';
-                        let $actionKeywordSelect = $actionContent.find('.action-keyword-select');
-                        let keywordreplyId = $actionKeywordSelect.val();
-                        action.text = keywordreplyId ? this._keywordreplies[keywordreplyId].keyword : '';
-                        break;
                     case BUTTON_ACTIONS.IMAGEMAP:
                         action.type = 'postback';
                         let imagemapAdditionalText = $actionContent.find('.action-imagemap-text').val() || '';
@@ -742,6 +736,14 @@ window.TemplateBuilder = (function() {
                         templateAdditionalText && (templatePostback.additionalText = templateAdditionalText);
                         action.data = templateId ? JSON.stringify(templatePostback) : 'none';
                         break;
+                    case BUTTON_ACTIONS.CONSUMER_FORM:
+                        action.type = 'postback';
+                        action.data = JSON.stringify({ action: 'SEND_CONSUMER_FORM' });
+                        break;
+                    case BUTTON_ACTIONS.DONATION:
+                        action.type = 'postback';
+                        action.data = JSON.stringify({ action: 'PAYMENT_CONFIRM' });
+                        break;
                     default:
                         action.type = 'postback';
                         action.data = 'none';
@@ -757,17 +759,19 @@ window.TemplateBuilder = (function() {
             let imageSrc = $templateCard.find('.image-container img').attr('src');
             imageSrc && (column.thumbnailImageUrl = imageFile || imageSrc);
 
-            let imageActionUrl = $templateCard.find('.image-url-link').val();
-            if (imageActionUrl) {
-                if (!imageActionUrl.startsWith('http')) {
+            let url = $templateCard.find('.image-url-link').val();
+            if (url) {
+                if (!validUrlPattern.test(url)) {
                     throw new Error(ERRORS.INVALID_URL);
-                } else if (!imageFile && !imageSrc) {
+                }
+
+                if (!imageFile && !imageSrc) {
                     throw new Error(ERRORS.MUST_UPLOAD_A_IMAGE);
                 }
 
                 column.defaultAction = {
                     type: 'uri',
-                    uri: imageActionUrl
+                    uri: url
                 };
             }
 
