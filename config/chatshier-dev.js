@@ -32,7 +32,7 @@ module.exports = {
         FILE_IMAGE_BASE_URL: 'https://service.dev.chatshier.com/image/download'
     },
     FACEBOOK: {
-        // https://developers.facebook.com/apps
+        // https://developers.facebook.com/apps/1569929989761572
         appId: '1569929989761572',
         appSecret: '8e21836de6f01a6a5d1d0876e4f2c1d1',
         appAccessToken: 'd83ed3a87f6aef9eb7982e5ef5acb187',
@@ -42,7 +42,7 @@ module.exports = {
         serverAPIKey: 'AIzaSyDvAQBzctZSnaUeJWZlbeng7JFjV4lEmL4',
         // https://www.google.com/recaptcha/admin
         recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x',
-        // owner: 9thflr.RD@gmail.com
+        // owner: 9thflr.rd@gmail.com
         // https://console.firebase.google.com/u/0/project/chatshier-d4dfd/settings/general/
         FDLdomain: 'chatshier9450.page.link'
     },

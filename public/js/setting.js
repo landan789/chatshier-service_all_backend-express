@@ -727,47 +727,11 @@
                 '</div>'
             ),
             [FACEBOOK]: (
-                // '<div class="form-group fb-sdk-item" group-id="' + groupId + '">' +
-                //     '<button type="button" class="px-4 py-2 text-center fb-import-button">' +
-                //         '<i class="fab fa-facebook-square fa-fw"></i>' +
-                //         '<span>連結粉絲專頁</span>' +
-                //     '</button>' +
-                // '</div>'
-                '<div class="form-group">' +
-                    '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
-                    '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appName" placeholder="請輸入名稱" />' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-form-label">粉絲專頁 ID:</label>' +
-                        '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appId1" placeholder="在此貼上您的 粉絲專頁 ID" />' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-form-label">App ID:</label>' +
-                        '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appId2" placeholder="在此貼上您的 App ID" />' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-form-label">App secret:</label>' +
-                    '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appSecret" placeholder="在此貼上您的 App secret" />' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-form-label">App client token:</label>' +
-                        '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appToken1" placeholder="在此貼上您的 App client token" />' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-form-label">Page token:</label>' +
-                        '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appToken2" placeholder="在此貼上您的 Page token" />' +
-                    '</div>' +
+                '<div class="form-group fb-sdk-item" group-id="' + groupId + '">' +
+                    '<button type="button" class="px-4 py-2 text-center fb-import-button">' +
+                        '<i class="fab fa-facebook-square fa-fw"></i>' +
+                        '<span>連結粉絲專頁</span>' +
+                    '</button>' +
                 '</div>'
             ),
             [WECHAT]: (
@@ -1011,10 +975,10 @@
                     })() +
 
                     '<div class="my-3">' +
-                        '<button type="button" class="mr-1 btn btn-light btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
+                        '<button type="button" class="mr-2 btn btn-light btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
                             '<i class="fas fa-edit"></i>' +
                         '</button>' +
-                        '<button class="ml-1 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
+                        '<button class="btn btn-danger remove-app-btn" app-id="' + appId + '">' +
                             '<i class="fas fa-trash-alt"></i>' +
                         '</button>' +
                     '</div>' +
