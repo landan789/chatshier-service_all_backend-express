@@ -1,6 +1,6 @@
 
 = Release 1.4.2 =
-MASTER release: 2018-07-
+MASTER release: 2018-07-24
 == Features ==
 == Bug Fixes ==
  * Fixed: template message can be 10
