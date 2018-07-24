@@ -2128,6 +2128,7 @@
         $imagemapArea.empty().addClass('d-none');
 
         var messagers = chatroom.messagers;
+        var messagerSelf = findMessagerSelf(appId, chatroomId);
         if (CHATSHIER !== appType) {
             var messagerNameList = [];
             for (var messagerId in messagers) {
@@ -2149,7 +2150,6 @@
                 chatroomId: chatroomId,
                 userId: userId
             });
-            var messagerSelf = findMessagerSelf(appId, chatroomId);
             messagerSelf.unRead = 0;
 
             // 如果有未讀的話，將未讀數設為0之後，把未讀的區塊隱藏
