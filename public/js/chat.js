@@ -746,15 +746,17 @@
             !appsChatrooms[appId] && (appsChatrooms[appId] = { chatrooms: {} });
             !appsChatrooms[appId].chatrooms[chatroomId] && (appsChatrooms[appId].chatrooms[chatroomId] = {});
             var chatrooms = appsChatrooms[appId].chatrooms;
-            var chatroom = chatrooms[chatroomId];
 
             if (chatroomFromSocket) {
-                chatroom._id = chatroomFromSocket._id;
-                chatroom.platformGroupId = chatroomFromSocket.platformGroupId;
-                chatroom.platformGroupType = chatroomFromSocket.platformGroupType;
-                chatroom.messagers = Object.assign(chatrooms[chatroomId].messagers, chatroomFromSocket.messagers);
+                chatrooms[chatroomId]._id = chatroomFromSocket._id;
+                chatrooms[chatroomId].platformGroupId = chatroomFromSocket.platformGroupId;
+                chatrooms[chatroomId].platformGroupType = chatroomFromSocket.platformGroupType;
+
+                !chatrooms[chatroomId].messagers && (chatrooms[chatroomId].messagers = {});
+                chatrooms[chatroomId].messagers = Object.assign(chatrooms[chatroomId].messagers, chatroomFromSocket.messagers);
             }
 
+            var chatroom = chatrooms[chatroomId];
             !chatroom.messagers && (chatroom.messagers = {});
             !chatroom.messages && (chatroom.messages = {});
             var messagers = chatroom.messagers;
