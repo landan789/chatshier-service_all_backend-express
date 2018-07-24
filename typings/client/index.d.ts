@@ -1,5 +1,5 @@
 /// <reference path='./bootstrap-notify/notify.d.ts' />
-/// <reference path='./config.d.ts' />
+/// <reference path='./chatshier.d.ts' />
 /// <reference path='./helpers.d.ts' />
 
 /// <reference path='../server/helpers/socket.d.ts' />

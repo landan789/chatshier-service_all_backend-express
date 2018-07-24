@@ -33,16 +33,16 @@ module.exports = {
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
-        appId: '1569929989761572',
-        appSecret: '8e21836de6f01a6a5d1d0876e4f2c1d1',
-        appAccessToken: 'd83ed3a87f6aef9eb7982e5ef5acb187',
+        appId: '203545926984167', // facebook appId
+        appSecret: '46aa7e2f586a202b412aca2722fd2e09', // facebook appSecret
+        appAccessToken: 'f85d12004b7a0c170c2f45d66dd50da9', // facebook appAccessToken
         apiVersion: 'v3.0'
     },
     GOOGLE: {
         serverAPIKey: 'AIzaSyDvAQBzctZSnaUeJWZlbeng7JFjV4lEmL4',
         // https://www.google.com/recaptcha/admin
         recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x',
-        // owner: 9thflr.RD@gmail.com
+        // owner: 9thflr.rd@gmail.com
         // https://console.firebase.google.com/u/0/project/chatshier-d4dfd/settings/general/
         FDLdomain: 'chatshier9450.page.link'
     },

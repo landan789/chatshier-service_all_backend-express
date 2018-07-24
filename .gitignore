@@ -6,7 +6,7 @@ node_modules/
 
 # production
 /config/chatshier.js
-/public/config/url-config.js
+/public/config/chatshier.js
 /.well-known/*
 
 # npm
