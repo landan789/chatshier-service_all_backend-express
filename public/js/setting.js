@@ -961,14 +961,20 @@
                             case FACEBOOK:
                                 return (
                                     '<div class="my-4 d-flex justify-content-center align-items-center">' +
-                                        '<i class="fab fa-facebook-messenger fa-fw fa-6x fb-messsenger-color"></i>' +
-                                        '<i class="fab fa-facebook fa-fw fa-6x fb-color"></i>' +
+                                        '<span class="position-relative">' +
+                                            '<i class="fab fa-facebook-messenger fa-fw fa-4x fb-messsenger-color position-absolute"></i>' +
+                                            '<i class="fab fa-facebook-messenger fa-fw fa-4x text-white pseudo position-absolute"></i>' +
+                                            '<i class="fas fa-circle fa-fw fa-4x text-white fb-pseudo-block position-absolute"></i>' +
+                                            '<i class="fab fa-facebook fa-fw fa-6x fb-color"></i>' +
+                                        '</span>' +
                                     '</div>'
                                 );
                             case WECHAT:
                                 return (
                                     '<div class="my-4 d-flex justify-content-center align-items-center">' +
-                                        '<i class="fab fa-weixin fa-fw fa-6x wechat-color"></i>' +
+                                        '<span class="position-relative">' +
+                                            '<i class="fab fa-weixin fa-fw fa-6x wechat-color position-absolute"></i>' +
+                                        '</span>' +
                                     '</div>'
                                 );
                             default:
