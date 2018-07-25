@@ -210,7 +210,7 @@
         .message .content.media.buttons-format,
         .message .content.media.confirm-format,
         .message .content.media.carousel-format {
-            overflow-x: scroll;
+            overflow-x: auto;
             -webkit-overflow-scrolling: touch; }
         .message .content.media.confirm-format {
             position: relative;
