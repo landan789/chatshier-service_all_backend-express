@@ -503,8 +503,7 @@ module.exports = (function() {
                         return fbSvc.setFanPageUnsubscribeApp(app.id1, app.token2).then(() => {
                             return Promise.resolve(apps);
                         }).catch((err) => {
-                            // 100 = App is not installed
-                            if (err && err.error && 100 === err.error.code) {
+                            if (err && err.error && 'OAuthException' === err.error.type) {
                                 return Promise.resolve(apps);
                             }
                             return Promise.reject(API_ERROR.FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP);
