@@ -345,9 +345,8 @@ let PeriodComponent = (function() {
             replyMessageSelect.appId = modalAppId = $modalAppSelect.val();
             replyMessageSelect.reset();
 
-            let shouldShow = 'FACEBOOK' !== apps[modalAppId].type;
+            let shouldShow = api.apps.TYPES.FACEBOOK !== apps[modalAppId].type;
             replyMessageSelect.toggleImageMap(shouldShow);
-            replyMessageSelect.toggleTemplate(shouldShow);
         });
 
         function showPeriodElem() {
@@ -379,6 +378,7 @@ let PeriodComponent = (function() {
 
                 $autoreplyModal.find('#addSubmitBtn').removeClass('d-none');
                 $autoreplyModal.find('#updateSubmitBtn').addClass('d-none');
+                $autoreplyModal.find('#autoreplyTitle').val('');
 
                 modalAppId = nowSelectAppId;
                 modalAutoreplyId = modalAutoreply = void 0;
@@ -387,6 +387,9 @@ let PeriodComponent = (function() {
 
                 replyMessageSelect.appId = modalAppId;
                 replyMessageSelect.reset();
+
+                let shouldShow = api.apps.TYPES.FACEBOOK !== apps[modalAppId].type;
+                replyMessageSelect.toggleImageMap(shouldShow);
                 return;
             }
 
@@ -423,6 +426,9 @@ let PeriodComponent = (function() {
 
             replyMessageSelect.appId = modalAppId;
             replyMessageSelect.reset(modalAutoreply.type);
+
+            let shouldShow = api.apps.TYPES.FACEBOOK !== apps[modalAppId].type;
+            replyMessageSelect.toggleImageMap(shouldShow);
         }
 
         function prepareAutoreply() {

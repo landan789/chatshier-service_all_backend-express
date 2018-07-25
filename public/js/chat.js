@@ -29,7 +29,7 @@
 
     var DEFAULT_CHATROOM_NAME = '群組聊天室';
     var SOCKET_NAMESPACE = '/chatshier';
-    var SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    var SOCKET_SERVER_URL = window.CHATSHIER.URL.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
     var SOCKET_EVENTS = window.SOCKET_EVENTS;
 
     // var BREAKPOINT_SM = 576;
@@ -744,17 +744,24 @@
             messagesFromSocket.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 
             !appsChatrooms[appId] && (appsChatrooms[appId] = { chatrooms: {} });
-            !appsChatrooms[appId].chatrooms[chatroomId] && (appsChatrooms[appId].chatrooms[chatroomId] = {});
+
+            let isNewChatroom = false;
+            if (!appsChatrooms[appId].chatrooms[chatroomId]) {
+                isNewChatroom = true;
+                appsChatrooms[appId].chatrooms[chatroomId] = {};
+            }
             var chatrooms = appsChatrooms[appId].chatrooms;
-            var chatroom = chatrooms[chatroomId];
 
             if (chatroomFromSocket) {
-                chatroom._id = chatroomFromSocket._id;
-                chatroom.platformGroupId = chatroomFromSocket.platformGroupId;
-                chatroom.platformGroupType = chatroomFromSocket.platformGroupType;
-                chatroom.messagers = Object.assign(chatrooms[chatroomId].messagers, chatroomFromSocket.messagers);
+                chatrooms[chatroomId]._id = chatroomFromSocket._id;
+                chatrooms[chatroomId].platformGroupId = chatroomFromSocket.platformGroupId;
+                chatrooms[chatroomId].platformGroupType = chatroomFromSocket.platformGroupType;
+
+                !chatrooms[chatroomId].messagers && (chatrooms[chatroomId].messagers = {});
+                chatrooms[chatroomId].messagers = Object.assign(chatrooms[chatroomId].messagers, chatroomFromSocket.messagers);
             }
 
+            var chatroom = chatrooms[chatroomId];
             !chatroom.messagers && (chatroom.messagers = {});
             !chatroom.messages && (chatroom.messages = {});
             var messagers = chatroom.messagers;
@@ -781,8 +788,35 @@
                 chatroom.messages[message._id] = message;
                 senderUid !== userId && CHATSHIER === message.from && messagerSelf.unRead++;
 
-                updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
-                updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
+                if (isNewChatroom) {
+                    isNewChatroom = false;
+                    var uiRequireData = {
+                        appId: appId,
+                        name: app.name,
+                        type: app.type,
+                        chatroomId: chatroomId,
+                        chatroom: chatroom
+                    };
+
+                    if (CHATSHIER === app.type) {
+                        uiRequireData.person = Object.assign({}, users[userId]);
+                        uiRequireData.person.photo = LOGOS[app.type];
+                        uiRequireData.platformUid = userId;
+                    } else if (chatroom.platformGroupId) {
+                        uiRequireData.person = Object.assign({}, users[userId]);
+                        uiRequireData.person.photo = LOGOS[LINE_GROUP];
+                        uiRequireData.platformUid = userId;
+                    } else {
+                        var platformMessager = findChatroomMessager(appId, chatroomId, app.type);
+                        var platformUid = platformMessager.platformUid;
+                        uiRequireData.person = consumers[platformUid];
+                        uiRequireData.platformUid = platformUid;
+                    }
+                    createChatroom(uiRequireData);
+                } else {
+                    updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
+                    updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
+                }
 
                 var person = CHATSHIER === message.from ? consumers[recipientUid] : consumers[senderUid];
                 var consumerUid = person ? person.platformUid : '';
@@ -1587,9 +1621,9 @@
                                         }
                                         return '';
                                     })() +
-                                    `<div class="template-title py-2 px-3">
+                                    (template.title ? `<div class="template-title py-2 px-3">
                                         <span class="template-title">${template.title}</span>
-                                    </div>` +
+                                    </div>` : '') +
                                     `<div class="template-desc py-2 px-3">
                                         <span class="template-desc">${template.text}</span>
                                     </div>` +
@@ -2128,6 +2162,7 @@
         $imagemapArea.empty().addClass('d-none');
 
         var messagers = chatroom.messagers;
+        var messagerSelf = findMessagerSelf(appId, chatroomId);
         if (CHATSHIER !== appType) {
             var messagerNameList = [];
             for (var messagerId in messagers) {
@@ -2149,7 +2184,6 @@
                 chatroomId: chatroomId,
                 userId: userId
             });
-            var messagerSelf = findMessagerSelf(appId, chatroomId);
             messagerSelf.unRead = 0;
 
             // 如果有未讀的話，將未讀數設為0之後，把未讀的區塊隱藏
@@ -2174,7 +2208,7 @@
             '</div>'
         );
         $chatroomBody.empty().append($chatContent);
-        scrollMessagePanelToBottom(appId, chatroomId);
+
         $('#chatWrapper .message .content').removeClass('found');
         for (let i = 0; i < searchedMessages.length; i++) {
             let searched = searchedMessages[i];
@@ -2268,6 +2302,7 @@
             $ticketToggle.removeClass('active');
             $ticketPanel.removeClass('d-none');
         }
+        scrollMessagePanelToBottom(appId, chatroomId);
 
         if ($profileToggle.hasClass('active')) {
             $profilePanel.removeClass('d-none');
@@ -2407,7 +2442,7 @@
 
         var kiloByte = 1024;
         var megaByte = kiloByte * 1024;
-        var config = window.chatshier.config;
+        var config = window.CHATSHIER.CONFIG;
         if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
             $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / megaByte) + ' MB', { type: 'warning' });
             return;
@@ -2673,12 +2708,14 @@
     function scrollMessagePanelToBottom(appId, chatroomId) {
         var $messageWrapper = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $messagePanel = $messageWrapper.find('.message-panel');
-        $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
+        var maxScrollTop = $messagePanel.prop('scrollHeight') - $messagePanel.prop('clientHeight');
+        $messagePanel.scrollTop(maxScrollTop);
 
         var $messageImgs = $messagePanel.find('.image-content, .sticker-content');
         $messageImgs.off('load').one('load', function(ev) {
             let imgOffsetTop = $(ev.target).prop('offsetTop');
-            if (imgOffsetTop > $messagePanel.prop('scrollTop')) {
+            let scrollTop = $messagePanel.prop('scrollTop');
+            if (imgOffsetTop > scrollTop) {
                 $messagePanel.scrollTop(imgOffsetTop);
             }
         });

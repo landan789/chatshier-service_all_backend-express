@@ -1,12 +1,12 @@
 interface Window {
-    chatshier: {
-        config: {
+    CHATSHIER: {
+        CONFIG: {
             richmenuImageFileMaxSize: number,
             imageFileMaxSize: number,
             videoFileMaxSize: number,
             audioFileMaxSize: number
         },
-        facebook: {
+        FACEBOOK: {
             appId: string,
             cookie: boolean,
             xfbml: boolean,
@@ -19,16 +19,16 @@ interface Window {
                 DISCOVERY_DOCS: string[],
                 SCOPES: string
             }
+        },
+        URL: {
+            wwwUrl: string,
+            port: string,
+            index: string,
+            terms: string,
+            privacy: string,
+            webhookUrl: string,
+            apiUrl: string
         }
-    },
-    urlConfig: {
-        wwwUrl: string,
-        port: string,
-        index: string,
-        terms: string,
-        privacy: string,
-        webhookUrl: string,
-        apiUrl: string
     },
     SOCKET_EVENTS: {
         EMIT_MESSAGE_TO_SERVER: 'EMIT_MESSAGE_TO_SERVER',

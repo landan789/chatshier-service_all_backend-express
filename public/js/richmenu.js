@@ -27,7 +27,7 @@
     const BOT_MENU_IMAGE_FAILED_TO_FIND = '8.62';
 
     const handleMessages = {
-        working: '<i class="fas fa-circle-notch fa-spin"></i>處理中',
+        working: '<i class="mr-1 fas fa-circle-notch fa-spin fa-fw"></i>處理中',
         addFinished: '新增',
         editFinished: '修改'
     };
@@ -224,7 +224,7 @@
             let file = input.files[0];
             input.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
-            let config = window.chatshier.config;
+            let config = window.CHATSHIER.CONFIG;
             if (file.type.indexOf('image') < 0) {
                 $('#modal-save').removeAttr('disabled');
                 $('#modal-update-save').removeAttr('disabled');
@@ -287,10 +287,10 @@
                             '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.RICHMENU + '" data-toggle="tooltip" data-placement="top" title="切換圖文選單">' +
                                 '<i class="fas fa-exchange-alt"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.CONSUMER_FORM + '" data-toggle="tooltip" data-placement="top" title="要求填寫個人資料">' +
+                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.CONSUMER_FORM + '" data-toggle="tooltip" data-placement="top" title="填寫個人資料">' +
                                 '<i class="fas fa-id-badge"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.DONATION + '" data-toggle="tooltip" data-placement="top" title="捐款功能">' +
+                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.DONATION + '" data-toggle="tooltip" data-placement="top" title="候選人捐款功能">' +
                                 '<i class="fas fas fa-donate"></i>' +
                             '</button>' +
                         '</div>' +
@@ -848,7 +848,7 @@
                 areas: areas
             };
 
-            $(this).attr('disabled', true).html('<i class="fas fa-circle-notch fa-spin fa-fw"></i>處理中');
+            $(this).attr('disabled', true).html('<i class="mr-1 fas fa-circle-notch fa-spin fa-fw"></i>處理中');
             return api.appsRichmenus.insert(appId, userId, postRichmenu, imageFile).then((resJson) => {
                 let _appsRichmenus = resJson.data;
                 if (!appsRichmenus[appId]) {
@@ -897,7 +897,7 @@
 
             let $modalUpdateSave = $('#modal-update-save');
             elementDisabled($modalUpdateSave, handleMessages.working);
-            $modalUpdateSave.html('<i class="fas fa-circle-notch fa-spin fa-fw"></i>處理中');
+            $modalUpdateSave.html('<i class="mr-1 fas fa-circle-notch fa-spin fa-fw"></i>處理中');
             return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu, imageFile).then((resJson) => {
                 let _appsRichmenus = resJson.data;
                 Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
@@ -919,7 +919,7 @@
     return api.apps.findAll(userId).then(function(resJson) {
         apps = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
-        let config = window.chatshier.config;
+        let config = window.CHATSHIER.CONFIG;
         $('.richmenu-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.richmenuImageFileMaxSize / (1024 * 1024)))}MB`);
 
         nowSelectAppId = '';
@@ -1087,9 +1087,9 @@
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_TEMPLATE) >= 0) {
                     return '發送範本';
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM) >= 0) {
-                    return '要求填寫個人資料';
+                    return '填寫個人資料';
                 } else if (actionData.indexOf(POSTBACK_DATA_TYPES.PAYMENT_CONFIRM) >= 0) {
-                    return '捐款功能';
+                    return '候選人捐款功能';
                 }
                 return '未設定';
             case 'uri':
@@ -1138,7 +1138,7 @@
 
         let $dropdownText = $appDropdown.find('.dropdown-toggle .dropdown-text');
         let bakAppName = $dropdownText.html();
-        $dropdownText.html(bakAppName + '<i class="ml-2 fas fa-sync fa-spin"></i>');
+        $dropdownText.html(bakAppName + '<i class="ml-2 fas fa-circle-notch fa-spin fa-fw"></i>');
 
         let richmenus = appsRichmenus[appId].richmenus;
         let richmenuIds = Object.keys(richmenus);

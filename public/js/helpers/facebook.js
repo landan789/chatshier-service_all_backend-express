@@ -11,7 +11,7 @@ window.facebookHelper = (function() {
     var fbsdkUrl = 'https://connect.facebook.net/' + language + '/sdk.js';
     var fbsdkId = 'facebook-jssdk';
     /** @type {fb.InitParams} */
-    var fbParams = window.chatshier ? window.chatshier.facebook : {};
+    var fbParams = window.CHATSHIER ? window.CHATSHIER.FACEBOOK : {};
 
     var sendAPI = function(apiPath, method) {
         method = method || 'GET';

@@ -1,7 +1,7 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
-window.chatshier = {
-    config: {
+window.CHATSHIER = {
+    CONFIG: {
         // https://developers.line.me/en/docs/messaging-api/reference/#upload-rich-menu-image
         // According to LINE official document, the max size of richmenu image should set to 1 MB
         richmenuImageFileMaxSize: 1 * 1024 * 1024,
@@ -10,8 +10,8 @@ window.chatshier = {
         audioFileMaxSize: 10 * 1024 * 1024, // 10 MB
         otherFileMaxSize: 100 * 1024 * 1024 // 100 MB
     },
-    facebook: {
-        appId: '1569929989761572',
+    FACEBOOK: {
+        appId: '203545926984167', // facebook appId
         cookie: true,
         xfbml: true,
         version: 'v3.0'
@@ -23,5 +23,14 @@ window.chatshier = {
             DISCOVERY_DOCS: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
             SCOPES: 'https://www.googleapis.com/auth/calendar'
         }
+    },
+    URL: {
+        wwwUrl: '',
+        port: '',
+        index: '/',
+        terms: '/terms',
+        privacy: '/privacy',
+        webhookUrl: 'https://service.dev.chatshier.com/webhook',
+        apiUrl: '..'
     }
 };
