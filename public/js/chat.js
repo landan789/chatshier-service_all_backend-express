@@ -25,9 +25,9 @@
         [WECHAT]: 'https://cdn.worldvectorlogo.com/logos/wechat.svg',
         [CHATSHIER]: 'image/logo-no-transparent.png'
     };
-    var newMessageTipText = '(๑•̀ω•́)ノ (有新訊息)';
+    var newMessageTipText = '📩 (有新訊息)';
 
-    var DEFAULT_CHATROOM_NAME = '群組聊天室';
+    var DEFAULT_CHATROOM_NAME = '部門聊天室';
     var SOCKET_NAMESPACE = '/chatshier';
     var SOCKET_SERVER_URL = window.CHATSHIER.URL.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
     var SOCKET_EVENTS = window.SOCKET_EVENTS;
@@ -1052,10 +1052,10 @@
                     return initChatData(apps);
                 }).then(function() {
                     addGroupNotify && addGroupNotify.close();
-                    $.notify('您已加入 "' + (group ? group.name : '') + '" 群組', { type: 'success' });
+                    $.notify('您已加入 "' + (group ? group.name : '') + '" 部門', { type: 'success' });
                 }).catch(function() {
                     addGroupNotify && addGroupNotify.close();
-                    $.notify('加入群組失敗，可至 設定->內部群組 重新加入', { type: 'success' });
+                    $.notify('加入部門失敗，可至 設定->內部部門 重新加入', { type: 'success' });
                 });
             }
 
@@ -1068,8 +1068,8 @@
 
             var addGroupNotify = $.notify({
                 icon: 'fas fa-users fa-fw',
-                title: '群組邀請',
-                message: '"' + (adderUser ? adderUser.name : '') + '" 邀請你加入他的 "' + (group ? group.name : '') + '" 群組'
+                title: '部門邀請',
+                message: '"' + (adderUser ? adderUser.name : '') + '" 邀請你加入他的 "' + (group ? group.name : '') + '" 部門'
             }, {
                 type: 'info',
                 delay: 15000,
@@ -1095,7 +1095,7 @@
 
         socket.on(SOCKET_EVENTS.USER_REMOVE_GROUP_MEMBER_TO_CLIENT, function(data) {
             var executeUser = users[data.userId];
-            $.notify('您已被' + (executeUser ? ' "' + executeUser.name + '" ' : '') + '踢出了群組', { type: 'info' });
+            $.notify('您已被' + (executeUser ? ' "' + executeUser.name + '" ' : '') + '踢出了部門', { type: 'info' });
 
             return Promise.all([
                 api.apps.findAll(userId),
@@ -1175,8 +1175,8 @@
             var chatrooms = appsChatrooms[appId].chatrooms;
 
             // 準備各個 app 的指派人清單
-            // 由於每個 app 可能隸屬於不同的群組
-            // 因此指派人清單必須根據 app 所屬的群組分別建立清單
+            // 由於每個 app 可能隸屬於不同的部門
+            // 因此指派人清單必須根據 app 所屬的部門分別建立清單
             appsAgents[appId] = { agents: {} };
             for (var groupId in groups) {
                 var group = groups[groupId];
@@ -2058,7 +2058,7 @@
                 '</div>' +
             '</div>' +
             '<div class="px-2 d-flex form-group">' +
-                '<label class="px-0 col-3 col-form-label">' + (CHATSHIER === app.type ? '群組成員' : '客戶成員') + '</label>' +
+                '<label class="px-0 col-3 col-form-label">' + (CHATSHIER === app.type ? '部門成員' : '客戶成員') + '</label>' +
                 '<div class="pr-0 col-9 d-flex flex-wrap profile-content">' +
                     (function() {
                         var html = '';
@@ -2097,7 +2097,7 @@
             '<div class="p-2 leave-group-room text-right' + (CHATSHIER === app.type ? ' d-none' : '') + '">' +
                 '<button type="button" class="btn btn-danger">' +
                     '<i class="fas fa-sign-out-alt fa-fw"></i>' +
-                    '<span>離開群組</span>' +
+                    '<span>離開部門</span>' +
                 '</button>' +
             '</div>'
         );
@@ -3013,7 +3013,7 @@
             // 將成功更新的資料覆蓋前端本地端的全域 app 資料
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager = _messager;
 
-            // 將更新的用戶資料廣播給群組內的使用者
+            // 將更新的用戶資料廣播給部門內的使用者
             return new Promise(function(resolve, reject) {
                 chatshierSocket.emit(SOCKET_EVENTS.BROADCAST_MESSAGER_TO_SERVER, {
                     appId: appId,
