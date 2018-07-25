@@ -246,7 +246,7 @@ p:empty:not(:focus)::before {
         -webkit-transform: translate3d(-30%, 15%, 0);
         transform: translate3d(-30%, 15%, 0); }
 
-@media (min-width: 768px) {
+@media (min-width: 576px) {
     .apps-body.card-columns {
         column-count: 2; }
 }
