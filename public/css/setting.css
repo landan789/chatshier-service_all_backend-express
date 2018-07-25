@@ -239,6 +239,12 @@ p:empty:not(:focus)::before {
         .apps-body .bot-item .footer-buttons button {
             border: none; }
 
+        .apps-body .bot-item .footer-buttons button:focus {
+            box-shadow: none; }
+
+        .apps-body .bot-item .footer-buttons button:hover {
+            background-color: #e0dede; }
+
     .apps-body .bot-item .fa-facebook-messenger {
         z-index: 3;
         -webkit-transform: scale(1);
@@ -271,3 +277,4 @@ p:empty:not(:focus)::before {
     .apps-body.card-columns {
         column-count: 3; }
 }
+

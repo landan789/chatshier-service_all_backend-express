@@ -944,7 +944,7 @@
     function generateAppItem(appId, app) {
         let baseWebhookUrl = window.CHATSHIER.URL.webhookUrl;
         let itemHtml = (
-            '<div class="shadow-sm card text-dark bot-item" app-id="' + appId + '">' +
+            '<div class="shadow card text-dark bot-item" app-id="' + appId + '">' +
                 '<div class="p-3 card-body">' +
                     '<div class="mb-3 d-flex align-items-center">' +
                         '<i class="mr-2 fas fa-user-astronaut fa-fw fa-2x text-muted"></i>' +
@@ -989,18 +989,18 @@
 
                     '<div class="position-absolute w-100 p-3 d-flex justify-content-between footer-buttons">' +
                         '<div class="w-100" data-toggle="tooltip" data-placement="top" title="設定金流服務">' +
-                            '<button type="button" class="mr-1 btn btn-block btn-outline-dark set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
-                                '<i class="text-warning fas fa-money-check-alt fa-fw"></i>' +
+                            '<button type="button" class="mr-1 btn btn-block set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
+                                '<i class="fas fa-hand-holding-usd fa-fw text-muted fa-1p5x"></i>' +
                             '</button>' +
                         '</div>' +
                         (FACEBOOK !== app.type ? '<div class="w-100" data-toggle="tooltip" data-placement="top" title="編輯">' +
-                            '<button type="button" class="mr-2 btn btn-block btn-outline-dark edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                                '<i class="fas fa-edit"></i>' +
+                            '<button type="button" class="mr-2 btn btn-block edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
+                                '<i class="far fa-edit text-muted fa-1p5x"></i>' +
                             '</button>' +
                         '</div>' : '') +
                         '<div class="w-100" data-toggle="tooltip" data-placement="top" title="刪除">' +
-                            '<button class="btn btn-block btn-outline-danger remove-app-btn" app-id="' + appId + '">' +
-                                '<i class="fas fa-trash-alt"></i>' +
+                            '<button class="btn btn-block remove-app-btn" app-id="' + appId + '">' +
+                                '<i class="far fa-trash-alt text-muted fa-1p5x"></i>' +
                             '</button>' +
                         '</div>' +
                     '</div>' +
