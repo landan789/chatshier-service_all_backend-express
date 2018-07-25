@@ -982,18 +982,18 @@
                     '</div>' : '') +
 
                     '<div class="position-absolute w-100 p-3 d-flex justify-content-between footer-buttons">' +
-                        '<div data-toggle="tooltip" data-placement="top" title="設定金流服務">' +
-                            '<button type="button" class="mr-1 btn btn-outline-secondary set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
+                        '<div class="w-100" data-toggle="tooltip" data-placement="top" title="設定金流服務">' +
+                            '<button type="button" class="mr-1 btn btn-block btn-outline-dark set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
                                 '<i class="text-warning fas fa-money-check-alt fa-fw"></i>' +
                             '</button>' +
                         '</div>' +
-                        (FACEBOOK !== app.type ? '<div data-toggle="tooltip" data-placement="top" title="編輯">' +
-                            '<button type="button" class="mr-2 btn btn-outline-secondary edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
+                        (FACEBOOK !== app.type ? '<div class="w-100" data-toggle="tooltip" data-placement="top" title="編輯">' +
+                            '<button type="button" class="mr-2 btn btn-block btn-outline-dark edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
                                 '<i class="fas fa-edit"></i>' +
                             '</button>' +
                         '</div>' : '') +
-                        '<div data-toggle="tooltip" data-placement="top" title="刪除">' +
-                            '<button class="btn btn-outline-danger remove-app-btn" app-id="' + appId + '">' +
+                        '<div class="w-100" data-toggle="tooltip" data-placement="top" title="刪除">' +
+                            '<button class="btn btn-block btn-outline-danger remove-app-btn" app-id="' + appId + '">' +
                                 '<i class="fas fa-trash-alt"></i>' +
                             '</button>' +
                         '</div>' +

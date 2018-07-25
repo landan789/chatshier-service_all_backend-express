@@ -228,11 +228,16 @@ p:empty:not(:focus)::before {
 .apps-body .bot-item {
     min-height: 21rem;
     padding-bottom: 3.5rem; }
+    .apps-body .bot-item .app-name {
+        white-space: nowrap;
+        text-overflow: ellipsis; }
     .apps-body .bot-item .app-webhook-id {
         cursor: pointer; }
     .apps-body .bot-item .footer-buttons {
         left: 0;
         bottom: 0; }
+        .apps-body .bot-item .footer-buttons button {
+            border: none; }
     .apps-body .bot-item .fa-facebook-messenger {
         z-index: 1;
         -webkit-transform: translate3d(10%, -10%, 0) scale(1.2);
