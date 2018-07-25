@@ -333,3 +333,7 @@ button:focus {
     margin: auto;
     border-radius: .25rem;
 }
+
+.chsr .text-muted-muted {
+    color: #c3c4c5!important;
+}
