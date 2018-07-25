@@ -262,7 +262,7 @@ p:empty:not(:focus)::before {
     }
     .apps-body .bot-item .fa-facebook {
 
-@media (min-width: 768px) {
+@media (min-width: 576px) {
     .apps-body.card-columns {
         column-count: 2; }
 }

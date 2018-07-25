@@ -2,8 +2,8 @@
 
 (function() {
     var PUT_ANINATE_DRATION = 300;
-    var BREAKPOINT_SM = 576;
-    // var BREAKPOINT_MD = 768;
+    // var BREAKPOINT_SM = 576;
+    var BREAKPOINT_MD = 768;
     // var BREAKPOINT_LG = 992;
 
     var $pageWrappers = $('.page-wrapper');
@@ -64,7 +64,7 @@
             init: function() {
                 // 如果從 localStorage 得知目前 Control Panel 是處於收起狀態，則一載入頁面後就將之收起
                 if (isCtrlPanelPutAway) {
-                    window.innerWidth >= BREAKPOINT_SM && switchCtrlPanel();
+                    window.innerWidth >= BREAKPOINT_MD && switchCtrlPanel();
                     $scrollBottom.addClass('d-none');
                 }
                 onScrollCtrlPanel({ target: $ctrlPanel.find('.swiper-slide.swiper-slide-active').get(0) });
@@ -75,7 +75,7 @@
     // 監聽 window 的尺寸變更事件，當寬度小於 sm 時
     // 如果 control panel 使處於 收起 狀態，則將之復原
     window.addEventListener('resize', function(ev) {
-        if (ev.target.innerWidth < BREAKPOINT_SM && $ctrlPanel.hasClass('put-away')) {
+        if (ev.target.innerWidth < BREAKPOINT_MD && $ctrlPanel.hasClass('put-away')) {
             return switchCtrlPanel();
         }
     });
