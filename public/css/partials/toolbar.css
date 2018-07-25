@@ -33,7 +33,7 @@
 .put-away .chsr.toolbar {
   width: calc(100% - 4rem);
 }
-@media (max-width: 576px) {
+@media (max-width: 768px) {
   .chsr.toolbar {
       width: 100%;
   }
