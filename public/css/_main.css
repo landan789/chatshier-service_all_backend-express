@@ -337,3 +337,7 @@ button:focus {
 .chsr .text-muted-muted {
     color: #c3c4c5!important;
 }
+
+.chsr .text-chsr {
+    color: #4a8998;
+}

@@ -947,7 +947,7 @@
             '<div class="shadow card text-dark bot-item" app-id="' + appId + '">' +
                 '<div class="p-3 card-body">' +
                     '<div class="mb-3 d-flex align-items-center">' +
-                        '<i class="mr-2 fas fa-user-astronaut fa-fw fa-3x text-muted"></i>' +
+                        '<i class="mr-2 fas fa-user-astronaut fa-fw fa-3x text-chsr"></i>' +
                         '<span class="font-weight-bolde d-inline-grid">' +
                             '<div class="app-name text-dark font-weight-bold">' + app.name + '</div>' +
                             '<div class="app-id1 font-weight-light">' + app.id1 + '</div>' + 
