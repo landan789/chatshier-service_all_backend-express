@@ -20,6 +20,7 @@ window.restfulAPI = (function() {
     var apiUrlTable = Object.freeze({
         apps: apiDatabaseUrl + 'apps/',
         appsAutoreplies: apiDatabaseUrl + 'apps-autoreplies/',
+        appsCategories: apiDatabaseUrl + 'apps-categories/',
         appsChatrooms: apiDatabaseUrl + 'apps-chatrooms/',
         appsChatroomsMessagers: apiDatabaseUrl + 'apps-chatrooms-messagers/',
         appsComposes: apiDatabaseUrl + 'apps-composes/',
@@ -687,10 +688,76 @@ window.restfulAPI = (function() {
         return AppsFieldsAPI;
     })();
 
+    var AppsCategoriesAPI = (function() {
+        function AppsCategoriesAPI(jwt) {
+            this.urlPrefix = apiUrlTable.appsCategories;
+        }
+
+        /**
+         * @param {string} appId
+         * @param {string} userId
+         */
+        AppsCategoriesAPI.prototype.findAll = function(appId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} userId
+         * @param {any} category
+         */
+        AppsCategoriesAPI.prototype.insert = function(appId, userId, category) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(category)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} categoryId
+         * @param {string} userId
+         * @param {any} category
+         */
+        AppsCategoriesAPI.prototype.update = function(appId, categoryId, userId, category) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/categories/' + categoryId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(category)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} categoryId
+         * @param {string} userId
+         */
+        AppsCategoriesAPI.prototype.remove = function(appId, categoryId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/categories/' + categoryId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return AppsCategoriesAPI;
+    })();
+
     var AppsChatroomsAPI = (function() {
         function AppsChatroomsAPI(jwt) {
             this.urlPrefix = apiUrlTable.appsChatrooms;
-        };
+        }
 
         /**
          * 取得每個 App 使用者的所有聊天室資訊
@@ -1667,6 +1734,7 @@ window.restfulAPI = (function() {
         apps: new AppAPI(),
         appsAutoreplies: new AppsAutorepliesAPI(),
         appsTemplates: new AppsTemplatesAPI(),
+        appsCategories: new AppsCategoriesAPI(),
         appsChatrooms: new AppsChatroomsAPI(),
         appsChatroomsMessagers: new AppsChatroomsMessagersAPI(),
         appsComposes: new AppsComposesAPI(),

@@ -1631,11 +1631,12 @@
                                         (function() {
                                             return template.actions.map((action, i) => {
                                                 let label = action.label || '';
+                                                label = 10 >= label.length ? label : `${label.substring(0, 9)}...`;
+                                                let outputStr = getTemplateOutput(action);
                                                 return (
-                                                    `<div class="d-flex flex-column justify-content-center my-1 px-3 template-button${i + 1}">
-                                                        <span class="template-button">${10 >= label.length ? label : `${label.substring(0, 9)}...`}</span>
-                                                        <span class="template-button">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
-                                                    </div>`
+                                                    '<div class="d-flex flex-column justify-content-center my-1 px-3 template-button' + (i + 1) + '">' +
+                                                        '<span class="template-button" data-toggle="tooltip" data-placement="top" title="' + outputStr + '">' + label + '</span>' +
+                                                    '</div>'
                                                 );
                                             }).join('');
                                         })() +
@@ -1658,11 +1659,12 @@
                                         (function() {
                                             return column.actions.map((action, i) => {
                                                 let label = action.label || '';
+                                                label = 20 >= label.length ? label : `${label.substring(0, 20)}...`;
+                                                let outputStr = getTemplateOutput(action);
                                                 return (
-                                                    `<div class="d-flex flex-column justify-content-center my-1 px-3 template-button${i + 1}">
-                                                        <span class="template-button">${10 >= label.length ? label : `${label.substring(0, 9)}...`}</span>
-                                                        <span class="template-button">(輸出：${10 >= getTemplateOutput(action).length ? getTemplateOutput(action) : `${getTemplateOutput(action).substring(0, 9)}...`})</span>
-                                                    </div>`
+                                                    '<div class="d-flex flex-column justify-content-center my-1 px-3 template-button' + (i + 1) + '">' +
+                                                        '<span class="template-button" data-toggle="tooltip" data-placement="top" title="' + outputStr + '">' + label + '</span>' +
+                                                    '</div>'
                                                 );
                                             }).join('');
                                         })() +
@@ -2303,6 +2305,7 @@
             $ticketPanel.removeClass('d-none');
         }
         scrollMessagePanelToBottom(appId, chatroomId);
+        $chatContent.find('[data-toggle="tooltip"]').tooltip();
 
         if ($profileToggle.hasClass('active')) {
             $profilePanel.removeClass('d-none');
@@ -2778,6 +2781,7 @@
             $messagePanel.append(messageHtml);
             scrollMessagePanelToBottom(appId, chatroomId);
         }
+        $messagePanel.find('[data-toggle="tooltip"]').tooltip();
     }
 
     // =====end chat function=====

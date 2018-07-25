@@ -41,7 +41,7 @@ module.exports = (function() {
             // 建立並過濾用戶端傳過來的資料
             let postCategory = {
                 parent_id: req.body.parent_id,
-                class: req.body.class,
+                name: req.body.name,
                 description: req.body.description
             };
 
@@ -69,7 +69,7 @@ module.exports = (function() {
 
             let putCategory = {};
             ('string' === typeof req.body.parent_id) && (putCategory.parent_id = req.body.parent_id);
-            ('string' === typeof req.body.class) && (putCategory.class = req.body.class);
+            ('string' === typeof req.body.name) && (putCategory.name = req.body.name);
             ('string' === typeof req.body.description) && (putCategory.description = req.body.description);
 
             return this.appsRequestVerify(req).then(() => {
@@ -112,4 +112,5 @@ module.exports = (function() {
             });
         }
     }
+    return new AppsCategoriesModel();
 })();

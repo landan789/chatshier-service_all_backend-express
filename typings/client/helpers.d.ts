@@ -4,6 +4,7 @@ interface Window {
         apps: AppAPI,
         appsAutoreplies: AppsAutorepliesAPI,
         appsAppointments: AppsAppointmentsAPI,
+        appsCategories: AppsCategoriesAPI,
         appsChatrooms: AppsChatroomsAPI,
         appsChatroomsMessagers: AppsChatroomsMessagersAPI,
         appsComposes: AppsComposesAPI,
@@ -72,6 +73,13 @@ interface AppsAppointmentsAPI {
     insert: (appId: string, userId: string, appointmentData: any) => Promise<any>;
     update: (appId: string, appointmentId: string, userId: string, appointmentData: any) => Promise<any>;
     remove: (appId: string, appointmentId: string, userId: string) => Promise<any>;
+}
+
+interface AppsCategoriesAPI {
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsCategories }>;
+    insert: (appId: string, userId: string, category: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsCategories }>;
+    update: (appId: string, categoryId: string, category: any, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsCategories }>;
+    remove: (appId: string, categoryId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsCategories }>;
 }
 
 interface AppsChatroomsAPI {

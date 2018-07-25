@@ -12,7 +12,7 @@ declare module Chatshier {
 
         interface Category extends BaseProperty {
             parent_id: string,
-            class: string,
+            name: string,
             description: string,
             products: Products
         }
