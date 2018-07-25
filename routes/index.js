@@ -7,7 +7,8 @@ let reactReadyPaths = [
     '/signin',
     '/signup',
     '/reset-password',
-    '/change-password'
+    '/change-password',
+    '/ticket'
 ];
 router.get(reactReadyPaths, (req, res, next) => {
     res.render('react');
@@ -41,10 +42,6 @@ router.get('/calendar', (req, res, next) => {
     res.render('calendar', { title: '行事曆' + titlePostfix });
 });
 
-router.get('/ticket', (req, res, next) => {
-    res.render('ticket', { title: '待辦事項' + titlePostfix });
-});
-
 router.get('/analyze', (req, res, next) => {
     res.render('analyze', { title: '訊息分析' + titlePostfix });
 });
@@ -65,7 +62,7 @@ router.get('/appointment', function(req, res, next) {
     res.render('appointment', { title: '預約系統' + titlePostfix });
 });
 
-router.get('/category_product', function(req, res, next) {
+router.get('/category-product', function(req, res, next) {
     res.render('category_product', { title: '商品管理' + titlePostfix });
 });
 

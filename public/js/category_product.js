@@ -22,12 +22,14 @@
     }
 
     const $appsDropdown = $('#appsDropdown');
+    const $categoriesWrapper = $('#categoriesWrapper');
     $appsDropdown.on('click', '.dropdown-menu .dropdown-item', appSourceChanged);
 
-    return Promise.all([
-        api.apps.findAll(userId)
-    ]).then(([ appsResJson ]) => {
-        apps = appsResJson.data;
+    $(document).on('click', '#insertCategoryTestBtn', insertCategory);
+    $(document).on('click', '#insertProductTestBtn', insertProduct);
+
+    return api.apps.findAll(userId).then((resJson) => {
+        apps = resJson.data;
 
         let $dropdownMenu = $appsDropdown.find('.dropdown-menu');
         let recentAppId = window.localStorage.getItem('recentAppId') || '';
@@ -54,6 +56,7 @@
         if (nowSelectAppId) {
             window.localStorage.setItem('recentAppId', nowSelectAppId);
             $appsDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
+            return renderCategories(nowSelectAppId);
         }
     });
 
@@ -62,5 +65,63 @@
         nowSelectAppId = $dropdownItem.attr('app-id');
         window.localStorage.setItem('recentAppId', nowSelectAppId);
         $appsDropdown.find('.dropdown-text').text($dropdownItem.text());
+        return renderCategories(nowSelectAppId);
+    }
+
+    function renderCategories(appId) {
+        return Promise.resolve().then(() => {
+            if (!appsCategories[appId]) {
+                return api.appsCategories.findAll(appId, userId).then((resJson) => {
+                    let _appsCategories = resJson.data;
+                    appsCategories[appId] = { categories: {} };
+                    if (!_appsCategories[appId]) {
+                        return appsCategories[appId].categories;
+                    }
+                    Object.assign(appsCategories[appId].categories, _appsCategories[appId].categories);
+                    return appsCategories[appId].categories;
+                });
+            }
+            return appsCategories[appId].categories;
+        }).then((categories) => {
+            $categoriesWrapper.empty();
+            console.log(categories);
+            for (let categoryId in categories) {
+                let category = categories[categoryId];
+                let categoryHtml = (
+                    '<pre category-id="' + categoryId + '">' + JSON.stringify(category, void 0, 4) + '</pre>'
+                );
+
+                if (category.parent_id) {
+                    let $parentCategory = $categoriesWrapper.find('[category-id="' + category.parent_id + '"]');
+                    if ($parentCategory.length) {
+                        $parentCategory.append(categoryHtml);
+                    }
+                    continue;
+                }
+                $categoriesWrapper.append(categoryHtml);
+            }
+        });
+    }
+
+    function insertCategory() {
+        let category = {
+            parent_id: '5b584521fbddb6197a98e0e6',
+            name: '測試類別',
+            description: '類別描述_' + Date.now()
+        };
+
+        let appId = nowSelectAppId;
+        return api.appsCategories.insert(appId, userId, category).then((resJson) => {
+            let _appsCategories = resJson.data;
+            if (!appsCategories[appId]) {
+                appsCategories[appId] = { categories: {} };
+            }
+            Object.assign(appsCategories[appId].categories, _appsCategories[appId].categories);
+            return renderCategories(appId);
+        });
+    }
+
+    function insertProduct() {
+
     }
 })();
