@@ -261,6 +261,9 @@
         $jqDoc.find('.insert-btn').attr('disabled', true);
         $('.template-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1024)))}MB`);
 
+        let recentAppId = window.localStorage.getItem('recentAppId') || '';
+        let firstAppId = '';
+
         for (let appId in apps) {
             let app = apps[appId];
 
@@ -278,10 +281,12 @@
             );
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
-            nowSelectAppId = nowSelectAppId || appId;
+            firstAppId = firstAppId || appId;
         }
 
+        nowSelectAppId = recentAppId && apps[recentAppId] ? recentAppId : firstAppId;
         if (nowSelectAppId) {
+            window.localStorage.setItem('recentAppId', nowSelectAppId);
             loadTemplates(nowSelectAppId);
             $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             $jqDoc.find('.insert-btn').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
@@ -291,6 +296,7 @@
     function appSourceChanged() {
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
+        window.localStorage.setItem('recentAppId', nowSelectAppId);
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
         return loadTemplates(nowSelectAppId);
     }

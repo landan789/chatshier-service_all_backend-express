@@ -558,6 +558,7 @@
     function appSourceChanged() {
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
+        window.localStorage.setItem('recentAppId', nowSelectAppId);
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
         return loadImagemaps(nowSelectAppId, userId);
     }
@@ -671,7 +672,7 @@
     }
 
     return api.apps.findAll(userId).then(function(resJson) {
-        var appsData = resJson.data;
+        var apps = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         let config = window.CHATSHIER.CONFIG;
@@ -681,14 +682,16 @@
         elementHide($('.content-input'));
         cleanModal();
 
-        nowSelectAppId = '';
-        for (var appId in appsData) {
-            var app = appsData[appId];
+        let recentAppId = window.localStorage.getItem('recentAppId') || '';
+        let firstAppId = '';
+
+        for (var appId in apps) {
+            var app = apps[appId];
 
             // 目前只有 LINE 支援此功能
             if (app.isDeleted ||
                 app.type !== api.apps.TYPES.LINE) {
-                delete appsData[appId];
+                delete apps[appId];
                 continue;
             }
 
@@ -700,11 +703,13 @@
             );
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
-            nowSelectAppId = nowSelectAppId || appId;
+            firstAppId = firstAppId || appId;
         }
 
+        nowSelectAppId = recentAppId && apps[recentAppId] ? recentAppId : firstAppId;
         if (nowSelectAppId) {
-            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            window.localStorage.setItem('recentAppId', nowSelectAppId);
+            $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             loadImagemaps(nowSelectAppId, userId);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }

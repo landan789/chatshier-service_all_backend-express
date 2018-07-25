@@ -555,7 +555,9 @@ let PeriodComponent = (function() {
 
     return api.apps.findAll(userId).then(function(respJson) {
         apps = respJson.data;
-        nowSelectAppId = '';
+
+        let recentAppId = window.localStorage.getItem('recentAppId') || '';
+        let firstAppId = '';
 
         let $dropdownMenu = $appDropdown.find('.dropdown-menu');
         for (let appId in apps) {
@@ -572,10 +574,12 @@ let PeriodComponent = (function() {
                 '</a>'
             );
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
-            nowSelectAppId = nowSelectAppId || appId;
+            firstAppId = firstAppId || appId;
         }
 
+        nowSelectAppId = recentAppId && apps[recentAppId] ? recentAppId : firstAppId;
         if (nowSelectAppId) {
+            window.localStorage.setItem('recentAppId', nowSelectAppId);
             $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
             return loadAutoreplies(nowSelectAppId, userId);
@@ -585,6 +589,7 @@ let PeriodComponent = (function() {
     function appSourceChanged() {
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
+        window.localStorage.setItem('recentAppId', nowSelectAppId);
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
         return loadAutoreplies(nowSelectAppId, userId);
     }

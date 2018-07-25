@@ -1200,8 +1200,11 @@ const ConditionSelector = (function() {
         appsComposes = respJsons[2].data;
         appsFields = respJsons[3].data;
 
-        nowSelectAppId = '';
         let $dropdownMenu = $appsDropdown.find('.dropdown-menu');
+
+        let recentAppId = window.localStorage.getItem('recentAppId') || '';
+        let firstAppId = '';
+
         for (let appId in apps) {
             let app = apps[appId];
             if (app.isDeleted ||
@@ -1216,10 +1219,12 @@ const ConditionSelector = (function() {
                     app.name +
                 '</a>'
             );
-            nowSelectAppId = nowSelectAppId || appId;
+            firstAppId = firstAppId || appId;
         }
 
+        nowSelectAppId = recentAppId && apps[recentAppId] ? recentAppId : firstAppId;
         if (nowSelectAppId) {
+            window.localStorage.setItem('recentAppId', nowSelectAppId);
             $appsDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             refreshComposes(nowSelectAppId);
         }
@@ -1350,6 +1355,7 @@ const ConditionSelector = (function() {
 
     function appSourceChanged() {
         nowSelectAppId = $(this).attr('app-id');
+        window.localStorage.setItem('recentAppId', nowSelectAppId);
         $appsDropdown.find('.dropdown-text').text($(this).text());
         refreshComposes(nowSelectAppId);
     }

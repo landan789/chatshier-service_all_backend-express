@@ -922,7 +922,9 @@
         let config = window.CHATSHIER.CONFIG;
         $('.richmenu-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.richmenuImageFileMaxSize / (1024 * 1024)))}MB`);
 
-        nowSelectAppId = '';
+        let recentAppId = window.localStorage.getItem('recentAppId') || '';
+        let firstAppId = '';
+
         for (var appId in apps) {
             var app = apps[appId];
 
@@ -941,11 +943,13 @@
             );
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
-            nowSelectAppId = nowSelectAppId || appId;
+            firstAppId = firstAppId || appId;
         }
 
+        nowSelectAppId = recentAppId && apps[recentAppId] ? recentAppId : firstAppId;
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
+            window.localStorage.setItem('recentAppId', nowSelectAppId);
             return reloadRichmenus(nowSelectAppId, userId).then(() => {
                 $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
             });
@@ -955,6 +959,7 @@
     function appSourceChanged() {
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
+        window.localStorage.setItem('recentAppId', nowSelectAppId);
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
         return reloadRichmenus(nowSelectAppId, userId);
     }
