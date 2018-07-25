@@ -1,4 +1,11 @@
 
+= Release 1.4.3 =
+MASTER release: Not ready
+== Features ==
+ * Changed: add feature of facebook import fan pages
+== Bug Fixes ==
+ * Fixed: fix RWD for screen size of phablet (576 ~ 768px)
+
 = Release 1.4.2 =
 MASTER release: 2018-07-24
 == Features ==

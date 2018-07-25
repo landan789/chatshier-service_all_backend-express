@@ -25,7 +25,9 @@ declare module Chatshier {
             name: string,
             description: string,
             price: number,
-            thumbnailImageUrl: string
+            quantity: number,
+            src: string,
+            isOnShelves: boolean
         }
     }
 }

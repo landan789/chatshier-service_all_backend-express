@@ -136,7 +136,7 @@ module.exports = (function() {
                 app.appointments.push(postAppointment);
                 return app.save();
             }).then(() => {
-                return this.find(appId, appointmentId);
+                return this.find(appId, appointmentId.toHexString());
             }).then((appsAppointments) => {
                 ('function' === typeof callback) && callback(appsAppointments);
                 return appsAppointments;

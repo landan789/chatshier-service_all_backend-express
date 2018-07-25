@@ -6,6 +6,7 @@
 
 /// <reference path='../server/models/core.d.ts' />
 /// <reference path='../server/models/apps_autoreplies.d.ts' />
+/// <reference path='../server/models/apps_categories.d.ts' />
 /// <reference path='../server/models/apps_chatrooms.d.ts' />
 /// <reference path='../server/models/apps_composes.d.ts' />
 /// <reference path='../server/models/apps_fields.d.ts' />

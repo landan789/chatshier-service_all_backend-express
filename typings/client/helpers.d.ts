@@ -47,11 +47,11 @@ interface Window {
 }
 
 interface AppAPI {
-    findAll: (userId: string) => Promise<any>;
-    findOne: (appId: string, userId: string) => Promise<any>;
-    insert: (userId: string, postAppData: any) => Promise<any>;
-    update: (appId: string, userId: string, putAppData: any) => Promise<any>;
-    remove: (appId: string, userId: string) => Promise<any>;
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Apps }>;
+    findOne: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Apps }>;
+    insert: (userId: string, postAppData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Apps }>;
+    update: (appId: string, userId: string, putAppData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Apps }>;
+    remove: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Apps }>;
     TYPES: {
         SYSTEM: 'SYSTEM',
         CHATSHIER: 'CHATSHIER',

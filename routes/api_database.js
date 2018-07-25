@@ -20,6 +20,7 @@ const usersCtl = require('../controllers/users');
 const groupsCtl = require('../controllers/groups');
 const groupsMembersCtl = require('../controllers/groups_members');
 
+const appsCategoriesCtl = require('../controllers/apps_categories');
 const appsChatroomsCtl = require('../controllers/apps_chatrooms');
 const appsChatroomsMessagersCtl = require('../controllers/apps_chatrooms_messagers');
 const appsKeywordrepliesCtl = require('../controllers/apps_keywordreplies');
@@ -140,6 +141,15 @@ router.delete('/apps-imagemaps/apps/:appid/imagemaps/:imagemapid/users/:userid',
 // ==========
 
 // ==========
+// 商品類別
+router.get('/apps-categories/users/:userid', appsCategoriesCtl.getAll);
+router.get('/apps-categories/apps/:appid/users/:userid', appsCategoriesCtl.getAll);
+router.post('/apps-categories/apps/:appid/users/:userid', appsCategoriesCtl.postOne);
+router.put('/apps-categories/apps/:appid/categories/:categoryid/users/:userid', appsCategoriesCtl.putOne);
+router.delete('/apps-categories/apps/:appid/categories/:categoryid/users/:userid', appsCategoriesCtl.deleteOne);
+// ==========
+
+// ==========
 // 預約
 router.get('/apps-appointments/users/:userid', appsAppointmentsCtl.getAll);
 router.get('/apps-appointments/apps/:appid/users/:userid', appsAppointmentsCtl.getAll);
@@ -181,6 +191,7 @@ router.post('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.po
 router.put('/groups-members/groups/:groupid/members/:memberid/users/:userid', groupsMembersCtl.putOne);
 router.delete('/groups-members/groups/:groupid/members/:memberid/users/:userid', groupsMembersCtl.deleteOne);
 
+// 客戶填寫個人基本資料查詢使用
 router.get('/consumers-form/apps/:appid/consumers/:platformuid', consumersFormCtl.getAllRequiredData);
 router.put('/consumers-form/apps/:appid/consumers/:platformuid', consumersFormCtl.putOne);
 

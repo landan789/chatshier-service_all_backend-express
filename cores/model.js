@@ -193,7 +193,8 @@ module.exports = (function() {
             'description': {type: String, default: ''},
             'price': {type: Number, default: 0},
             'quantity': {type: Number, default: 0},
-            'src': {type: String, default: ''}
+            'src': {type: String, default: ''},
+            'isOnShelves': {type: Boolean, default: false}
         }]
     });
 
