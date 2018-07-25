@@ -944,23 +944,26 @@
     function generateAppItem(appId, app) {
         let baseWebhookUrl = window.CHATSHIER.URL.webhookUrl;
         let itemHtml = (
-            '<div class="shadow-sm card text-dark bot-item" app-id="' + appId + '">' +
+            '<div class="shadow card text-dark bot-item" app-id="' + appId + '">' +
                 '<div class="p-3 card-body">' +
                     '<div class="mb-3 d-flex align-items-center">' +
-                        '<i class="mr-2 fas fa-user-astronaut fa-fw fa-2x text-muted"></i>' +
-                        '<span class="font-weight-bold app-name" style="overflow-x: hidden">' + app.name + '</span>' +
+                        '<i class="mr-2 fas fa-user-astronaut fa-fw fa-3x text-muted"></i>' +
+                        '<span class="font-weight-bolde d-inline-grid">' +
+                            '<div class="app-name text-dark font-weight-bold">' + app.name + '</div>' +
+                            '<div class="app-id1 font-weight-light">' + app.id1 + '</div>' + 
+                        '</span>' +
                     '</div>' +
                     (function() {
                         switch (app.type) {
                             case LINE:
                                 return (
-                                    '<div class="my-4 d-flex justify-content-center align-items-center">' +
+                                    '<div class="my-5 d-flex justify-content-center align-items-center">' +
                                         '<i class="fab fa-line fa-fw fa-6x line-color"></i>' +
                                     '</div>'
                                 );
                             case FACEBOOK:
                                 return (
-                                    '<div class="my-4 d-flex justify-content-center align-items-center">' +
+                                    '<div class="my-5 d-flex justify-content-center align-items-center">' +
                                         '<span class="position-relative">' +
                                             '<i class="fab fa-facebook-messenger fa-fw fa-4x fb-messsenger-color position-absolute"></i>' +
                                             '<i class="fab fa-facebook-messenger fa-fw fa-4x text-white pseudo position-absolute"></i>' +
@@ -971,7 +974,7 @@
                                 );
                             case WECHAT:
                                 return (
-                                    '<div class="my-4 d-flex justify-content-center align-items-center">' +
+                                    '<div class="my-5 d-flex justify-content-center align-items-center">' +
                                         '<span class="position-relative">' +
                                             '<i class="fab fa-weixin fa-fw fa-6x wechat-color position-absolute"></i>' +
                                         '</span>' +
@@ -982,25 +985,25 @@
                         }
                     })() +
 
-                    (FACEBOOK !== app.type ? '<label class="font-weight-bold">Webhook URL:</label>' +
-                        '<div class="text-muted app-webhook-id" app-type="' + app.type + '" data-toggle="tooltip" data-placement="top" title="點擊複製至剪貼簿">' +
-                        createWebhookUrl(baseWebhookUrl, app.webhook_id) +
-                    '</div>' : '') +
+                    '<label class="font-weight-bold">Webhook URL:</label>' +
+                        '<div class="text-muted-muted app-webhook-id" app-type="' + app.type + '" ' + (FACEBOOK === app.type ? '' : 'data-toggle="tooltip"') +  ' data-placement="top" title="點擊複製至剪貼簿">' +
+                        ( FACEBOOK === app.type ? '--' : createWebhookUrl(baseWebhookUrl, app.webhook_id)) +
+                    '</div>' +
 
                     '<div class="position-absolute w-100 p-3 d-flex justify-content-between footer-buttons">' +
                         '<div class="w-100" data-toggle="tooltip" data-placement="top" title="設定金流服務">' +
-                            '<button type="button" class="mr-1 btn btn-block btn-outline-dark set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
-                                '<i class="text-warning fas fa-money-check-alt fa-fw"></i>' +
+                            '<button type="button" class="mr-1 btn btn-block set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
+                                '<i class="fas fa-hand-holding-usd fa-fw text-muted fa-1p5x"></i>' +
                             '</button>' +
                         '</div>' +
                         (FACEBOOK !== app.type ? '<div class="w-100" data-toggle="tooltip" data-placement="top" title="編輯">' +
-                            '<button type="button" class="mr-2 btn btn-block btn-outline-dark edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                                '<i class="fas fa-edit"></i>' +
+                            '<button type="button" class="mr-2 btn btn-block edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
+                                '<i class="far fa-edit text-muted fa-1p5x"></i>' +
                             '</button>' +
                         '</div>' : '') +
                         '<div class="w-100" data-toggle="tooltip" data-placement="top" title="刪除">' +
-                            '<button class="btn btn-block btn-outline-danger remove-app-btn" app-id="' + appId + '">' +
-                                '<i class="fas fa-trash-alt"></i>' +
+                            '<button class="btn btn-block remove-app-btn" app-id="' + appId + '">' +
+                                '<i class="far fa-trash-alt text-muted fa-1p5x"></i>' +
                             '</button>' +
                         '</div>' +
                     '</div>' +
