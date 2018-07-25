@@ -1299,7 +1299,7 @@
                     '<span class="sender-name">' + senderName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
-                    '<span class="content' + (isMedia ? ' media' : ' words') + (' ' + contentType) + (isSearched ? ' found' : '') + '">' + srcHtml + '</span>' +
+                    '<span class="position-relative content' + (isMedia ? ' media' : ' words') + (' ' + contentType) + (isSearched ? ' found' : '') + '">' + srcHtml + '</span>' +
                     '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
                 '</span>' +
             '</div>'
@@ -1627,7 +1627,7 @@
                                     `<div class="template-desc py-2 px-3">
                                         <span class="template-desc">${template.text}</span>
                                     </div>` +
-                                    '<div class="d-flex flex-column py-2 template-buttons">' +
+                                    '<div class="d-flex flex-column py-2 text-center template-buttons">' +
                                         (function() {
                                             return template.actions.map((action, i) => {
                                                 let label = action.label || '';
@@ -1644,7 +1644,7 @@
                             );
                         case 'carousel':
                             return template.columns.map((column) => (
-                                '<div class="template">' +
+                                '<div class="mx-1 template">' +
                                     '<div class="text-center top-img-container">' +
                                         `<img src="${column.thumbnailImageUrl}" class="template-image image-fit" alt="未顯示圖片" />` +
                                     '</div>' +
@@ -1654,7 +1654,7 @@
                                     `<div class="template-desc py-2 px-3">
                                         <span class="template-desc">${column.text}</span>
                                     </div>` +
-                                    '<div class="d-flex flex-column py-2 template-buttons">' +
+                                    '<div class="d-flex flex-column py-2 text-center template-buttons">' +
                                         (function() {
                                             return column.actions.map((action, i) => {
                                                 let label = action.label || '';
