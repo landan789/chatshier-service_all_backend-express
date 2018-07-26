@@ -9,7 +9,7 @@
     var NO_USER = parseInt('000', 2);
     var NOT_LOGIN_SIGNUP_PAGE = parseInt('000', 2);
 
-    var PREPARE_TIME = 3 * 60 * 1000;
+    var PREPARE_TIME = 5 * 60 * 1000;
     var CHSR_COOKIE = window.chatshierCookie.CHSR_COOKIE;
     var cookieManager = window.chatshierCookie.manager;
     var api = window.restfulAPI;
