@@ -769,23 +769,6 @@
         appTypeChange({ target: $appTypeSelect.get(0) });
     });
 
-    $(document).on('change', '#hide-agent-name', function() {
-        let appId = $(this).attr('app-id');
-        let status = $(this).val();
-        let putApp;
-        if (status === 'show') {
-            putApp = { hideAgentName: true };
-            $(this).attr('checked', true);
-            $(this).val('hide');
-            updateOneApp(appId, putApp);
-        } else {
-            putApp = { hideAgentName: false };
-            $(this).removeAttr('checked');
-            $(this).val('show');
-            updateOneApp(appId, putApp);
-        }
-    });
-
     function findAllGroups() {
         $('#addGroupNameAppBtn').attr('disabled', true);
         return api.groups.findAll(userId).then(function(resJson) {
@@ -1003,21 +986,6 @@
                                 return '';
                         }
                     })() +
-
-                    '<div class="my-3">' +
-                        '<button type="button" class="mr-1 btn btn-light btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                            '<i class="fas fa-edit"></i>' +
-                        '</button>' +
-                        '<button class="ml-1 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
-                            '<i class="fas fa-trash-alt"></i>' +
-                        '</button>' +
-                        '<div class="form-check mt-3">'+
-                            '<input class="form-check-input" type="checkbox" value="' + (app.hideAgentName ? 'hide' : 'show') + '" id="hide-agent-name" app-id="' + appId + '" ' + (app.hideAgentName ? 'checked' : '') + '/>' +
-                            '<label class="form-check-label">' +
-                                '回復訊息不顯示專員名稱' +
-                            '</label>'+
-                        '</div>' +
-                    '</div>' +
 
                     '<label class="font-weight-bold">Webhook URL:</label>' +
                         '<div class="text-muted-muted app-webhook-id" app-type="' + app.type + '" ' + (FACEBOOK === app.type ? '' : 'data-toggle="tooltip"') +  ' data-placement="top" title="點擊複製至剪貼簿">' +
