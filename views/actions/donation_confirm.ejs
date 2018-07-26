@@ -185,8 +185,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.3.3/js/swiper.min.js"></script>
 
     <script>
-        !window.urlConfig && (window.urlConfig = {});
-        !window.urlConfig.apiUrl && (window.urlConfig.apiUrl = window.location.origin);
+        !window.CHATSHIER && (window.CHATSHIER = {});
+        !window.CHATSHIER.URL && (window.CHATSHIER.URL = {});
+        !window.CHATSHIER.URL.apiUrl && (window.CHATSHIER.URL.apiUrl = window.location.origin);
 
         window.urlParams = (function getUrlParams() {
             var pl = /\+/g;
@@ -328,7 +329,7 @@
             return {
                 getRequiredData: function(cb) {
                     $.ajax({
-                        url: window.urlConfig.apiUrl + '/api/database/consumers-form/apps/' + window.urlParams.aid + '/consumers/' + window.payload.uid,
+                        url: window.CHATSHIER.URL.apiUrl + '/api/database/consumers-form/apps/' + window.urlParams.aid + '/consumers/' + window.payload.uid,
                         type: 'GET',
                         cache: false,
                         dataType: 'json',
@@ -346,7 +347,7 @@
                 },
                 postPayment: function(params, cb) {
                     $.ajax({
-                        url: window.urlConfig.apiUrl + '/payment/submit?aid=' + window.urlParams.aid + '&cid=' + window.payload.uid,
+                        url: window.CHATSHIER.URL.apiUrl + '/payment/submit?aid=' + window.urlParams.aid + '&cid=' + window.payload.uid,
                         type: 'POST',
                         data: JSON.stringify(params),
                         dataType: 'html',

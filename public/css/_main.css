@@ -10,6 +10,10 @@ body, html {
     color: #43b901;
 }
 
+.fb-color {
+    color: #3b5998;
+}
+
 .fb-messsenger-color {
     color: #407fff;
 }
@@ -64,7 +68,7 @@ button:focus {
     .page-wrapper > div:first-of-type  {
         padding-top: 50px; }
 
-@media (max-width: 576px) {
+@media (max-width: 768px) {
     .page-wrapper {
         max-width: 100%;
     }
@@ -328,4 +332,12 @@ button:focus {
     max-height: initial;
     margin: auto;
     border-radius: .25rem;
+}
+
+.chsr .text-muted-muted {
+    color: #c3c4c5!important;
+}
+
+.chsr .text-chsr {
+    color: #4a8998;
 }

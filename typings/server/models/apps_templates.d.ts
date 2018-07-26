@@ -11,8 +11,9 @@ declare module Chatshier {
         }
 
         interface Template extends BaseProperty {
-            altText: string,
             type: 'template',
+            name: string,
+            altText: string,
             template: TemplateContent
         }
 

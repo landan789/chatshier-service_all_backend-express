@@ -1,3 +1,7 @@
+.d-inline-grid {
+    display: inline-grid;
+}
+
 .tabs-container {
     position: relative;
     height: 100%;
@@ -225,11 +229,57 @@ p:empty:not(:focus)::before {
     .fb-import-button:focus {
         outline: none; }
 
-.app-webhook-id {
-    cursor: pointer;
-}
+.apps-body .bot-item {
+    min-height: 26rem;
+    padding-bottom: 3.5rem; }
+    .apps-body .bot-item .app-name, .apps-body .bot-item .app-id1 {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; 
+        }
 
-@media (min-width: 768px) {
+
+    .apps-body .bot-item .app-id1 {
+            color: #c3c4c5;
+        }
+    .apps-body .bot-item .app-webhook-id {
+        cursor: pointer; }
+    .apps-body .bot-item .footer-buttons {
+        left: 0;
+        bottom: 0; }
+        .apps-body .bot-item .footer-buttons button {
+            border: none; }
+
+        .apps-body .bot-item .footer-buttons button:focus {
+            box-shadow: none; }
+
+        .apps-body .bot-item .footer-buttons button:hover {
+            background-color: #e0dede; }
+
+    .apps-body .bot-item .fa-facebook-messenger {
+        z-index: 3;
+        -webkit-transform: scale(1);
+        transform: scale(1);
+        left: -1rem;
+        top: -0.9rem;
+    }
+
+    .apps-body .bot-item .fa-circle {
+        z-index: 1;
+        -webkit-transform: scale(0.8);
+        transform: scale(0.8);
+        left: -1rem;
+        top: -0.9rem;
+    }
+
+    .apps-body .bot-item .fa-facebook-messenger.pseudo {
+        z-index: 2;
+        -webkit-transform: scale(1.2);
+        transform: scale(1.2);
+    }
+    .apps-body .bot-item .fa-facebook {
+
+@media (min-width: 576px) {
     .apps-body.card-columns {
         column-count: 2; }
 }

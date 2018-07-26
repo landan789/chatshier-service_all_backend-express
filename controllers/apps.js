@@ -5,7 +5,7 @@ module.exports = (function() {
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
-    // const fbSvc = require('../services/facebook');
+    const fbSvc = require('../services/facebook');
 
     const OWNER = 'OWNER';
     const ADMIN = 'ADMIN';
@@ -130,6 +130,7 @@ module.exports = (function() {
         }
 
         postOne(req, res, next) {
+            /** @type {Chatshier.Models.Apps} */
             let apps;
             let userId = req.params.userid;
             let postApp = {
@@ -144,13 +145,13 @@ module.exports = (function() {
             };
             let isNew = true;
 
-            // // 如果新增的 Facebook 類型的機器人沒有帶有 fb app 的資料
-            // // 則帶入 Chatshier 自己的 fb app
-            // if (FACEBOOK === postApp.type) {
-            //     postApp.id2 = postApp.id2 || fbSvc.appId;
-            //     postApp.secret = postApp.secret || fbSvc.appSecret;
-            //     postApp.token1 = postApp.token1 || fbSvc.appAccessToken;
-            // }
+            // 如果新增的 Facebook 類型的機器人沒有帶有 fb app 的資料
+            // 則帶入 Chatshier 自己的 fb app
+            if (FACEBOOK === postApp.type) {
+                postApp.id2 = postApp.id2 || fbSvc.appId;
+                postApp.secret = postApp.secret || fbSvc.appSecret;
+                postApp.token1 = postApp.token1 || fbSvc.appAccessToken;
+            }
 
             Promise.resolve().then(() => {
                 if (!userId) {
@@ -228,7 +229,7 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                 }
 
-                if (0 === member.status) {
+                if (!member.status) {
                     return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
                 }
 
@@ -237,40 +238,59 @@ module.exports = (function() {
                 }
 
                 return Promise.resolve().then(() => {
-                    // if (FACEBOOK === postApp.type && postApp.token2) {
-                    //     // 在新增 facebook 類型的 app 之前
-                    //     // 無論無何都須將粉絲專頁的 page token 轉為永久 token
-                    //     // 因為從 web 取得的 user token 因為沒有進行 server-side token 轉換
-                    //     // 因此取得的 page token 時效性只有 1-2 小時
-                    //     return fbSvc.exchangeLongLivedToken(postApp.token2).then((longLiveToken) => {
-                    //         postApp.token2 = longLiveToken.access_token;
-                    //     });
-                    // }
+                    if (FACEBOOK === postApp.type && postApp.token2) {
+                        // 在新增 facebook 類型的 app 之前
+                        // 無論無何都須將粉絲專頁的 page token 轉為永久 token
+                        // 因為從 web 取得的 user token 因為沒有進行 server-side token 轉換
+                        // 因此取得的 page token 時效性只有 1-2 小時
+                        return fbSvc.exchangeLongLivedToken(postApp.token2).then((longLiveToken) => {
+                            postApp.token2 = longLiveToken.access_token;
+                        });
+                    }
                 }).then(() => {
-                    // if (FACEBOOK === postApp.type) {
-                    //     // 檢查同 group 內是否已經有匯入此粉絲專頁(包含已刪除的)
-                    //     // 如果有則直接更新 app
-                    //     let query = {
-                    //         id1: postApp.id1,
-                    //         group_id: postApp.group_id
-                    //     };
+                    if (FACEBOOK === postApp.type) {
+                        // 檢查同 group 內是否已經有匯入此粉絲專頁(包含已刪除的)
+                        // 如果有則直接更新 app
+                        let query = {
+                            id1: postApp.id1,
+                            group_id: postApp.group_id
+                        };
 
-                    //     return appsMdl.find(null, null, query).then((apps) => {
-                    //         if (!apps || (apps && 0 === Object.keys(apps).length)) {
-                    //             return appsMdl.insert(postApp);
-                    //         }
+                        return appsMdl.find(void 0, void 0, query).then((apps) => {
+                            if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                                return appsMdl.insert(postApp);
+                            }
 
-                    //         postApp.isDeleted = isNew = false;
-                    //         let appId = Object.keys(apps).shift() || '';
-                    //         return appsMdl.update(appId, postApp);
-                    //     }).then((apps) => {
-                    //         return fbSvc.setFanPageSubscribeApp(postApp.id1, postApp.token2).then(() => {
-                    //             return apps;
-                    //         });
-                    //     }).catch(() => {
-                    //         return Promise.reject(API_ERROR.FACEBOOK_PAGE_FAILED_TO_SUBSCRIBE_APP);
-                    //     });
-                    // }
+                            let appIds = Object.keys(apps);
+                            let appId = appIds.shift() || '';
+                            if (!appId) {
+                                return appsMdl.insert(postApp);
+                            }
+                            postApp.isDeleted = isNew = false;
+
+                            // 如果同一群組內的 app 有多筆同一個粉絲專頁的資料，自動刪除重複的粉絲專頁
+                            return Promise.all(appIds.map((_appId) => {
+                                if (apps[_appId].isDeleted) {
+                                    return Promise.resolve(null);
+                                }
+
+                                return appsMdl.remove(_appId).then((_apps) => {
+                                    if (!(_apps && _apps[appId])) {
+                                        return Promise.reject(API_ERROR.APP_FAILED_TO_REMOVE);
+                                    }
+                                    return Promise.resolve(_apps);
+                                });
+                            })).then(() => {
+                                return appsMdl.update(appId, postApp);
+                            });
+                        }).then((apps) => {
+                            return fbSvc.setFanPageSubscribeApp(postApp.id1, postApp.token2).then(() => {
+                                return apps;
+                            }).catch(() => {
+                                return Promise.reject(API_ERROR.FACEBOOK_PAGE_FAILED_TO_SUBSCRIBE_APP);
+                            });
+                        });
+                    }
                     return appsMdl.insert(postApp);
                 }).then((_apps) => {
                     if (!_apps) {
@@ -466,7 +486,7 @@ module.exports = (function() {
                 }
 
                 let member = Object.values(members)[index];
-                if (0 === member.status) {
+                if (!member.status) {
                     return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
                 }
 
@@ -478,19 +498,20 @@ module.exports = (function() {
                     if (!(apps && apps[appId])) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_REMOVE);
                     }
+
+                    let app = apps[appId];
+                    if (FACEBOOK === app.type) {
+                        return fbSvc.setFanPageUnsubscribeApp(app.id1, app.token2).then(() => {
+                            return Promise.resolve(apps);
+                        }).catch((err) => {
+                            if (err && err.error && 'OAuthException' === err.error.type) {
+                                return Promise.resolve(apps);
+                            }
+                            return Promise.reject(API_ERROR.FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP);
+                        });
+                    }
                     return Promise.resolve(apps);
                 });
-            // }).then((apps) => {
-            //     let app = apps[appId];
-            //     if (FACEBOOK !== app.type) {
-            //         return apps;
-            //     }
-
-            //     return fbSvc.setFanPageUnsubscribeApp(app.id1, app.token2).then(() => {
-            //         return apps;
-            //     }).catch(() => {
-            //         return Promise.reject(API_ERROR.FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP);
-            //     });
             }).then((apps) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,

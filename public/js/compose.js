@@ -671,7 +671,7 @@ const ConditionSelector = (function() {
     });
 
     const SOCKET_NAMESPACE = '/chatshier';
-    const SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    const SOCKET_SERVER_URL = window.CHATSHIER.URL.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
     const SOCKET_EVENTS = window.SOCKET_EVENTS;
     const socket = io(SOCKET_SERVER_URL);
 
@@ -771,7 +771,16 @@ const ConditionSelector = (function() {
         $composeModal.on('click', '#composeInsertBtn', replaceCompose);
         $composeModal.on('click', '#composeUpdateBtn', (ev) => replaceCompose(ev, $composeModal.find('[name="isDraft"]').prop('checked')));
         $composeModal.on('click', '#addComposeContent', addComposeContent);
-        $appsSelector.on('change', '.dropdown-item .form-check-input', updateAvailable);
+        $appsSelector.on('click', '.dropdown-item', (ev) => {
+            let $targetElem = $(ev.target);
+            if (!$targetElem.hasClass('form-check-input')) {
+                $targetElem = !$targetElem.hasClass('dropdown-item') ? $targetElem.parents('.dropdown-item') : $targetElem;
+                $targetElem = $targetElem.find('.form-check-input');
+                $targetElem.prop('checked', !$targetElem.prop('checked'));
+                ev.preventDefault();
+            }
+            updateAvailable();
+        });
 
         if (!window.isMobileBrowser()) {
             $composesDtPicker.datetimepicker(datetimePickerInitOpts);
@@ -945,8 +954,7 @@ const ConditionSelector = (function() {
             for (let i in composeContents) {
                 composeContents[i].appId = appId;
                 composeContents[i].reset(modalCompose.type);
-                composeContents[i].toggleImageMap('FACEBOOK' !== apps[appId].type);
-                composeContents[i].toggleTemplate('FACEBOOK' !== apps[appId].type);
+                composeContents[i].toggleImageMap(api.apps.TYPES.FACEBOOK !== apps[appId].type);
             }
             updateAvailable();
         }
@@ -958,25 +966,25 @@ const ConditionSelector = (function() {
             let appIds = [];
             let isIncludeFacebook = false;
             $checkedInputs.each((i, elem) => {
-                let appId = elem.getAttribute('app-id');
-                appIds.push(appId);
+                let _appId = elem.getAttribute('app-id');
+                appIds.push(_appId);
 
-                if ('FACEBOOK' === apps[appId].type) {
+                if (api.apps.TYPES.FACEBOOK === apps[_appId].type) {
                     isIncludeFacebook = true;
                 }
             });
 
             for (let i in composeContents) {
                 let content = composeContents[i];
-                // 目前 Facebook 無法實作圖文訊息及模板訊息的發送
-                // 會顯示警告訊息告知 Facebook 無法收到圖文訊息及模板訊息的發送
-                content.isFacebookAlertShow = isIncludeFacebook;
-                // 由於每個機器人都各自設定的圖文訊息及模板訊息
-                // 因此當要發送給多個機器人時，目前暫無法選擇各自的圖文訊息去發送
-                // TODO: 每個機器人可選擇各自的圖文訊息或模板訊息去發送
-                content.toggleImageMap(!isIncludeFacebook && 1 === appIds.length);
-                content.toggleTemplate(!isIncludeFacebook && 1 === appIds.length);
                 content.appId = appIds[appIds.length - 1];
+                // 目前 Facebook 無法實作圖文訊息的發送
+                // 會顯示警告訊息告知 Facebook 無法收到圖文訊息的發送
+                content.isFacebookAlertShow = isIncludeFacebook;
+                // 由於每個機器人都各自設定的圖文訊息及範本訊息
+                // 因此當要發送給多個機器人時，目前暫無法選擇各自的圖文訊息去發送
+                // TODO: 每個機器人可選擇各自的圖文訊息或範本訊息去發送
+                content.toggleImageMap(!isIncludeFacebook && 1 === appIds.length);
+                content.toggleTemplate(1 === appIds.length);
             }
 
             conditionSelector.appIds = appIds;
@@ -1266,7 +1274,7 @@ const ConditionSelector = (function() {
                         } else if ('imagemap' === compose.type) {
                             return '<td class="text-pre search-source">圖文訊息</td>';
                         } else if ('template' === compose.type) {
-                            return '<td class="text-pre search-source">模板訊息</td>';
+                            return '<td class="text-pre search-source">範本訊息</td>';
                         }
                         return '<td class="text-pre"></td>';
                     })() +

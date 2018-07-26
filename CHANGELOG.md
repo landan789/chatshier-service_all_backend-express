@@ -1,7 +1,12 @@
 
+= Release 1.4.2 =
+MASTER release: 2018-07-24
+== Features ==
+== Bug Fixes ==
+ * Fixed: template message can be 10
+
 = Release 1.4.1 =
 MASTER release: 2018-07-16
-RELEASE release: 2018-07-16
 == Features ==
  * Changed: change preview image of send video message to LINE
 == Bug Fixes ==
@@ -9,7 +14,6 @@ RELEASE release: 2018-07-16
 
 = Release 1.4.0 =
 MASTER release: 2018-07-16
-RELEASE release: 2018-07-12
 == Features ==
  * Changed: change app list UI in setting page
  * Created: add feature of payment setting in app setting, support ECPay, Spgateway
@@ -28,7 +32,6 @@ RELEASE release: 2018-07-12
 
 = Release 1.3.1 =
 MASTER release: 2018-06-08
-RELEASE release: 2018-06-05
 == Features ==
  * Removed: remove scroll to top button of control panel
 == Bug Fixes ==
@@ -37,7 +40,6 @@ RELEASE release: 2018-06-05
 
 = Release 1.3.0 =
 MASTER release: 2018-06-05
-RELEASE release: 2018-05-28
 == Features ==
  * Created: support LINE group and room chat with LINE
  * Created: custom naming platform group chatroom name
@@ -94,14 +96,14 @@ MASTER Released: 2018-04-24
  * Fixed: [MASTER 1.2.2][chat][isDeleted group member or none status group member should not chat on the group]
  * refactor(controller): switch to ES6 class syntax
  = Release 1.2.1 =
-Released: 2018-04-13
+MASTER Released: 2018-04-13
 == Features ==
 
 == Bug Fixes ==
  * Fixed: some bugs
 
  = Release 1.2.0 =
-Released: 2018-04-12
+MASTER Released: 2018-04-12
 == Features ==
  * changed: database from Firebase to MongoDB
  * upgraded: Bootstrap from v3 to v4
@@ -123,7 +125,7 @@ Released: 2018-04-12
  * Fixed: changed database schema of `composes` with `fields` (customized fields)
  
  = Release 1.1.0 =
-Released: 2018-03-14
+MASTER Released: 2018-03-14
 
 == Features ==
  * Created: keywordreply with fizzy searching
@@ -135,13 +137,13 @@ Released: 2018-03-14
  * changed: ticket page from jQuery to React
 
 = Release 1.0.1 =
-Released: 2018-03-5
+MASTER Released: 2018-03-5
 
 == Bug Fixes ==
  * Fixed: issue #0042: [MASTER 1.0.1][聊天室][右側的用戶資料沒有顯示]
 
  = Release 1.0.0 =
-Released: 2018-03-5
+MASTER Released: 2018-03-5
 
 == Features ==
  * Created: chat one on one page

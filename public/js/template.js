@@ -5,6 +5,12 @@
         LINE: 'fab fa-line fa-fw line-color',
         FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
     };
+    const TEMPLATE_TYPE_DISPLAY_TEXT = Object.freeze({
+        'BUTTON': '單一按鈕',
+        'BUTTON_IMAGE': '按鈕+圖片',
+        'CAROUSEL': '輪播式卡片'
+    });
+
     let nowSelectAppId = '';
 
     /** @type {Chatshier.Models.Apps} */
@@ -33,7 +39,7 @@
 
     (function modelProcess() {
         const handleMessages = {
-            working: '<i class="fas fa-circle-notch fa-spin"></i>處理中',
+            working: '<i class="mr-1 fas fa-circle-notch fa-spin fa-fw"></i>處理中',
             addFinished: '新增',
             editFinished: '修改'
         };
@@ -56,6 +62,10 @@
         function initTemplateModal(ev) {
             let $relatedBtn = $(ev.relatedTarget);
 
+            let $templateForm = $templateModal.find('#templateForm');
+            let $templateName = $templateForm.find('input[name="templateName"]');
+            let $templateAltText = $templateForm.find('input[name="templateAltText"]');
+
             let $templateRow = $relatedBtn.parents('tr');
             let appId = (0 !== $templateRow.length && $templateRow.attr('app-id')) || nowSelectAppId;
             let templateId;
@@ -69,6 +79,8 @@
                 elementHide($updateTemplateBtn);
 
                 $templateModal.find('#templateId').val('');
+                $templateName.val('');
+                $templateAltText.val('');
             } else {
                 elementHide($appSelector.parents('.app-select-bar'));
                 elementHide($insertTemplateBtn);
@@ -77,15 +89,17 @@
                 $templateRow = $relatedBtn.parents('tr');
                 templateId = $templateRow.attr('template-id');
                 $templateModal.find('#templateId').val(templateId);
+
                 template = appsTemplates[appId].templates[templateId];
-                $('#templateForm input[name="templateAltText"]').val(template.altText || '');
+                $templateName.val(template.name || '');
+                $templateAltText.val(template.altText || '');
             }
 
             if (api.apps.TYPES.FACEBOOK === app.type) {
-                templateBuilder.disableButtonAction(TemplateBuilder.BUTTON_ACTIONS.TEL);
+                $templateAltText.parents('.form-group').addClass('d-none');
                 templateBuilder.disableButtonAction(TemplateBuilder.BUTTON_ACTIONS.IMAGEMAP);
             } else {
-                templateBuilder.enableButtonAction(TemplateBuilder.BUTTON_ACTIONS.TEL);
+                $templateAltText.parents('.form-group').removeClass('d-none');
                 templateBuilder.enableButtonAction(TemplateBuilder.BUTTON_ACTIONS.IMAGEMAP);
             }
 
@@ -103,25 +117,35 @@
                     templateBuilder.templates = _templates;
                     templateBuilder.initTemplate(template);
                 } else {
+                    templateBuilder.templates = templates;
                     templateBuilder.initTemplate();
                 }
             });
         }
 
         function replaceTemplate() {
-            let templateAltText = $('#templateForm input[name="templateAltText"]').val();
-            if (!templateAltText) {
-                $.notify('模板顯示文字不可為空', { type: 'warning' });
+            let $templateForm = $templateModal.find('#templateForm');
+            let templateName = $templateForm.find('input[name="templateName"]').val();
+            if (!templateName) {
+                $.notify('範本名稱不可為空', { type: 'warning' });
                 return;
             }
 
             let appId = $appSelector.val();
+            let app = apps[appId];
+            let templateAltText = $templateForm.find('input[name="templateAltText"]').val() || '';
+            if (!templateAltText && api.apps.TYPES.LINE === app.type) {
+                $.notify('範本訊息標題文字不可為空', { type: 'warning' });
+                return;
+            }
+
             let templateId = $templateModal.find('#templateId').val();
             let isUpdate = !!templateId;
             let fileMoveTasks = [];
 
-            elementDisabled(isUpdate ? $updateTemplateBtn : $insertTemplateBtn, isUpdate ? handleMessages.addFinished : handleMessages.working);
+            elementDisabled(isUpdate ? $updateTemplateBtn : $insertTemplateBtn, handleMessages.working);
             return templateBuilder.getTemplateJSON().then((templateMessage) => {
+                templateMessage.name = templateName;
                 templateMessage.altText = templateAltText;
 
                 return Promise.resolve().then(() => {
@@ -165,7 +189,6 @@
                     return templateMessage;
                 });
             }).then((templateMessage) => {
-                console.log(templateMessage);
                 if (isUpdate) {
                     return api.appsTemplates.update(appId, templateId, userId, templateMessage);
                 }
@@ -186,10 +209,10 @@
             }).then(() => {
                 $templateModal.modal('hide');
                 $appDropdown.find('#' + appId).trigger('click');
-                elementEnabled(isUpdate ? $updateTemplateBtn : $insertTemplateBtn, isUpdate ? handleMessages.addFinished : handleMessages.working);
+                elementEnabled(isUpdate ? $updateTemplateBtn : $insertTemplateBtn, isUpdate ? handleMessages.editFinished : handleMessages.addFinished);
                 $.notify(isUpdate ? '更新成功！' : '新增成功！', { type: 'success' });
             }).catch((err) => {
-                elementEnabled(isUpdate ? $updateTemplateBtn : $insertTemplateBtn, isUpdate ? handleMessages.addFinished : handleMessages.working);
+                elementEnabled(isUpdate ? $updateTemplateBtn : $insertTemplateBtn, isUpdate ? handleMessages.editFinished : handleMessages.addFinished);
                 if (!err) {
                     return;
                 }
@@ -201,23 +224,25 @@
 
                 switch (err.message) {
                     case TemplateBuilder.ERRORS.TEMPLATES_EMPTY:
-                        return $.notify('模板訊息內容不能為空', { type: 'warning' });
+                        return $.notify('範本訊息內容不能為空', { type: 'warning' });
                     case TemplateBuilder.ERRORS.TITLE_AND_TEXT_IS_REQUIRED:
-                        return $.notify('有附加圖像時，模板訊息必須要有標題及描述文字', { type: 'warning' });
+                        return $.notify('有附加圖像時，範本訊息必須要有標題及描述文字', { type: 'warning' });
                     case TemplateBuilder.ERRORS.TEXT_IS_REQUIRED:
-                        return $.notify('每個模板訊息必須要有描述文字', { type: 'warning' });
+                        return $.notify('每個範本訊息必須要有描述文字', { type: 'warning' });
+                    case TemplateBuilder.ERRORS.IMAGE_IS_REQUIRED:
+                        return $.notify('當其中一個卡片有設定圖像時，所以卡片均需設定圖像', { type: 'warning' });
                     case TemplateBuilder.ERRORS.AT_LEAST_ONE_ACTION:
-                        return $.notify('每個模板訊息至少要設定 1 個按鈕動作', { type: 'warning' });
+                        return $.notify('每個範本訊息至少要設定 1 個按鈕動作', { type: 'warning' });
                     case TemplateBuilder.ERRORS.MUST_UPLOAD_A_IMAGE:
                         return $.notify('如果設置了圖片網址鏈接，則必須上傳圖片', { type: 'warning' });
                     case TemplateBuilder.ERRORS.INVALID_URL:
                         return $.notify('訊息中的設定連結，含有不合法的連結', { type: 'warning' });
                     case TemplateBuilder.ERRORS.ACTIONS_COUNT_SHOULD_SAME:
-                        return $.notify('使用多個模板卡片時，設定的動作按鈕數量必須一致', { type: 'warning' });
+                        return $.notify('使用多個範本卡片時，設定的動作按鈕數量必須一致', { type: 'warning' });
                     case TemplateBuilder.ERRORS.HAS_UNCHECKED_ACTION:
                         return $.notify('你有尚未完成的按鈕編輯', { type: 'warning' });
                     default:
-                        return $.notify('新增失敗', { type: 'danger' });
+                        return $.notify(isUpdate ? '更新失敗！' : '新增失敗！', { type: 'danger' });
                 }
             });
         }
@@ -225,13 +250,14 @@
 
     let $appDropdown = $('#appsDropdown');
     let $appSelector = $('#appSelector');
+    let $templateTable = $('#templateTable');
 
     $jqDoc.on('click', '.template-row .remove-btn', removeTemplate);
 
     return api.apps.findAll(userId).then(function(respJson) {
         apps = respJson.data;
         let $dropdownMenu = $appDropdown.find('.dropdown-menu');
-        let config = window.chatshier.config;
+        let config = window.CHATSHIER.CONFIG;
         $jqDoc.find('.insert-btn').attr('disabled', true);
         $('.template-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1024)))}MB`);
 
@@ -321,17 +347,39 @@
     }
 
     function loadTemplates(appId) {
-        $('#template-tables').empty();
+        let $templateTableBody = $templateTable.find('tbody').empty();
+        let app = apps[appId];
+
+        let $colOfAltText = $templateTable.find('#colOfAltText');
+        if (app.type === api.apps.TYPES.LINE) {
+            $colOfAltText.removeClass('d-none');
+        } else {
+            $colOfAltText.addClass('d-none');
+        }
+
         return getTemplates(appId).then(function(templates) {
             for (let templateId in templates) {
                 let template = templates[templateId];
+                let templateName = template.name || '未命名';
 
-                $('#template-tables').append(
+                let displayType = '';
+                if ('buttons' === template.template.type || 'confirm' === template.template.type) {
+                    if (template.template.thumbnailImageUrl) {
+                        displayType = 'BUTTON_IMAGE';
+                    } else {
+                        displayType = 'BUTTON';
+                    }
+                } else if ('carousel' === template.template.type && template.template.columns) {
+                    displayType = 'CAROUSEL';
+                }
+
+                $templateTableBody.append(
                     '<tr class="template-row" app-id="' + appId + '" template-id="' + templateId + '">' +
-                        '<th id="altText" data-title="data-title">' + template.altText + '</th>' +
-                        '<td id="type">' + template.template.type + '</td>' +
+                        '<td data-title="' + templateName + '">' + templateName + '</td>' +
+                        (app.type === api.apps.TYPES.LINE ? '<td data-title="' + template.altText + '">' + template.altText + '</td>' : '') +
+                        '<td>' + (TEMPLATE_TYPE_DISPLAY_TEXT[displayType] || '未知版型') + '</td>' +
                         '<td>' +
-                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#templateModal" aria-hidden="true"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-backdrop="static" data-target="#templateModal" aria-hidden="true"></button>' +
                             '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove-btn"></button>' +
                         '</td>' +
                     '</tr>'

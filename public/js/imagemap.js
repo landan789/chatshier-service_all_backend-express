@@ -21,7 +21,7 @@
     // const NO_PERMISSION_CODE = '3.16'; // not sure what this is for
 
     const handleMessages = {
-        working: '<i class="fas fa-circle-notch fa-spin"></i>處理中',
+        working: '<i class="mr-1 fas fa-circle-notch fa-spin fa-fw"></i>處理中',
         addFinished: '新增',
         editFinished: '修改'
     };
@@ -113,7 +113,7 @@
         let file = input.files[0];
         input.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
-        let config = window.chatshier.config;
+        let config = window.CHATSHIER.CONFIG;
         if (file.type.indexOf('image') < 0) {
             $.notify('請上傳圖檔');
             return;
@@ -674,7 +674,7 @@
         var appsData = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
-        let config = window.chatshier.config;
+        let config = window.CHATSHIER.CONFIG;
         $('.imagemap-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1024)))}MB`);
 
         elementHide($('.content-bar'));

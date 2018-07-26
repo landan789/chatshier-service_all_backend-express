@@ -107,7 +107,7 @@
     var $endDatetimeInput = $calendarEdtPicker.find('input[name="endDatetime"]');
 
     var gCalendarPromise = window.googleClientHelper.loadAPI().then(function() {
-        return window.googleClientHelper.init(window.chatshier.GOOGLE.CALENDAR);
+        return window.googleClientHelper.init(window.CHATSHIER.GOOGLE.CALENDAR);
     }).then(function(isSignedIn) {
         if (!isSignedIn) {
             return { items: [] };
