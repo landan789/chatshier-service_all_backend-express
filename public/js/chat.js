@@ -790,29 +790,24 @@
 
                 if (isNewChatroom) {
                     isNewChatroom = false;
-                    var uiRequireData = {
-                        appId: appId,
-                        name: app.name,
-                        type: app.type,
-                        chatroomId: chatroomId,
-                        chatroom: chatroom
-                    };
 
+                    let _platformUid = '';
+                    let person = {};
                     if (CHATSHIER === app.type) {
-                        uiRequireData.person = Object.assign({}, users[userId]);
-                        uiRequireData.person.photo = LOGOS[app.type];
-                        uiRequireData.platformUid = userId;
-                    } else if (chatroom.platformGroupId) {
-                        uiRequireData.person = Object.assign({}, users[userId]);
-                        uiRequireData.person.photo = LOGOS[LINE_GROUP];
-                        uiRequireData.platformUid = userId;
+                        Object.assign(person, users[userId]);
+                        person.photo = LOGOS[app.type];
+                        _platformUid = userId;
+                    } else if (LINE === app.type && chatroom.platformGroupId) {
+                        Object.assign(person, users[userId]);
+                        person.photo = LOGOS[LINE_GROUP];
+                        _platformUid = userId;
                     } else {
-                        var platformMessager = findChatroomMessager(appId, chatroomId, app.type);
-                        var platformUid = platformMessager.platformUid;
-                        uiRequireData.person = consumers[platformUid];
-                        uiRequireData.platformUid = platformUid;
+                        let platformMessager = findChatroomMessager(appId, chatroomId, app.type);
+                        let platformUid = platformMessager.platformUid;
+                        Object.assign(person, consumers[platformUid]);
+                        _platformUid = platformUid;
                     }
-                    createChatroom(uiRequireData);
+                    createChatroomTab(appId, chatroomId, _platformUid, person);
                 } else {
                     updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
                     updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
@@ -1191,32 +1186,25 @@
                 }
             }
 
-            for (var chatroomId in chatrooms) {
-                var chatroom = chatrooms[chatroomId];
-                var uiRequireData = {
-                    appId: appId,
-                    name: app.name,
-                    type: app.type,
-                    chatroomId: chatroomId,
-                    chatroom: chatroom
-                };
-
+            createAppTabCollapse(appId);
+            for (let chatroomId in chatrooms) {
+                let chatroom = chatrooms[chatroomId];
+                let _platformUid = '';
+                let person = {};
                 if (CHATSHIER === app.type) {
-                    uiRequireData.person = Object.assign({}, users[userId]);
-                    uiRequireData.person.photo = LOGOS[app.type];
-                    uiRequireData.platformUid = userId;
-                } else if (chatroom.platformGroupId) {
-                    uiRequireData.person = Object.assign({}, users[userId]);
-                    uiRequireData.person.photo = LOGOS[LINE_GROUP];
-                    uiRequireData.platformUid = userId;
+                    Object.assign(person, users[userId]);
+                    person.photo = LOGOS[app.type];
+                    _platformUid = userId;
+                } else if (LINE === app.type && chatroom.platformGroupId) {
+                    Object.assign(person, users[userId]);
+                    person.photo = LOGOS[LINE_GROUP];
+                    _platformUid = userId;
                 } else {
-                    var platformMessager = findChatroomMessager(appId, chatroomId, app.type);
-                    var platformUid = platformMessager.platformUid;
-                    uiRequireData.person = consumers[platformUid];
-                    uiRequireData.platformUid = platformUid;
+                    let platformMessager = findChatroomMessager(appId, chatroomId, app.type);
+                    _platformUid = platformMessager.platformUid;
+                    Object.assign(person, consumers[_platformUid]);
                 }
-
-                createChatroom(uiRequireData);
+                createChatroomTab(appId, chatroomId, _platformUid, person);
             }
         }
 
@@ -1237,23 +1225,24 @@
         ).shift());
     }
 
-    function generateChatroomItemHtml(opts) {
-        var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
-        var chatroom = opts.chatroom || {};
+    function generateChatroomItemHtml(appId, chatroomId, platformUid, person, unRead) {
+        var app = apps[appId];
+        var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
+        var unReadStr = unRead > 99 ? '99+' : ('' + unRead);
 
-        var chatroomPhoto = opts.clientPhoto;
-        var chatroomName = opts.clientName;
-        var isGroupChatroom = CHATSHIER === opts.appType || chatroom.platformGroupType;
+        var chatroomPhoto = person.photo || '';
+        var chatroomName = person.name || '';
+        var isGroupChatroom = CHATSHIER === app.type || chatroom.platformGroupType;
         if (isGroupChatroom) {
-            chatroomPhoto = LINE === opts.appType ? LOGOS[LINE_GROUP] : 'image/group.png';
+            chatroomPhoto = LINE === app.type ? LOGOS[LINE_GROUP] : 'image/group.png';
             chatroomName = chatroom.name || DEFAULT_CHATROOM_NAME;
         }
 
         var html = (
-            '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" ' + (!isGroupChatroom ? 'platform-uid="' + opts.platformUid + '"' : '') + ' app-type="' + opts.appType + '">' +
+            '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + appId + '" chatroom-id="' + chatroomId + '" ' + (!isGroupChatroom ? 'platform-uid="' + platformUid + '"' : '') + ' app-type="' + app.type + '">' +
                 '<img class="app-icon consumer-photo" src="' + chatroomPhoto + '" />' +
                 '<span class="app-name">' + chatroomName + '</span>' +
-                '<span class="unread-msg badge badge-pill ml-auto bg-warning' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
+                '<span class="unread-msg badge badge-pill ml-auto bg-warning' + (!unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
             '</li>'
         );
         return html;
@@ -1328,78 +1317,53 @@
         }
     }
 
-    function createChatroom(requireData) {
-        if (!requireData) {
-            return;
-        }
-        var appId = requireData.appId;
-        var appName = requireData.name;
-        var appType = requireData.type;
-        var person = requireData.person;
-        var chatroom = requireData.chatroom;
-        var chatroomId = requireData.chatroomId;
-        var platformUid = requireData.platformUid;
+    function createAppTabCollapse(appId) {
+        let app = apps[appId];
 
-        if (!(chatroom && person)) {
-            return;
-        }
-
-        var messages = chatroom.messages || {};
-        var messageIds = Object.keys(messages);
-        var lastMessage = messages[messageIds[messageIds.length - 1]];
-
-        // 左邊的客戶清單排列
-        var messager = findChatroomMessager(appId, chatroomId, appType);
-        var messagerSelf = findMessagerSelf(appId, chatroomId);
-        var clientUiOpts = {
-            appId: appId,
-            appName: appName,
-            appType: appType,
-            chatroom: chatroom,
-            chatroomId: chatroomId,
-            platformUid: platformUid,
-            clientName: (messagerSelf.namings && messagerSelf.namings[platformUid]) || (messager.namings && messager.namings[platformUid]) || person.name,
-            clientPhoto: person.photo,
-            iconSrc: LOGOS[appType] || '',
-            unRead: messagerSelf.unRead || 0,
-            messageHtml: messageToClientHtml(lastMessage)
-        };
-
-        switch (appType) {
+        let chatroomTabIcon = '';
+        switch (app.type) {
             case LINE:
-                clientUiOpts.icon = 'fab fa-line';
+                chatroomTabIcon = 'fab fa-line';
                 break;
             case FACEBOOK:
-                clientUiOpts.icon = 'fab fa-facebook-messenger';
+                chatroomTabIcon = 'fab fa-facebook-messenger';
                 break;
             case WECHAT:
-                clientUiOpts.icon = 'fab fa-weixin';
+                chatroomTabIcon = 'fab fa-weixin';
                 break;
             case CHATSHIER:
             default:
-                clientUiOpts.icon = 'fas fa-copyright';
+                chatroomTabIcon = 'fas fa-copyright';
                 break;
         }
 
-        var chatroomItemHtml = generateChatroomItemHtml(clientUiOpts);
-        var $appCollapse = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + appType + '"]');
-        var $chatroomCollapse = $appCollapse.find('.collapse[app-id="' + appId + '"]');
-        if (0 === $chatroomCollapse.length) {
-            $appCollapse.append(
-                '<li class="text-light nested list-group-item has-collapse" app-id="' + appId + '" app-type="' + appType + '">' +
-                    '<i class="' + clientUiOpts.icon + '"></i>' +
-                    '<span>' + (CHATSHIER === appType ? appName.replace('Chatshier - ', '') : appName) + '</span>' +
-                    '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
-                '</li>' +
-                '<div class="collapse nested show" app-id="' + appId + '" app-type="' + appType + '">' +
-                    chatroomItemHtml +
-                '</div>'
-            );
-        } else {
-            $chatroomCollapse.append(chatroomItemHtml);
+        let $appCollapse = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"]');
+        $appCollapse.append(
+            '<li class="text-light nested list-group-item has-collapse" app-id="' + appId + '" app-type="' + app.type + '">' +
+                '<i class="' + chatroomTabIcon + '"></i>' +
+                '<span>' + (CHATSHIER === app.type ? app.name.replace('Chatshier - ', '') : app.name) + '</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested show" app-id="' + appId + '" app-type="' + app.type + '"></div>'
+        );
+    }
+
+    function createChatroomTab(appId, chatroomId, platformUid, person) {
+        var app = apps[appId];
+        var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
+        if (!(app && chatroom && person)) {
+            return;
         }
 
-        var isGroupChatroom = CHATSHIER === appType || !!chatroom.platformGroupId;
+        var messagerSelf = findMessagerSelf(appId, chatroomId);
+        person.name = (messagerSelf.namings && messagerSelf.namings[platformUid]) || person.name;
+
+        var chatroomItemHtml = generateChatroomItemHtml(appId, chatroomId, platformUid, person, messagerSelf.unRead || 0);
+        var $appCollapse = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"]');
+        var $chatroomCollapse = $appCollapse.find('.collapse[app-id="' + appId + '"]');
+        $chatroomCollapse.append(chatroomItemHtml);
+
+        var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
         var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
         !isGroupChatroom && (tablinksSelectQuery += '[platform-uid="' + platformUid + '"]');
 
@@ -1431,8 +1395,8 @@
         // 如果非 Chatshier 內部聊天室，代表為平台聊天室
         // 檢查此聊天室的平台客戶是否有指派給自己
         // 將已指派與未指派的聊天室分門別類
-        if (CHATSHIER !== appType) {
-            var messagerConsumer = findChatroomMessager(appId, chatroomId, appType);
+        if (CHATSHIER !== app.type) {
+            var messagerConsumer = findChatroomMessager(appId, chatroomId, app.type);
             var agents = appsAgents[appId].agents;
             var assigneeIds = (messagerConsumer.assigned_ids || []).filter((agentUserId) => !!agents[agentUserId]);
 
