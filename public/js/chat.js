@@ -1653,23 +1653,6 @@
         }
     }
 
-    function messageToClientHtml(message) {
-        if (!message) {
-            return '<div class="client-message" message-time="0"></div>';
-        }
-
-        // 判斷客戶傳送的是檔案，貼圖還是文字，回傳對應的 html
-        var lastMsgText = {
-            image: '圖像',
-            video: '影像',
-            audio: '聲音',
-            sticker: '貼圖',
-            location: '地理位置'
-        }[message.type] || loadMessageInDisplayClient(message.text);
-
-        return '<div class="client-message" message-time="' + message.time + '">' + toTimeStr(message.time) + lastMsgText + '</div>';
-    }
-
     function historyMessageToHtml(messages, messagers, messagerSelf, appType) {
         var html = '';
         var nowDateStr = '';
