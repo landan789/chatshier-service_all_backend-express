@@ -28,7 +28,8 @@ module.exports = (function() {
                 createdTime: true,
                 updatedTime: true,
                 webhook_id: true,
-                isDeleted: true
+                isDeleted: true,
+                hideAgentName: true
             };
         }
 
@@ -92,7 +93,8 @@ module.exports = (function() {
                 webhook_id: CHATSHIER === postApp.type ? '' : webhookId,
                 isDeleted: false,
                 updatedTime: Date.now(),
-                createdTime: Date.now()
+                createdTime: Date.now(),
+                hideAgentName: false
             };
             let newApp = new this.AppsModel(_apps);
 

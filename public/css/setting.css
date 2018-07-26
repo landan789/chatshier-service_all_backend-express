@@ -287,7 +287,6 @@ p:empty:not(:focus)::before {
         -webkit-transform: scale(1.2);
         transform: scale(1.2);
     }
-    .apps-body .bot-item .fa-facebook {
 
 @media (min-width: 576px) {
     .apps-body.card-columns {
@@ -298,4 +297,3 @@ p:empty:not(:focus)::before {
     .apps-body.card-columns {
         column-count: 3; }
 }
-
