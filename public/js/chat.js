@@ -25,7 +25,7 @@
         [WECHAT]: 'https://cdn.worldvectorlogo.com/logos/wechat.svg',
         [CHATSHIER]: 'image/logo-no-transparent.png'
     };
-    var newMessageTipText = '📩 (有新訊息)';
+    var newMessageTipText = '🔔(有新訊息)';
 
     var DEFAULT_CHATROOM_NAME = '部門聊天室';
     var SOCKET_NAMESPACE = '/chatshier';
