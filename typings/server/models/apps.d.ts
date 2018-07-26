@@ -13,8 +13,7 @@ declare module Chatshier {
             token1: string,
             token2: string,
             type: 'LINE' | 'FACEBOOK' | 'WECHAT' | 'CHATSHIER',
-            webhook_id: string,
-            hideAgentName: boolean
+            webhook_id: string
         }
     }
 }
