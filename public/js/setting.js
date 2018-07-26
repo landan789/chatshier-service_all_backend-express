@@ -89,8 +89,8 @@
     // 停用所有 form 的提交
     $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
-    $(document).on('click', '.enter-popover', function() {
-        $(this).find('[data-toggle="popover"]').popover();
+    $(document).on('click', '[data-toggle="popover"]', function() {
+        $(this).popover();
     });
 
     $(document).on('click', '#changePasswordBtn', function(ev) {
@@ -963,12 +963,6 @@
 
     function generateAppItem(appId, app) {
         let baseWebhookUrl = window.CHATSHIER.URL.webhookUrl;
-        let content = '<div class="form-check mt-3">'+
-            '<input class="form-check-input" type="checkbox" value="' + (app.hasAgentName ? 'show' : 'hide') + '" id="show-agent-name" app-id="' + appId + '" ' + (app.hasAgentName ? 'checked' : '') + '/>' +
-            '<label class="form-check-label">' +
-                '回復訊息顯示專員名稱' +
-            '</label>'+
-        '</div>';
         let itemHtml = (
             '<div class="shadow card text-dark bot-item" app-id="' + appId + '">' +
                 '<div class="bar">' +
@@ -1018,15 +1012,6 @@
                                 return '';
                         }
                     })() +
-
-                    '<div class="my-3">' +
-                        '<button type="button" class="mr-1 btn btn-light btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                            '<i class="fas fa-edit"></i>' +
-                        '</button>' +
-                        '<button class="ml-1 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
-                            '<i class="fas fa-trash-alt"></i>' +
-                        '</button>' +
-                    '</div>' +
 
                     '<label class="font-weight-bold">Webhook URL:</label>' +
                         '<div class="text-muted-muted app-webhook-id" app-type="' + app.type + '" ' + (FACEBOOK === app.type ? '' : 'data-toggle="tooltip"') +  ' data-placement="top" title="點擊複製至剪貼簿">' +
