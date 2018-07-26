@@ -186,14 +186,16 @@
 .message[message-type="template"] .content .template-sm-buttons .template-confirm {
     overflow: hidden;
     font-weight: bold;
-    font-size: 1rem; }
+    font-size: 1rem;
+    cursor: help; }
 
 .message {
     width: 100%;
     padding: 0 10px;
     line-height: normal; }
     .message .content {
-        max-width: 80%; }
+        max-width: 80%;
+        align-items: flex-end; }
         .message .content.words {
             padding: .75rem;
             border: 1px solid #b5e7a0;
@@ -208,7 +210,6 @@
         .message .content.media.buttons-format,
         .message .content.media.confirm-format,
         .message .content.media.carousel-format {
-            position: relative;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch; }
         .message .content.media.confirm-format {
@@ -300,6 +301,8 @@
     align-items: flex-end; }
     .message-group.right-side {
         flex-direction: row-reverse; }
+        .message-group.right-side .content {
+            justify-content: flex-end; }
         .message-group.right-side .words {
             text-align: justify; }
 
@@ -629,6 +632,7 @@
         overflow-y: hidden;
         background-color: white; }
         .template .top-img-container img {
+            min-height: 100%;
             border-radius: 1rem 1rem 0 0; }
     .template .template-title {
         font-weight: bold;
@@ -675,12 +679,7 @@
 
 @media (min-width: 1700px) {
     ::-webkit-scrollbar { 
-        display: none; 
-    }
-    .message .content.media.carousel-format {
-        position: relative;
-        overflow-x: visible;
-        height: 28rem; }
+        display: none; }
     .message .content {
         max-width: 90%; }
 }

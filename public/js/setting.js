@@ -971,6 +971,8 @@
         '</div>';
         let itemHtml = (
             '<div class="shadow card text-dark bot-item" app-id="' + appId + '">' +
+                '<div class="bar">' +
+                '</div>' +
                 '<div class="p-3 card-body">' +
                     '<div class="row">' +
                         '<div class="mb-3 d-flex align-items-center col-md-6">' +
@@ -1031,21 +1033,23 @@
                         ( FACEBOOK === app.type ? '--' : createWebhookUrl(baseWebhookUrl, app.webhook_id)) +
                     '</div>' +
 
-                    '<div class="position-absolute w-100 p-3 d-flex justify-content-between footer-buttons">' +
-                        '<div class="w-100" data-toggle="tooltip" data-placement="top" title="設定金流服務">' +
-                            '<button type="button" class="mr-1 btn btn-block set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
-                                '<i class="fas fa-hand-holding-usd fa-fw text-muted fa-1p5x"></i>' +
-                            '</button>' +
-                        '</div>' +
-                        (FACEBOOK !== app.type ? '<div class="w-100" data-toggle="tooltip" data-placement="top" title="編輯">' +
-                            '<button type="button" class="mr-2 btn btn-block edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                                '<i class="far fa-edit text-muted fa-1p5x"></i>' +
-                            '</button>' +
-                        '</div>' : '') +
-                        '<div class="w-100" data-toggle="tooltip" data-placement="top" title="刪除">' +
-                            '<button class="btn btn-block remove-app-btn" app-id="' + appId + '">' +
-                                '<i class="far fa-trash-alt text-muted fa-1p5x"></i>' +
-                            '</button>' +
+                    '<div class="position-absolute w-100 p-3 footer-buttons">' +
+                        '<div class="d-flex justify-content-around">' + 
+                            '<div class="" data-toggle="tooltip" data-placement="top" title="設定金流服務">' +
+                                '<button type="button" class="mr-1 btn btn-block set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
+                                    '<i class="fas fa-hand-holding-usd fa-fw text-muted fa-1p5x"></i>' +
+                                '</button>' +
+                            '</div>' +
+                            (FACEBOOK !== app.type ? '<div class="" data-toggle="tooltip" data-placement="top" title="編輯">' +
+                                '<button type="button" class="mr-2 btn btn-block edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
+                                    '<i class="far fa-edit text-muted fa-1p5x"></i>' +
+                                '</button>' +
+                            '</div>' : '') +
+                            '<div class="" data-toggle="tooltip" data-placement="top" title="刪除">' +
+                                '<button class="btn btn-block remove-app-btn" app-id="' + appId + '">' +
+                                    '<i class="far fa-trash-alt text-muted fa-1p5x"></i>' +
+                                '</button>' +
+                            '</div>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
