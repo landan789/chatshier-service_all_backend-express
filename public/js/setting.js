@@ -944,31 +944,40 @@
     function generateAppItem(appId, app) {
         let baseWebhookUrl = window.CHATSHIER.URL.webhookUrl;
         let itemHtml = (
-            '<div class="shadow-sm card text-dark bot-item" app-id="' + appId + '">' +
+            '<div class="shadow card text-dark bot-item" app-id="' + appId + '">' +
                 '<div class="p-3 card-body">' +
                     '<div class="mb-3 d-flex align-items-center">' +
-                        '<i class="mr-2 fas fa-user-astronaut fa-fw fa-2x text-muted"></i>' +
-                        '<span class="font-weight-bold app-name" style="overflow-x: hidden">' + app.name + '</span>' +
+                        '<i class="mr-2 fas fa-user-astronaut fa-fw fa-3x text-chsr"></i>' +
+                        '<span class="font-weight-bolde d-inline-grid">' +
+                            '<div class="app-name text-dark font-weight-bold">' + app.name + '</div>' +
+                            '<div class="app-id1 font-weight-light">' + app.id1 + '</div>' + 
+                        '</span>' +
                     '</div>' +
                     (function() {
                         switch (app.type) {
                             case LINE:
                                 return (
-                                    '<div class="my-4 d-flex justify-content-center align-items-center">' +
+                                    '<div class="my-5 d-flex justify-content-center align-items-center">' +
                                         '<i class="fab fa-line fa-fw fa-6x line-color"></i>' +
                                     '</div>'
                                 );
                             case FACEBOOK:
                                 return (
-                                    '<div class="my-4 d-flex justify-content-center align-items-center">' +
-                                        '<i class="fab fa-facebook-messenger fa-fw fa-6x fb-messsenger-color"></i>' +
-                                        '<i class="fab fa-facebook fa-fw fa-6x fb-color"></i>' +
+                                    '<div class="my-5 d-flex justify-content-center align-items-center">' +
+                                        '<span class="position-relative">' +
+                                            '<i class="fab fa-facebook-messenger fa-fw fa-4x fb-messsenger-color position-absolute"></i>' +
+                                            '<i class="fab fa-facebook-messenger fa-fw fa-4x text-white pseudo position-absolute"></i>' +
+                                            '<i class="fas fa-circle fa-fw fa-4x text-white fb-pseudo-block position-absolute"></i>' +
+                                            '<i class="fab fa-facebook fa-fw fa-6x fb-color"></i>' +
+                                        '</span>' +
                                     '</div>'
                                 );
                             case WECHAT:
                                 return (
-                                    '<div class="my-4 d-flex justify-content-center align-items-center">' +
-                                        '<i class="fab fa-weixin fa-fw fa-6x wechat-color"></i>' +
+                                    '<div class="my-5 d-flex justify-content-center align-items-center">' +
+                                        '<span class="position-relative">' +
+                                            '<i class="fab fa-weixin fa-fw fa-6x wechat-color position-absolute"></i>' +
+                                        '</span>' +
                                     '</div>'
                                 );
                             default:
@@ -976,25 +985,25 @@
                         }
                     })() +
 
-                    (FACEBOOK !== app.type ? '<label class="font-weight-bold">Webhook URL:</label>' +
-                        '<div class="text-muted app-webhook-id" app-type="' + app.type + '" data-toggle="tooltip" data-placement="top" title="點擊複製至剪貼簿">' +
-                        createWebhookUrl(baseWebhookUrl, app.webhook_id) +
-                    '</div>' : '') +
+                    '<label class="font-weight-bold">Webhook URL:</label>' +
+                        '<div class="text-muted-muted app-webhook-id" app-type="' + app.type + '" ' + (FACEBOOK === app.type ? '' : 'data-toggle="tooltip"') +  ' data-placement="top" title="點擊複製至剪貼簿">' +
+                        ( FACEBOOK === app.type ? '--' : createWebhookUrl(baseWebhookUrl, app.webhook_id)) +
+                    '</div>' +
 
                     '<div class="position-absolute w-100 p-3 d-flex justify-content-between footer-buttons">' +
                         '<div class="w-100" data-toggle="tooltip" data-placement="top" title="設定金流服務">' +
-                            '<button type="button" class="mr-1 btn btn-block btn-outline-dark set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
-                                '<i class="text-warning fas fa-money-check-alt fa-fw"></i>' +
+                            '<button type="button" class="mr-1 btn btn-block set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
+                                '<i class="fas fa-hand-holding-usd fa-fw text-muted fa-1p5x"></i>' +
                             '</button>' +
                         '</div>' +
                         (FACEBOOK !== app.type ? '<div class="w-100" data-toggle="tooltip" data-placement="top" title="編輯">' +
-                            '<button type="button" class="mr-2 btn btn-block btn-outline-dark edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                                '<i class="fas fa-edit"></i>' +
+                            '<button type="button" class="mr-2 btn btn-block edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
+                                '<i class="far fa-edit text-muted fa-1p5x"></i>' +
                             '</button>' +
                         '</div>' : '') +
                         '<div class="w-100" data-toggle="tooltip" data-placement="top" title="刪除">' +
-                            '<button class="btn btn-block btn-outline-danger remove-app-btn" app-id="' + appId + '">' +
-                                '<i class="fas fa-trash-alt"></i>' +
+                            '<button class="btn btn-block remove-app-btn" app-id="' + appId + '">' +
+                                '<i class="far fa-trash-alt text-muted fa-1p5x"></i>' +
                             '</button>' +
                         '</div>' +
                     '</div>' +
@@ -1680,7 +1689,7 @@
     // ===============
 
     // ===============
-    // #region 內部群組代碼區塊
+    // #region 內部部門代碼區塊
     (function() {
         let api = window.restfulAPI;
         let MEMBER_TYPES = api.groupsMembers.TYPES;
@@ -1694,7 +1703,7 @@
         let $groupElems = {};
 
         $groupAddModal.on('show.bs.modal', function() {
-            // 新增群組 modal 顯示時，清空上一次輸入的名稱
+            // 新增部門 modal 顯示時，清空上一次輸入的名稱
             $groupAddModal.find('input[name="groupAddName"]').val('');
         });
 
@@ -1730,22 +1739,22 @@
                     '</div>' +
                     '<div id="' + groupId + '" class="chsr-group card-collapse collapse">' +
                         '<div class="px-3 py-2 ' + (MEMBER_TYPES.OWNER === member.type || MEMBER_TYPES.ADMIN === member.type ? '' : 'd-none') + '">' +
-                            '<label for="group_name" class="col-form-label">群組名稱: </label>' +
+                            '<label for="group_name" class="col-form-label">部門名稱: </label>' +
                             '<div class="input-container">' +
                                 '<div class="input-group group-name" id="group_name">' +
-                                    '<input class="group-name-input form-control" type="text" value="' + groupName + '" placeholder="我的群組" />' +
+                                    '<input class="group-name-input form-control" type="text" value="' + groupName + '" placeholder="我的部門" />' +
                                     '<span class="input-group-btn btn-update">' +
                                         '<button class="btn btn-primary">更新</button>' +
                                     '</span>' +
                                 // '<span class="input-group-btn btn-delete">' +
-                                //     '<button class="btn btn-danger">刪除群組</button>' +
+                                //     '<button class="btn btn-danger">刪除部門</button>' +
                                 // '</span>' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
 
                         // '<div class="px-3 py-2">' +
-                        //     '<label for="group_photo" class="col-form-label">群組圖片 (URL): </label>' +
+                        //     '<label for="group_photo" class="col-form-label">部門圖片 (URL): </label>' +
                         //     '<div class="input-container">' +
                         //         '<div class="input-group file-container" id="group_photo">' +
                         //             '<span class="input-group-btn">' +
@@ -1801,12 +1810,12 @@
             };
 
             GroupPanelCtrl.prototype.generateMemberHtml = function(memberId, memberUser, member, memberSelf) {
-                // 只有群組成員本人可以確認是否加入群組
+                // 只有部門成員本人可以確認是否加入部門
                 let canJoin = member.user_id === userId && !member.status;
 
-                // 群組擁有者及管理員可以踢掉群組成員
-                // 群組成員可以自行離開群組
-                // 群組擁有者不能離開群組
+                // 部門擁有者及管理員可以踢掉部門成員
+                // 部門成員可以自行離開部門
+                // 部門擁有者不能離開部門
                 let canDelete =
                     (MEMBER_TYPES.OWNER === memberSelf.type ||
                     MEMBER_TYPES.ADMIN === memberSelf.type ||
@@ -1878,8 +1887,8 @@
                 let memberSelf = members[Object.keys(members)[index]];
                 $groupBody.append(instance.generateGroupHtml(groupId, group.name, memberSelf));
 
-                // #region 每個群組相關事件宣告
-                // 將群組中經常取用的 element 一次抓取出來，方便存取
+                // #region 每個部門相關事件宣告
+                // 將部門中經常取用的 element 一次抓取出來，方便存取
                 let $collapse = $groupBody.find('.card-collapse#' + groupId);
                 $groupElems[groupId] = {
                     $collapse: $collapse,
@@ -1894,12 +1903,12 @@
                     $permissionText: $collapse.find('.permission .permission-text')
                 };
 
-                // 群組展開時將其他群組收縮起來
+                // 部門展開時將其他部門收縮起來
                 $collapse.on('show.bs.collapse', function(e) {
                     instance.hideCollapseAll(e.target.id);
                 });
 
-                // 使用者更新群組名稱的事件處理
+                // 使用者更新部門名稱的事件處理
                 $collapse.on('click', '.group-name .btn-update', function() {
                     let groupData = {
                         name: $(this).parent().find('input').val()
@@ -1915,17 +1924,17 @@
                     return api.groups.update(groupId, userId, groupData).then(function() {
                         groups[groupId].name = groupData.name;
                         $collapse.parent().find('.group-tab .group-name[aria-controls="' + groupId + '"]').text(groupData.name);
-                        $.notify('群組名稱更新成功！', { type: 'success' });
+                        $.notify('部門名稱更新成功！', { type: 'success' });
                     }).catch(function() {
-                        $.notify('群組名稱更新失敗！', { type: 'danger' });
+                        $.notify('部門名稱更新失敗！', { type: 'danger' });
                     }).then(function() {
                         $updateButton.removeAttr('disabled');
                     });
                 });
 
-                // 使用者刪除群組的事件處理
+                // 使用者刪除部門的事件處理
                 $collapse.on('click', '.group-name .btn-delete', function() {
-                    if (!confirm('確定刪除此群組嗎？')) {
+                    if (!confirm('確定刪除此部門嗎？')) {
                         return;
                     }
 
@@ -1936,7 +1945,7 @@
                     });
                 });
 
-                // 使用者更新群組頭像的事件處理
+                // 使用者更新部門頭像的事件處理
                 $collapse.on('click', '.file-container .btn-update', function() {
                     let groupData = {
                         photo: $groupElems[groupId].groupImgBase64 || ''
@@ -1949,7 +1958,7 @@
                     return api.groups.update(groupId, userId, groupData).then(function() {
                         groups[groupId].photo = groupData.photo;
                         delete $groupElems[groupId].groupImgBase64;
-                        $.notify('群組圖像上傳成功！', { type: 'success' });
+                        $.notify('部門圖像上傳成功！', { type: 'success' });
                     });
                 });
 
@@ -1979,7 +1988,7 @@
                             userid: memberUserId
                         };
 
-                        // 成功更新群組成員後，將新成員的資料合併至本地端的群組資料
+                        // 成功更新部門成員後，將新成員的資料合併至本地端的部門資料
                         // 並且清除新增成員的 email 欄位
                         return api.groupsMembers.insert(groupId, userId, postMemberData).then(function(resJson) {
                             let groupMembers = resJson.data[groupId].members;
@@ -2008,9 +2017,9 @@
                     }).then(function() {
                         $groupElems[groupId].$memberEmail.val('');
                         $groupElems[groupId].$permissionText.text('權限');
-                        $.notify('群組成員新增成功', { type: 'success' });
+                        $.notify('部門成員新增成功', { type: 'success' });
                     }).catch(function() {
-                        $.notify('群組成員新增失敗', { type: 'danger' });
+                        $.notify('部門成員新增失敗', { type: 'danger' });
                     }).then(function() {
                         $addButton.removeAttr('disabled');
                     });
@@ -2093,7 +2102,7 @@
                 });
                 // #endregion
 
-                // 將群組內的成員資料載入至畫面上
+                // 將部門內的成員資料載入至畫面上
                 for (let memberId in group.members) {
                     instance.addMemberToList(groupId, memberId, group.members[memberId], memberSelf);
                 }
@@ -2113,7 +2122,7 @@
                 let $memberStatus = $memberRow.find('.status');
                 let $memberActions = $memberRow.find('.actions');
 
-                // 使用者點擊群組內的事件處理
+                // 使用者點擊部門內的事件處理
                 $memberPermission.on('click', function() {
                     let $permissionItem = $(this);
                     let $permissionText = $permissionItem.find('.permission-text');
@@ -2128,10 +2137,10 @@
                         // 想變更的權限與目前的權限一樣，無需執行更新
                         return;
                     } else if (MEMBER_TYPES.OWNER === groups[groupId].members[memberId].type) {
-                        $.notify('群組擁有者無法變更權限', { type: 'warning' });
+                        $.notify('部門擁有者無法變更權限', { type: 'warning' });
                         return;
                     } else if (wantPermission === MEMBER_TYPES.OWNER) {
-                        $.notify('權限無法變更為群組擁有者', { type: 'warning' });
+                        $.notify('權限無法變更為部門擁有者', { type: 'warning' });
                         return;
                     }
 
@@ -2153,14 +2162,14 @@
                     let putMemberData = { status: true };
                     let $self = $(this);
                     return api.groupsMembers.update(groupId, memberId, userId, putMemberData).then(function() {
-                        // 更新 API，加入群組
+                        // 更新 API，加入部門
                         groups[groupId].members[memberId].status = putMemberData.status;
                         $memberStatus.find('.active').removeClass('d-none');
                         $memberStatus.find('.inactive').addClass('d-none');
                         $self.remove();
-                        $.notify('您已加入 "' + groups[groupId].name + '" 群組', { type: 'success' });
+                        $.notify('您已加入 "' + groups[groupId].name + '" 部門', { type: 'success' });
                     }).catch(() => {
-                        $.notify('加入群組失敗', { type: 'danger' });
+                        $.notify('加入部門失敗', { type: 'danger' });
                     });
                 });
 
@@ -2169,7 +2178,7 @@
                     let memberUserId = member.user_id;
 
                     if (MEMBER_TYPES.OWNER === member.type) {
-                        $.notify('群組擁有者無法刪除', { type: 'warning' });
+                        $.notify('部門擁有者無法刪除', { type: 'warning' });
                         return;
                     } else if (!confirm('確定刪除此成員嗎？')) {
                         return;
@@ -2180,7 +2189,7 @@
                         $memberRow.remove();
                         delete groups[groupId].members[memberId];
 
-                        // 如果是群組成員自行離開群組，離開後刪除整個群組資料
+                        // 如果是部門成員自行離開部門，離開後刪除整個部門資料
                         if (memberUserId === userId) {
                             $groupBody.find('.group-tab[group-id="' + groupId + '"]').remove();
                             $groupBody.find('.card-collapse#' + groupId).remove();
@@ -2210,7 +2219,7 @@
 
         $('.nav-link[data-toggle="pill"]').on('shown.bs.tab', function(ev) {
             if ('#internal-group' !== ev.target.hash) {
-                // 非內部群組頁面不處理
+                // 非內部部門頁面不處理
                 $groupAddSubmit.off('click').on('click', insertOneGroup);
                 return;
             }

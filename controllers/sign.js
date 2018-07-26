@@ -8,7 +8,7 @@ module.exports = (function() {
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
     const CHATSHIER = require('../config/chatshier');
-    const OF_GROUP = '的群組';
+    const OF_GROUP = '的部門';
 
     let grecaptchaHlp = require('../helpers/grecaptcha');
     let ciperHlp = require('../helpers/cipher');
