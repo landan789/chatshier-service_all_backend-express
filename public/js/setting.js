@@ -89,6 +89,10 @@
     // 停用所有 form 的提交
     $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
+    $(document).on('click', '.enter-popover', function() {
+        $(this).find('[data-toggle="popover"]').popover();
+    });
+
     $(document).on('click', '#changePasswordBtn', function(ev) {
         let $changePasswordCollapse = $('#changePasswordCollapse');
         $(ev.target).text($changePasswordCollapse.hasClass('show') ? '展開' : '關閉');
@@ -769,21 +773,20 @@
         appTypeChange({ target: $appTypeSelect.get(0) });
     });
 
-    $(document).on('change', '#hide-agent-name', function() {
+    $(document).on('change', '#show-agent-name', function() {
         let appId = $(this).attr('app-id');
         let status = $(this).val();
         let putApp;
-        if (status === 'show') {
-            putApp = { hideAgentName: true };
+        if (status === 'hide') {
+            putApp = { hasAgentName: true };
             $(this).attr('checked', true);
-            $(this).val('hide');
-            updateOneApp(appId, putApp);
-        } else {
-            putApp = { hideAgentName: false };
-            $(this).removeAttr('checked');
             $(this).val('show');
-            updateOneApp(appId, putApp);
+        } else {
+            putApp = { hasAgentName: false };
+            $(this).removeAttr('checked');
+            $(this).val('hide');
         }
+        updateOneApp(appId, putApp);
     });
 
     function findAllGroups() {
@@ -960,15 +963,27 @@
 
     function generateAppItem(appId, app) {
         let baseWebhookUrl = window.CHATSHIER.URL.webhookUrl;
+        let content = '<div class="form-check mt-3">'+
+            '<input class="form-check-input" type="checkbox" value="' + (app.hasAgentName ? 'show' : 'hide') + '" id="show-agent-name" app-id="' + appId + '" ' + (app.hasAgentName ? 'checked' : '') + '/>' +
+            '<label class="form-check-label">' +
+                '回復訊息顯示專員名稱' +
+            '</label>'+
+        '</div>';
         let itemHtml = (
             '<div class="shadow card text-dark bot-item" app-id="' + appId + '">' +
                 '<div class="p-3 card-body">' +
-                    '<div class="mb-3 d-flex align-items-center">' +
-                        '<i class="mr-2 fas fa-user-astronaut fa-fw fa-3x text-chsr"></i>' +
-                        '<span class="font-weight-bolde d-inline-grid">' +
-                            '<div class="app-name text-dark font-weight-bold">' + app.name + '</div>' +
-                            '<div class="app-id1 font-weight-light">' + app.id1 + '</div>' + 
-                        '</span>' +
+                    '<div class="row">' +
+                        '<div class="mb-3 d-flex align-items-center col-md-6">' +
+                            '<i class="mr-2 fas fa-user-astronaut fa-fw fa-3x text-chsr"></i>' +
+                            '<span class="font-weight-bolde d-inline-grid">' +
+                                '<div class="app-name text-dark font-weight-bold">' + app.name + '</div>' +
+                                '<div class="app-id1 font-weight-light">' + app.id1 + '</div>' + 
+                            '</span>' +
+                        '</div>' +
+                        '<div class="enter-popover col-md-6">' +
+                            `<i class="fas fa-ellipsis-v fa-2x mt-2 float-right" title="設定" data-toggle="popover" data-placement="left" data-html="true" data-content="<div class='form-check mt-3'><input class='form-check-input' type='checkbox' value='${(app.hasAgentName ? 'show' : 'hide')}' id='show-agent-name' app-id='${appId}' ${(app.hasAgentName ? 'checked' : '')}/><label class='form-check-label'>回復訊息顯示專員名稱</label></div>">` +
+                            '</i>' +
+                        '</div>' +
                     '</div>' +
                     (function() {
                         switch (app.type) {
@@ -1009,12 +1024,6 @@
                         '<button class="ml-1 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
                             '<i class="fas fa-trash-alt"></i>' +
                         '</button>' +
-                        '<div class="form-check mt-3">'+
-                            '<input class="form-check-input" type="checkbox" value="' + (app.hideAgentName ? 'hide' : 'show') + '" id="hide-agent-name" app-id="' + appId + '" ' + (app.hideAgentName ? 'checked' : '') + '/>' +
-                            '<label class="form-check-label">' +
-                                '回復訊息不顯示專員名稱' +
-                            '</label>'+
-                        '</div>' +
                     '</div>' +
 
                     '<label class="font-weight-bold">Webhook URL:</label>' +

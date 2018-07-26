@@ -29,7 +29,7 @@ module.exports = (function() {
                 updatedTime: true,
                 webhook_id: true,
                 isDeleted: true,
-                hideAgentName: true
+                hasAgentName: true
             };
         }
 
@@ -94,7 +94,7 @@ module.exports = (function() {
                 isDeleted: false,
                 updatedTime: Date.now(),
                 createdTime: Date.now(),
-                hideAgentName: false
+                hasAgentName: true
             };
             let newApp = new this.AppsModel(_apps);
 

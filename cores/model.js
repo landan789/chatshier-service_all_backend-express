@@ -230,7 +230,7 @@ module.exports = (function() {
         'type': {type: String, default: ''},
         'webhook_id': {type: String, default: ''},
         'isDeleted': {type: Boolean, default: false},
-        'hideAgentName': {type: Boolean, default: false},
+        'hasAgentName': {type: Boolean, default: true},
 
         'payments': [PaymentsSchema],
         'autoreplies': [AutorepliesSchema],
