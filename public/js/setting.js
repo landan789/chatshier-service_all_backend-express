@@ -1420,7 +1420,7 @@
 
                 let fieldText = (transJson[field.text] ? transJson[field.text] : (field.text || ''));
                 let $fieldContent = $(
-                    '<div class="card m-2 p-2 col-12 col-lg-6 field-content" id="' + fieldId + '">' +
+                    '<div class="card m-2 p-2 col-12 col-lg-6 field-content shadow" id="' + fieldId + '">' +
                         '<div class="form-group row field-item mb-1">' +
                             '<label class="col-3 col-form-label">名稱:</label>' +
                             '<div class="col-9 d-flex align-items-center">' +
@@ -1827,7 +1827,7 @@
                     MEMBER_TYPES.OWNER !== member.type;
 
                 let html =
-                    '<div class="col-12 m-2 card justify-content-around group-member" member-id="' + memberId + '">' +
+                    '<div class="col-12 m-2 card justify-content-around group-member shadow" member-id="' + memberId + '">' +
                         '<div class="d-flex flex-nowrap align-items-center w-100 user chips">' +
                             '<div class="avatar-container">' +
                                 '<img class="member-avatar" src="image/avatar-default.png" alt="Member avatar" />' +
