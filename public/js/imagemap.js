@@ -18,6 +18,9 @@
 
     var $modal = $('#imagemap-modal');
 
+    /** @type {Chatshier.Models.AppsImagemaps} */
+    var appsImagemaps = {};
+
     // const NO_PERMISSION_CODE = '3.16'; // not sure what this is for
 
     const handleMessages = {
@@ -568,48 +571,49 @@
         }).then(() => {
             return api.appsImagemaps.findAll(appId, userId);
         }).then(function(resJson) {
-            let appsImagemaps = resJson.data;
+            appsImagemaps = resJson.data;
             let imagemaps = appsImagemaps[appId] ? appsImagemaps[appId].imagemaps : {};
-            let imagemapIds = Object.keys(imagemaps);
-            let activeImagemaps = imagemapIds.filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
-            activeImagemaps.forEach((imagemapId) => {
-                groupType(imagemapId, imagemaps[imagemapId], appId);
+
+            let imagemapIds = Object.keys(imagemaps).sort((a, b) => {
+                let updatedTimeA = new Date(imagemaps[a].updatedTime);
+                let updatedTimeB = new Date(imagemaps[b].updatedTime);
+
+                if (updatedTimeA < updatedTimeB) {
+                    return 1;
+                } else if (updatedTimeA > updatedTimeB) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }).filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
+
+            let $imagemapList = $('#imagemap-list').empty();
+            imagemapIds.forEach((imagemapId) => {
+                let imagemap = imagemaps[imagemapId];
+                let linkText = imagemap.actions.map((action) => {
+                    switch (action.type) {
+                        case 'uri':
+                            return action.linkUri;
+                        case 'message':
+                            return action.text;
+                        default:
+                            return '';
+                    }
+                }).join('，');
+
+                $imagemapList.append(
+                    '<tr id="' + imagemapId + '" rel="' + appId + '">' +
+                        '<th>' + imagemap.title + '</th>' +
+                        '<td id="photoForm" data-form="' + imagemap.form + '" data-url="' + imagemap.baseUrl + '">種類 ' + imagemap.form.slice(-1) + '</td>' +
+                        '<td>' + linkText + '</td>' +
+                        '<td>' +
+                            '<button type="button" id="turnOn-update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#imagemap-modal" aria-hidden="true"></button>' +
+                            '<button type="button" id="remove-btn" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove"></button>' +
+                        '</td>' +
+                    '</tr>'
+                );
             });
         });
-    }
-
-    function groupType(imagemapId, imagemap, appId) {
-        let linkText = '';
-        for (let i = 0; i < imagemap.actions.length; i++) {
-            if (0 === i) {
-                linkText = linkText + actionType(imagemap.actions[i]);
-            } else {
-                linkText = linkText + '，' + actionType(imagemap.actions[i]);
-            }
-        }
-
-        var trGrop =
-            '<tr id="' + imagemapId + '" rel="' + appId + '">' +
-                '<th>' + imagemap.title + '</th>' +
-                '<td id="photoForm" data-form="' + imagemap.form + '" data-url="' + imagemap.baseUrl + '">種類 ' + imagemap.form.slice(-1) + '</td>' +
-                '<td>' + linkText + '</td>' +
-                '<td>' +
-                    '<button type="button" id="turnOn-update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#imagemap-modal" aria-hidden="true"></button>' +
-                    '<button type="button" id="remove-btn" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove"></button>' +
-                '</td>' +
-            '</tr>';
-        $('#imagemap-list').append(trGrop);
-    }
-
-    function actionType(action) {
-        switch (action.type) {
-            case 'uri':
-                return action.linkUri;
-            case 'message':
-                return action.text;
-            default:
-                return '';
-        }
     }
 
     function showBoxInputs(className) {

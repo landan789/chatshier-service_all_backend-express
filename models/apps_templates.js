@@ -51,6 +51,10 @@ module.exports = (function() {
                         // 篩選項目
                         templates: true
                     }
+                }, {
+                    $sort: {
+                        'templates.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 

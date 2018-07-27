@@ -2,17 +2,6 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
 
-    const docUnwind = {
-        $unwind: '$tickets' // 只針對 document 處理
-    };
-
-    const docOutput = {
-        $project: {
-            // 篩選需要的項目
-            tickets: 1
-        }
-    };
-
     class AppsTicketsModel extends ModelCore {
         constructor() {
             super();
@@ -42,13 +31,19 @@ module.exports = (function() {
                 query['tickets._id'] = this.Types.ObjectId(ticketId);
             }
 
-            let aggregations = [
-                docUnwind,
-                {
-                    $match: query
-                },
-                docOutput
-            ];
+            let aggregations = [{
+                $unwind: '$tickets'
+            }, {
+                $match: query
+            }, {
+                $project: {
+                    tickets: true
+                }
+            }, {
+                $sort: {
+                    'templates.createdTime': -1 // 最晚建立的在最前頭
+                }
+            }];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 let appsTickets = {};
@@ -166,13 +161,15 @@ module.exports = (function() {
             }
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                let aggregations = [
-                    docUnwind,
-                    {
-                        $match: query
-                    },
-                    docOutput
-                ];
+                let aggregations = [{
+                    $unwind: '$tickets'
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        tickets: true
+                    }
+                }];
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     let appsTickets = {};

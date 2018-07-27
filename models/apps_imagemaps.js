@@ -40,6 +40,10 @@ module.exports = (function() {
                     $project: {
                         imagemaps: true
                     }
+                }, {
+                    $sort: {
+                        'greetings.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 

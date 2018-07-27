@@ -37,17 +37,19 @@ module.exports = (function() {
                 };
             }
 
-            let aggregations = [
-                {
-                    $unwind: '$events'
-                }, {
-                    $match: query
-                }, {
-                    $project: {
-                        events: 1
-                    }
+            let aggregations = [{
+                $unwind: '$events'
+            }, {
+                $match: query
+            }, {
+                $project: {
+                    events: 1
                 }
-            ];
+            }, {
+                $sort: {
+                    'events.createdTime': -1 // 最晚建立的在最前頭
+                }
+            }];
 
             return this.CalendarsModel.aggregate(aggregations).then((results) => {
                 let calendarEvents = {};
