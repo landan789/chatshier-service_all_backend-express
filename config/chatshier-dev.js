@@ -79,39 +79,41 @@ module.exports = {
         // 2. 使用者授權 app 時，授權的 scope 發生變更
         refreshToken: '1/rBgB_AywuhwQuZpqnYSAfqtVK8u5ll6Vp2S-XDaLY2hzDFEHIU9C9wNXHivtmo-X'
     },
-    PAYMENT_TEST: {
-        // https://vendor-stage.ecpay.com.tw
-        // 帳號: StageTest
-        // 密碼: test1234
-        ECPAY: {
-            MERCHANT_ID: '2000132',
-            HASHKEY: '5294y06JbISpM5x9',
-            HASHIV: 'v77hoKGq4kWxNNIS'
-        },
-        // https://vendor-stage.ecpay.com.tw/Einvoice/Index
-        // 帳號: StageTest
-        // 密碼: test1234
-        ECPAY_INVOICE: {
-            MERCHANT_ID: '2000132',
-            HASHKEY: 'ejCk326UnaZWKisg',
-            HASHIV: 'q9jcZX8Ib9LM8wYk'
-        },
-        // https://cwww.spgateway.com/main/login_center/single_login
-        // 帳號: chatshierTest
-        // 密碼: chatshier2018
-        SPGATEWAY: {
-            MERCHANT_ID: 'MS14252185',
-            HASHKEY: 'iPHEdSO5VGjEomtL0jzUl4VfyLxXhUuK',
-            HASHIV: 'XvE76gjbleESG5Ng'
-        },
-        // https://cinv.pay2go.com/main/Login_center/single_login
-        // 統編: 53212539
-        // 帳號: chatshierTest
-        // 密碼: chatshier2018
-        SPGATEWAY_INVOICE: {
-            MERCHANT_ID: '31104030',
-            HASHKEY: 'FrlNPVjLFPwYRz8cyRg67L4ZTyxunv7W',
-            HASHIV: 'GTCrWZHkx3ySlEs0'
-        }
+    // test key for ECPAY
+    // https://vendor-stage.ecpay.com.tw
+    // 帳號: StageTest
+    // 密碼: test1234
+    ECPAY: {
+        MERCHANT_ID: '2000132',
+        HASHKEY: '5294y06JbISpM5x9',
+        HASHIV: 'v77hoKGq4kWxNNIS'
+    },
+    // test key for ECPAY INVOICE
+    // https://vendor-stage.ecpay.com.tw/Einvoice/Index
+    // 帳號: StageTest
+    // 密碼: test1234
+    ECPAY_INVOICE: {
+        MERCHANT_ID: '2000132',
+        HASHKEY: 'ejCk326UnaZWKisg',
+        HASHIV: 'q9jcZX8Ib9LM8wYk'
+    },
+    // test key for SPGATEWAY
+    // https://cwww.spgateway.com/main/login_center/single_login
+    // 帳號: chatshierTest
+    // 密碼: chatshier2018
+    SPGATEWAY: {
+        MERCHANT_ID: 'MS14252185',
+        HASHKEY: 'iPHEdSO5VGjEomtL0jzUl4VfyLxXhUuK',
+        HASHIV: 'XvE76gjbleESG5Ng'
+    },
+    // test key for SPGATEWAY INVOICE
+    // https://cinv.pay2go.com/main/Login_center/single_login
+    // 統編: 53212539
+    // 帳號: chatshierTest
+    // 密碼: chatshier2018
+    SPGATEWAY_INVOICE: {
+        MERCHANT_ID: '31104030',
+        HASHKEY: 'FrlNPVjLFPwYRz8cyRg67L4ZTyxunv7W',
+        HASHIV: 'GTCrWZHkx3ySlEs0'
     }
 };

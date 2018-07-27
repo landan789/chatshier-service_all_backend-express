@@ -76,9 +76,9 @@ module.exports = (function() {
                 let plainHtml = '';
                 switch (payment.type) {
                     case ECPAY:
-                        if (payment.merchantId === chatshierCfg.PAYMENT_TEST.ECPAY.MERCHANT_ID &&
-                            payment.hashKey === chatshierCfg.PAYMENT_TEST.ECPAY.HASHKEY &&
-                            payment.hashIV === chatshierCfg.PAYMENT_TEST.ECPAY.HASHIV) {
+                        if (payment.merchantId === chatshierCfg.ECPAY.MERCHANT_ID &&
+                            payment.hashKey === chatshierCfg.ECPAY.HASHKEY &&
+                            payment.hashIV === chatshierCfg.ECPAY.HASHIV) {
                             ecpayHlp.mode = 'Test';
                         } else {
                             ecpayHlp.mode = 'Production';
@@ -112,9 +112,9 @@ module.exports = (function() {
                         plainHtml = ecpayHlp.paymentClient.aio_check_out_all(params, {});
                         break;
                     case SPGATEWAY:
-                        if (payment.merchantId === chatshierCfg.PAYMENT_TEST.SPGATEWAY.MERCHANT_ID &&
-                            payment.hashKey === chatshierCfg.PAYMENT_TEST.SPGATEWAY.HASHKEY &&
-                            payment.hashIV === chatshierCfg.PAYMENT_TEST.SPGATEWAY.HASHIV) {
+                        if (payment.merchantId === chatshierCfg.SPGATEWAY.MERCHANT_ID &&
+                            payment.hashKey === chatshierCfg.SPGATEWAY.HASHKEY &&
+                            payment.hashIV === chatshierCfg.SPGATEWAY.HASHIV) {
                             spgatewayHlp.mode = 'TEST';
                         } else {
                             spgatewayHlp.mode = 'PRODUCTION';
@@ -267,9 +267,9 @@ module.exports = (function() {
                 // 因此在智付通支付完成後，必須再使用 Pay2Go 的電子發票 API 來開立發票
                 return Promise.resolve().then(() => {
                     if (ECPAY === payment.type) {
-                        if (payment.invoiceMerchantId === chatshierCfg.PAYMENT_TEST.ECPAY_INVOICE.MERCHANT_ID &&
-                            payment.invoiceHashKey === chatshierCfg.PAYMENT_TEST.ECPAY_INVOICE.HASHKEY &&
-                            payment.invoiceHashIV === chatshierCfg.PAYMENT_TEST.ECPAY_INVOICE.HASHIV) {
+                        if (payment.invoiceMerchantId === chatshierCfg.ECPAY_INVOICE.MERCHANT_ID &&
+                            payment.invoiceHashKey === chatshierCfg.ECPAY_INVOICE.HASHKEY &&
+                            payment.invoiceHashIV === chatshierCfg.ECPAY_INVOICE.HASHIV) {
                             ecpayHlp.mode = 'Test';
                         } else {
                             ecpayHlp.mode = 'Production';
@@ -284,9 +284,9 @@ module.exports = (function() {
                             return putOrder;
                         });
                     } else if (SPGATEWAY === payment.type) {
-                        if (payment.invoiceMerchantId === chatshierCfg.PAYMENT_TEST.SPGATEWAY_INVOICE.MERCHANT_ID &&
-                            payment.invoiceHashKey === chatshierCfg.PAYMENT_TEST.SPGATEWAY_INVOICE.HASHKEY &&
-                            payment.invoiceHashIV === chatshierCfg.PAYMENT_TEST.SPGATEWAY_INVOICE.HASHIV) {
+                        if (payment.invoiceMerchantId === chatshierCfg.SPGATEWAY_INVOICE.MERCHANT_ID &&
+                            payment.invoiceHashKey === chatshierCfg.SPGATEWAY_INVOICE.HASHKEY &&
+                            payment.invoiceHashIV === chatshierCfg.SPGATEWAY_INVOICE.HASHIV) {
                             spgatewayHlp.mode = 'TEST';
                         } else {
                             spgatewayHlp.mode = 'PRODUCTION';
