@@ -20,6 +20,7 @@ const usersCtl = require('../controllers/users');
 const groupsCtl = require('../controllers/groups');
 const groupsMembersCtl = require('../controllers/groups_members');
 
+const appsCategoriesProductsCtl = require('../controllers/apps_categories_products');
 const appsCategoriesCtl = require('../controllers/apps_categories');
 const appsChatroomsCtl = require('../controllers/apps_chatrooms');
 const appsChatroomsMessagersCtl = require('../controllers/apps_chatrooms_messagers');
@@ -147,6 +148,13 @@ router.get('/apps-categories/apps/:appid/users/:userid', appsCategoriesCtl.getAl
 router.post('/apps-categories/apps/:appid/users/:userid', appsCategoriesCtl.postOne);
 router.put('/apps-categories/apps/:appid/categories/:categoryid/users/:userid', appsCategoriesCtl.putOne);
 router.delete('/apps-categories/apps/:appid/categories/:categoryid/users/:userid', appsCategoriesCtl.deleteOne);
+// ==========
+
+// ==========
+// 類別產品
+router.post('/apps-categories-products/apps/:appid/categories/:categoryid/users/:userid', appsCategoriesProductsCtl.postOne);
+router.put('/apps-categories-products/apps/:appid/categories/:categoryid/products/:productid/users/:userid', appsCategoriesProductsCtl.putOne);
+router.delete('/apps-categories-products/apps/:appid/categories/:categoryid/products/:productid/users/:userid', appsCategoriesProductsCtl.deleteOne);
 // ==========
 
 // ==========

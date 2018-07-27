@@ -40,9 +40,9 @@ module.exports = (function() {
 
             // 建立並過濾用戶端傳過來的資料
             let postCategory = {
-                parent_id: req.body.parent_id,
-                name: req.body.name,
-                description: req.body.description
+                parent_id: ('string' === typeof req.body.parent_id) ? req.body.parent_id : '',
+                name: ('string' === typeof req.body.parent_id) ? req.body.name : '',
+                description: ('string' === typeof req.body.parent_id) ? req.body.description : ''
             };
 
             return this.appsRequestVerify(req).then(() => {

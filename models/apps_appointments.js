@@ -8,8 +8,6 @@ module.exports = (function() {
             this.AppsModel = this.model(APPS, this.AppsSchema);
         }
         /**
-         * 輸入全部的 appId 取得該 App 所有預約資料
-         *
          * @param {string|string[]} appIds
          * @param {string|string[]} [appointmentIds]
          * @param {(appsAppointments: Chatshier.Models.AppsAppointments | null) => any} [callback]
@@ -68,9 +66,8 @@ module.exports = (function() {
                 return null;
             });
         }
+
         /**
-         * 找到 預約未刪除的資料包，不含 apps 結構
-         *
          * @param {string|string[]} appIds
          * @param {(appsAppointments: Chatshier.Models.Appointments | null) => any} [callback]
          * @return {Promise<Chatshier.Models.Appointments | null>}
@@ -119,9 +116,8 @@ module.exports = (function() {
                 return null;
             });
         }
+
         /**
-         * 輸入指定的 appId 新增一筆預約的資料
-         *
          * @param {string} appId
          * @param {any} postAppointment
          * @param {(appsAppointments: Chatshier.Models.AppsAppointments | null) => any} [callback]
@@ -145,9 +141,8 @@ module.exports = (function() {
                 return null;
             });
         }
+
         /**
-         * 輸入指定的 appId 修改一筆預約的資料
-         *
          * @param {string} appId
          * @param {string} appointmentId
          * @param {any} putAppointment
@@ -177,9 +172,8 @@ module.exports = (function() {
                 return null;
             });
         }
+
         /**
-         * 輸入指定的 appId 刪除一筆預約的資料
-         *
          * @param {string} appId
          * @param {string} appointmentId
          * @param {(appsAppointments: Chatshier.Models.AppsAppointments | null) => any} [callback]

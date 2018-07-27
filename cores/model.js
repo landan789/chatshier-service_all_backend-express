@@ -185,16 +185,36 @@ module.exports = (function() {
         'parent_id': {type: String, default: ''},
         'name': {type: String, default: ''},
         'description': {type: String, default: ''},
-        'products': [{
-            'isDeleted': {type: Boolean, default: false},
-            'createdTime': {type: Date, default: Date.now()},
-            'updatedTime': {type: Date, default: Date.now()},
-            'name': {type: String, default: ''},
-            'description': {type: String, default: ''},
-            'price': {type: Number, default: 0},
-            'quantity': {type: Number, default: 0},
-            'src': {type: String, default: ''},
-            'isOnShelves': {type: Boolean, default: false}
+        'product_ids': {type: [{type: String}], default: []}
+    });
+
+    const ProductsSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'name': {type: String, default: ''},
+        'description': {type: String, default: ''},
+        'price': {type: Number, default: 0},
+        'quantity': {type: Number, default: 0},
+        'src': {type: String, default: ''},
+        'isOnShelves': {type: Boolean, default: false},
+        'receptionist_ids': {type: [{type: String}], default: []}
+    });
+
+    const ReceptionistsSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'name': {type: String, default: ''},
+        'photo': {type: String, default: ''},
+        'gmail': {type: String, default: ''},
+        'phone': {type: String, default: ''},
+        'timezoneOffset': {type: Number, default: 0},
+        'maxNumber': {type: Number, default: 1},
+        'interval': {type: Number, default: 0}, // Unit time
+        'schedules': [{
+            'startedTime': {type: Date, default: Date.now()},
+            'endedTime': {type: Date, default: Date.now()}
         }]
     });
 
@@ -202,11 +222,11 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'product_id': {type: String, default: ''},
+        'receptionist_id': {type: String, default: ''},
         'platformUid': {type: String, default: ''},
-        'canlendarEventId': {type: String, default: ''},
         'startedTime': {type: Date, default: Date.now()},
-        'endedTime': {type: Date, default: Date.now()}
+        'endedTime': {type: Date, default: Date.now()},
+        'eventId': {type: String, default: ''} // Google calendar event
     });
 
     const FieldsSchema = new Schema({
@@ -273,7 +293,10 @@ module.exports = (function() {
         'tickets': [TicketsSchema],
         'richmenus': [RichmenusSchema],
         'imagemaps': [ImagemapsSchema],
+
         'categories': [CategoriesSchema],
+        'products': [ProductsSchema],
+        'receptionists': [ReceptionistsSchema],
         'appointments': [AppointmentsSchema]
     });
 

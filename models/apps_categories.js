@@ -1,12 +1,29 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
-    const CATEGORIES = 'categories';
 
     class AppsChatroomsModel extends ModelCore {
         constructor() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
+
+            this.project = {
+                _id: '$categories._id',
+                createdTime: '$categories.createdTime',
+                updatedTime: '$categories.updatedTime',
+                parent_id: '$categories.parent_id',
+                name: '$categories.name',
+                description: '$categories.description',
+                products: {
+                    $filter: {
+                        input: '$categories.products',
+                        as: 'product',
+                        cond: {
+                            $eq: [ '$$product.isDeleted', false ]
+                        }
+                    }
+                }
+            };
         }
 
         /**
@@ -45,7 +62,7 @@ module.exports = (function() {
                     $match: query
                 }, {
                     $project: {
-                        categories: true
+                        categories: this.project
                     }
                 }
             ];
@@ -59,6 +76,10 @@ module.exports = (function() {
                 appsCategories = results.reduce((output, app) => {
                     output[app._id] = output[app._id] || { categories: {} };
                     Object.assign(output[app._id].categories, this.toObject(app.categories));
+
+                    /** @type {Chatshier.Models.Category} */
+                    let category = output[app._id].categories[app.categories._id];
+                    category.products = Object.assign({}, this.toObject(app.categories.products));
                     return output;
                 }, {});
                 return appsCategories;
@@ -175,6 +196,17 @@ module.exports = (function() {
                     appIds = [appIds];
                 }
 
+                let _project = Object.assign({}, this.project);
+                _project.products = {
+                    $filter: {
+                        input: '$categories.products',
+                        as: 'product',
+                        cond: {
+                            $eq: [ '$$product.isDeleted', true ]
+                        }
+                    }
+                };
+
                 let aggregations = [
                     {
                         $unwind: '$categories'
@@ -182,7 +214,7 @@ module.exports = (function() {
                         $match: query
                     }, {
                         $project: {
-                            categories: true
+                            categories: _project
                         }
                     }
                 ];

@@ -92,13 +92,12 @@ module.exports = (function() {
             let appId = req.params.appid;
             let ticketId = req.params.ticketid;
 
-            let putTikcket = {
-                description: req.body.description || '',
-                dueTime: req.body.dueTime ? req.body.dueTime : 0,
-                priority: req.body.priority ? req.body.priority : 0,
-                status: req.body.status ? req.body.status : 0,
-                assigned_id: req.body.assigned_id || ''
-            };
+            let putTikcket = {};
+            ('string' === typeof req.body.description) && (putTikcket.description = req.body.description);
+            ('number' === typeof req.body.dueTime) && (putTikcket.dueTime = req.body.dueTime);
+            ('number' === typeof req.body.priority) && (putTikcket.priority = req.body.priority);
+            ('number' === typeof req.body.status) && (putTikcket.status = req.body.status);
+            ('string' === typeof req.body.assigned_id) && (putTikcket.assigned_id = req.body.assigned_id);
 
             return this.appsRequestVerify(req).then(() => {
                 if (!ticketId) {
