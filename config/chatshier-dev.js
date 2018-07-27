@@ -115,5 +115,8 @@ module.exports = {
         MERCHANT_ID: '31104030',
         HASHKEY: 'FrlNPVjLFPwYRz8cyRg67L4ZTyxunv7W',
         HASHIV: 'GTCrWZHkx3ySlEs0'
+    },
+    PAYMENT: {
+        MODE: 'TEST'
     }
 };
