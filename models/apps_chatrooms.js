@@ -95,8 +95,7 @@ module.exports = (function() {
             }).then((appsChatrooms) => {
                 ('function' === typeof callback) && callback(appsChatrooms);
                 return appsChatrooms;
-            }).catch((err) => {
-                console.error(err);
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
