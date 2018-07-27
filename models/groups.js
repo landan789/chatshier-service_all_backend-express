@@ -40,6 +40,10 @@ module.exports = (function() {
                         'isDeleted': false,
                         'members.isDeleted': false
                     }
+                }, {
+                    $sort: {
+                        'createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 

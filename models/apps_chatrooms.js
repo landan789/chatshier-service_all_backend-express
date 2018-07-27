@@ -54,6 +54,10 @@ module.exports = (function() {
                         // 篩選需要的項目
                         chatrooms: true
                     }
+                }, {
+                    $sort: {
+                        'chatrooms.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 
@@ -91,7 +95,8 @@ module.exports = (function() {
             }).then((appsChatrooms) => {
                 ('function' === typeof callback) && callback(appsChatrooms);
                 return appsChatrooms;
-            }).catch(() => {
+            }).catch((err) => {
+                console.error(err);
                 ('function' === typeof callback) && callback(null);
                 return null;
             });

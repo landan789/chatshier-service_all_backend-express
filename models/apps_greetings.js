@@ -41,6 +41,10 @@ module.exports = (function() {
                     $project: {
                         greetings: 1
                     }
+                }, {
+                    $sort: {
+                        'greetings.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 

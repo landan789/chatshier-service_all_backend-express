@@ -590,8 +590,6 @@ let PeriodComponent = (function() {
     }
 
     function loadAutoreplies(appId, userId) {
-        let $autoreplyTables = $('#autoreply-tables').empty();
-
         return Promise.resolve().then(() => {
             if (!appsAutoreplies[appId]) {
                 return api.appsAutoreplies.findAll(appId, userId).then(function(resJson) {
@@ -608,7 +606,23 @@ let PeriodComponent = (function() {
             }
             return appsAutoreplies[appId].autoreplies;
         }).then((autoreplies) => {
-            for (let autoreplyId in autoreplies) {
+            let $autoreplyTables = $('#autoreply-tables').empty();
+
+            let autoreplyIds = Object.keys(autoreplies).sort((a, b) => {
+                let updatedTimeA = new Date(autoreplies[a].updatedTime);
+                let updatedTimeB = new Date(autoreplies[b].updatedTime);
+
+                if (updatedTimeA < updatedTimeB) {
+                    return 1;
+                } else if (updatedTimeA > updatedTimeB) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+
+            for (let i in autoreplyIds) {
+                let autoreplyId = autoreplyIds[i];
                 $autoreplyTables.append(generateAutoreplyRow(appId, autoreplyId));
             }
         });

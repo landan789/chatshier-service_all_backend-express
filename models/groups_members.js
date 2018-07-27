@@ -26,24 +26,27 @@ module.exports = (function() {
                 groupIds = [groupIds];
             }
 
-            let aggregations = [
-                {
-                    $unwind: '$members'
-                }, {
-                    $match: {
-                        '_id': {
-                            $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
-                        },
-                        'isDeleted': false,
-                        'members._id': this.Types.ObjectId(memberId),
-                        'members.isDeleted': false
-                    }
-                }, {
-                    $project: {
-                        members: 1
-                    }
+            let aggregations = [{
+                $unwind: '$members'
+            }, {
+                $match: {
+                    '_id': {
+                        $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
+                    },
+                    'isDeleted': false,
+                    'members._id': this.Types.ObjectId(memberId),
+                    'members.isDeleted': false
                 }
-            ];
+            }, {
+                $project: {
+                    members: 1
+                }
+            }, {
+                $sort: {
+                    'members.createdTime': -1 // 最晚建立的在最前頭
+                }
+            }];
+
             return this.GroupsModel.aggregate(aggregations).then((results) => {
                 let groupsMembers = {};
                 if (0 === results.length) {

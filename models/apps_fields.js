@@ -101,6 +101,10 @@ module.exports = (function() {
                     $project: {
                         fields: 1
                     }
+                }, {
+                    $sort: {
+                        'fields.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 

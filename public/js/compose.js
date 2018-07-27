@@ -1241,8 +1241,18 @@ const ConditionSelector = (function() {
         }
 
         let composes = appsComposes[appId].composes;
-        let composeIds = Object.keys(composes);
-        composeIds.sort((a, b) => new Date(composes[b].time) - new Date(composes[a].time));
+        let composeIds = Object.keys(composes).sort((a, b) => {
+            let updatedTimeA = new Date(composes[a].updatedTime);
+            let updatedTimeB = new Date(composes[b].updatedTime);
+
+            if (updatedTimeA < updatedTimeB) {
+                return 1;
+            } else if (updatedTimeA > updatedTimeB) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
 
         for (let i in composeIds) {
             let composeId = composeIds[i];

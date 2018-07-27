@@ -300,7 +300,21 @@
         }).then((greetings) => {
             let $greetingsBody = $('#greetingsBody').empty();
 
-            for (let greetingId in greetings) {
+            let greetingIds = Object.keys(greetings).sort((a, b) => {
+                let updatedTimeA = new Date(greetings[a].updatedTime);
+                let updatedTimeB = new Date(greetings[b].updatedTime);
+
+                if (updatedTimeA < updatedTimeB) {
+                    return 1;
+                } else if (updatedTimeA > updatedTimeB) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+
+            for (let i in greetingIds) {
+                let greetingId = greetingIds[i];
                 let greeting = greetings[greetingId];
 
                 $greetingsBody.append(
