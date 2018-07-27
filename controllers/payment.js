@@ -81,8 +81,8 @@ module.exports = (function() {
                         if ((payment.merchantId === chatshierCfg.ECPAY.MERCHANT_ID &&
                             payment.hashKey === chatshierCfg.ECPAY.HASHKEY &&
                             payment.hashIV === chatshierCfg.ECPAY.HASHIV) || 
-                            res.hostname.toUpperCase().includes('.DEV.') || 
-                            res.hostname.toUpperCase().includes('.REL.') ) {
+                            res.hostname.toLowerCase().includes('.dev.') || 
+                            res.hostname.toLowerCase().includes('.rel.') ) {
 
                             ecpayHlp.mode = 'Test';
                         } else {
@@ -120,8 +120,8 @@ module.exports = (function() {
                         if ((payment.merchantId === chatshierCfg.SPGATEWAY.MERCHANT_ID &&
                              payment.hashKey === chatshierCfg.SPGATEWAY.HASHKEY &&
                              payment.hashIV === chatshierCfg.SPGATEWAY.HASHIV) ||
-                             res.hostname.toUpperCase().includes('.DEV.') || 
-                             res.hostname.toUpperCase().includes('.REL.') ) {
+                             res.hostname.toLowerCase().includes('.dev.') || 
+                             res.hostname.toLowerCase().includes('.rel.') ) {
                             
                             spgatewayHlp.mode = 'TEST';
                         } else {
@@ -278,8 +278,8 @@ module.exports = (function() {
                         if ((payment.invoiceMerchantId === chatshierCfg.ECPAY_INVOICE.MERCHANT_ID &&
                              payment.invoiceHashKey === chatshierCfg.ECPAY_INVOICE.HASHKEY &&
                              payment.invoiceHashIV === chatshierCfg.ECPAY_INVOICE.HASHIV) || 
-                             res.hostname.toUpperCase().includes('.DEV.') || 
-                             res.hostname.toUpperCase().includes('.REL.')) {
+                             res.hostname.toLowerCase().includes('.dev.') || 
+                             res.hostname.toLowerCase().includes('.rel.')) {
                             
                             ecpayHlp.mode = 'Test';
                         } else {
@@ -298,8 +298,8 @@ module.exports = (function() {
                         if ((payment.invoiceMerchantId === chatshierCfg.SPGATEWAY_INVOICE.MERCHANT_ID &&
                              payment.invoiceHashKey === chatshierCfg.SPGATEWAY_INVOICE.HASHKEY &&
                              payment.invoiceHashIV === chatshierCfg.SPGATEWAY_INVOICE.HASHIV) || 
-                             res.hostname.toUpperCase().includes('.DEV.') || 
-                             res.hostname.toUpperCase().includes('.REL.')) {
+                             res.hostname.toLowerCase().includes('.dev.') || 
+                             res.hostname.toLowerCase().includes('.rel.')) {
                             
                             spgatewayHlp.mode = 'TEST';
                         } else {
