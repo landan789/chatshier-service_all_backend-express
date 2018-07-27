@@ -237,7 +237,15 @@ p:empty:not(:focus)::before {
         overflow: hidden;
         text-overflow: ellipsis; 
         }
-
+    .apps-body .bot-item .bar {
+        height: 0.4rem;
+/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#5ba8ba+0,00637a+50,00637a+50,61b4c6+100 */
+        background: #5ba8ba; /* Old browsers */
+        background: -moz-linear-gradient(left, #5ba8ba 0%, #00637a 50%, #00637a 50%, #61b4c6 100%); /* FF3.6-15 */
+        background: -webkit-linear-gradient(left, #5ba8ba 0%,#00637a 50%,#00637a 50%,#61b4c6 100%); /* Chrome10-25,Safari5.1-6 */
+        background: linear-gradient(to right, #5ba8ba 0%,#00637a 50%,#00637a 50%,#61b4c6 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#5ba8ba', endColorstr='#61b4c6',GradientType=1 ); /* IE6-9 */
+       }
 
     .apps-body .bot-item .app-id1 {
             color: #c3c4c5;
@@ -248,13 +256,19 @@ p:empty:not(:focus)::before {
         left: 0;
         bottom: 0; }
         .apps-body .bot-item .footer-buttons button {
+            height: 3rem;
+            width: 3rem;
             border: none; }
 
         .apps-body .bot-item .footer-buttons button:focus {
-            box-shadow: none; }
+            box-shadow: none; 
+            border-radius: 25%;
+}
 
         .apps-body .bot-item .footer-buttons button:hover {
-            background-color: #e0dede; }
+            background-color: #e0dede; 
+            border-radius: 50%;
+}
 
     .apps-body .bot-item .fa-facebook-messenger {
         z-index: 3;

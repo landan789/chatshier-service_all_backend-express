@@ -945,6 +945,8 @@
         let baseWebhookUrl = window.CHATSHIER.URL.webhookUrl;
         let itemHtml = (
             '<div class="shadow card text-dark bot-item" app-id="' + appId + '">' +
+                '<div class="bar">' +
+                '</div>' +
                 '<div class="p-3 card-body">' +
                     '<div class="mb-3 d-flex align-items-center">' +
                         '<i class="mr-2 fas fa-user-astronaut fa-fw fa-3x text-chsr"></i>' +
@@ -990,21 +992,23 @@
                         ( FACEBOOK === app.type ? '--' : createWebhookUrl(baseWebhookUrl, app.webhook_id)) +
                     '</div>' +
 
-                    '<div class="position-absolute w-100 p-3 d-flex justify-content-between footer-buttons">' +
-                        '<div class="w-100" data-toggle="tooltip" data-placement="top" title="設定金流服務">' +
-                            '<button type="button" class="mr-1 btn btn-block set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
-                                '<i class="fas fa-hand-holding-usd fa-fw text-muted fa-1p5x"></i>' +
-                            '</button>' +
-                        '</div>' +
-                        (FACEBOOK !== app.type ? '<div class="w-100" data-toggle="tooltip" data-placement="top" title="編輯">' +
-                            '<button type="button" class="mr-2 btn btn-block edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
-                                '<i class="far fa-edit text-muted fa-1p5x"></i>' +
-                            '</button>' +
-                        '</div>' : '') +
-                        '<div class="w-100" data-toggle="tooltip" data-placement="top" title="刪除">' +
-                            '<button class="btn btn-block remove-app-btn" app-id="' + appId + '">' +
-                                '<i class="far fa-trash-alt text-muted fa-1p5x"></i>' +
-                            '</button>' +
+                    '<div class="position-absolute w-100 p-3 footer-buttons">' +
+                        '<div class="d-flex justify-content-around">' + 
+                            '<div class="" data-toggle="tooltip" data-placement="top" title="設定金流服務">' +
+                                '<button type="button" class="mr-1 btn btn-block set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
+                                    '<i class="fas fa-hand-holding-usd fa-fw text-muted fa-1p5x"></i>' +
+                                '</button>' +
+                            '</div>' +
+                            (FACEBOOK !== app.type ? '<div class="" data-toggle="tooltip" data-placement="top" title="編輯">' +
+                                '<button type="button" class="mr-2 btn btn-block edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
+                                    '<i class="far fa-edit text-muted fa-1p5x"></i>' +
+                                '</button>' +
+                            '</div>' : '') +
+                            '<div class="" data-toggle="tooltip" data-placement="top" title="刪除">' +
+                                '<button class="btn btn-block remove-app-btn" app-id="' + appId + '">' +
+                                    '<i class="far fa-trash-alt text-muted fa-1p5x"></i>' +
+                                '</button>' +
+                            '</div>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -1416,7 +1420,7 @@
 
                 let fieldText = (transJson[field.text] ? transJson[field.text] : (field.text || ''));
                 let $fieldContent = $(
-                    '<div class="card m-2 p-2 col-12 col-lg-6 field-content" id="' + fieldId + '">' +
+                    '<div class="card m-2 p-2 col-12 col-lg-6 field-content shadow" id="' + fieldId + '">' +
                         '<div class="form-group row field-item mb-1">' +
                             '<label class="col-3 col-form-label">名稱:</label>' +
                             '<div class="col-9 d-flex align-items-center">' +
@@ -1823,7 +1827,7 @@
                     MEMBER_TYPES.OWNER !== member.type;
 
                 let html =
-                    '<div class="col-12 m-2 card justify-content-around group-member" member-id="' + memberId + '">' +
+                    '<div class="col-12 m-2 card justify-content-around group-member shadow" member-id="' + memberId + '">' +
                         '<div class="d-flex flex-nowrap align-items-center w-100 user chips">' +
                             '<div class="avatar-container">' +
                                 '<img class="member-avatar" src="image/avatar-default.png" alt="Member avatar" />' +

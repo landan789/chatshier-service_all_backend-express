@@ -85,6 +85,10 @@ module.exports = (function() {
                     $project: {
                         payments: true
                     }
+                }, {
+                    $sort: {
+                        'payments.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 

@@ -364,7 +364,21 @@
         }
 
         return getTemplates(appId).then(function(templates) {
-            for (let templateId in templates) {
+            let templateIds = Object.keys(templates).sort((a, b) => {
+                let updatedTimeA = new Date(templates[a].updatedTime);
+                let updatedTimeB = new Date(templates[b].updatedTime);
+
+                if (updatedTimeA < updatedTimeB) {
+                    return 1;
+                } else if (updatedTimeA > updatedTimeB) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+
+            for (let i in templateIds) {
+                let templateId = templateIds[i];
                 let template = templates[templateId];
                 let templateName = template.name || '未命名';
 

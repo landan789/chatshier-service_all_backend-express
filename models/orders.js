@@ -28,7 +28,7 @@ module.exports = (function() {
                 };
             }
 
-            return this.Model.find(query).then((results) => {
+            return this.Model.find(query).sort({ createdTime: -1 }).then((results) => {
                 let orders = {};
                 if (0 !== results.length) {
                     orders = this.toObject(results);

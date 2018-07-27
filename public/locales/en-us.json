@@ -11,10 +11,11 @@
     "An error occurred!": "An error occurred!",
     "App ID can't be empty": "App ID can't be empty",
     "App secret can't be empty": "App secret can't be empty",
+    "Appointment system": "Appointment system",
     "April": "April",
     "Are you sure want to delete it?": "Are you sure want to delete it?",
     "Assigned": "Assigned",
-    "Assigner": "Assigner",
+    "Assignee": "Assignee",
     "August": "August",
     "Auto Replies": "Auto Replies",
 
@@ -46,6 +47,7 @@
     "Email": "Email",
     "Email was empty!": "Email was empty!",
     "End datetime": "End datetime",
+    "Event description": "Event description",
 
     "Failed to add!": "Failed to add!",
     "Failed to remove!": "Failed to remove!",
@@ -56,8 +58,10 @@
     "FEMALE": "FEMALE",
     "Female": "Female",
     "Fill the bot name": "Fill the bot name",
+    "Fill the description": "Fill the description",
     "Fill the event title": "Fill the event title",
     "Fill the group name": "Fill the group name",
+    "Fill the title": "Fill the title",
     "Fill your email": "Fill your email",
     "Fill your name": "Fill your name",
     "Fill your password": "Fill your password",
@@ -104,6 +108,7 @@
     "New password": "New password",
     "New password can't be empty": "New password can't be empty",
     "New password was inconsistent": "New password was inconsistent",
+    "No": "No",
     "No fee. Experience chat now.": "No fee. Experience chat now.",
     "No user found": "No user found",
     "November": "November",
@@ -123,6 +128,8 @@
     "Please perform the verification": "Please perform the verification",
     "Privacy": "Privacy",
     "Processing": "Processing",
+    "Product management": "Product management",
+    "Product service": "Product service",
 
     "Recent chat date": "Recent chat date",
     "Remark": "Remark",
@@ -164,5 +171,7 @@
     "User email had been signed up!": "User email had been signed up!",
 
     "Welcome to Chatshier integration platform": "Welcome to Chatshier integration platform",
-    "Wrong password!": "Wrong password!"
+    "Wrong password!": "Wrong password!",
+
+    "Yes": "Yes"
 }

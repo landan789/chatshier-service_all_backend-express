@@ -1110,22 +1110,34 @@
 
         return Promise.resolve().then(() => {
             if (!appsRichmenus[appId]) {
-                appsRichmenus[appId] = { richmenus: {} };
                 return api.appsRichmenus.findAll(appId, userId).then((resJson) => {
                     let _appsRichmenus = resJson.data;
+                    appsRichmenus[appId] = { richmenus: {} };
                     if (_appsRichmenus[appId]) {
                         Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
                     }
                     return syncRichmenus(appId);
                 }).then(() => {
-                    return appsRichmenus;
+                    return appsRichmenus[appId].richmenus;
                 });
             }
-            return appsRichmenus;
-        }).then(function() {
-            let richmenus = appsRichmenus[appId].richmenus;
+            return appsRichmenus[appId].richmenus;
+        }).then((richmenus) => {
+            let richmenuIds = Object.keys(richmenus).sort((a, b) => {
+                let updatedTimeA = new Date(richmenus[a].updatedTime);
+                let updatedTimeB = new Date(richmenus[b].updatedTime);
 
-            for (let richmenuId in richmenus) {
+                if (updatedTimeA < updatedTimeB) {
+                    return 1;
+                } else if (updatedTimeA > updatedTimeB) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+
+            for (let i in richmenuIds) {
+                let richmenuId = richmenuIds[i];
                 let richmenu = richmenus[richmenuId];
                 if (richmenu.isDeleted) {
                     continue;

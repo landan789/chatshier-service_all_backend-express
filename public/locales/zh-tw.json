@@ -11,10 +11,11 @@
     "An error occurred!": "發生錯誤！",
     "App ID can't be empty": "App ID 不能為空",
     "App secret can't be empty": "App secret 不能為空",
+    "Appointment system": "預約系統",
     "April": "四月",
     "Are you sure want to delete it?": "確定要刪除嗎？",
     "Assigned": "已指派",
-    "Assigner": "指派人",
+    "Assignee": "指派人",
     "August": "八月",
     "Auto Replies": "自動回覆",
 
@@ -46,6 +47,7 @@
     "Email": "電子郵件",
     "Email was empty!": "電子郵件未填寫！",
     "End datetime": "結束時間",
+    "Event description": "事件描述",
 
     "Failed to add!": "新增失敗！",
     "Failed to remove!": "刪除失敗！",
@@ -56,8 +58,10 @@
     "FEMALE": "女",
     "Female": "女",
     "Fill the bot name": "請輸入機器人名稱",
+    "Fill the description": "請輸入描述內容",
     "Fill the event title": "請填入事件標題",
     "Fill the group name": "請輸入群組名稱",
+    "Fill the title": "請輸入標題",
     "Fill your email": "請輸入電子郵件",
     "Fill your name": "請輸入姓名",
     "Fill your password": "請輸入密碼",
@@ -104,6 +108,7 @@
     "New password": "新密碼",
     "New password can't be empty": "新密碼不能為空",
     "New password was inconsistent": "輸入的新密碼不一致",
+    "No": "否",
     "No fee. Experience chat now.": "不需付費。馬上體驗聊天功能。",
     "No user found": "找不到使用者",
     "November": "十一月",
@@ -123,6 +128,8 @@
     "Please perform the verification": "請執行驗證操作",
     "Privacy": "隱私權條款",
     "Processing": "處理中",
+    "Product management": "商品管理",
+    "Product service": "商品服務",
 
     "Recent chat date": "最近聊天時間",
     "Remark": "備註",
@@ -164,5 +171,7 @@
     "User email had been signed up!": "電子郵件已被註冊！",
 
     "Welcome to Chatshier integration platform": "歡迎使用 錢掌櫃 整合平台",
-    "Wrong password!": "密碼錯誤！"
+    "Wrong password!": "密碼錯誤！",
+
+    "Yes": "是"
 }

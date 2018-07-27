@@ -54,6 +54,10 @@ module.exports = (function() {
                         // 篩選需要的項目
                         chatrooms: true
                     }
+                }, {
+                    $sort: {
+                        'chatrooms.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 

@@ -30,7 +30,7 @@ module.exports = (function() {
                 };
             }
 
-            return this.Model.find(query).lean().then((consumers) => {
+            return this.Model.find(query).sort({ createdTime: -1 }).lean().then((consumers) => {
                 return this.toObject(consumers, 'platformUid');
             }).then((consumers) => {
                 ('function' === typeof callback) && callback(consumers);

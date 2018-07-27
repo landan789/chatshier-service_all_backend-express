@@ -340,7 +340,21 @@
             $openTableElem.empty();
             $draftTableElem.empty();
 
-            for (let keywordreplyId in keywordreplies) {
+            let keywordreplyIds = Object.keys(keywordreplies).sort((a, b) => {
+                let updatedTimeA = new Date(keywordreplies[a].updatedTime);
+                let updatedTimeB = new Date(keywordreplies[b].updatedTime);
+
+                if (updatedTimeA < updatedTimeB) {
+                    return 1;
+                } else if (updatedTimeA > updatedTimeB) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+
+            for (let i in keywordreplyIds) {
+                let keywordreplyId = keywordreplyIds[i];
                 let keywordreply = keywordreplies[keywordreplyId];
 
                 let keywordreplyRow = (
