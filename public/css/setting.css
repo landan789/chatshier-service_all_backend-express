@@ -261,10 +261,14 @@ p:empty:not(:focus)::before {
             border: none; }
 
         .apps-body .bot-item .footer-buttons button:focus {
-            box-shadow: none; }
+            box-shadow: none; 
+            border-radius: 25%;
+}
 
         .apps-body .bot-item .footer-buttons button:hover {
-            background-color: #e0dede; }
+            background-color: #e0dede; 
+            border-radius: 50%;
+}
 
     .apps-body .bot-item .fa-facebook-messenger {
         z-index: 3;
