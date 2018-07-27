@@ -189,7 +189,9 @@ module.exports = (function() {
                 if (!order) {
                     return Promise.resolve(void 0);
                 }
-                return this._issueInvoice(payment, order, res);
+                let isECPayTestMode = this._isECPayTestMode(payment, req.hostname);
+                let isSpgatewayTestMode = this._isSpgatewayTestMode(payment, req.hostname);
+                return this._issueInvoice(payment, order, isECPayTestMode, isSpgatewayTestMode);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -224,7 +226,9 @@ module.exports = (function() {
                 if (!order) {
                     return Promise.resolve(void 0);
                 }
-                return this._issueInvoice(payment, order, res);
+                let isECPayTestMode = this._isECPayTestMode(payment, req.hostname);
+                let isSpgatewayTestMode = this._isSpgatewayTestMode(payment, req.hostname);
+                return this._issueInvoice(payment, order, isECPayTestMode, isSpgatewayTestMode);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -242,7 +246,7 @@ module.exports = (function() {
          * @param {Chatshier.Models.Payment} payment
          * @param {Chatshier.Models.Order} order
          */
-        _issueInvoice(payment, order, req) {
+        _issueInvoice(payment, order, isECPayTestMode, isSpgatewayTestMode) {
             let orderId = order._id;
             let appId = order.app_id;
             let consumerUid = order.consumerUid;
@@ -265,7 +269,7 @@ module.exports = (function() {
                 // 因此在智付通支付完成後，必須再使用 Pay2Go 的電子發票 API 來開立發票
                 return Promise.resolve().then(() => {
                     if (ECPAY === payment.type) {
-                        if (this._isECPayTestMode(payment, req.hostname)) {
+                        if (isECPayTestMode) {
                             ecpayHlp.mode = 'Test';
                         } 
                         
@@ -280,7 +284,7 @@ module.exports = (function() {
                             return putOrder;
                         });
                     } else if (SPGATEWAY === payment.type) {
-                        if (this._isSpgatewayTestMode(payment, req.hostname)) {
+                        if (isSpgatewayTestMode) {
                             spgatewayHlp.mode = 'TEST';
                         } 
                             
