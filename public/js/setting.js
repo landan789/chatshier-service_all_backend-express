@@ -540,10 +540,16 @@
             }
 
             return fbHlp.getFanPages().then(function(res) {
-                // 取得 fb 用戶的所有可管理的粉絲專頁後
-                // 濾除已經加入的粉絲專頁
+                // 取得 FB 用戶的所有可管理的粉絲專頁後
                 let fanPages = res.data || [];
                 fanPages = fanPages.filter(function(fanPage) {
+                    // 如果用戶沒有具有粉絲專頁的管理員權限，會無法進行訂閱 App
+                    // 因此 FB 用戶只有連結具有管理員權限的粉絲專頁
+                    let permissions = fanPage.perms || [];
+                    if (!permissions.includes('ADMINISTER')) {
+                        return false;
+                    }
+
                     let canLink = true;
                     for (let appId in apps) {
                         let app = apps[appId];
@@ -551,6 +557,7 @@
                             continue;
                         }
 
+                        // 濾除已經加入的粉絲專頁
                         if (app.id1 === fanPage.id) {
                             canLink = false;
                             break;
@@ -591,7 +598,7 @@
                         }).join('');
                     });
                 }).then(function(modalBodyHtml) {
-                    let $selectPagesModal = createModal(modalBodyHtml, '選取連結的粉絲專頁');
+                    let $selectPagesModal = createModal(modalBodyHtml, '選取連結的粉絲專頁', '以下是您具有管理員權限的粉絲專頁');
 
                     return new Promise(function(resolve) {
                         let $btnSubmit = $selectPagesModal.find('.btn-submit');
@@ -1225,13 +1232,15 @@
     /**
      * @param {string} [bodyHtml=""]
      * @param {string} [titleText=""]
+     * @param {string} [subTitleText=""]
      * @param {string} [cancelText="取消"]
      * @param {string} [submitText="確認"]
      * @return {JQuery<HTMLElement>}
      */
-    function createModal(bodyHtml, titleText, cancelText, submitText) {
+    function createModal(bodyHtml, titleText, subTitleText, cancelText, submitText) {
         bodyHtml = bodyHtml || '';
         titleText = titleText || '';
+        subTitleText = subTitleText || '';
         cancelText = cancelText || '取消';
         submitText = submitText || '確認';
 
@@ -1244,8 +1253,9 @@
                                 return '';
                             }
                             return (
-                                '<div class="modal-header">' +
-                                    '<h4 class="modal-title">' + titleText + '</h4>' +
+                                '<div class="flex-wrap modal-header">' +
+                                    '<h4 class="w-100 modal-title">' + titleText + '</h4>' +
+                                    (subTitleText ? '<div class="text-muted small">' + subTitleText + '</div>' : '') +
                                 '</div>'
                             );
                         })() +
