@@ -81,7 +81,8 @@ module.exports = (function() {
                         if ((payment.merchantId === chatshierCfg.ECPAY.MERCHANT_ID &&
                             payment.hashKey === chatshierCfg.ECPAY.HASHKEY &&
                             payment.hashIV === chatshierCfg.ECPAY.HASHIV) || 
-                            TEST === chatshierCfg.PAYMENT.MODE.toUpperCase() ) {
+                            res.hostname.toUpperCase().includes('.DEV.') || 
+                            res.hostname.toUpperCase().includes('.REL.') ) {
 
                             ecpayHlp.mode = 'Test';
                         } else {
@@ -119,7 +120,8 @@ module.exports = (function() {
                         if ((payment.merchantId === chatshierCfg.SPGATEWAY.MERCHANT_ID &&
                              payment.hashKey === chatshierCfg.SPGATEWAY.HASHKEY &&
                              payment.hashIV === chatshierCfg.SPGATEWAY.HASHIV) ||
-                             TEST === chatshierCfg.PAYMENT.MODE.toUpperCase() ) {
+                             res.hostname.toUpperCase().includes('.DEV.') || 
+                             res.hostname.toUpperCase().includes('.REL.') ) {
                             
                             spgatewayHlp.mode = 'TEST';
                         } else {
@@ -197,7 +199,7 @@ module.exports = (function() {
                 if (!order) {
                     return Promise.resolve(void 0);
                 }
-                return this._issueInvoice(payment, order);
+                return this._issueInvoice(payment, order, res);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -232,7 +234,7 @@ module.exports = (function() {
                 if (!order) {
                     return Promise.resolve(void 0);
                 }
-                return this._issueInvoice(payment, order);
+                return this._issueInvoice(payment, order, res);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -250,7 +252,7 @@ module.exports = (function() {
          * @param {Chatshier.Models.Payment} payment
          * @param {Chatshier.Models.Order} order
          */
-        _issueInvoice(payment, order) {
+        _issueInvoice(payment, order, res) {
             let orderId = order._id;
             let appId = order.app_id;
             let consumerUid = order.consumerUid;
@@ -276,7 +278,8 @@ module.exports = (function() {
                         if ((payment.invoiceMerchantId === chatshierCfg.ECPAY_INVOICE.MERCHANT_ID &&
                              payment.invoiceHashKey === chatshierCfg.ECPAY_INVOICE.HASHKEY &&
                              payment.invoiceHashIV === chatshierCfg.ECPAY_INVOICE.HASHIV) || 
-                             TEST === chatshierCfg.PAYMENT.MODE.toUpperCase()) {
+                             res.hostname.toUpperCase().includes('.DEV.') || 
+                             res.hostname.toUpperCase().includes('.REL.')) {
                             
                             ecpayHlp.mode = 'Test';
                         } else {
@@ -295,9 +298,10 @@ module.exports = (function() {
                         if ((payment.invoiceMerchantId === chatshierCfg.SPGATEWAY_INVOICE.MERCHANT_ID &&
                              payment.invoiceHashKey === chatshierCfg.SPGATEWAY_INVOICE.HASHKEY &&
                              payment.invoiceHashIV === chatshierCfg.SPGATEWAY_INVOICE.HASHIV) || 
-                             TEST === chatshierCfg.PAYMENT.MODE.toUpperCase()) {
+                             res.hostname.toUpperCase().includes('.DEV.') || 
+                             res.hostname.toUpperCase().includes('.REL.')) {
                             
-                                spgatewayHlp.mode = 'TEST';
+                            spgatewayHlp.mode = 'TEST';
                         } else {
                             spgatewayHlp.mode = 'PRODUCTION';
                         }
