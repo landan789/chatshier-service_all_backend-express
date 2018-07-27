@@ -494,6 +494,31 @@ module.exports = (function() {
                 });
             });
         }
+
+        _isECPayTestMode(payment, hostname){
+            if ((payment.invoiceMerchantId === chatshierCfg.ECPAY_INVOICE.MERCHANT_ID &&
+                payment.invoiceHashKey === chatshierCfg.ECPAY_INVOICE.HASHKEY &&
+                payment.invoiceHashIV === chatshierCfg.ECPAY_INVOICE.HASHIV) || 
+                hostname.toLowerCase().includes('.dev.') || 
+                hostname.toLowerCase().includes('.rel.')) {
+               return true;
+           }
+
+           return false;
+        }
+
+        _isSpgatewayTestMode(payment, hostname){
+            if ((payment.invoiceMerchantId === chatshierCfg.SPGATEWAY_INVOICE.MERCHANT_ID &&
+                payment.invoiceHashKey === chatshierCfg.SPGATEWAY_INVOICE.HASHKEY &&
+                payment.invoiceHashIV === chatshierCfg.SPGATEWAY_INVOICE.HASHIV) || 
+                hostname.toLowerCase().includes('.dev.') || 
+                hostname.toLowerCase().includes('.rel.')) {
+
+                return true;
+            }
+
+            return false;
+        }
     }
 
     return new PaymentController();
