@@ -7,7 +7,7 @@ module.exports = (function() {
     class GoogleReCaptchaHelper {
         constructor() {
             if (chatshierCfg && chatshierCfg.GOOGLE) {
-                this.recaptchaSecretKey = chatshierCfg.GOOGLE.recaptchaSecretKey;
+                this.recaptchaSecretKey = chatshierCfg.GOOGLE.RECAPTCHA_SECRET_KEY;
             }
         }
 

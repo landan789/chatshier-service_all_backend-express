@@ -39,12 +39,12 @@ module.exports = {
         VERSION: 'v3.0'
     },
     GOOGLE: {
-        serverAPIKey: 'AIzaSyDvAQBzctZSnaUeJWZlbeng7JFjV4lEmL4',
+        SERVER_API_KEY: 'AIzaSyDvAQBzctZSnaUeJWZlbeng7JFjV4lEmL4',
         // https://www.google.com/recaptcha/admin
-        recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x',
+        RECAPTCHA_SECRET_KEY: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x',
         // owner: 9thflr.rd@gmail.com
         // https://console.firebase.google.com/u/0/project/chatshier-d4dfd/settings/general/
-        FDLdomain: 'chatshier9450.page.link'
+        FDL_DOMAIN: 'chatshier9450.page.link'
     },
     JWT: {
         EXPIRES: EXPIRES,
