@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const API_ERROR = require('../config/api_error.json');
     const SOCKET_EVENTS = require('../config/socket-events');
-    const chatshierCfg = require('../config/chatshier');
+    const CHATSHIER_CFG = require('../config/chatshier');
 
     const cipherHlp = require('../helpers/cipher');
     const spgatewayHlp = require('../helpers/spgateway');
@@ -480,9 +480,9 @@ module.exports = (function() {
         }
 
         _isECPayTestMode(payment, hostname){
-            if ((payment.invoiceMerchantId === chatshierCfg.ECPAY_INVOICE.MERCHANT_ID &&
-                payment.invoiceHashKey === chatshierCfg.ECPAY_INVOICE.HASHKEY &&
-                payment.invoiceHashIV === chatshierCfg.ECPAY_INVOICE.HASHIV) || 
+            if ((payment.invoiceMerchantId === CHATSHIER_CFG.ECPAY_INVOICE.MERCHANT_ID &&
+                payment.invoiceHashKey === CHATSHIER_CFG.ECPAY_INVOICE.HASHKEY &&
+                payment.invoiceHashIV === CHATSHIER_CFG.ECPAY_INVOICE.HASHIV) || 
                 hostname.toLowerCase().includes('.dev.') || 
                 hostname.toLowerCase().includes('.rel.')) {
                return true;
@@ -492,9 +492,9 @@ module.exports = (function() {
         }
 
         _isSpgatewayTestMode(payment, hostname){
-            if ((payment.invoiceMerchantId === chatshierCfg.SPGATEWAY_INVOICE.MERCHANT_ID &&
-                payment.invoiceHashKey === chatshierCfg.SPGATEWAY_INVOICE.HASHKEY &&
-                payment.invoiceHashIV === chatshierCfg.SPGATEWAY_INVOICE.HASHIV) || 
+            if ((payment.invoiceMerchantId === CHATSHIER_CFG.SPGATEWAY_INVOICE.MERCHANT_ID &&
+                payment.invoiceHashKey === CHATSHIER_CFG.SPGATEWAY_INVOICE.HASHKEY &&
+                payment.invoiceHashIV === CHATSHIER_CFG.SPGATEWAY_INVOICE.HASHIV) || 
                 hostname.toLowerCase().includes('.dev.') || 
                 hostname.toLowerCase().includes('.rel.')) {
 
