@@ -69,7 +69,7 @@ module.exports = (function() {
 
         putOne(req, res) {
             let appId = req.params.appid;
-            let receptionistId = req.params.receptionistId;
+            let receptionistId = req.params.receptionistid;
 
             let putReceptionist = {};
             ('string' === typeof req.body.name) && (putReceptionist.name = req.body.name);
@@ -84,7 +84,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsReceptionistsMdl.update(appId, receptionistId, putReceptionist);
             }).then((appsReceptionists) => {
-                if (!appsReceptionists) {
+                if (!(appsReceptionists && appsReceptionists[appId])) {
                     return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_UPDATE);
                 }
                 return Promise.resolve(appsReceptionists);
@@ -101,12 +101,12 @@ module.exports = (function() {
 
         deleteOne(req, res) {
             let appId = req.params.appid;
-            let receptionistId = req.params.receptionistId;
+            let receptionistId = req.params.receptionistid;
 
             return this.appsRequestVerify(req).then(() => {
                 return appsReceptionistsMdl.remove(appId, receptionistId);
             }).then((appsReceptionists) => {
-                if (!appsReceptionists) {
+                if (!(appsReceptionists && appsReceptionists[appId])) {
                     return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_REMOVE);
                 }
                 return Promise.resolve(appsReceptionists);

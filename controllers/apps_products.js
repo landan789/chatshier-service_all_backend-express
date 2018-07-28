@@ -44,6 +44,7 @@ module.exports = (function() {
                 price: ('number' === typeof req.body.price) ? req.body.price : 0,
                 quantity: ('number' === typeof req.body.quantity) ? req.body.quantity : 0,
                 src: ('string' === typeof req.body.src) ? req.body.src : '',
+                canAppoint: !!req.body.canAppoint,
                 isOnShelves: !!req.body.isOnShelves,
                 receptionist_ids: (req.body.receptionist_ids instanceof Array) ? req.body.receptionist_ids : []
             };
@@ -79,7 +80,9 @@ module.exports = (function() {
             ('number' === typeof req.body.price) && (putProduct.price = req.body.price);
             ('number' === typeof req.body.quantity) && (putProduct.quantity = req.body.quantity);
             ('string' === typeof req.body.src) && (putProduct.src = req.body.src);
+            ('boolean' === typeof req.body.canAppoint) && (putProduct.canAppoint = req.body.canAppoint);
             ('boolean' === typeof req.body.isOnShelves) && (putProduct.isOnShelves = req.body.isOnShelves);
+            (req.body.receptionist_ids instanceof Array) && (putProduct.receptionist_ids = req.body.receptionist_ids);
 
             return this.appsRequestVerify(req).then(() => {
                 if ('string' === typeof putProduct.name && !putProduct.name) {
@@ -87,7 +90,7 @@ module.exports = (function() {
                 }
                 return appsProductsMdl.update(appId, productId, putProduct);
             }).then((appsProducts) => {
-                if (!appsProducts) {
+                if (!(appsProducts && appsProducts[appId])) {
                     return Promise.reject(API_ERROR.APP_PRODUCTS_FAILED_TO_UPDATE);
                 }
                 return Promise.resolve(appsProducts);
@@ -110,7 +113,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsProductsMdl.remove(appId, categoryId, productId);
             }).then((appsProducts) => {
-                if (!appsProducts) {
+                if (!(appsProducts && appsProducts[appId])) {
                     return Promise.reject(API_ERROR.APP_PRODUCTS_FAILED_TO_REMOVE);
                 }
                 return Promise.resolve(appsProducts);

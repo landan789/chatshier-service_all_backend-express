@@ -42,7 +42,8 @@ module.exports = (function() {
             let postCategory = {
                 parent_id: ('string' === typeof req.body.parent_id) ? req.body.parent_id : '',
                 name: ('string' === typeof req.body.parent_id) ? req.body.name : '',
-                description: ('string' === typeof req.body.parent_id) ? req.body.description : ''
+                description: ('string' === typeof req.body.parent_id) ? req.body.description : '',
+                product_ids: (req.body.product_ids instanceof Array) ? req.body.product_ids : []
             };
 
             return this.appsRequestVerify(req).then(() => {
@@ -71,6 +72,7 @@ module.exports = (function() {
             ('string' === typeof req.body.parent_id) && (putCategory.parent_id = req.body.parent_id);
             ('string' === typeof req.body.name) && (putCategory.name = req.body.name);
             ('string' === typeof req.body.description) && (putCategory.description = req.body.description);
+            (req.body.product_ids instanceof Array) && (putCategory.product_ids = req.body.product_ids);
 
             return this.appsRequestVerify(req).then(() => {
                 return appsCategoriesMdl.update(appId, categoryId, putCategory).then((appsCategories) => {

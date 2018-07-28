@@ -197,6 +197,7 @@ module.exports = (function() {
         'price': {type: Number, default: 0},
         'quantity': {type: Number, default: 0},
         'src': {type: String, default: ''},
+        'canAppoint': {type: Boolean, default: false},
         'isOnShelves': {type: Boolean, default: false},
         'receptionist_ids': {type: [{type: String}], default: []}
     });

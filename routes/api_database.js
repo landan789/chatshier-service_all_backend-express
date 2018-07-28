@@ -63,7 +63,7 @@ router.delete('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:use
 // ==========
 
 // ==========
-// 商品目錄
+// 產品目錄
 router.get('/apps-categories/users/:userid', appsCategoriesCtl.getAll);
 router.get('/apps-categories/apps/:appid/users/:userid', appsCategoriesCtl.getAll);
 router.post('/apps-categories/apps/:appid/users/:userid', appsCategoriesCtl.postOne);
@@ -152,6 +152,7 @@ router.delete('/apps-products/apps/:appid/products/:productid/users/:userid', ap
 // 服務人員
 router.get('/apps-receptionists/users/:userid', appsReceptionistsCtl.getAll);
 router.get('/apps-receptionists/apps/:appid/users/:userid', appsReceptionistsCtl.getAll);
+router.post('/apps-receptionists/apps/:appid/users/:userid', appsReceptionistsCtl.postOne);
 router.put('/apps-receptionists/apps/:appid/receptionists/:receptionistid/users/:userid', appsReceptionistsCtl.putOne);
 router.delete('/apps-receptionists/apps/:appid/receptionists/:receptionistid/users/:userid', appsReceptionistsCtl.deleteOne);
 // ==========
