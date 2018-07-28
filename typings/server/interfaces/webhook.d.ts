@@ -20,20 +20,49 @@ declare module Webhook {
             gender?: string
         }
 
-        interface PostbackData {
-            action: 'CHANGE_RICHMENU' | 'SEND_REPLY_TEXT' | 'SEND_TEMPLATE' | 'SEND_IMAGEMAP' | 'SEND_CONSUMER_FORM' | 'PAYMENT_CONFIRM',
+        interface PostbackPayload {
+            action:
+                'CHANGE_RICHMENU' |
+                'SEND_REPLY_TEXT' |
+                'SEND_TEMPLATE' |
+                'SEND_IMAGEMAP' |
+                'SEND_CONSUMER_FORM' |
+                'PAYMENT_CONFIRM' |
+                'SEND_APPOINTMENT_CATEGORIES' |
+                'SEND_APPOINTMENT_PRODUCTS' |
+                'SEND_APPOINTMENT_DATE' |
+                'SEND_APPOINTMENT_TIME' |
+                'SEND_APPOINTMENT_CONFIRM' |
+                'APPOINTMENT_FINISH',
+            /**
+             * CHANGE_RICHMENU
+             */
             richmenuId?: string,
+            /**
+             * SEND_TEMPLATE
+             */
             templateId?: string,
+            /**
+             * SEND_IMAGEMAP
+             */
             imagemapId?: string,
             /**
-             * SEND_TEMPLATE 或者 SEND_IMAGEMAP 選填項目
+             * APPOINTMENT_PRODUCTS
+             */
+            categoryId?: string,
+            /**
+             * APPOINTMENT_DATE | APPOINTMENT_TIME
+             */
+            receptionistId?: string,
+            /**
+             * SEND_TEMPLATE | SEND_IMAGEMAP
              */
             additionalText?: string,
-
             /**
-             * SEND_REPLY_TEXT 項目
+             * SEND_REPLY_TEXT
              */
-            replyText?: string
+            replyText?: string,
+            timestamp?: number
         }
     }
     

@@ -26,7 +26,8 @@ window.TemplateBuilder = (function() {
         IMAGEMAP: 'IMAGEMAP',
         TEMPLATE: 'TEMPLATE',
         CONSUMER_FORM: 'CONSUMER_FORM',
-        DONATION: 'DONATION'
+        DONATION: 'DONATION',
+        APPOINTMENT: 'APPOINTMENT'
     });
 
     const BUTTON_ACTIONS_DISPLAY_TEXT = Object.freeze({
@@ -36,7 +37,8 @@ window.TemplateBuilder = (function() {
         [BUTTON_ACTIONS.IMAGEMAP]: '發送指定圖文訊息',
         [BUTTON_ACTIONS.TEMPLATE]: '發送指定範本訊息',
         [BUTTON_ACTIONS.CONSUMER_FORM]: '填寫個人資料',
-        [BUTTON_ACTIONS.DONATION]: '候選人捐款功能'
+        [BUTTON_ACTIONS.DONATION]: '候選人捐款功能',
+        [BUTTON_ACTIONS.APPOINTMENT]: '預約目錄'
     });
 
     const ERRORS = Object.freeze({
@@ -107,6 +109,8 @@ window.TemplateBuilder = (function() {
                 buttonAction = BUTTON_ACTIONS.CONSUMER_FORM;
             } else if ('PAYMENT_CONFIRM' === actionData.action) {
                 buttonAction = BUTTON_ACTIONS.DONATION;
+            } else if ('SEND_APPOINTMENT_CATEGORIES' === actionData.action) {
+                buttonAction = BUTTON_ACTIONS.APPOINTMENT;
             }
 
             this.$elem = $(
@@ -272,6 +276,8 @@ window.TemplateBuilder = (function() {
                             '</select>' +
                         '</div>'
                     );
+                    break;
+                case BUTTON_ACTIONS.APPOINTMENT:
                     break;
                 default:
                     break;
@@ -743,6 +749,10 @@ window.TemplateBuilder = (function() {
                     case BUTTON_ACTIONS.DONATION:
                         action.type = 'postback';
                         action.data = JSON.stringify({ action: 'PAYMENT_CONFIRM' });
+                        break;
+                    case BUTTON_ACTIONS.APPOINTMENT:
+                        action.type = 'postback';
+                        action.data = JSON.stringify({ action: 'SEND_APPOINTMENT_CATEGORIES' });
                         break;
                     default:
                         action.type = 'postback';

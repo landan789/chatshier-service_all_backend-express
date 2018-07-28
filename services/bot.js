@@ -13,12 +13,9 @@ module.exports = (function() {
     const appsMdl = require('../models/apps');
     const appsChatroomsMdl = require('../models/apps_chatrooms');
     const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
-    const appsImagemapsMdl = require('../models/apps_imagemaps');
-    const appsPaymentsMdl = require('../models/apps_payments');
     const appsRichmenusMdl = require('../models/apps_richmenus');
-    const appsTemplatesMdl = require('../models/apps_templates');
     const consumersMdl = require('../models/consumers');
-    const jwtHlp = require('../helpers/jwt');
+
     const storageHlp = require('../helpers/storage');
     const socketHlp = require('../helpers/socket');
     const chatshierHlp = require('../helpers/chatshier');
@@ -52,7 +49,14 @@ module.exports = (function() {
         SEND_TEMPLATE: 'SEND_TEMPLATE',
         SEND_IMAGEMAP: 'SEND_IMAGEMAP',
         SEND_CONSUMER_FORM: 'SEND_CONSUMER_FORM',
-        PAYMENT_CONFIRM: 'PAYMENT_CONFIRM'
+        PAYMENT_CONFIRM: 'PAYMENT_CONFIRM',
+
+        SEND_APPOINTMENT_CATEGORIES: 'SEND_APPOINTMENT_CATEGORIES',
+        SEND_APPOINTMENT_PRODUCTS: 'SEND_APPOINTMENT_PRODUCTS',
+        SEND_APPOINTMENT_DATE: 'SEND_APPOINTMENT_DATE',
+        SEND_APPOINTMENT_TIME: 'SEND_APPOINTMENT_TIME',
+        SEND_APPOINTMENT_CONFIRM: 'SEND_APPOINTMENT_CONFIRM',
+        APPOINTMENT_FINISH: 'APPOINTMENT_FINISH'
     });
 
     /** @type {Map<string, boolean>} */
@@ -840,224 +844,6 @@ module.exports = (function() {
                         return [];
                 }
             });
-        }
-
-        /**
-         * @param {any[]} messages
-         * @param {Webhook.Chatshier.Information} webhookInfo
-         * @param {string} appId
-         * @param {any} app
-         * @returns {Promise<any[]>}
-         */
-        processPostback(messages, webhookInfo, appId, app) {
-            let repliedMessages = [];
-            let promises = [];
-
-            while (messages.length > 0) {
-                let message = messages.shift();
-                let postback = message.postback;
-                let postbackDataStr = postback.data || postback.payload;
-
-                let canParseData = 'string' === typeof postbackDataStr && postbackDataStr.startsWith('{') && postbackDataStr.endsWith('}');
-                if (!canParseData) {
-                    continue;
-                }
-
-                /** @type {Webhook.Chatshier.PostbackData} */
-                let postbackData = JSON.parse(postbackDataStr);
-                let serverAddr = webhookInfo.serverAddress;
-                let platformUid = webhookInfo.platformUid;
-                let url = serverAddr;
-
-                switch (postbackData.action) {
-                    case POSTBACK_ACTIONS.CHANGE_RICHMENU:
-                        let richmenuId = postbackData.richmenuId || '';
-                        let richmenuPromise = appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
-                            if (!(appsRichmenus && appsRichmenus[appId])) {
-                                return;
-                            }
-
-                            // 如果此 richmenu 沒有啟用或者找不到，則不做任何處理
-                            let richmenu = appsRichmenus[appId].richmenus[richmenuId];
-                            if (!(richmenu && richmenu.isActivated)) {
-                                return;
-                            }
-
-                            let platformUid = webhookInfo.platformUid;
-                            return this.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId, app);
-                        });
-                        promises.push(richmenuPromise);
-                        break;
-                    case POSTBACK_ACTIONS.SEND_REPLY_TEXT:
-                        if (postbackData.replyText) {
-                            let replyTextMessage = {
-                                type: 'text',
-                                text: postbackData.replyText
-                            };
-                            repliedMessages.push(replyTextMessage);
-                        }
-                        break;
-                    case POSTBACK_ACTIONS.SEND_TEMPLATE:
-                        let templateId = postbackData.templateId || '';
-                        let templatePromise = appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
-                            if (!(appsTemplates && appsTemplates[appId])) {
-                                return Promise.resolve();
-                            }
-
-                            let template = appsTemplates[appId].templates[templateId];
-
-                            if (postbackData.additionalText) {
-                                let additionalTextMessage = {
-                                    type: 'text',
-                                    text: postbackData.additionalText
-                                };
-                                repliedMessages.push(additionalTextMessage);
-                            }
-
-                            let templateMessage = {
-                                type: template.type,
-                                altText: template.altText,
-                                template: template.template
-                            };
-                            repliedMessages.push(templateMessage);
-                        });
-                        promises.push(templatePromise);
-                        break;
-                    case POSTBACK_ACTIONS.SEND_IMAGEMAP:
-                        let imagemapId = postbackData.imagemapId || '';
-                        let imagemapPromise = appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
-                            if (!(appsImagemaps && appsImagemaps[appId])) {
-                                return Promise.resolve();
-                            }
-
-                            if (postbackData.additionalText) {
-                                let additionalTextMessage = {
-                                    type: 'text',
-                                    text: postbackData.additionalText
-                                };
-                                repliedMessages.push(additionalTextMessage);
-                            }
-
-                            let imagemap = appsImagemaps[appId].imagemaps[imagemapId];
-                            let imagemapMessage = {
-                                type: imagemap.type,
-                                altText: imagemap.altText,
-                                baseUrl: imagemap.baseUrl,
-                                baseSize: imagemap.baseSize,
-                                actions: imagemap.actions
-                            };
-                            repliedMessages.push(imagemapMessage);
-                        });
-                        promises.push(imagemapPromise);
-                        break;
-                    case POSTBACK_ACTIONS.SEND_CONSUMER_FORM:
-                        let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                        url += '/consumer-form?aid=' + appId + '&t=' + token;
-
-                        let formMessage = {
-                            type: 'template',
-                            altText: '填寫基本資料範本訊息',
-                            template: {
-                                type: 'buttons',
-                                title: '填寫基本資料',
-                                text: '開啟以下連結進行填寫動作',
-                                actions: [{
-                                    type: 'uri',
-                                    label: '按此開啟',
-                                    uri: url
-                                }]
-                            }
-                        };
-                        repliedMessages.push(formMessage);
-                        break;
-                    case POSTBACK_ACTIONS.PAYMENT_CONFIRM:
-                        let confirmPromise = appsPaymentsMdl.find(appId).then((appsPayments) => {
-                            // 如果此 App 尚未設定金流服務，則跳過處理
-                            if (!(appsPayments && appsPayments[appId])) {
-                                return Promise.resolve(void 0);
-                            }
-                            return Promise.resolve(Object.values(appsPayments[appId].payments).shift());
-                        }).then((payment) => {
-                            if (!payment) {
-                                return;
-                            }
-
-                            return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid).then((appsChatroomsMessagers) => {
-                                if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                                    return;
-                                }
-
-                                // 當 consumer 點擊捐款時，檢查此 consumer 是否已經填寫完個人基本資料
-                                // 如果沒有填寫完基本資料，則發送填寫基本資料範本給使用者
-                                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                                let chatroomId = Object.keys(chatrooms).shift() || '';
-                                let messager = chatrooms[chatroomId].messagers[platformUid];
-
-                                let hasFinishProfile = (
-                                    messager.namings && messager.namings[platformUid] &&
-                                    messager.email &&
-                                    messager.phone &&
-                                    messager.address
-                                );
-
-                                if (!hasFinishProfile) {
-                                    let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                                    url += '/consumer-form?aid=' + appId + '&t=' + token;
-
-                                    let alertMessage = {
-                                        type: 'text',
-                                        text: '您尚未完成個人基本資料的填寫'
-                                    };
-
-                                    let formMessage = {
-                                        type: 'template',
-                                        altText: '填寫基本資料範本訊息',
-                                        template: {
-                                            type: 'buttons',
-                                            title: '填寫基本資料',
-                                            text: '開啟以下連結進行填寫動作',
-                                            actions: [{
-                                                type: 'uri',
-                                                label: '按此開啟',
-                                                uri: url
-                                            }]
-                                        }
-                                    };
-                                    repliedMessages.push(alertMessage, formMessage);
-                                    return;
-                                }
-
-                                let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                                url += '/donation-confirm?aid=' + appId + '&t=' + token;
-                                if (payment.canIssueInvoice) {
-                                    url += '&cii=1';
-                                }
-
-                                let linkMessage = {
-                                    type: 'template',
-                                    altText: '捐款連結訊息',
-                                    template: {
-                                        type: 'buttons',
-                                        title: '捐款連結',
-                                        text: '開啟以下連結前往捐款資料確認',
-                                        actions: [{
-                                            type: 'uri',
-                                            label: '按此開啟',
-                                            uri: url
-                                        }]
-                                    }
-                                };
-                                repliedMessages.push(linkMessage);
-                            });
-                        });
-                        promises.push(confirmPromise);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            return Promise.all(promises).then(() => repliedMessages);
         }
 
         /**

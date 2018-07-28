@@ -8,9 +8,15 @@ let reactReadyPaths = [
     '/signup',
     '/reset-password',
     '/change-password',
+
     '/calendar',
     '/ticket',
-    '/analyze'
+    '/analyze',
+
+    '/appointment',
+    '/receptionist',
+    '/product',
+    '/category'
 ];
 router.get(reactReadyPaths, (req, res, next) => {
     res.render('react');
@@ -50,10 +56,6 @@ router.get('/richmenu', (req, res, next) => {
 
 router.get('/imagemap', (req, res, next) => {
     res.render('imagemap', { title: '圖文訊息' + titlePostfix });
-});
-
-router.get('/appointment', function(req, res, next) {
-    res.render('appointment', { title: '預約系統' + titlePostfix });
 });
 
 router.get('/category-product', function(req, res, next) {
