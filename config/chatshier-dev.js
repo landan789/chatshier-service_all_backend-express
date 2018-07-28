@@ -33,10 +33,10 @@ module.exports = {
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
-        appId: '203545926984167', // facebook appId
-        appSecret: '46aa7e2f586a202b412aca2722fd2e09', // facebook appSecret
-        appAccessToken: 'f85d12004b7a0c170c2f45d66dd50da9', // facebook appAccessToken
-        apiVersion: 'v3.0'
+        APP_ID: '203545926984167', // facebook appId
+        APP_SECRET: '46aa7e2f586a202b412aca2722fd2e09', // facebook appSecret
+        CLIENT_TOKEN: 'f85d12004b7a0c170c2f45d66dd50da9', // facebook appAccessToken
+        VERSION: 'v3.0'
     },
     GOOGLE: {
         serverAPIKey: 'AIzaSyDvAQBzctZSnaUeJWZlbeng7JFjV4lEmL4',
@@ -61,13 +61,13 @@ module.exports = {
         EXPIRES: EXPIRES
     },
     CORS: { // the attributes of CORS must be lower case
-        origin: [
+        ORIGIN: [
             'http://service.fea.chatshier.com:8080' // allow the website of client can access back-end service.chatshier
             // http://service.fea.chatshier.com:3002  website always allows itself
         ],
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-        allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true
+        METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        ALLOWED_HEADERS: ['Content-Type', 'Authorization'],
+        CREDENTIALS: true
     },
     GMAIL: {
         user: 'support@chatshier.com',

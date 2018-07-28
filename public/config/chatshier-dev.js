@@ -11,10 +11,10 @@ window.CHATSHIER = {
         otherFileMaxSize: 100 * 1024 * 1024 // 100 MB
     },
     FACEBOOK: {
-        appId: '203545926984167', // facebook appId
-        cookie: true,
-        xfbml: true,
-        version: 'v3.0'
+        APP_ID: '203545926984167', // facebook appId
+        COOKIE: true,
+        XFBML: true,
+        VERSION: 'v3.0'
     },
     GOOGLE: {
         CALENDAR: {

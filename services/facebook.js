@@ -7,10 +7,10 @@ module.exports = (function() {
     class FacebookService {
         constructor() {
             if (chatshierCfg && chatshierCfg.FACEBOOK) {
-                this.appId = chatshierCfg.FACEBOOK.appId;
-                this.appSecret = chatshierCfg.FACEBOOK.appSecret;
-                this.appAccessToken = chatshierCfg.FACEBOOK.appAccessToken;
-                this.apiVersion = chatshierCfg.FACEBOOK.apiVersion || 'v3.0';
+                this.appId = chatshierCfg.FACEBOOK.APP_ID;
+                this.appSecret = chatshierCfg.FACEBOOK.APP_SECRET;
+                this.appAccessToken = chatshierCfg.FACEBOOK.CLIENT_TOKEN;
+                this.version = chatshierCfg.FACEBOOK.VERSION || 'v3.0';
             }
         }
 
@@ -50,7 +50,7 @@ module.exports = (function() {
         setFanPageSubscribeApp(pageId, pageToken) {
             let options = {
                 method: 'POST',
-                url: API_ENDPOINT + '/' + this.apiVersion + '/' + pageId + '/subscribed_apps?access_token=' + pageToken
+                url: API_ENDPOINT + '/' + this.version + '/' + pageId + '/subscribed_apps?access_token=' + pageToken
             };
             return this._sendRequest(options);
         }
@@ -62,7 +62,7 @@ module.exports = (function() {
         setFanPageUnsubscribeApp(pageId, pageToken) {
             let options = {
                 method: 'DELETE',
-                url: API_ENDPOINT + '/' + this.apiVersion + '/' + pageId + '/subscribed_apps?access_token=' + pageToken
+                url: API_ENDPOINT + '/' + this.version + '/' + pageId + '/subscribed_apps?access_token=' + pageToken
             };
             return this._sendRequest(options);
         }
