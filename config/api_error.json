@@ -186,18 +186,20 @@
     "APP_APPOINTMENT_FAILED_TO_INSERT": { "MSG": "app appointment failed to insert", "CODE": "24.2" },
     "APP_APPOINTMENT_FAILED_TO_UPDATE": { "MSG": "app appointment failed to update", "CODE": "24.3" },
     "APP_APPOINTMENT_FAILED_TO_REMOVE": { "MSG": "app appointment failed to remove", "CODE": "24.4" },
-    "APP_APPOINTMENT_NAME_WAS_EMPTY": { "MSG": "app appointment name was empty", "CODE": "24.5" },
-    "APP_APPOINTMENT_APPOINTMENTID_WAS_EMPTY": {"MSG": "app appointment autoreplyid was empty", "CODE": "24.6"},
+    "APP_APPOINTMENT_APPOINTMENTID_WAS_EMPTY": {"MSG": "app appointment appointmentid was empty", "CODE": "24.5"},
 
-    "APP_APPOINTMENT_ITEM_FAILED_TO_FIND": { "MSG": "app appointment failed to find", "CODE": "25.1" },
-    "APP_APPOINTMENT_ITEM_FAILED_TO_INSERT": { "MSG": "app appointment failed to insert", "CODE": "25.2" },
-    "APP_APPOINTMENT_ITEM_FAILED_TO_UPDATE": { "MSG": "app appointment failed to update", "CODE": "25.3" },
-    "APP_APPOINTMENT_ITEM_FAILED_TO_REMOVE": { "MSG": "app appointment failed to remove", "CODE": "25.4" },
-    "APP_APPOINTMENT_ITEM_NAME_WAS_EMPTY": { "MSG": "app appointment name was empty", "CODE": "25.5" },
-    "APP_APPOINTMENT_ITEM_APPOINTMENTID_WAS_EMPTY": {"MSG": "app appointment autoreplyid was empty", "CODE": "25.6"},
+    "APP_RECEPTIONIST_FAILED_TO_FIND": { "MSG": "app appointment failed to find", "CODE": "25.1" },
+    "APP_RECEPTIONIST_FAILED_TO_INSERT": { "MSG": "app appointment failed to insert", "CODE": "25.2" },
+    "APP_RECEPTIONIST_FAILED_TO_UPDATE": { "MSG": "app appointment failed to update", "CODE": "25.3" },
+    "APP_RECEPTIONIST_FAILED_TO_REMOVE": { "MSG": "app appointment failed to remove", "CODE": "25.4" },
 
     "APP_CATEGORY_FAILED_TO_FIND": { "MSG": "app category failed to find", "CODE": "26.1" },
     "APP_CATEGORY_FAILED_TO_INSERT": { "MSG": "app category failed to insert", "CODE": "26.2" },
     "APP_CATEGORY_FAILED_TO_UPDATE": { "MSG": "app category failed to update", "CODE": "26.3" },
-    "APP_CATEGORY_FAILED_TO_REMOVE": { "MSG": "app category failed to remove", "CODE": "26.4" }
+    "APP_CATEGORY_FAILED_TO_REMOVE": { "MSG": "app category failed to remove", "CODE": "26.4" },
+
+    "APP_PRODUCT_FAILED_TO_FIND": { "MSG": "app product failed to find", "CODE": "27.1" },
+    "APP_PRODUCT_FAILED_TO_INSERT": { "MSG": "app product failed to insert", "CODE": "27.2" },
+    "APP_PRODUCT_FAILED_TO_UPDATE": { "MSG": "app product failed to update", "CODE": "27.3" },
+    "APP_PRODUCT_FAILED_TO_REMOVE": { "MSG": "app product failed to remove", "CODE": "27.4" }
 }

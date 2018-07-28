@@ -20,7 +20,7 @@ const usersCtl = require('../controllers/users');
 const groupsCtl = require('../controllers/groups');
 const groupsMembersCtl = require('../controllers/groups_members');
 
-const appsCategoriesProductsCtl = require('../controllers/apps_categories_products');
+const appsProductsCtl = require('../controllers/apps_products');
 const appsCategoriesCtl = require('../controllers/apps_categories');
 const appsChatroomsCtl = require('../controllers/apps_chatrooms');
 const appsChatroomsMessagersCtl = require('../controllers/apps_chatrooms_messagers');
@@ -122,7 +122,7 @@ router.delete('/apps-composes/apps/:appid/composes/:composeid/users/:userid', ap
 // ==========
 
 // ==========
-// Templates
+// 範本訊息
 router.get('/apps-templates/users/:userid', appsTemplateCtl.getAll);
 router.get('/apps-templates/apps/:appid/users/:userid', appsTemplateCtl.getAll);
 router.get('/apps-templates/apps/:appid/templates/:templateid/users/:userid', appsTemplateCtl.getOne);
@@ -142,7 +142,7 @@ router.delete('/apps-imagemaps/apps/:appid/imagemaps/:imagemapid/users/:userid',
 // ==========
 
 // ==========
-// 商品類別
+// 商品目錄
 router.get('/apps-categories/users/:userid', appsCategoriesCtl.getAll);
 router.get('/apps-categories/apps/:appid/users/:userid', appsCategoriesCtl.getAll);
 router.post('/apps-categories/apps/:appid/users/:userid', appsCategoriesCtl.postOne);
@@ -151,10 +151,20 @@ router.delete('/apps-categories/apps/:appid/categories/:categoryid/users/:userid
 // ==========
 
 // ==========
-// 類別產品
-router.post('/apps-categories-products/apps/:appid/categories/:categoryid/users/:userid', appsCategoriesProductsCtl.postOne);
-router.put('/apps-categories-products/apps/:appid/categories/:categoryid/products/:productid/users/:userid', appsCategoriesProductsCtl.putOne);
-router.delete('/apps-categories-products/apps/:appid/categories/:categoryid/products/:productid/users/:userid', appsCategoriesProductsCtl.deleteOne);
+// 產品
+router.get('/apps-products/users/:userid', appsProductsCtl.getAll);
+router.get('/apps-products/apps/:appid/users/:userid', appsProductsCtl.getAll);
+router.post('/apps-products/apps/:appid/users/:userid', appsProductsCtl.postOne);
+router.put('/apps-products/apps/:appid/products/:productid/users/:userid', appsProductsCtl.putOne);
+router.delete('/apps-products/apps/:appid/products/:productid/users/:userid', appsProductsCtl.deleteOne);
+// ==========
+
+// ==========
+// 服務人員
+router.get('/apps-receptionists/users/:userid', appsReceptionistsCtl.getAll);
+router.get('/apps-receptionists/apps/:appid/users/:userid', appsReceptionistsCtl.getAll);
+router.put('/apps-receptionists/apps/:appid/receptionists/:receptionistid/users/:userid', appsReceptionistsCtl.putOne);
+router.delete('/apps-receptionists/apps/:appid/receptionists/:receptionistid/users/:userid', appsReceptionistsCtl.deleteOne);
 // ==========
 
 // ==========

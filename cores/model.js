@@ -2,7 +2,7 @@ module.exports = (function() {
     const CHATSHIER = require('../config/chatshier');
     let mongoose = require('mongoose');
 
-    // region DB 連線只需要做一次，故放 class 外面
+    // #region DB 連線只需要做一次，故放 class 外面
     const url = 'mongodb://' + CHATSHIER.MONGODB.HOST + ':' + CHATSHIER.MONGODB.PORT + '/' + CHATSHIER.MONGODB.DATABASE;
     const options = {
         user: CHATSHIER.MONGODB.USERNAME,
@@ -17,9 +17,9 @@ module.exports = (function() {
     db.once('open', () => {
         console.log('[SUCCEEDED] the db client of api-chatshier is connecting to MongoDB !!');
     });
-    // endregion
+    // #endregion
 
-    // region DB Schema
+    // #region DB Schema
     const Schema = mongoose.Schema;
     const RootsSchema = new Schema();
 
@@ -392,7 +392,7 @@ module.exports = (function() {
         'app_id': {type: String, default: ''}
     });
 
-    // endregion
+    // #endregion
 
     class ModelCore {
         constructor () {

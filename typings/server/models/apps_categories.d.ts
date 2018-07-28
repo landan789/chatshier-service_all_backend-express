@@ -14,20 +14,7 @@ declare module Chatshier {
             parent_id: string,
             name: string,
             description: string,
-            products: Products
-        }
-
-        interface Products {
-            [productId: string]: Product
-        }
-
-        interface Product extends BaseProperty {
-            name: string,
-            description: string,
-            price: number,
-            quantity: number,
-            src: string,
-            isOnShelves: boolean
+            product_ids: string[]
         }
     }
 }

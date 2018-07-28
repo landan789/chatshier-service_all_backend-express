@@ -59,48 +59,20 @@ module.exports = (function() {
             });
         }
 
-        postOne(req, res, next) {
-            let appId = req.params.appid;
-            let appointment = {
-                name: req.body.name || '',
-                items: [],
-                members: []
-            };
-
-            return this.appsRequestVerify(req).then(() => {
-                return appsAppointmentsMdl.insert(appId, appointment).then((appsAppointments) => {
-                    if (!appsAppointments) {
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_INSERT);
-                    }
-                    return Promise.resolve(appsAppointments);
-                });
-            }).then((appsAppointments) => {
-                let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: appsAppointments
-                };
-                return this.successJson(req, res, suc);
-            }).catch((err) => {
-                return this.errorJson(req, res, err);
-            });
-        }
-
         putOne(req, res, next) {
             let appId = req.params.appid;
             let appointmentId = req.params.appointmentid;
-            let appointment = {
-                name: req.body.name || '',
-            };
+            let putAppointment = {};
+            ('string' === typeof req.body.name) && (putAppointment.name = req.body.name);
 
             return this.appsRequestVerify(req).then(() => {
                 if (!appointmentId) {
                     return Promise.reject(API_ERROR.APP_APPOINTMENT_APPOINTMENTID_WAS_EMPTY);
-                };
+                }
 
-                if ('' === appointment.name) {
-                    return Promise.reject(API_ERROR.APP_APPOINTMENT_NAME_WAS_EMPTY);
-                };
-
+                if ('string' === typeof putAppointment.name && !putAppointment.name) {
+                    return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
+                }
                 return appsAppointmentsMdl.findAppointments(appId);
             }).then((appointments) => {
                 if (!appointments) {
@@ -111,7 +83,7 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APPOINTMENT);
                 }
 
-                return appsAppointmentsMdl.update(appId, appointmentId, appointment).then((appsAppointments) => {
+                return appsAppointmentsMdl.update(appId, appointmentId, putAppointment).then((appsAppointments) => {
                     if (!(appsAppointments && appsAppointments[appId])) {
                         return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_UPDATE);
                     }
