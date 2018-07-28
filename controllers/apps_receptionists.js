@@ -7,7 +7,7 @@ module.exports = (function() {
 
     let appsReceptionistsMdl = require('../models/apps_receptionists');
 
-    class AppsProductsController extends ControllerCore {
+    class AppsReceptionistsController extends ControllerCore {
         constructor() {
             super();
             this.getAll = this.getAll.bind(this);
@@ -122,5 +122,5 @@ module.exports = (function() {
         }
     }
 
-    return new AppsProductsController();
+    return new AppsReceptionistsController();
 })();

@@ -17,6 +17,9 @@ module.exports = (function() {
             this.GroupsModel = this.model(GROUPS, this.GroupsSchema);
 
             this.project = {
+                isDeleted: true,
+                createdTime: true,
+                updatedTime: true,
                 name: true,
                 id1: true,
                 id2: true,
@@ -25,10 +28,7 @@ module.exports = (function() {
                 token1: true,
                 token2: true,
                 type: true,
-                createdTime: true,
-                updatedTime: true,
-                webhook_id: true,
-                isDeleted: true
+                webhook_id: true
             };
         }
 
@@ -48,7 +48,11 @@ module.exports = (function() {
             appIds instanceof Array && (_query._id = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
             webhookId && (_query.webhook_id = this.Types.ObjectId(webhookId));
 
-            return this.AppsModel.find(_query, this.project).sort({ createdTime: -1 }).then((results) => {
+            let sortArgs = {
+                createdTime: -1
+            };
+
+            return this.AppsModel.find(_query, this.project).sort(sortArgs).then((results) => {
                 let apps = {};
                 if (0 === results.length) {
                     return apps;
@@ -74,13 +78,13 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.Apps | null>}
          */
         insert(postApp, callback) {
-            let _appId = this.Types.ObjectId();
+            let appId = this.Types.ObjectId();
             let webhookId = this.Types.ObjectId().toHexString();
             let groupId = postApp.group_id;
 
             /** @type {Chatshier.Models.App} */
             let _apps = {
-                _id: _appId,
+                _id: appId,
                 id1: postApp.id1 || '',
                 id2: postApp.id2 || '',
                 name: postApp.name || '',
@@ -100,10 +104,11 @@ module.exports = (function() {
                 let query = {
                     '_id': groupId
                 };
+
                 return this.GroupsModel.findOne(query).then((group) => {
-                    let appId = __apps._id;
+                    let _appId = __apps._id;
                     let appIds = undefined === group.app_ids ? [] : group.app_ids;
-                    appIds.push(appId);
+                    appIds.push(_appId);
                     let putGroup = {
                         $set: {
                             'app_ids': appIds
@@ -116,15 +121,9 @@ module.exports = (function() {
                         return __apps;
                     });
                 });
-            }).then((__apps) => {
-                let query = {
-                    '_id': __apps._id
-                };
-                return this.AppsModel.findOne(query).select(this.project);
-            }).then((app) => {
-                let apps = {
-                    [app._id]: app
-                };
+            }).then(() => {
+                return this.find(appId.toHexString());
+            }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return apps;
             }).catch(() => {
@@ -155,9 +154,7 @@ module.exports = (function() {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
-                return this.AppsModel.findOne(query).select(this.project);
-            }).then((app) => {
-                return this.toObject(app._doc);
+                return this.find(appId);
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return apps;
@@ -173,24 +170,24 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.Apps | null>}
          */
         remove(appId, callback) {
+            let putApp = {
+                isDeleted: true,
+                updatedTime: Date.now()
+            };
+
             let query = {
                 '_id': this.Types.ObjectId(appId)
             };
 
             let doc = {
-                $set: {
-                    isDeleted: true,
-                    updatedTime: Date.now()
-                }
+                $set: putApp
             };
 
             return this.AppsModel.update(query, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
-                };
-                return this.AppsModel.findOne(query).select(this.project);
-            }).then((app) => {
-                return this.toObject(app._doc);
+                }
+                return this.find(appId, void 0, { isDeleted: true });
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return apps;

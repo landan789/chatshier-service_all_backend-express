@@ -12,7 +12,6 @@ module.exports = (function() {
             super();
             this.getAll = this.getAll.bind(this);
             this.getOne = this.getOne.bind(this);
-            this.postOne = this.postOne.bind(this);
             this.putOne = this.putOne.bind(this);
             this.deleteOne = this.deleteOne.bind(this);
         }
