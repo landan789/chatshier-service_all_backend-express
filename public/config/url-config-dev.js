@@ -7,5 +7,5 @@ window.urlConfig = {
     terms: '/terms',
     privacy: '/privacy',
     WEBHOOK_URL: 'https://service.dev.chatshier.com/webhook',
-    apiUrl: '..'
+    API: '..'
 };

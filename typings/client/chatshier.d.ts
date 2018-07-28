@@ -28,7 +28,7 @@ interface Window {
             terms: string,
             privacy: string,
             WEBHOOK_URL: string,
-            apiUrl: string
+            API: string
         }
     },
     SOCKET_EVENTS: {

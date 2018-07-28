@@ -50,6 +50,6 @@ window.CHATSHIER = {
         /**
          * 指向 api-chatshier 專案的 API 伺服器位址
          */
-        apiUrl: '..'
+        API: '..'
     }
 };
