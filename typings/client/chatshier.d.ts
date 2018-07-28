@@ -1,6 +1,6 @@
 interface Window {
     CHATSHIER: {
-        CONFIG: {
+        FILE: {
             RICHMENU_IMAGE_MAX_SIZE: number,
             IMAGE_MAX_SIZE: number,
             VIDEO_MAX_SIZE: number,

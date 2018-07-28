@@ -1,7 +1,7 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 window.CHATSHIER = {
-    CONFIG: {
+    FILE: {
         // https://developers.line.me/en/docs/messaging-api/reference/#upload-rich-menu-image
         // According to LINE official document, the max size of richmenu image should set to 1 MB
         RICHMENU_IMAGE_MAX_SIZE: 1 * 1024 * 1024,
