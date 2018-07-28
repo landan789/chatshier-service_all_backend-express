@@ -237,7 +237,7 @@
             if (file.type.indexOf('image') >= 0 && file.size > window.CHATSHIER.FILE.RICHMENU_IMAGE_MAX_SIZE) {
                 $('#modal-save').removeAttr('disabled');
                 $('#modal-update-save').removeAttr('disabled');
-                $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.RICHMENU_IMAGE_MAX_SIZE / megaByte) + ' MB');
+                $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(window.CHATSHIER.FILE.RICHMENU_IMAGE_MAX_SIZE / megaByte) + ' MB');
                 return;
             }
 
@@ -920,7 +920,7 @@
         apps = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
         let config = window.CHATSHIER.CONFIG;
-        $('.richmenu-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.RICHMENU_IMAGE_MAX_SIZE / (1024 * 1024)))}MB`);
+        $('.richmenu-image-warning').empty().text(`圖片大小不能超過${(Math.floor(window.CHATSHIER.FILE.RICHMENU_IMAGE_MAX_SIZE / (1024 * 1024)))}MB`);
 
         nowSelectAppId = '';
         for (var appId in apps) {
