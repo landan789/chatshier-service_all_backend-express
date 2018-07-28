@@ -6,7 +6,7 @@
     window.CHATSHIER.URL = window.CHATSHIER.URL || {};
     var URL = window.CHATSHIER.URL;
     var WWW = URL.WWW
-        ? URL.WWW + (80 !== URL.port ? ':' + URL.port : '')
+        ? URL.WWW + (80 !== URL.PORT ? ':' + URL.PORT : '')
         : window.location.protocol + '//' + document.domain.replace(/^[\w-]+\./i, 'www.');
     window.CHATSHIER.URL.WWW = WWW;
 

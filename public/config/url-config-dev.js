@@ -2,7 +2,7 @@
 
 window.urlConfig = {
     WWW: '',
-    port: '',
+    PORT: '',
     index: '/',
     terms: '/terms',
     privacy: '/privacy',
