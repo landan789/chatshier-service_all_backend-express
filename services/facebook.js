@@ -7,10 +7,10 @@ module.exports = (function() {
     class FacebookService {
         constructor() {
             if (chatshierCfg && chatshierCfg.FACEBOOK) {
-                this.appId = chatshierCfg.FACEBOOK.appId;
-                this.appSecret = chatshierCfg.FACEBOOK.appSecret;
-                this.appAccessToken = chatshierCfg.FACEBOOK.appAccessToken;
-                this.apiVersion = chatshierCfg.FACEBOOK.apiVersion || 'v3.0';
+                this.appId = chatshierCfg.FACEBOOK.APP_ID;
+                this.appSecret = chatshierCfg.FACEBOOK.APP_SECRET;
+                this.appAccessToken = chatshierCfg.FACEBOOK.CLIENT_TOKEN;
+                this.apiVersion = chatshierCfg.FACEBOOK.VERSION || 'v3.0';
             }
         }
 

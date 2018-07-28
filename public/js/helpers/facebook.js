@@ -10,8 +10,14 @@ window.facebookHelper = (function() {
         navigator.userLanguage;
     var fbsdkUrl = 'https://connect.facebook.net/' + language + '/sdk.js';
     var fbsdkId = 'facebook-jssdk';
+    
     /** @type {fb.InitParams} */
-    var fbParams = window.CHATSHIER ? window.CHATSHIER.FACEBOOK : {};
+    var fbParams = {
+        appId: window.CHATSHIER.FACEBOOK.APP_ID, // facebook appId
+        cookie: window.CHATSHIER.FACEBOOK.APP_ID.COOKIE,
+        xfbml: window.CHATSHIER.FACEBOOK.XFBML,
+        version: window.CHATSHIER.FACEBOOK.VERSION
+    };
 
     var sendAPI = function(apiPath, method) {
         method = method || 'GET';
