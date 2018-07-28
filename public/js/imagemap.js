@@ -116,7 +116,6 @@
         let file = input.files[0];
         input.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
-        let config = window.CHATSHIER.CONFIG;
         if (file.type.indexOf('image') < 0) {
             $.notify('請上傳圖檔');
             return;
@@ -124,8 +123,8 @@
 
         var kiloByte = 1024;
         var megaByte = kiloByte * 1024;
-        if (file.type.indexOf('image') >= 0 && file.size > config.IMAGE_MAX_SIZE) {
-            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.IMAGE_MAX_SIZE / megaByte) + ' MB');
+        if (file.type.indexOf('image') >= 0 && file.size > window.CHATSHIER.FILE.IMAGE_MAX_SIZE) {
+            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(window.CHATSHIER.FILE.IMAGE_MAX_SIZE / megaByte) + ' MB');
             return;
         }
 
@@ -678,8 +677,7 @@
         var appsData = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
-        let config = window.CHATSHIER.CONFIG;
-        $('.imagemap-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.IMAGE_MAX_SIZE / (1024 * 1024)))}MB`);
+        $('.imagemap-image-warning').empty().text(`圖片大小不能超過${(Math.floor(window.CHATSHIER.FILE.IMAGE_MAX_SIZE / (1024 * 1024)))}MB`);
 
         elementHide($('.content-bar'));
         elementHide($('.content-input'));
