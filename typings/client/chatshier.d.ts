@@ -8,10 +8,10 @@ interface Window {
             OTHER_MAX_SIZE: number
         },
         FACEBOOK: {
-            appId: string,
-            cookie: boolean,
-            xfbml: boolean,
-            version: string
+            APP_ID: string,
+            COOKIE: boolean,
+            XFBML: boolean,
+            VERSION: string
         },
         GOOGLE: {
             CALENDAR: {
