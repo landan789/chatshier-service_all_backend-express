@@ -27,7 +27,7 @@ interface Window {
             index: string,
             terms: string,
             privacy: string,
-            WEBHOOK_URL: string,
+            WEBHOOK: string,
             API: string
         }
     },
