@@ -4,11 +4,11 @@ window.CHATSHIER = {
     CONFIG: {
         // https://developers.line.me/en/docs/messaging-api/reference/#upload-rich-menu-image
         // According to LINE official document, the max size of richmenu image should set to 1 MB
-        richmenuImageFileMaxSize: 1 * 1024 * 1024,
-        imageFileMaxSize: 6 * 1024 * 1024, // 6 MB
-        videoFileMaxSize: 20 * 1024 * 1024, // 20 MB
-        audioFileMaxSize: 10 * 1024 * 1024, // 10 MB
-        otherFileMaxSize: 100 * 1024 * 1024 // 100 MB
+        RICHMENU_IMAGE_MAX_SIZE: 1 * 1024 * 1024,
+        IMAGE_MAX_SIZE: 6 * 1024 * 1024, // 6 MB
+        VIDEO_MAX_SIZE: 20 * 1024 * 1024, // 20 MB
+        AUDIO_MAX_SIZE: 10 * 1024 * 1024, // 10 MB
+        OTHER_MAX_SIZE: 100 * 1024 * 1024 // 100 MB
     },
     FACEBOOK: {
         APP_ID: '203545926984167', // facebook appId

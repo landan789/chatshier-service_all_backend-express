@@ -259,7 +259,7 @@
         let $dropdownMenu = $appDropdown.find('.dropdown-menu');
         let config = window.CHATSHIER.CONFIG;
         $jqDoc.find('.insert-btn').attr('disabled', true);
-        $('.template-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1024)))}MB`);
+        $('.template-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.IMAGE_MAX_SIZE / (1024 * 1024)))}MB`);
 
         for (let appId in apps) {
             let app = apps[appId];

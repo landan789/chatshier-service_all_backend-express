@@ -124,8 +124,8 @@
 
         var kiloByte = 1024;
         var megaByte = kiloByte * 1024;
-        if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
-            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / megaByte) + ' MB');
+        if (file.type.indexOf('image') >= 0 && file.size > config.IMAGE_MAX_SIZE) {
+            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.IMAGE_MAX_SIZE / megaByte) + ' MB');
             return;
         }
 
@@ -679,7 +679,7 @@
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         let config = window.CHATSHIER.CONFIG;
-        $('.imagemap-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1024)))}MB`);
+        $('.imagemap-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.IMAGE_MAX_SIZE / (1024 * 1024)))}MB`);
 
         elementHide($('.content-bar'));
         elementHide($('.content-input'));

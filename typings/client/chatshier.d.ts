@@ -1,10 +1,11 @@
 interface Window {
     CHATSHIER: {
         CONFIG: {
-            richmenuImageFileMaxSize: number,
-            imageFileMaxSize: number,
-            videoFileMaxSize: number,
-            audioFileMaxSize: number
+            RICHMENU_IMAGE_MAX_SIZE: number,
+            IMAGE_MAX_SIZE: number,
+            VIDEO_MAX_SIZE: number,
+            AUDIO_MAX_SIZE: number,
+            OTHER_MAX_SIZE: number
         },
         FACEBOOK: {
             appId: string,
