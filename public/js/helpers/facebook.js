@@ -12,7 +12,7 @@ window.facebookHelper = (function() {
     var fbsdkId = 'facebook-jssdk';
     
     /** @type {fb.InitParams} */
-    var fbParams = {
+    var fbCfg = {
         appId: window.CHATSHIER.FACEBOOK.APP_ID, // facebook appId
         cookie: window.CHATSHIER.FACEBOOK.APP_ID.COOKIE,
         xfbml: window.CHATSHIER.FACEBOOK.XFBML,
@@ -70,7 +70,7 @@ window.facebookHelper = (function() {
             }
 
             initPromise = facebookHelper.loadAPI().then(function() {
-                FB.init(fbParams);
+                FB.init(fbCfg);
                 return new Promise(function(resolve) {
                     FB.getLoginStatus(resolve);
                 });

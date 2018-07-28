@@ -61,13 +61,13 @@ module.exports = {
         EXPIRES: EXPIRES
     },
     CORS: { // the attributes of CORS must be lower case
-        origin: [
+        ORIGIN: [
             'http://service.fea.chatshier.com:8080' // allow the website of client can access back-end service.chatshier
             // http://service.fea.chatshier.com:3002  website always allows itself
         ],
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-        allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true
+        METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        ALLOWED_HEADERS: ['Content-Type', 'Authorization'],
+        CREDENTIALS: true
     },
     GMAIL: {
         user: 'support@chatshier.com',
