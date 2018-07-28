@@ -13,13 +13,11 @@ interface Window {
             XFBML: boolean,
             VERSION: string
         },
-        GOOGLE: {
-            CALENDAR: {
-                API_KEY: string,
-                CLIENT_ID: string,
-                DISCOVERY_DOCS: string[],
-                SCOPES: string
-            }
+        GOOGLE_CALENDAR: {
+            API_KEY: string,
+            CLIENT_ID: string,
+            DISCOVERY_DOCS: string[],
+            SCOPES: string
         },
         URL: {
             WWW: string,
