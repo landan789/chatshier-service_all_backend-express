@@ -46,7 +46,7 @@ window.CHATSHIER = {
          * 外部服務發送 webhook 至本機的前輟網址，
          * 本機開發時可使用 ngrok 產生外部鏈結
          */
-        webhookUrl: 'https://service.dev.chatshier.com/webhook',
+        WEBHOOK_URL: 'https://service.dev.chatshier.com/webhook',
         /**
          * 指向 api-chatshier 專案的 API 伺服器位址
          */

@@ -6,6 +6,6 @@ window.urlConfig = {
     index: '/',
     terms: '/terms',
     privacy: '/privacy',
-    webhookUrl: 'https://service.dev.chatshier.com/webhook',
+    WEBHOOK_URL: 'https://service.dev.chatshier.com/webhook',
     apiUrl: '..'
 };
