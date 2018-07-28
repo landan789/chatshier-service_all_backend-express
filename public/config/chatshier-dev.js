@@ -29,19 +29,8 @@ window.CHATSHIER = {
          * 指向 www.chatshier 專案的伺服器位址
          */
         WWW: 'https://www.dev.chatshier.com',
-        port: 80,
-        /**
-         * www 伺服器的首頁路徑
-         */
-        index: '/index',
-        /**
-         * 服務項目頁面路徑
-         */
-        terms: '/terms',
-        /**
-         * 隱私權頁面路徑
-         */
-        privacy: '/privacy',
+        PORT: 80,
+
         /**
          * 外部服務發送 webhook 至本機的前輟網址，
          * 本機開發時可使用 ngrok 產生外部鏈結

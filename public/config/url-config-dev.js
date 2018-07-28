@@ -3,9 +3,6 @@
 window.urlConfig = {
     WWW: '',
     PORT: '',
-    index: '/',
-    terms: '/terms',
-    privacy: '/privacy',
     WEBHOOK: 'https://service.dev.chatshier.com/webhook',
     API: '..'
 };
