@@ -22,7 +22,7 @@ interface Window {
             }
         },
         URL: {
-            wwwUrl: string,
+            WWW: string,
             port: string,
             index: string,
             terms: string,

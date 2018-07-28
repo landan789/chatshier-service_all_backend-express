@@ -5,10 +5,10 @@
     // 如果未設定，預設將 url 的 service. 替換成 www.
     window.CHATSHIER.URL = window.CHATSHIER.URL || {};
     var URL = window.CHATSHIER.URL;
-    var wwwUrl = URL.wwwUrl
-        ? URL.wwwUrl + (80 !== URL.port ? ':' + URL.port : '')
+    var WWW = URL.WWW
+        ? URL.WWW + (80 !== URL.port ? ':' + URL.port : '')
         : window.location.protocol + '//' + document.domain.replace(/^[\w-]+\./i, 'www.');
-    window.CHATSHIER.URL.wwwUrl = wwwUrl;
+    window.CHATSHIER.URL.WWW = WWW;
 
     // 設定 bootstrap notify 的預設值
     // 1. 設定為顯示後2秒自動消失

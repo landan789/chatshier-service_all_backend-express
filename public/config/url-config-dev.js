@@ -1,7 +1,7 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 window.urlConfig = {
-    wwwUrl: '',
+    WWW: '',
     port: '',
     index: '/',
     terms: '/terms',

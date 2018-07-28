@@ -28,10 +28,10 @@ window.CHATSHIER = {
         /**
          * 指向 www.chatshier 專案的伺服器位址
          */
-        wwwUrl: 'https://www.dev.chatshier.com',
+        WWW: 'https://www.dev.chatshier.com',
         port: 80,
         /**
-         * wwwUrl 伺服器的首頁路徑
+         * www 伺服器的首頁路徑
          */
         index: '/index',
         /**
