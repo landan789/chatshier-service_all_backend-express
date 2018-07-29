@@ -16,13 +16,11 @@ window.CHATSHIER = {
         XFBML: true,
         VERSION: 'v3.0'
     },
-    GOOGLE: {
-        CALENDAR: {
-            API_KEY: 'AIzaSyAggVIi65n65aIAbthGR8jmPCoEiLbujc8',
-            CLIENT_ID: '1074711200692-ds4lin2uh3q4bs5doqsdipuak83j6te1.apps.googleusercontent.com',
-            DISCOVERY_DOCS: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-            SCOPES: 'https://www.googleapis.com/auth/calendar'
-        }
+    GOOGLE_CALENDAR: {
+        API_KEY: 'AIzaSyAggVIi65n65aIAbthGR8jmPCoEiLbujc8',
+        CLIENT_ID: '1074711200692-ds4lin2uh3q4bs5doqsdipuak83j6te1.apps.googleusercontent.com',
+        DISCOVERY_DOCS: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+        SCOPES: 'https://www.googleapis.com/auth/calendar'
     },
     URL: {
         /**
