@@ -2,7 +2,7 @@
 
 (function() {
     const SOCKET_NAMESPACE = '/chatshier';
-    const SOCKET_SERVER_URL = window.CHATSHIER.URL.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    const SOCKET_SERVER_URL = window.CHATSHIER.URL.API.replace('..', window.location.origin) + SOCKET_NAMESPACE;
     const SOCKET_EVENTS = window.SOCKET_EVENTS;
     const socket = io(SOCKET_SERVER_URL);
 
@@ -949,7 +949,7 @@
     }
 
     function generateAppItem(appId, app) {
-        let baseWebhookUrl = window.CHATSHIER.URL.webhookUrl;
+        let baseWebhookUrl = window.CHATSHIER.URL.WEBHOOK;
         let itemHtml = (
             '<div class="shadow card text-dark bot-item" app-id="' + appId + '">' +
                 '<div class="bar">' +

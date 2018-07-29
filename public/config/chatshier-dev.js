@@ -1,14 +1,14 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 window.CHATSHIER = {
-    CONFIG: {
+    FILE: {
         // https://developers.line.me/en/docs/messaging-api/reference/#upload-rich-menu-image
         // According to LINE official document, the max size of richmenu image should set to 1 MB
-        richmenuImageFileMaxSize: 1 * 1024 * 1024,
-        imageFileMaxSize: 6 * 1024 * 1024, // 6 MB
-        videoFileMaxSize: 20 * 1024 * 1024, // 20 MB
-        audioFileMaxSize: 10 * 1024 * 1024, // 10 MB
-        otherFileMaxSize: 100 * 1024 * 1024 // 100 MB
+        RICHMENU_IMAGE_MAX_SIZE: 1 * 1024 * 1024,
+        IMAGE_MAX_SIZE: 6 * 1024 * 1024, // 6 MB
+        VIDEO_MAX_SIZE: 20 * 1024 * 1024, // 20 MB
+        AUDIO_MAX_SIZE: 10 * 1024 * 1024, // 10 MB
+        OTHER_MAX_SIZE: 100 * 1024 * 1024 // 100 MB
     },
     FACEBOOK: {
         APP_ID: '203545926984167', // facebook appId
@@ -28,28 +28,17 @@ window.CHATSHIER = {
         /**
          * 指向 www.chatshier 專案的伺服器位址
          */
-        wwwUrl: 'https://www.dev.chatshier.com',
-        port: 80,
-        /**
-         * wwwUrl 伺服器的首頁路徑
-         */
-        index: '/index',
-        /**
-         * 服務項目頁面路徑
-         */
-        terms: '/terms',
-        /**
-         * 隱私權頁面路徑
-         */
-        privacy: '/privacy',
+        WWW: 'https://www.dev.chatshier.com',
+        PORT: 80,
+
         /**
          * 外部服務發送 webhook 至本機的前輟網址，
          * 本機開發時可使用 ngrok 產生外部鏈結
          */
-        webhookUrl: 'https://service.dev.chatshier.com/webhook',
+        WEBHOOK: 'https://service.dev.chatshier.com/webhook',
         /**
          * 指向 api-chatshier 專案的 API 伺服器位址
          */
-        apiUrl: '..'
+        API: '..'
     }
 };

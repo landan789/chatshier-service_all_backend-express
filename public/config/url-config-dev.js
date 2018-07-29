@@ -1,11 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 window.urlConfig = {
-    wwwUrl: '',
-    port: '',
-    index: '/',
-    terms: '/terms',
-    privacy: '/privacy',
-    webhookUrl: 'https://service.dev.chatshier.com/webhook',
-    apiUrl: '..'
+    WWW: '',
+    PORT: '',
+    WEBHOOK: 'https://service.dev.chatshier.com/webhook',
+    API: '..'
 };

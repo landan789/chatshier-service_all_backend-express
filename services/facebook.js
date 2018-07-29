@@ -1,16 +1,16 @@
 module.exports = (function() {
     const request = require('request');
-    const chatshierCfg = require('../config/chatshier');
+    const CHATSHIER_CFG = require('../config/chatshier');
 
     const API_ENDPOINT = 'https://graph.facebook.com';
 
     class FacebookService {
         constructor() {
-            if (chatshierCfg && chatshierCfg.FACEBOOK) {
-                this.appId = chatshierCfg.FACEBOOK.APP_ID;
-                this.appSecret = chatshierCfg.FACEBOOK.APP_SECRET;
-                this.appAccessToken = chatshierCfg.FACEBOOK.CLIENT_TOKEN;
-                this.version = chatshierCfg.FACEBOOK.VERSION || 'v3.0';
+            if (CHATSHIER_CFG && CHATSHIER_CFG.FACEBOOK) {
+                this.appId = CHATSHIER_CFG.FACEBOOK.APP_ID;
+                this.appSecret = CHATSHIER_CFG.FACEBOOK.APP_SECRET;
+                this.appAccessToken = CHATSHIER_CFG.FACEBOOK.CLIENT_TOKEN;
+                this.version = CHATSHIER_CFG.FACEBOOK.VERSION || 'v3.0';
             }
         }
 

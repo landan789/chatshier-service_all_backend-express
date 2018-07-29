@@ -1,15 +1,15 @@
 module.exports = (function() {
     const redis = require('redis');
-    const chatshierCfg = require('../config/chatshier');
+    const CHATSHIER_CFG = require('../config/chatshier');
     const REDIS_API_CHANNEL = 'REDIS_API_CHANNEL';
     const REDIS_SOCKET_CHANNEL = 'REDIS_SOCKET_CHANNEL';
     const UPDATE_FUSE_USERS = 'UPDATE_FUSE_USERS';
 
     // http://redis.js.org/#api-rediscreateclient
     let redisClientOpts = {
-        host: chatshierCfg.REDIS.HOST,
-        port: chatshierCfg.REDIS.PORT,
-        password: chatshierCfg.REDIS.PASSWORD, // "chatshier" MD5 hash
+        host: CHATSHIER_CFG.REDIS.HOST,
+        port: CHATSHIER_CFG.REDIS.PORT,
+        password: CHATSHIER_CFG.REDIS.PASSWORD, // "chatshier" MD5 hash
         connect_timeout: 15000,
         retry_strategy: (options) => {
             // // redis server 已經失去連線則不進行重新嘗試
