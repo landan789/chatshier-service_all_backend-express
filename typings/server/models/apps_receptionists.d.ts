@@ -18,7 +18,7 @@ declare module Chatshier {
             timezoneOffset: number,
             maxNumber: number,
             interval: number,
-            schedules: ReceptionistSchedule[]
+            schedules: (ReceptionistSchedule | void)[]
         }
 
         interface ReceptionistSchedule {

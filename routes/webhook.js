@@ -347,7 +347,7 @@ router.post('/:webhookid', (req, res, next) => {
                     if (webhookInfo.isPostback) {
                         return chatshierHlp.getPostbackReplies(receivedMessages, webhookInfo, appId, botSvc);
                     }
-                    return chatshierHlp.getReplies(receivedMessages, webhookInfo, appId, app);
+                    return chatshierHlp.getMessageReplies(receivedMessages, webhookInfo, appId, app);
                 }).then((messages) => {
                     repliedMessages = messages;
                     if (0 === repliedMessages.length) {

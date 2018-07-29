@@ -47,7 +47,7 @@ module.exports = (function() {
          * @param {Chatshier.Models.App} app
          * @returns {Promise<any[]>}
          */
-        getReplies(messages, webhookInfo, appId, app) {
+        getMessageReplies(messages, webhookInfo, appId, app) {
             let eventType = webhookInfo.eventType;
             let repliedMessages = [];
 
@@ -199,181 +199,148 @@ module.exports = (function() {
 
                 /** @type {Webhook.Chatshier.PostbackPayload} */
                 let payload = JSON.parse(payloadStr);
-                let serverAddr = webhookInfo.serverAddress;
                 let platformUid = webhookInfo.platformUid;
-                let url = serverAddr;
+                let url = webhookInfo.serverAddress;
 
-                switch (payload.action) {
-                    case POSTBACK_ACTIONS.CHANGE_RICHMENU:
-                        let richmenuId = payload.richmenuId || '';
-                        let richmenuPromise = appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
-                            if (!(appsRichmenus && appsRichmenus[appId])) {
-                                return;
-                            }
-
-                            // 如果此 richmenu 沒有啟用或者找不到，則不做任何處理
-                            let richmenu = appsRichmenus[appId].richmenus[richmenuId];
-                            if (!(richmenu && richmenu.isActivated)) {
-                                return;
-                            }
-
-                            let platformUid = webhookInfo.platformUid;
-                            return botSvc.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId);
-                        });
-                        promises.push(richmenuPromise);
-                        break;
-                    case POSTBACK_ACTIONS.SEND_REPLY_TEXT:
-                        if (payload.replyText) {
-                            let replyTextMessage = {
-                                type: 'text',
-                                text: payload.replyText
-                            };
-                            repliedMessages.push(replyTextMessage);
+                if (POSTBACK_ACTIONS.CHANGE_RICHMENU === payload.action) {
+                    let richmenuId = payload.richmenuId || '';
+                    let richmenuPromise = appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
+                        if (!(appsRichmenus && appsRichmenus[appId])) {
+                            return;
                         }
-                        break;
-                    case POSTBACK_ACTIONS.SEND_TEMPLATE:
-                        let templateId = payload.templateId || '';
-                        let templatePromise = appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
-                            if (!(appsTemplates && appsTemplates[appId])) {
-                                return Promise.resolve();
-                            }
 
-                            let template = appsTemplates[appId].templates[templateId];
+                        // 如果此 richmenu 沒有啟用或者找不到，則不做任何處理
+                        let richmenu = appsRichmenus[appId].richmenus[richmenuId];
+                        if (!(richmenu && richmenu.isActivated)) {
+                            return;
+                        }
 
-                            if (payload.additionalText) {
-                                let additionalTextMessage = {
-                                    type: 'text',
-                                    text: payload.additionalText
-                                };
-                                repliedMessages.push(additionalTextMessage);
-                            }
+                        let platformUid = webhookInfo.platformUid;
+                        return botSvc.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId);
+                    });
+                    promises.push(richmenuPromise);
+                } else if (POSTBACK_ACTIONS.SEND_REPLY_TEXT === payload.action && payload.replyText) {
+                    let replyTextMessage = {
+                        type: 'text',
+                        text: payload.replyText
+                    };
+                    repliedMessages.push(replyTextMessage);
+                } else if (POSTBACK_ACTIONS.SEND_TEMPLATE === payload.action) {
+                    let templateId = payload.templateId || '';
+                    let templatePromise = appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
+                        if (!(appsTemplates && appsTemplates[appId])) {
+                            return Promise.resolve();
+                        }
 
-                            let templateMessage = {
-                                type: template.type,
-                                altText: template.altText,
-                                template: template.template
+                        let template = appsTemplates[appId].templates[templateId];
+
+                        if (payload.additionalText) {
+                            let additionalTextMessage = {
+                                type: 'text',
+                                text: payload.additionalText
                             };
-                            repliedMessages.push(templateMessage);
-                        });
-                        promises.push(templatePromise);
-                        break;
-                    case POSTBACK_ACTIONS.SEND_IMAGEMAP:
-                        let imagemapId = payload.imagemapId || '';
-                        let imagemapPromise = appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
-                            if (!(appsImagemaps && appsImagemaps[appId])) {
-                                return Promise.resolve();
-                            }
+                            repliedMessages.push(additionalTextMessage);
+                        }
 
-                            if (payload.additionalText) {
-                                let additionalTextMessage = {
-                                    type: 'text',
-                                    text: payload.additionalText
-                                };
-                                repliedMessages.push(additionalTextMessage);
-                            }
-
-                            let imagemap = appsImagemaps[appId].imagemaps[imagemapId];
-                            let imagemapMessage = {
-                                type: imagemap.type,
-                                altText: imagemap.altText,
-                                baseUrl: imagemap.baseUrl,
-                                baseSize: imagemap.baseSize,
-                                actions: imagemap.actions
-                            };
-                            repliedMessages.push(imagemapMessage);
-                        });
-                        promises.push(imagemapPromise);
-                        break;
-                    case POSTBACK_ACTIONS.SEND_CONSUMER_FORM:
-                        let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                        url += '/consumer-form?aid=' + appId + '&t=' + token;
-
-                        let formMessage = {
-                            type: 'template',
-                            altText: '填寫基本資料範本訊息',
-                            template: {
-                                type: 'buttons',
-                                title: '填寫基本資料',
-                                text: '開啟以下連結進行填寫動作',
-                                actions: [{
-                                    type: 'uri',
-                                    label: '按此開啟',
-                                    uri: url
-                                }]
-                            }
+                        let templateMessage = {
+                            type: template.type,
+                            altText: template.altText,
+                            template: template.template
                         };
-                        repliedMessages.push(formMessage);
-                        break;
-                    case POSTBACK_ACTIONS.PAYMENT_CONFIRM:
-                        let confirmPromise = appsPaymentsMdl.find(appId).then((appsPayments) => {
-                            // 如果此 App 尚未設定金流服務，則跳過處理
-                            if (!(appsPayments && appsPayments[appId])) {
-                                return Promise.resolve(void 0);
-                            }
-                            return Promise.resolve(Object.values(appsPayments[appId].payments).shift());
-                        }).then((payment) => {
-                            if (!payment) {
+                        repliedMessages.push(templateMessage);
+                    });
+                    promises.push(templatePromise);
+                } else if (POSTBACK_ACTIONS.SEND_IMAGEMAP === payload.action) {
+                    let imagemapId = payload.imagemapId || '';
+                    let imagemapPromise = appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
+                        if (!(appsImagemaps && appsImagemaps[appId])) {
+                            return Promise.resolve();
+                        }
+
+                        if (payload.additionalText) {
+                            let additionalTextMessage = {
+                                type: 'text',
+                                text: payload.additionalText
+                            };
+                            repliedMessages.push(additionalTextMessage);
+                        }
+
+                        let imagemap = appsImagemaps[appId].imagemaps[imagemapId];
+                        let imagemapMessage = {
+                            type: imagemap.type,
+                            altText: imagemap.altText,
+                            baseUrl: imagemap.baseUrl,
+                            baseSize: imagemap.baseSize,
+                            actions: imagemap.actions
+                        };
+                        repliedMessages.push(imagemapMessage);
+                    });
+                    promises.push(imagemapPromise);
+                } else if (POSTBACK_ACTIONS.SEND_CONSUMER_FORM === payload.action) {
+                    let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+                    url += '/consumer-form?aid=' + appId + '&t=' + token;
+
+                    let formMessage = {
+                        type: 'template',
+                        altText: '填寫基本資料範本訊息',
+                        template: {
+                            type: 'buttons',
+                            title: '填寫基本資料',
+                            text: '開啟以下連結進行填寫動作',
+                            actions: [{
+                                type: 'uri',
+                                label: '按此開啟',
+                                uri: url
+                            }]
+                        }
+                    };
+                    repliedMessages.push(formMessage);
+                } else if (POSTBACK_ACTIONS.PAYMENT_CONFIRM === payload.action) {
+                    let confirmPromise = appsPaymentsMdl.find(appId).then((appsPayments) => {
+                        // 如果此 App 尚未設定金流服務，則跳過處理
+                        if (!(appsPayments && appsPayments[appId])) {
+                            return Promise.resolve(void 0);
+                        }
+                        return Promise.resolve(Object.values(appsPayments[appId].payments).shift());
+                    }).then((payment) => {
+                        if (!payment) {
+                            return;
+                        }
+
+                        return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid).then((appsChatroomsMessagers) => {
+                            if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
                                 return;
                             }
 
-                            return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid).then((appsChatroomsMessagers) => {
-                                if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                                    return;
-                                }
+                            // 當 consumer 點擊捐款時，檢查此 consumer 是否已經填寫完個人基本資料
+                            // 如果沒有填寫完基本資料，則發送填寫基本資料範本給使用者
+                            let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                            let chatroomId = Object.keys(chatrooms).shift() || '';
+                            let messager = chatrooms[chatroomId].messagers[platformUid];
 
-                                // 當 consumer 點擊捐款時，檢查此 consumer 是否已經填寫完個人基本資料
-                                // 如果沒有填寫完基本資料，則發送填寫基本資料範本給使用者
-                                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                                let chatroomId = Object.keys(chatrooms).shift() || '';
-                                let messager = chatrooms[chatroomId].messagers[platformUid];
+                            let hasFinishProfile = (
+                                messager.namings && messager.namings[platformUid] &&
+                                messager.email &&
+                                messager.phone &&
+                                messager.address
+                            );
 
-                                let hasFinishProfile = (
-                                    messager.namings && messager.namings[platformUid] &&
-                                    messager.email &&
-                                    messager.phone &&
-                                    messager.address
-                                );
-
-                                if (!hasFinishProfile) {
-                                    let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                                    url += '/consumer-form?aid=' + appId + '&t=' + token;
-
-                                    let alertMessage = {
-                                        type: 'text',
-                                        text: '您尚未完成個人基本資料的填寫'
-                                    };
-
-                                    let formMessage = {
-                                        type: 'template',
-                                        altText: '填寫基本資料範本訊息',
-                                        template: {
-                                            type: 'buttons',
-                                            title: '填寫基本資料',
-                                            text: '開啟以下連結進行填寫動作',
-                                            actions: [{
-                                                type: 'uri',
-                                                label: '按此開啟',
-                                                uri: url
-                                            }]
-                                        }
-                                    };
-                                    repliedMessages.push(alertMessage, formMessage);
-                                    return;
-                                }
-
+                            if (!hasFinishProfile) {
                                 let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                                url += '/donation-confirm?aid=' + appId + '&t=' + token;
-                                if (payment.canIssueInvoice) {
-                                    url += '&cii=1';
-                                }
+                                url += '/consumer-form?aid=' + appId + '&t=' + token;
 
-                                let linkMessage = {
+                                let alertMessage = {
+                                    type: 'text',
+                                    text: '您尚未完成個人基本資料的填寫'
+                                };
+
+                                let formMessage = {
                                     type: 'template',
-                                    altText: '捐款連結訊息',
+                                    altText: '填寫基本資料範本訊息',
                                     template: {
                                         type: 'buttons',
-                                        title: '捐款連結',
-                                        text: '開啟以下連結前往捐款資料確認',
+                                        title: '填寫基本資料',
+                                        text: '開啟以下連結進行填寫動作',
                                         actions: [{
                                             type: 'uri',
                                             label: '按此開啟',
@@ -381,106 +348,136 @@ module.exports = (function() {
                                         }]
                                     }
                                 };
-                                repliedMessages.push(linkMessage);
-                            });
-                        });
-                        promises.push(confirmPromise);
-                        break;
-                    case POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES:
-                        let categoryPromise = appsCategoriesMdl.find(appId).then((appsCategories) => {
-                            if (!(appsCategories && appsCategories[appId])) {
-                                let noCategoriesMessage = {
-                                    type: 'text',
-                                    text: '很抱歉，現在沒有可預約的目錄。'
-                                };
-                                repliedMessages.push(noCategoriesMessage);
-                                return Promise.resolve(void 0);
+                                repliedMessages.push(alertMessage, formMessage);
+                                return;
                             }
 
-                            let categories = appsCategories[appId].categories;
-                            let categoryIds = Object.keys(categories);
-
-                            /** @type {string[][]} */
-                            let categoryColumns = [];
-                            while (categoryIds.length > 3) {
-                                categoryColumns.push(categoryIds.splice(0, 3));
+                            let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+                            url += '/donation-confirm?aid=' + appId + '&t=' + token;
+                            if (payment.canIssueInvoice) {
+                                url += '&cii=1';
                             }
-                            categoryColumns.push(categoryIds);
 
-                            let categoriesMessage = {
+                            let linkMessage = {
                                 type: 'template',
-                                altText: '預約目錄',
+                                altText: '捐款連結訊息',
                                 template: {
-                                    type: 'carousel',
-                                    columns: categoryColumns.map((categoryIds) => {
-                                        if (categoryColumns.length > 1) {
-                                            while (categoryIds.length < 3) {
-                                                categoryIds.push('');
-                                            }
-                                        }
-
-                                        /** @type {Chatshier.Models.TemplateColumn} */
-                                        let column = {
-                                            title: '預約目錄',
-                                            text: '請選擇要預約的目錄',
-                                            actions: categoryIds.map((categoryId) => {
-                                                /** @type {Chatshier.Models.TemplateAction} */
-                                                let action = {
-                                                    type: 'postback',
-                                                    label: '　',
-                                                    data: 'none'
-                                                };
-
-                                                if (!categoryId) {
-                                                    return action;
-                                                }
-
-                                                let category = categories[categoryId];
-                                                /** @type {Webhook.Chatshier.PostbackPayload} */
-                                                let payloadJson = {
-                                                    action: 'SEND_APPOINTMENT_PRODUCTS',
-                                                    categoryId: categoryId,
-                                                    timestamp: Date.now()
-                                                };
-
-                                                action.label = category.name;
-                                                action.data = JSON.stringify(payloadJson);
-                                                return action;
-                                            })
-                                        };
-                                        return column;
-                                    })
+                                    type: 'buttons',
+                                    title: '捐款連結',
+                                    text: '開啟以下連結前往捐款資料確認',
+                                    actions: [{
+                                        type: 'uri',
+                                        label: '按此開啟',
+                                        uri: url
+                                    }]
                                 }
                             };
-                            repliedMessages.push(categoriesMessage);
+                            repliedMessages.push(linkMessage);
                         });
-                        promises.push(categoryPromise);
-                        break;
-                    case POSTBACK_ACTIONS.SEND_APPOINTMENT_PRODUCTS:
-                        let timestamp = payload.timestamp || 0;
-                        if (Date.now() - timestamp > 30 * 60 * 1000) {
-                            let timeoutMessage = {
+                    });
+                    promises.push(confirmPromise);
+                } else if (POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES === payload.action) {
+                    let categoryPromise = appsCategoriesMdl.find(appId).then((appsCategories) => {
+                        if (!(appsCategories && appsCategories[appId])) {
+                            let noCategoriesMessage = {
                                 type: 'text',
-                                text: '此操作已逾時 30 分鐘，請重新操作。'
+                                text: '很抱歉，現在沒有可預約的目錄。'
                             };
-                            repliedMessages.push(timeoutMessage);
-                            break;
+                            repliedMessages.push(noCategoriesMessage);
+                            return Promise.resolve(void 0);
                         }
 
-                        let categoryId = payload.categoryId || '';
-                        let productPromise = appsCategoriesMdl.find(appId, categoryId).then((appsCategories) => {
-                            if (!(appsCategories && appsCategories[appId])) {
-                                let noCategoriesMessage = {
-                                    type: 'text',
-                                    text: '很抱歉，找不到這個預約目錄。'
-                                };
-                                repliedMessages.push(noCategoriesMessage);
-                                return Promise.resolve();
-                            }
+                        let categories = appsCategories[appId].categories;
+                        let categoryIds = Object.keys(categories);
 
-                            let category = appsCategories[appId].categories[categoryId] || {};
-                            let productIds = category.product_ids || [];
-                            if (0 === productIds.length) {
+                        /** @type {string[][]} */
+                        let categoryColumns = [];
+                        while (categoryIds.length > 3) {
+                            categoryColumns.push(categoryIds.splice(0, 3));
+                        }
+                        categoryColumns.push(categoryIds);
+
+                        let categoriesMessage = {
+                            type: 'template',
+                            altText: '預約目錄',
+                            template: {
+                                type: 'carousel',
+                                columns: categoryColumns.map((categoryIds) => {
+                                    if (categoryColumns.length > 1) {
+                                        while (categoryIds.length < 3) {
+                                            categoryIds.push('');
+                                        }
+                                    }
+
+                                    /** @type {Chatshier.Models.TemplateColumn} */
+                                    let column = {
+                                        title: '預約目錄',
+                                        text: '請選擇要預約的目錄',
+                                        thumbnailImageUrl: url + '/image/logo-no-transparent.png',
+                                        actions: categoryIds.map((categoryId) => {
+                                            /** @type {Chatshier.Models.TemplateAction} */
+                                            let action = {
+                                                type: 'postback',
+                                                label: '　',
+                                                data: 'none'
+                                            };
+
+                                            if (!categoryId) {
+                                                return action;
+                                            }
+
+                                            let category = categories[categoryId];
+                                            /** @type {Webhook.Chatshier.PostbackPayload} */
+                                            let payloadJson = {
+                                                action: 'SEND_APPOINTMENT_PRODUCTS',
+                                                categoryId: categoryId,
+                                                timestamp: Date.now()
+                                            };
+
+                                            action.label = category.name;
+                                            action.data = JSON.stringify(payloadJson);
+                                            return action;
+                                        })
+                                    };
+                                    return column;
+                                })
+                            }
+                        };
+                        repliedMessages.push(categoriesMessage);
+                    });
+                    promises.push(categoryPromise);
+                } else if (POSTBACK_ACTIONS.SEND_APPOINTMENT_PRODUCTS === payload.action) {
+                    let timestamp = payload.timestamp || 0;
+                    let timeoutMessage = this._checkTimeout(timestamp);
+                    if (timeoutMessage) {
+                        repliedMessages.push(timeoutMessage);
+                        continue;
+                    }
+
+                    let categoryId = payload.categoryId || '';
+                    let productPromise = appsCategoriesMdl.find(appId, categoryId).then((appsCategories) => {
+                        if (!(appsCategories && appsCategories[appId])) {
+                            let noCategoriesMessage = {
+                                type: 'text',
+                                text: '很抱歉，找不到這個預約目錄。'
+                            };
+                            repliedMessages.push(noCategoriesMessage);
+                            return Promise.resolve();
+                        }
+
+                        let category = appsCategories[appId].categories[categoryId] || {};
+                        let productIds = category.product_ids || [];
+                        if (0 === productIds.length) {
+                            let noProductsMessage = {
+                                type: 'text',
+                                text: '很抱歉，該預約目錄內沒有可預約的項目。'
+                            };
+                            repliedMessages.push(noProductsMessage);
+                            return Promise.resolve();
+                        }
+
+                        return appsProductsMdl.find(appId, productIds).then((appsProducts) => {
+                            if (!(appsProducts && appsProducts[appId])) {
                                 let noProductsMessage = {
                                     type: 'text',
                                     text: '很抱歉，該預約目錄內沒有可預約的項目。'
@@ -489,100 +486,334 @@ module.exports = (function() {
                                 return Promise.resolve();
                             }
 
-                            return appsProductsMdl.find(appId, productIds).then((appsProducts) => {
-                                if (!(appsProducts && appsProducts[appId])) {
-                                    let noProductsMessage = {
-                                        type: 'text',
-                                        text: '很抱歉，該預約目錄內沒有可預約的項目。'
-                                    };
-                                    repliedMessages.push(noProductsMessage);
-                                    return Promise.resolve();
+                            let products = appsProducts[appId].products;
+                            let productsMessage = {
+                                type: 'template',
+                                altText: '預約項目',
+                                template: {
+                                    type: 'carousel',
+                                    /** @type {Chatshier.Models.TemplateColumn[]} */
+                                    columns: []
                                 }
+                            };
+                            return Promise.all(productIds.map((productId) => {
+                                let product = products[productId];
+                                let receptionistIds = product.receptionist_ids || [];
 
-                                let products = appsProducts[appId].products;
-                                let productsMessage = {
-                                    type: 'template',
-                                    altText: '預約項目',
-                                    template: {
-                                        type: 'carousel',
-                                        /** @type {Chatshier.Models.TemplateColumn[]} */
-                                        columns: []
-                                    }
-                                };
-                                return Promise.all(productIds.map((productId) => {
-                                    let product = products[productId];
-                                    let receptionistIds = product.receptionist_ids || [];
+                                // 服務人員數量有可能超過 3 個，因此每 3 筆資料切成一張卡片
+                                let productColumns = [];
+                                while (receptionistIds.length > 3) {
+                                    productColumns.push(receptionistIds.splice(0, 3));
+                                }
+                                productColumns.push(receptionistIds);
 
-                                    // 服務人員數量有可能超過 3 個，因此每 3 筆資料切成一張卡片
-                                    let productColumns = [];
-                                    while (receptionistIds.length > 3) {
-                                        productColumns.push(receptionistIds.splice(0, 3));
-                                    }
-                                    productColumns.push(receptionistIds);
+                                return Promise.all(productColumns.map((receptionistIds) => {
+                                    // 抓取出此產品內所有的服務人員，以便顯示服務人員名稱
+                                    return appsReceptionistsMdl.find(appId, receptionistIds).then((appsReceptionists) => {
+                                        if (!(appsReceptionists && appsReceptionists[appId])) {
+                                            return;
+                                        }
 
-                                    return Promise.all(productColumns.map((receptionistIds) => {
-                                        // 抓取出此產品內所有的服務人員，以便顯示服務人員名稱
-                                        return appsReceptionistsMdl.find(appId, receptionistIds).then((appsReceptionists) => {
-                                            if (!(appsReceptionists && appsReceptionists[appId])) {
-                                                return;
+                                        if (productIds.length > 1 || productColumns.length > 1) {
+                                            while (receptionistIds.length < 3) {
+                                                receptionistIds.push('');
                                             }
+                                        }
+                                        let receptionists = appsReceptionists[appId].receptionists;
 
-                                            if (productColumns.length > 1) {
-                                                while (receptionistIds.length < 3) {
-                                                    receptionistIds.push('');
-                                                }
-                                            }
-                                            let receptionists = appsReceptionists[appId].receptionists;
+                                        /** @type {Chatshier.Models.TemplateColumn} */
+                                        let column = {
+                                            title: '預約 - ' + product.name,
+                                            text: '請選擇要預約的對象',
+                                            thumbnailImageUrl: product.src || url + '/image/logo-no-transparent.png',
+                                            actions: receptionistIds.map((receptionistId) => {
+                                                /** @type {Chatshier.Models.TemplateAction} */
+                                                let action = {
+                                                    type: 'postback',
+                                                    label: '　',
+                                                    data: 'none'
+                                                };
 
-                                            /** @type {Chatshier.Models.TemplateColumn} */
-                                            let column = {
-                                                title: '預約項目',
-                                                text: '請選擇要預約的項目',
-                                                actions: receptionistIds.map((receptionistId) => {
-                                                    /** @type {Chatshier.Models.TemplateAction} */
-                                                    let action = {
-                                                        type: 'postback',
-                                                        label: '　',
-                                                        data: 'none'
-                                                    };
-
-                                                    if (!receptionistId) {
-                                                        return action;
-                                                    }
-
-                                                    let receptionist = receptionists[receptionistId];
-                                                    /** @type {Webhook.Chatshier.PostbackPayload} */
-                                                    let payloadJson = {
-                                                        action: 'SEND_APPOINTMENT_DATE',
-                                                        receptionistId: receptionistId,
-                                                        timestamp: Date.now()
-                                                    };
-
-                                                    action.label = receptionist.name;
-                                                    action.data = JSON.stringify(payloadJson);
+                                                if (!receptionistId) {
                                                     return action;
-                                                })
-                                            };
-                                            productsMessage.template.columns.push(column);
-                                        });
-                                    }));
-                                })).then(() => {
-                                    repliedMessages.push(productsMessage);
-                                });
+                                                }
+
+                                                let receptionist = receptionists[receptionistId];
+                                                /** @type {Webhook.Chatshier.PostbackPayload} */
+                                                let payloadJson = {
+                                                    action: 'SEND_APPOINTMENT_DATE',
+                                                    receptionistId: receptionistId,
+                                                    timestamp: Date.now()
+                                                };
+
+                                                action.label = receptionist.name;
+                                                action.data = JSON.stringify(payloadJson);
+                                                return action;
+                                            })
+                                        };
+                                        productsMessage.template.columns.unshift(column);
+                                    });
+                                }));
+                            })).then(() => {
+                                repliedMessages.push(productsMessage);
                             });
                         });
-                        promises.push(productPromise);
-                        break;
-                    case POSTBACK_ACTIONS.SEND_APPOINTMENT_DATE:
-                        break;
-                    case POSTBACK_ACTIONS.SEND_APPOINTMENT_TIME:
-                        break;
-                    case POSTBACK_ACTIONS.SEND_APPOINTMENT_CONFIRM:
-                        break;
-                    case POSTBACK_ACTIONS.APPOINTMENT_FINISH:
-                        break;
-                    default:
-                        break;
+                    });
+                    promises.push(productPromise);
+                } else if (POSTBACK_ACTIONS.SEND_APPOINTMENT_DATE === payload.action) {
+                    let timestamp = payload.timestamp || 0;
+                    let timeoutMessage = this._checkTimeout(timestamp);
+                    if (timeoutMessage) {
+                        repliedMessages.push(timeoutMessage);
+                        continue;
+                    }
+
+                    let receptionistId = payload.receptionistId || '';
+                    let datePromise = appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+                        if (!(appsReceptionists && appsReceptionists[appId])) {
+                            let noDateMessage = {
+                                type: 'text',
+                                text: '很抱歉，目前沒有可預約的日期。'
+                            };
+                            repliedMessages.push(noDateMessage);
+                            return;
+                        }
+
+                        let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                        let dateNow = Date.now();
+                        let schedules = (receptionist.schedules || []).filter((schedule) => {
+                            return schedule && new Date(schedule.startedTime).getTime() >= dateNow;
+                        });
+
+                        if (0 === schedules.length) {
+                            let noDateMessage = {
+                                type: 'text',
+                                text: '很抱歉，目前沒有可預約的日期。'
+                            };
+                            repliedMessages.push(noDateMessage);
+                            return;
+                        }
+
+                        // 預約日期數量有可能超過 3 個，因此每 3 筆資料切成一張卡片
+                        let scheduleColumns = [];
+                        while (schedules.length > 3) {
+                            scheduleColumns.push(schedules.splice(0, 3));
+                        }
+                        scheduleColumns.push(schedules);
+
+                        let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                        let datesMessage = {
+                            type: 'template',
+                            altText: '預約日期',
+                            template: {
+                                type: 'carousel',
+                                /** @type {Chatshier.Models.TemplateColumn[]} */
+                                columns: scheduleColumns.map((schedules) => {
+                                    if (scheduleColumns.length > 1) {
+                                        while (schedules.length < 3) {
+                                            schedules.push(void 0);
+                                        }
+                                    }
+
+                                    /** @type {Chatshier.Models.TemplateColumn} */
+                                    let column = {
+                                        title: '預約 - ' + receptionist.name,
+                                        text: '請選擇要預約的日期',
+                                        thumbnailImageUrl: receptionist.photo || url + '/image/logo-no-transparent.png',
+                                        actions: schedules.map((schedule) => {
+                                            /** @type {Chatshier.Models.TemplateAction} */
+                                            let action = {
+                                                type: 'postback',
+                                                label: '　',
+                                                data: 'none'
+                                            };
+
+                                            if (!schedule) {
+                                                return action;
+                                            }
+
+                                            let startedTimeLocal = new Date(new Date(schedule.startedTime).getTime() - timezoneOffset);
+                                            /** @type {Webhook.Chatshier.PostbackPayload} */
+                                            let payloadJson = {
+                                                action: 'SEND_APPOINTMENT_TIME',
+                                                receptionistId: receptionistId,
+                                                appointDate: startedTimeLocal.toISOString().split('T').shift(),
+                                                timestamp: Date.now()
+                                            };
+
+                                            action.label = payloadJson.appointDate || action.label;
+                                            action.data = JSON.stringify(payloadJson);
+                                            return action;
+                                        })
+                                    };
+                                    return column;
+                                })
+                            }
+                        };
+                        repliedMessages.push(datesMessage);
+                    });
+                    promises.push(datePromise);
+                } else if (POSTBACK_ACTIONS.SEND_APPOINTMENT_TIME === payload.action) {
+                    let timestamp = payload.timestamp || 0;
+                    let timeoutMessage = this._checkTimeout(timestamp);
+                    if (timeoutMessage) {
+                        repliedMessages.push(timeoutMessage);
+                        continue;
+                    }
+
+                    let receptionistId = payload.receptionistId || '';
+                    let appointDate = new Date(payload.appointDate ? payload.appointDate : Date.now());
+                    let timePromise = appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+                        if (!(appsReceptionists && appsReceptionists[appId])) {
+                            let noTimeMessage = {
+                                type: 'text',
+                                text: '很抱歉，目前沒有可預約的時間。'
+                            };
+                            repliedMessages.push(noTimeMessage);
+                            return;
+                        }
+
+                        let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                        let schedule = (receptionist.schedules || []).filter((schedule) => {
+                            if (!schedule) {
+                                return false;
+                            }
+                            let startedTime = new Date(schedule.startedTime);
+                            return (
+                                startedTime.getFullYear() === appointDate.getFullYear() &&
+                                startedTime.getMonth() === appointDate.getMonth() &&
+                                startedTime.getDate() === appointDate.getDate()
+                            );
+                        }).shift();
+
+                        if (!schedule) {
+                            let noTimeMessage = {
+                                type: 'text',
+                                text: '很抱歉，目前沒有可預約的時間。'
+                            };
+                            repliedMessages.push(noTimeMessage);
+                            return;
+                        }
+
+                        let serviceInterval = receptionist.interval;
+                        let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                        let startedTime = new Date(schedule.startedTime);
+                        let serviceTimes = Math.floor((new Date(schedule.endedTime).getTime() - startedTime.getTime()) / serviceInterval);
+                        startedTime = new Date(startedTime.getTime() - timezoneOffset);
+
+                        let availableTimes = [];
+                        for (let i = 0; i < serviceTimes; i++) {
+                            startedTime = new Date(startedTime.getTime() + serviceInterval);
+                            let endedTime = new Date(startedTime.getTime() + serviceInterval);
+
+                            let start = startedTime.toISOString(); // 2018-07-29T07:00:10.411Z
+                            start = start.split('T').pop() || ''; // 07:00:10.411Z
+                            start = start.substring(0, 5); // 07:00
+
+                            let end = endedTime.toISOString(); // 2018-07-29T08:00:10.411Z
+                            end = end.split('T').pop() || ''; // 08:00:10.411Z
+                            end = end.substring(0, 5); // 08:00
+                            availableTimes.push(start + ' ~ ' + end);
+                        }
+
+                        // 預約時間數量有可能超過 3 個，因此每 3 筆資料切成一張卡片
+                        let timeColumns = [];
+                        while (availableTimes.length > 3) {
+                            timeColumns.push(availableTimes.splice(0, 3));
+                        }
+                        timeColumns.push(availableTimes);
+
+                        let timesMessage = {
+                            type: 'template',
+                            altText: '預約時間',
+                            template: {
+                                type: 'carousel',
+                                /** @type {Chatshier.Models.TemplateColumn[]} */
+                                columns: timeColumns.map((availableTimes) => {
+                                    if (timeColumns.length > 1) {
+                                        while (availableTimes.length < 3) {
+                                            availableTimes.push('');
+                                        }
+                                    }
+
+                                    /** @type {Chatshier.Models.TemplateColumn} */
+                                    let column = {
+                                        title: '預約 - ' + receptionist.name,
+                                        text: '請選擇要預約的時間',
+                                        thumbnailImageUrl: receptionist.photo || url + '/image/logo-no-transparent.png',
+                                        actions: availableTimes.map((availableTime) => {
+                                            /** @type {Chatshier.Models.TemplateAction} */
+                                            let action = {
+                                                type: 'postback',
+                                                label: '　',
+                                                data: 'none'
+                                            };
+
+                                            if (!availableTime) {
+                                                return action;
+                                            }
+
+                                            let timeSplits = availableTime.split('~');
+                                            let startedTime = (timeSplits.shift() || '　').trim();
+                                            let endedTime = (timeSplits.shift() || '　').trim();
+
+                                            /** @type {Webhook.Chatshier.PostbackPayload} */
+                                            let payloadJson = {
+                                                action: 'SEND_APPOINTMENT_CONFIRM',
+                                                receptionistId: receptionistId,
+                                                appointDate: payload.appointDate,
+                                                startedTime: startedTime,
+                                                endedTime: endedTime,
+                                                timestamp: Date.now()
+                                            };
+
+                                            action.label = availableTime;
+                                            action.data = JSON.stringify(payloadJson);
+                                            return action;
+                                        })
+                                    };
+                                    return column;
+                                })
+                            }
+                        };
+                        repliedMessages.push(timesMessage);
+                    });
+                    promises.push(timePromise);
+                } else if (POSTBACK_ACTIONS.SEND_APPOINTMENT_CONFIRM === payload.action) {
+                    let timestamp = payload.timestamp || 0;
+                    let timeoutMessage = this._checkTimeout(timestamp);
+                    if (timeoutMessage) {
+                        repliedMessages.push(timeoutMessage);
+                        continue;
+                    }
+
+                    let receptionistId = payload.receptionistId;
+                    let appointDate = payload.appointDate;
+                    let startedTime = payload.startedTime;
+                    let endedTime = payload.endedTime;
+
+                    if (!(receptionistId && appointDate && startedTime && endedTime)) {
+                        let invalidMessage = {
+                            type: 'text',
+                            text: '很抱歉，無法確認您的預約資料，請重新操作。'
+                        };
+                        repliedMessages.push(invalidMessage);
+                        continue;
+                    }
+
+                    let confirmPromise = appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+                        if (!(appsReceptionists && appsReceptionists[appId])) {
+                            let notFoundMessage = {
+                                type: 'text',
+                                text: '很抱歉，此預約對象已無法預約，請重新操作。'
+                            };
+                            repliedMessages.push(notFoundMessage);
+                            return;
+                        }
+                    });
+                    promises.push(confirmPromise);
+                } else if (POSTBACK_ACTIONS.APPOINTMENT_FINISH === payload.action) {
+
                 }
             }
 
@@ -612,12 +843,14 @@ module.exports = (function() {
         }
 
         /**
+         * 由於訊息中是記錄 template_id 與 imagemap_id 因此抓取出對應的訊息資料
+         *
          * @param {string} appId
          * @param {any} replies
          */
         prepareReplies(appId, replies) {
-            return Promise.all(Object.keys(replies).map((replyId) => {
-                let reply = replies[replyId];
+            return Promise.all(Object.keys(replies).map((messageId) => {
+                let reply = replies[messageId];
                 switch (reply.type) {
                     case 'template':
                         if (reply.template) {
@@ -627,11 +860,11 @@ module.exports = (function() {
                         return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
                             // 此關鍵字回覆的範本訊息可能已被刪除或找不到，因此刪除回復訊息
                             if (!(appsTemplates && appsTemplates[appId])) {
-                                delete replies[replyId];
+                                delete replies[messageId];
                                 return;
                             }
                             let template = appsTemplates[appId].templates[templateId];
-                            Object.assign(replies[replyId], template);
+                            Object.assign(replies[messageId], template);
                         });
                     case 'imagemap':
                         if (reply.baseUrl) {
@@ -641,11 +874,11 @@ module.exports = (function() {
                         return appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
                             // 此關鍵字回覆的圖文訊息可能已被刪除或找不到，因此刪除回復訊息
                             if (!(appsImagemaps && appsImagemaps[appId])) {
-                                delete replies[replyId];
+                                delete replies[messageId];
                                 return;
                             }
                             let imagemap = appsImagemaps[appId].imagemaps[imagemapId];
-                            Object.assign(replies[replyId], imagemap);
+                            Object.assign(replies[messageId], imagemap);
                         });
                     case 'image':
                     case 'text':
@@ -730,6 +963,18 @@ module.exports = (function() {
                 }
             };
             return templateJson;
+        }
+
+        _checkTimeout(timestamp) {
+            if (!(Date.now() - timestamp > 30 * 60 * 1000)) {
+                return;
+            }
+
+            let timeoutMessage = {
+                type: 'text',
+                text: '此操作已逾時 30 分鐘，請重新操作。'
+            };
+            return timeoutMessage;
         }
     }
 
