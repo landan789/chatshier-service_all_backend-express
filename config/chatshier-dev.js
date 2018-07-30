@@ -70,7 +70,7 @@ module.exports = {
         CREDENTIALS: true
     },
     GMAIL: {
-        USER: 'support@chatshier.com',
+        USER: 'human@chatshier.com',
         // https://developers.google.com/oauthplayground
         CLIENT_ID: '1074711200692-ds4lin2uh3q4bs5doqsdipuak83j6te1.apps.googleusercontent.com',
         CLIENT_SECRET: '91Bn0GnAEnGuJRWj_9Im-_oq',
