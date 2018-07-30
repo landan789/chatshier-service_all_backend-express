@@ -62,8 +62,7 @@ module.exports = {
     },
     CORS: { // the attributes of CORS must be lower case
         ORIGIN: [
-            'http://service.fea.chatshier.com:8080' // allow the website of client can access back-end service.chatshier
-            // http://service.fea.chatshier.com:3002  website always allows itself
+            'https://service.fea.chatshier.com:8080' // allow the website of client can access back-end service.chatshier
         ],
         METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         ALLOWED_HEADERS: ['Content-Type', 'Authorization'],
