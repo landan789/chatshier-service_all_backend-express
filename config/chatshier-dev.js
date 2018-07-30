@@ -33,9 +33,9 @@ module.exports = {
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
-        APP_ID: '203545926984167', // facebook appId
-        APP_SECRET: '46aa7e2f586a202b412aca2722fd2e09', // facebook appSecret
-        CLIENT_TOKEN: 'f85d12004b7a0c170c2f45d66dd50da9', // facebook appAccessToken
+        APP_ID: '203545926984167', // facebook APP_ID
+        APP_SECRET: '46aa7e2f586a202b412aca2722fd2e09', // facebook APP_SECRET
+        CLIENT_TOKEN: 'f85d12004b7a0c170c2f45d66dd50da9', // facebook CLIENT_TOKEN
         VERSION: 'v3.0'
     },
     GOOGLE: {
@@ -62,15 +62,14 @@ module.exports = {
     },
     CORS: { // the attributes of CORS must be lower case
         ORIGIN: [
-            'http://service.fea.chatshier.com:8080' // allow the website of client can access back-end service.chatshier
-            // http://service.fea.chatshier.com:3002  website always allows itself
+            'https://service.fea.chatshier.com:8080' // allow the website of client can access back-end service.chatshier
         ],
         METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         ALLOWED_HEADERS: ['Content-Type', 'Authorization'],
         CREDENTIALS: true
     },
     GMAIL: {
-        USER: 'support@chatshier.com',
+        USER: 'human@chatshier.com',
         // https://developers.google.com/oauthplayground
         CLIENT_ID: '1074711200692-ds4lin2uh3q4bs5doqsdipuak83j6te1.apps.googleusercontent.com',
         CLIENT_SECRET: '91Bn0GnAEnGuJRWj_9Im-_oq',
