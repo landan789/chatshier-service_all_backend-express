@@ -14,6 +14,7 @@ module.exports = (function() {
     const appsReceptionistsMdl = require('../models/apps_receptionists');
     const appsRichmenusMdl = require('../models/apps_richmenus');
     const appsTemplatesMdl = require('../models/apps_templates');
+    const consumersMdl = require('../models/consumers');
 
     const fuseHlp = require('../helpers/fuse');
     const jwtHlp = require('../helpers/jwt');
@@ -542,6 +543,7 @@ module.exports = (function() {
                                                 /** @type {Webhook.Chatshier.PostbackPayload} */
                                                 let payloadJson = {
                                                     action: 'SEND_APPOINTMENT_DATE',
+                                                    productId: productId,
                                                     receptionistId: receptionistId,
                                                     timestamp: Date.now()
                                                 };
@@ -551,9 +553,17 @@ module.exports = (function() {
                                                 return action;
                                             })
                                         };
-                                        productsMessage.template.columns.unshift(column);
+                                        return column;
                                     });
-                                }));
+                                })).then((columns) => {
+                                    // 建立的卡片必須依照順序，因此須等到 Promise.all 結束後，再依照順序插入
+                                    columns.forEach((column) => {
+                                        if (!column) {
+                                            return;
+                                        }
+                                        productsMessage.template.columns.push(column);
+                                    });
+                                });
                             })).then(() => {
                                 repliedMessages.push(productsMessage);
                             });
@@ -568,7 +578,9 @@ module.exports = (function() {
                         continue;
                     }
 
+                    let productId = payload.productId || '';
                     let receptionistId = payload.receptionistId || '';
+
                     let datePromise = appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
                         if (!(appsReceptionists && appsReceptionists[appId])) {
                             let noDateMessage = {
@@ -636,6 +648,7 @@ module.exports = (function() {
                                             /** @type {Webhook.Chatshier.PostbackPayload} */
                                             let payloadJson = {
                                                 action: 'SEND_APPOINTMENT_TIME',
+                                                productId: productId,
                                                 receptionistId: receptionistId,
                                                 appointDate: startedTimeLocal.toISOString().split('T').shift(),
                                                 timestamp: Date.now()
@@ -661,6 +674,7 @@ module.exports = (function() {
                         continue;
                     }
 
+                    let productId = payload.productId || '';
                     let receptionistId = payload.receptionistId || '';
                     let appointDate = new Date(payload.appointDate ? payload.appointDate : Date.now());
                     let timePromise = appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
@@ -760,6 +774,7 @@ module.exports = (function() {
                                             /** @type {Webhook.Chatshier.PostbackPayload} */
                                             let payloadJson = {
                                                 action: 'SEND_APPOINTMENT_CONFIRM',
+                                                productId: productId,
                                                 receptionistId: receptionistId,
                                                 appointDate: payload.appointDate,
                                                 startedTime: startedTime,
@@ -787,7 +802,9 @@ module.exports = (function() {
                         continue;
                     }
 
-                    let receptionistId = payload.receptionistId;
+                    let categoryId = payload.categoryId || '';
+                    let productId = payload.productId || '';
+                    let receptionistId = payload.receptionistId || '';
                     let appointDate = payload.appointDate;
                     let startedTime = payload.startedTime;
                     let endedTime = payload.endedTime;
@@ -801,19 +818,144 @@ module.exports = (function() {
                         continue;
                     }
 
-                    let confirmPromise = appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
-                        if (!(appsReceptionists && appsReceptionists[appId])) {
-                            let notFoundMessage = {
+                    let confirmPromise = Promise.all([
+                        appsCategoriesMdl.find(appId, categoryId),
+                        appsProductsMdl.find(appId, productId),
+                        appsReceptionistsMdl.find(appId, receptionistId)
+                    ]).then(([ appsCategories, appsProducts, appsReceptionists ]) => {
+                        if (!(appsCategories && appsCategories[appId]) ||
+                            !(appsProducts && appsProducts[appId]) ||
+                            !(appsReceptionists && appsReceptionists[appId])) {
+                            let invalidMessage = {
                                 type: 'text',
-                                text: '很抱歉，此預約對象已無法預約，請重新操作。'
+                                text: '很抱歉，無法建立此預約！請重新操作。'
                             };
-                            repliedMessages.push(notFoundMessage);
+                            repliedMessages.push(invalidMessage);
                             return;
                         }
+
+                        let product = appsProducts[appId].products[productId];
+                        let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                        let infoMessage = {
+                            type: 'text',
+                            text: (
+                                '以下是您的預約資料:\n' +
+                                '\n' +
+                                '預約項目: ' + product.name + '\n' +
+                                '\n' +
+                                '預約對象: ' + receptionist.name + '\n' +
+                                '\n' +
+                                '預約時間:\n' +
+                                '\n' +
+                                '【' + appointDate + '】\n' +
+                                '【' + startedTime + ' ~ ' + endedTime + '】'
+                            )
+                        };
+
+                        let appointmentId = appsAppointmentsMdl.Types.ObjectId().toHexString();
+                        /** @type {Webhook.Chatshier.PostbackPayload} */
+                        let payloadJson = {
+                            action: 'APPOINTMENT_FINISH',
+                            appointmentId: appointmentId,
+                            productId: productId,
+                            receptionistId: receptionistId,
+                            appointDate: payload.appointDate,
+                            startedTime: startedTime,
+                            endedTime: endedTime,
+                            timestamp: Date.now()
+                        };
+                        let confirmMessage = {
+                            type: 'template',
+                            altText: '預約時間',
+                            template: {
+                                type: 'buttons',
+                                title: '確認預約',
+                                text: '請確認以上資料是否無誤',
+                                actions: [{
+                                    type: 'postback',
+                                    label: '確認預約',
+                                    data: JSON.stringify(payloadJson)
+                                }]
+                            }
+                        };
+                        repliedMessages.push(infoMessage, confirmMessage);
                     });
                     promises.push(confirmPromise);
                 } else if (POSTBACK_ACTIONS.APPOINTMENT_FINISH === payload.action) {
+                    let timestamp = payload.timestamp || 0;
+                    let timeoutMessage = this._checkTimeout(timestamp);
+                    if (timeoutMessage) {
+                        repliedMessages.push(timeoutMessage);
+                        continue;
+                    }
 
+                    let appointmentId = payload.appointmentId || '';
+                    if (!appointmentId) {
+                        let invalidMessage = {
+                            type: 'text',
+                            text: '很抱歉，無法建立此預約！請重新操作。'
+                        };
+                        repliedMessages.push(invalidMessage);
+                        continue;
+                    }
+
+                    let productId = payload.productId || '';
+                    let receptionistId = payload.receptionistId || '';
+                    let appointDate = payload.appointDate;
+                    let startedTime = payload.startedTime;
+                    let endedTime = payload.endedTime;
+
+                    let finishPromise = appsAppointmentsMdl.find(appId, appointmentId).then((appsAppointments) => {
+                        if (appsAppointments && appsAppointments[appId]) {
+                            let existedMessage = {
+                                type: 'text',
+                                text: '此預約已經建立，感謝您的預約！'
+                            };
+                            repliedMessages.push(existedMessage);
+                            return;
+                        }
+
+                        let _appointment = {
+                            _id: appointmentId,
+                            product_id: productId,
+                            receptionist_id: receptionistId,
+                            platformUid: platformUid,
+                            startedTime: new Date(appointDate + ' ' + startedTime).getTime(),
+                            endedTime: new Date(appointDate + ' ' + endedTime).getTime()
+                        };
+
+                        return appsAppointmentsMdl.insert(appId, _appointment).then((appsAppointments) => {
+                            if (!(appsAppointments && appsAppointments[appId])) {
+                                let failedMessage = {
+                                    type: 'text',
+                                    text: '很抱歉！此預約建立失敗，請聯絡客服或重新操作'
+                                };
+                                repliedMessages.push(failedMessage);
+                                return;
+                            }
+
+                            return consumersMdl.find(platformUid).then((consumers) => {
+                                let consumer = (consumers || {})[platformUid] || {};
+                                let successMessage = {
+                                    type: 'text',
+                                    text: (
+                                        (consumer.name ? consumer.name + ' ' : '') + '您好:\n' +
+                                        '\n' +
+                                        '已為你建立預約。' +
+                                        '\n' +
+                                        '時間為:\n' +
+                                        '\n' +
+                                        '【' + appointDate + '】\n' +
+                                        '【' + startedTime + ' ~ ' + endedTime + '】\n' +
+                                        '\n' +
+                                        '感謝您的預約！'
+                                    )
+                                };
+                                repliedMessages.push(successMessage);
+                            });
+                        });
+                    });
+                    promises.push(finishPromise);
                 }
             }
 

@@ -1108,7 +1108,9 @@ const ConditionSelector = (function() {
                     };
 
                     return new Promise((resolve, reject) => {
+                        let timeout = window.setTimeout(() => reject(new Error('SOCKET_TIMEOUT')), 5000);
                         socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, socketBody, (err) => {
+                            window.clearTimeout(timeout);
                             if (err) {
                                 return reject(err);
                             }

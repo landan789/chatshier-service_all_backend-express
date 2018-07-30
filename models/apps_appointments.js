@@ -7,6 +7,7 @@ module.exports = (function() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
         }
+
         /**
          * @param {string|string[]} appIds
          * @param {string|string[]} [appointmentIds]
@@ -35,12 +36,58 @@ module.exports = (function() {
 
             let aggregations = [
                 {
-                    $unwind: '$appointments' // 只針對 document 處理
+                    $unwind: '$appointments'
                 }, {
                     $match: query
                 }, {
                     $project: {
-                        // 篩選項目
+                        appointments: 1
+                    }
+                }
+            ];
+
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsAppointments = {};
+                if (0 === results.length) {
+                    return appsAppointments;
+                }
+
+                appsAppointments = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { appointments: {} };
+                    Object.assign(output[app._id].appointments, this.toObject(app.appointments));
+                    return output;
+                }, {});
+                return appsAppointments;
+            }).then((appsAppointments) => {
+                ('function' === typeof callback) && callback(appsAppointments);
+                return appsAppointments;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {string} platformUid
+         * @param {(appsAppointments: Chatshier.Models.AppsAppointments | null) => any} [callback]
+         * @return {Promise<Chatshier.Models.AppsAppointments | null>}
+         */
+        findByPlatformUid(appId, platformUid, callback) {
+            let query = {
+                '_id': this.Types.ObjectId(appId),
+                'isDeleted': false,
+                'appointments.isDeleted': false,
+                'appointments.platformUid': platformUid
+            };
+
+            let aggregations = [
+                {
+                    $unwind: '$appointments'
+                }, {
+                    $match: query
+                }, {
+                    $project: {
                         appointments: 1
                     }
                 }
@@ -119,12 +166,14 @@ module.exports = (function() {
 
         /**
          * @param {string} appId
-         * @param {any} postAppointment
+         * @param {any} [postAppointment]
          * @param {(appsAppointments: Chatshier.Models.AppsAppointments | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsAppointments | null>}
          */
         insert(appId, postAppointment, callback) {
-            let appointmentId = this.Types.ObjectId();
+            postAppointment = postAppointment || {};
+
+            let appointmentId = postAppointment._id ? this.Types.ObjectId(postAppointment._id) : this.Types.ObjectId();
             postAppointment._id = appointmentId;
             postAppointment.createdTime = postAppointment.updatedTime = Date.now();
 

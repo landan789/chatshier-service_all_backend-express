@@ -55,6 +55,10 @@ declare module Webhook {
              */
             receptionistId?: string,
             /**
+             * APPOINTMENT_DATE | APPOINTMENT_TIME
+             */
+            productId?: string,
+            /**
              * APPOINTMENT_TIME
              * format: YYYY-MM-DD
              */
@@ -69,6 +73,10 @@ declare module Webhook {
              * format: hh:mm
              */
             endedTime?: string,
+            /**
+             * APPOINTMENT_FINISH
+             */
+            appointmentId?: string,
             /**
              * SEND_TEMPLATE | SEND_IMAGEMAP
              */
