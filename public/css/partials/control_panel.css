@@ -92,6 +92,8 @@
       margin-left: 1.25rem; }
   .ctrl-panel .simple-list {
     display: none; }
+    .ctrl-panel .simple-list .logo-item + .list-group-item {
+        margin-top: 6rem; }
   .ctrl-panel .ctrl-panel-logo {
     width: 3rem;
     height: 3rem; }

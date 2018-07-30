@@ -8,7 +8,7 @@
     window.localStorage.removeItem('jwt');
 
     return window.googleClientHelper.loadAPI().then(function() {
-        return window.googleClientHelper.init(window.chatshier.GOOGLE.CALENDAR);
+        return window.googleClientHelper.init(window.CHATSHIER.GOOGLE_CALENDAR);
     }).then(function(isSignedIn) {
         if (!isSignedIn) {
             return;

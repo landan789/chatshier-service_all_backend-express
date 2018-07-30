@@ -47,6 +47,10 @@ module.exports = (function() {
                         // 篩選項目
                         keywordreplies: true
                     }
+                }, {
+                    $sort: {
+                        'keywordreplies.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 

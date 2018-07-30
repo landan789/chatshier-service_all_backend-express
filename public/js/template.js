@@ -257,9 +257,8 @@
     return api.apps.findAll(userId).then(function(respJson) {
         apps = respJson.data;
         let $dropdownMenu = $appDropdown.find('.dropdown-menu');
-        let config = window.chatshier.config;
         $jqDoc.find('.insert-btn').attr('disabled', true);
-        $('.template-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1024)))}MB`);
+        $('.template-image-warning').empty().text(`圖片大小不能超過${(Math.floor(window.CHATSHIER.FILE.IMAGE_MAX_SIZE / (1024 * 1024)))}MB`);
 
         for (let appId in apps) {
             let app = apps[appId];
@@ -358,7 +357,21 @@
         }
 
         return getTemplates(appId).then(function(templates) {
-            for (let templateId in templates) {
+            let templateIds = Object.keys(templates).sort((a, b) => {
+                let updatedTimeA = new Date(templates[a].updatedTime);
+                let updatedTimeB = new Date(templates[b].updatedTime);
+
+                if (updatedTimeA < updatedTimeB) {
+                    return 1;
+                } else if (updatedTimeA > updatedTimeB) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+
+            for (let i in templateIds) {
+                let templateId = templateIds[i];
                 let template = templates[templateId];
                 let templateName = template.name || '未命名';
 

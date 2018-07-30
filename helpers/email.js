@@ -1,21 +1,21 @@
 module.exports = (function() {
     const nodemailer = require('nodemailer');
     const Email = require('email-templates');
-    const chatshierCfg = require('../config/chatshier');
+    const CHATSHIER_CFG = require('../config/chatshier');
 
     class EmailHelper {
         constructor() {
             this.senderName = '錢掌櫃 Chatshier';
-            this.sender = chatshierCfg.GMAIL.user;
+            this.sender = CHATSHIER_CFG.GMAIL.USER;
 
             this.smtpTransport = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
                     type: 'oauth2',
-                    user: chatshierCfg.GMAIL.user,
-                    clientId: chatshierCfg.GMAIL.clientId,
-                    clientSecret: chatshierCfg.GMAIL.clientSecret,
-                    refreshToken: chatshierCfg.GMAIL.refreshToken
+                    user: CHATSHIER_CFG.GMAIL.USER,
+                    clientId: CHATSHIER_CFG.GMAIL.CLIENT_ID,
+                    clientSecret: CHATSHIER_CFG.GMAIL.CLIENT_SECRET,
+                    refreshToken: CHATSHIER_CFG.GMAIL.REFRESH_TOKEN
                 },
                 tls: {
                     rejectUnauthorized: true

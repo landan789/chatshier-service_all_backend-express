@@ -3,12 +3,12 @@
 (function() {
     // 檢查 url config 的 wwwUrl 的設定
     // 如果未設定，預設將 url 的 service. 替換成 www.
-    window.urlConfig = window.urlConfig || {};
-    var URL = window.urlConfig;
-    var wwwUrl = URL.wwwUrl
-        ? URL.wwwUrl + (80 !== URL.port ? ':' + URL.port : '')
+    window.CHATSHIER.URL = window.CHATSHIER.URL || {};
+    var URL = window.CHATSHIER.URL;
+    var WWW = URL.WWW
+        ? URL.WWW + (80 !== URL.PORT ? ':' + URL.PORT : '')
         : window.location.protocol + '//' + document.domain.replace(/^[\w-]+\./i, 'www.');
-    window.urlConfig.wwwUrl = wwwUrl;
+    window.CHATSHIER.URL.WWW = WWW;
 
     // 設定 bootstrap notify 的預設值
     // 1. 設定為顯示後2秒自動消失

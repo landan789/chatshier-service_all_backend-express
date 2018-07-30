@@ -17,13 +17,20 @@ let apiImage = require('./routes/api_image');
 
 const CHATSHIER = require('./config/chatshier');
 
+let corsCfg = { // the attributes of CORS must be lower case
+    origin: CHATSHIER.CORS.ORIGIN,
+    methods: CHATSHIER.CORS.METHODS,
+    allowedHeaders: CHATSHIER.CORS.ALLOWED_HEADERS,
+    credentials: CHATSHIER.CORS.CREDENTIALS
+};
+
 let app = express();
 app.use(compression());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
 
-app.use(cors(CHATSHIER.CORS));
+app.use(cors(corsCfg));
 app.use(cookieParser());
 
 app.use('/webhook', webhook);

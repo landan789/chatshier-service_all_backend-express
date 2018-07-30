@@ -1,13 +1,13 @@
 module.exports = (function() {
     const request = require('request');
-    const chatshierCfg = require('../config/chatshier');
+    const CHATSHIER_CFG = require('../config/chatshier');
 
     const API_ENDPOINT = 'https://www.google.com/recaptcha/api/siteverify';
 
     class GoogleReCaptchaHelper {
         constructor() {
-            if (chatshierCfg && chatshierCfg.GOOGLE) {
-                this.recaptchaSecretKey = chatshierCfg.GOOGLE.recaptchaSecretKey;
+            if (CHATSHIER_CFG && CHATSHIER_CFG.GOOGLE) {
+                this.recaptchaSecretKey = CHATSHIER_CFG.GOOGLE.RECAPTCHA_SECRET_KEY;
             }
         }
 

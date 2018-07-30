@@ -5,7 +5,6 @@
  * @link http://idangero.us/swiper/api/
  */
 window.TemplateBuilder = (function() {
-    let chatshierCfg = window.chatshier && window.chatshier.config;
 
     const KILO_BYTE = 1024;
     const MEGA_BYTE = KILO_BYTE * 1024;
@@ -127,7 +126,7 @@ window.TemplateBuilder = (function() {
                         '<span class="text-primary label-text">' + (action.label || '') + ' (' + (BUTTON_ACTIONS_DISPLAY_TEXT[buttonAction] || '未選擇') + ')</span>' +
                     '</div>' +
                     '<div class="mb-2 input-container editable animated fadeIn">' +
-                        '<input class="w-100 form-control button-label" type="text" name="buttonLabel" placeholder="按鈕名稱" maxlength="20" value="' + (action.label || '') + '" />' +
+                        '<input class="w-100 form-control swiper-no-swiping button-label" type="text" name="buttonLabel" placeholder="按鈕名稱" maxlength="20" value="' + (action.label || '') + '" />' +
                     '</div>' +
                     '<div class="mb-1 input-group select-container editable animated fadeIn">' +
                         '<div class="input-group-prepend">' +
@@ -219,7 +218,7 @@ window.TemplateBuilder = (function() {
                             '<div class="input-group-prepend">' +
                                 '<span class="input-group-text"><i class="fas fa-link"></i></span>' +
                             '</div>' +
-                            '<input class="form-control action-url-link" type="url" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入按鈕連結" maxlength="1000" />' +
+                            '<input class="form-control swiper-no-swiping action-url-link" type="url" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入按鈕連結" maxlength="1000" />' +
                         '</div>'
                     );
                     break;
@@ -230,7 +229,7 @@ window.TemplateBuilder = (function() {
                             '<div class="input-group-prepend">' +
                                 '<span class="input-group-text"><i class="fas fa-phone"></i></span>' +
                             '</div>' +
-                            '<input class="form-control action-tel-number" type="tel" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入電話號碼" maxlength="10" />' +
+                            '<input class="form-control swiper-no-swiping action-tel-number" type="tel" value="' + inputDefaultValue + '" data-prevValue="' + inputDefaultValue + '" placeholder="輸入電話號碼" maxlength="10" />' +
                         '</div>'
                     );
                     break;
@@ -290,7 +289,7 @@ window.TemplateBuilder = (function() {
             defaultText = defaultText || '';
             return (
                 '<div class="mt-1 textarea-container">' +
-                    '<textarea class="form-control text-input' + (className ? ' ' + className : '') + '" rows=4 style="resize: none" placeholder="' + placeholder + '">' + defaultText + '</textarea>' +
+                    '<textarea class="form-control swiper-no-swiping text-input' + (className ? ' ' + className : '') + '" rows=4 style="resize: none" placeholder="' + placeholder + '">' + defaultText + '</textarea>' +
                 '</div>'
             );
         }
@@ -499,7 +498,7 @@ window.TemplateBuilder = (function() {
                                 ? '<button type="button" class="image-upload-btn">' +
                                 '<div><i class="fas fa-image"></i></div>' +
                                 '<div>上傳圖片 <span class="small">(選填)</span></div>' +
-                                '<div class="text-danger small">(圖片大小不能超過 ' + Math.floor(chatshierCfg.imageFileMaxSize / MEGA_BYTE) + ' MB)</div>' +
+                                '<div class="text-danger small">(圖片大小不能超過 ' + Math.floor(window.CHATSHIER.FILE.IMAGE_MAX_SIZE / MEGA_BYTE) + ' MB)</div>' +
                             '</button>' : '') +
                             '<img class="image-fit" src="' + ((column.thumbnailImageUrl) || '') + '" alt="" />' +
                         '</div>' +
@@ -508,15 +507,15 @@ window.TemplateBuilder = (function() {
                         '<div class="input-group-prepend">' +
                             '<span class="input-group-text"><i class="fas fa-link"></i></span>' +
                         '</div>' +
-                        '<input class="form-control image-url-link" type="url" value="' + ((column.defaultAction && column.defaultAction.uri) || '') + '" placeholder="輸入圖片連結 (選填)" />' +
+                        '<input class="form-control swiper-no-swiping image-url-link" type="url" value="' + ((column.defaultAction && column.defaultAction.uri) || '') + '" placeholder="輸入圖片連結 (選填)" />' +
                     '</div>' +
 
                     '<div class="mb-2 input-container">' +
-                        '<input class="w-100 form-control template-title" placeholder="標題" maxlength="40" value="' + (column.title || '') + '" />' +
+                        '<input class="w-100 form-control swiper-no-swiping template-title" placeholder="標題" maxlength="40" value="' + (column.title || '') + '" />' +
                     '</div>' +
 
                     '<div class="mb-2 input-container">' +
-                        '<input class="w-100 form-control template-text" placeholder="描述文字" maxlength="60" value="' + (column.text || '') + '" />' +
+                        '<input class="w-100 form-control swiper-no-swiping template-text" placeholder="描述文字" maxlength="60" value="' + (column.text || '') + '" />' +
                     '</div>' +
                 '</div>'
             ]);
@@ -791,8 +790,8 @@ window.TemplateBuilder = (function() {
                 return Promise.reject(new Error(ERRORS.NOT_A_IMAGE));
             }
 
-            if (imageFile.size > chatshierCfg.imageFileMaxSize) {
-                $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(chatshierCfg.imageFileMaxSize / MEGA_BYTE) + ' MB');
+            if (imageFile.size > window.CHATSHIER.FILE.IMAGE_MAX_SIZE) {
+                $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(window.CHATSHIER.FILE.IMAGE_MAX_SIZE / MEGA_BYTE) + ' MB');
                 return Promise.reject(new Error(ERRORS.IMAGE_SIZE_TOO_LARGE));
             }
 

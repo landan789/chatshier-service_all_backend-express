@@ -18,6 +18,9 @@
 
     var $modal = $('#imagemap-modal');
 
+    /** @type {Chatshier.Models.AppsImagemaps} */
+    var appsImagemaps = {};
+
     // const NO_PERMISSION_CODE = '3.16'; // not sure what this is for
 
     const handleMessages = {
@@ -113,7 +116,6 @@
         let file = input.files[0];
         input.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
-        let config = window.chatshier.config;
         if (file.type.indexOf('image') < 0) {
             $.notify('請上傳圖檔');
             return;
@@ -121,8 +123,8 @@
 
         var kiloByte = 1024;
         var megaByte = kiloByte * 1024;
-        if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
-            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / megaByte) + ' MB');
+        if (file.type.indexOf('image') >= 0 && file.size > window.CHATSHIER.FILE.IMAGE_MAX_SIZE) {
+            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(window.CHATSHIER.FILE.IMAGE_MAX_SIZE / megaByte) + ' MB');
             return;
         }
 
@@ -568,48 +570,49 @@
         }).then(() => {
             return api.appsImagemaps.findAll(appId, userId);
         }).then(function(resJson) {
-            let appsImagemaps = resJson.data;
+            appsImagemaps = resJson.data;
             let imagemaps = appsImagemaps[appId] ? appsImagemaps[appId].imagemaps : {};
-            let imagemapIds = Object.keys(imagemaps);
-            let activeImagemaps = imagemapIds.filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
-            activeImagemaps.forEach((imagemapId) => {
-                groupType(imagemapId, imagemaps[imagemapId], appId);
+
+            let imagemapIds = Object.keys(imagemaps).sort((a, b) => {
+                let updatedTimeA = new Date(imagemaps[a].updatedTime);
+                let updatedTimeB = new Date(imagemaps[b].updatedTime);
+
+                if (updatedTimeA < updatedTimeB) {
+                    return 1;
+                } else if (updatedTimeA > updatedTimeB) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }).filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
+
+            let $imagemapList = $('#imagemap-list').empty();
+            imagemapIds.forEach((imagemapId) => {
+                let imagemap = imagemaps[imagemapId];
+                let linkText = imagemap.actions.map((action) => {
+                    switch (action.type) {
+                        case 'uri':
+                            return action.linkUri;
+                        case 'message':
+                            return action.text;
+                        default:
+                            return '';
+                    }
+                }).join('，');
+
+                $imagemapList.append(
+                    '<tr id="' + imagemapId + '" rel="' + appId + '">' +
+                        '<th>' + imagemap.title + '</th>' +
+                        '<td id="photoForm" data-form="' + imagemap.form + '" data-url="' + imagemap.baseUrl + '">種類 ' + imagemap.form.slice(-1) + '</td>' +
+                        '<td>' + linkText + '</td>' +
+                        '<td>' +
+                            '<button type="button" id="turnOn-update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#imagemap-modal" aria-hidden="true"></button>' +
+                            '<button type="button" id="remove-btn" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove"></button>' +
+                        '</td>' +
+                    '</tr>'
+                );
             });
         });
-    }
-
-    function groupType(imagemapId, imagemap, appId) {
-        let linkText = '';
-        for (let i = 0; i < imagemap.actions.length; i++) {
-            if (0 === i) {
-                linkText = linkText + actionType(imagemap.actions[i]);
-            } else {
-                linkText = linkText + '，' + actionType(imagemap.actions[i]);
-            }
-        }
-
-        var trGrop =
-            '<tr id="' + imagemapId + '" rel="' + appId + '">' +
-                '<th>' + imagemap.title + '</th>' +
-                '<td id="photoForm" data-form="' + imagemap.form + '" data-url="' + imagemap.baseUrl + '">種類 ' + imagemap.form.slice(-1) + '</td>' +
-                '<td>' + linkText + '</td>' +
-                '<td>' +
-                    '<button type="button" id="turnOn-update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#imagemap-modal" aria-hidden="true"></button>' +
-                    '<button type="button" id="remove-btn" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove"></button>' +
-                '</td>' +
-            '</tr>';
-        $('#imagemap-list').append(trGrop);
-    }
-
-    function actionType(action) {
-        switch (action.type) {
-            case 'uri':
-                return action.linkUri;
-            case 'message':
-                return action.text;
-            default:
-                return '';
-        }
     }
 
     function showBoxInputs(className) {
@@ -674,8 +677,7 @@
         var appsData = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
-        let config = window.chatshier.config;
-        $('.imagemap-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.imageFileMaxSize / (1024 * 1024)))}MB`);
+        $('.imagemap-image-warning').empty().text(`圖片大小不能超過${(Math.floor(window.CHATSHIER.FILE.IMAGE_MAX_SIZE / (1024 * 1024)))}MB`);
 
         elementHide($('.content-bar'));
         elementHide($('.content-input'));

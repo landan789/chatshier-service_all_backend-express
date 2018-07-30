@@ -224,7 +224,7 @@
             let file = input.files[0];
             input.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
-            let config = window.chatshier.config;
+            let config = window.CHATSHIER.CONFIG;
             if (file.type.indexOf('image') < 0) {
                 $('#modal-save').removeAttr('disabled');
                 $('#modal-update-save').removeAttr('disabled');
@@ -234,10 +234,10 @@
 
             let kiloByte = 1024;
             let megaByte = kiloByte * 1024;
-            if (file.type.indexOf('image') >= 0 && file.size > config.richmenuImageFileMaxSize) {
+            if (file.type.indexOf('image') >= 0 && file.size > window.CHATSHIER.FILE.RICHMENU_IMAGE_MAX_SIZE) {
                 $('#modal-save').removeAttr('disabled');
                 $('#modal-update-save').removeAttr('disabled');
-                $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.richmenuImageFileMaxSize / megaByte) + ' MB');
+                $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(window.CHATSHIER.FILE.RICHMENU_IMAGE_MAX_SIZE / megaByte) + ' MB');
                 return;
             }
 
@@ -919,8 +919,8 @@
     return api.apps.findAll(userId).then(function(resJson) {
         apps = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
-        let config = window.chatshier.config;
-        $('.richmenu-image-warning').empty().text(`圖片大小不能超過${(Math.floor(config.richmenuImageFileMaxSize / (1024 * 1024)))}MB`);
+        let config = window.CHATSHIER.CONFIG;
+        $('.richmenu-image-warning').empty().text(`圖片大小不能超過${(Math.floor(window.CHATSHIER.FILE.RICHMENU_IMAGE_MAX_SIZE / (1024 * 1024)))}MB`);
 
         nowSelectAppId = '';
         for (var appId in apps) {
@@ -1105,22 +1105,34 @@
 
         return Promise.resolve().then(() => {
             if (!appsRichmenus[appId]) {
-                appsRichmenus[appId] = { richmenus: {} };
                 return api.appsRichmenus.findAll(appId, userId).then((resJson) => {
                     let _appsRichmenus = resJson.data;
+                    appsRichmenus[appId] = { richmenus: {} };
                     if (_appsRichmenus[appId]) {
                         Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
                     }
                     return syncRichmenus(appId);
                 }).then(() => {
-                    return appsRichmenus;
+                    return appsRichmenus[appId].richmenus;
                 });
             }
-            return appsRichmenus;
-        }).then(function() {
-            let richmenus = appsRichmenus[appId].richmenus;
+            return appsRichmenus[appId].richmenus;
+        }).then((richmenus) => {
+            let richmenuIds = Object.keys(richmenus).sort((a, b) => {
+                let updatedTimeA = new Date(richmenus[a].updatedTime);
+                let updatedTimeB = new Date(richmenus[b].updatedTime);
 
-            for (let richmenuId in richmenus) {
+                if (updatedTimeA < updatedTimeB) {
+                    return 1;
+                } else if (updatedTimeA > updatedTimeB) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+
+            for (let i in richmenuIds) {
+                let richmenuId = richmenuIds[i];
                 let richmenu = richmenus[richmenuId];
                 if (richmenu.isDeleted) {
                     continue;

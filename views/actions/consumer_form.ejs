@@ -164,8 +164,9 @@
     <% include ./require_js.ejs %>
 
     <script type="text/javascript">
-        !window.urlConfig && (window.urlConfig = {});
-        !window.urlConfig.apiUrl && (window.urlConfig.apiUrl = window.location.origin);
+        !window.CHATSHIER && (window.CHATSHIER = {});
+        !window.CHATSHIER.URL && (window.CHATSHIER.URL = {});
+        !window.CHATSHIER.URL.API && (window.CHATSHIER.URL.API = window.location.origin);
 
         window.urlParams = (function getUrlParams() {
             var pl = /\+/g;
@@ -230,7 +231,7 @@
             return {
                 getRequiredData: function(cb) {
                     $.ajax({
-                        url: window.urlConfig.apiUrl + '/api/database/consumers-form/apps/' + window.urlParams.aid + '/consumers/' + window.payload.uid,
+                        url: window.CHATSHIER.URL.API + '/api/database/consumers-form/apps/' + window.urlParams.aid + '/consumers/' + window.payload.uid,
                         cache: false,
                         dataType: 'json',
                         headers: {
@@ -309,7 +310,7 @@
                     };
 
                     $.ajax({
-                        url: window.urlConfig.apiUrl + '/api/database/consumers-form/apps/' + window.urlParams.aid + '/consumers/' + window.payload.uid,
+                        url: window.CHATSHIER.URL.API + '/api/database/consumers-form/apps/' + window.urlParams.aid + '/consumers/' + window.payload.uid,
                         cache: false,
                         dataType: 'json',
                         headers: {

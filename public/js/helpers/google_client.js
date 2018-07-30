@@ -33,11 +33,10 @@ window.googleClientHelper = (function() {
                 document.head.appendChild(apiScript);
             });
         },
-        init: function(config) {
+        init: function(GOOGLE_CALENDAR) {
             if (initPromise) {
                 return initPromise;
             }
-
             initPromise = new Promise(function(resolve) {
                 window.gapi.load('client:auth2', function() {
                     resolve();
@@ -45,10 +44,10 @@ window.googleClientHelper = (function() {
             }).then(function() {
                 // 此 google calendar 的 key 使用 9thflr.rd@gmail.com
                 return window.gapi.client.init({
-                    apiKey: config.API_KEY,
-                    clientId: config.CLIENT_ID,
-                    discoveryDocs: config.DISCOVERY_DOCS,
-                    scope: config.SCOPES
+                    apiKey: GOOGLE_CALENDAR.API_KEY,
+                    clientId: GOOGLE_CALENDAR.CLIENT_ID,
+                    discoveryDocs: GOOGLE_CALENDAR.DISCOVERY_DOCS,
+                    scope: GOOGLE_CALENDAR.SCOPES
                 });
             }).then(function() {
                 // google client 初始化完成後，iframe 會保留在 document body 裡

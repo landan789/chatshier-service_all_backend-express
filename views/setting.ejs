@@ -13,7 +13,7 @@
 <body>
     <% include ./partials/loading.ejs %>
 
-    <div class="root d-flex w-100 h-100">
+    <div class="root chsr d-flex w-100 h-100">
         <% include ./partials/control_panel.ejs %>
 
         <div class="ml-auto w-100 page-wrapper">
@@ -25,7 +25,7 @@
                         <a class="nav-item nav-link text-left" data-toggle="pill" href="#apps">聊天機器人</a>
                         <a class="nav-item nav-link text-left" data-toggle="pill" href="#settings">基本設定</a>
                         <a class="nav-item nav-link text-left" data-toggle="pill" href="#fields">客戶分類條件</a>
-                        <a class="nav-item nav-link text-left" data-toggle="pill" href="#internal-group">內部群組</a>
+                        <a class="nav-item nav-link text-left" data-toggle="pill" href="#internal-group">內部部門</a>
                     </nav>
                 </div>
 
@@ -35,7 +35,7 @@
                             <span>聊天機器人</span>
                             <button type="button" class="btn btn-light btn-border" id="addGroupNameAppBtn" data-toggle="modal" data-target="#groupAddModal" disabled="true">
                                 <i class="fas fa-plus fa-fw"></i>
-                                <span>新增群組</span>
+                                <span>新增部門</span>
                             </button>
                         </h3>
 
@@ -144,7 +144,7 @@
 
                     <div id="internal-group" class="h-100 tab-pane fade">
                         <h3 class="ml-3">
-                            <span>內部群組</span>
+                            <span>內部部門</span>
                             <button class="btn btn-light btn-border group-insert" data-toggle="modal" data-target="#groupAddModal">
                                 <i class="fas fa-plus fa-fw"></i>
                                 <span>新增</span>
@@ -181,7 +181,7 @@
                         <a class="nav-item nav-link col-3" data-toggle="pill" href="#internal-group">
                             <i class="fas fa-users"></i>
                             <br class="d-none d-sm-block" />
-                            <span class="d-none d-sm-block">內部群組</span>
+                            <span class="d-none d-sm-block">內部部門</span>
                         </a>
                     </nav>
                 </div>

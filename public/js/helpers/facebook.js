@@ -10,8 +10,14 @@ window.facebookHelper = (function() {
         navigator.userLanguage;
     var fbsdkUrl = 'https://connect.facebook.net/' + language + '/sdk.js';
     var fbsdkId = 'facebook-jssdk';
+    
     /** @type {fb.InitParams} */
-    var fbParams = window.chatshier ? window.chatshier.facebook : {};
+    var fbCfg = {
+        appId: window.CHATSHIER.FACEBOOK.APP_ID, // facebook appId
+        cookie: window.CHATSHIER.FACEBOOK.APP_ID.COOKIE,
+        xfbml: window.CHATSHIER.FACEBOOK.XFBML,
+        version: window.CHATSHIER.FACEBOOK.VERSION
+    };
 
     var sendAPI = function(apiPath, method) {
         method = method || 'GET';
@@ -64,7 +70,7 @@ window.facebookHelper = (function() {
             }
 
             initPromise = facebookHelper.loadAPI().then(function() {
-                FB.init(fbParams);
+                FB.init(fbCfg);
                 return new Promise(function(resolve) {
                     FB.getLoginStatus(resolve);
                 });

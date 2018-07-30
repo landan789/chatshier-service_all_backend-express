@@ -33,18 +33,18 @@ module.exports = {
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
-        appId: '1569929989761572',
-        appSecret: '8e21836de6f01a6a5d1d0876e4f2c1d1',
-        appAccessToken: 'd83ed3a87f6aef9eb7982e5ef5acb187',
-        apiVersion: 'v3.0'
+        APP_ID: '203545926984167', // facebook APP_ID
+        APP_SECRET: '46aa7e2f586a202b412aca2722fd2e09', // facebook APP_SECRET
+        CLIENT_TOKEN: 'f85d12004b7a0c170c2f45d66dd50da9', // facebook CLIENT_TOKEN
+        VERSION: 'v3.0'
     },
     GOOGLE: {
-        serverAPIKey: 'AIzaSyDvAQBzctZSnaUeJWZlbeng7JFjV4lEmL4',
+        SERVER_API_KEY: 'AIzaSyDvAQBzctZSnaUeJWZlbeng7JFjV4lEmL4',
         // https://www.google.com/recaptcha/admin
-        recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x',
-        // owner: 9thflr.RD@gmail.com
+        RECAPTCHA_SECRET_KEY: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x',
+        // owner: 9thflr.rd@gmail.com
         // https://console.firebase.google.com/u/0/project/chatshier-d4dfd/settings/general/
-        FDLdomain: 'chatshier9450.page.link'
+        FDL_DOMAIN: 'chatshier9450.page.link'
     },
     JWT: {
         EXPIRES: EXPIRES,
@@ -61,57 +61,58 @@ module.exports = {
         EXPIRES: EXPIRES
     },
     CORS: { // the attributes of CORS must be lower case
-        origin: [
-            'http://service.fea.chatshier.com:8080' // allow the website of client can access back-end service.chatshier
-            // http://service.fea.chatshier.com:3002  website always allows itself
+        ORIGIN: [
+            'https://service.fea.chatshier.com:8080' // allow the website of client can access back-end service.chatshier
         ],
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-        allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true
+        METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        ALLOWED_HEADERS: ['Content-Type', 'Authorization'],
+        CREDENTIALS: true
     },
     GMAIL: {
-        user: 'support@chatshier.com',
+        USER: 'human@chatshier.com',
         // https://developers.google.com/oauthplayground
-        clientId: '1074711200692-ds4lin2uh3q4bs5doqsdipuak83j6te1.apps.googleusercontent.com',
-        clientSecret: '91Bn0GnAEnGuJRWj_9Im-_oq',
+        CLIENT_ID: '1074711200692-ds4lin2uh3q4bs5doqsdipuak83j6te1.apps.googleusercontent.com',
+        CLIENT_SECRET: '91Bn0GnAEnGuJRWj_9Im-_oq',
         // Google 所配發的 refreshToken 不會失效，會失效可能是以下原因
         // 1. 使用者解除授權 app
         // 2. 使用者授權 app 時，授權的 scope 發生變更
-        refreshToken: '1/rBgB_AywuhwQuZpqnYSAfqtVK8u5ll6Vp2S-XDaLY2hzDFEHIU9C9wNXHivtmo-X'
+        REFRESH_TOKEN: '1/rBgB_AywuhwQuZpqnYSAfqtVK8u5ll6Vp2S-XDaLY2hzDFEHIU9C9wNXHivtmo-X'
     },
-    PAYMENT_TEST: {
-        // https://vendor-stage.ecpay.com.tw
-        // 帳號: StageTest
-        // 密碼: test1234
-        ECPAY: {
-            MERCHANT_ID: '2000132',
-            HASHKEY: '5294y06JbISpM5x9',
-            HASHIV: 'v77hoKGq4kWxNNIS'
-        },
-        // https://vendor-stage.ecpay.com.tw/Einvoice/Index
-        // 帳號: StageTest
-        // 密碼: test1234
-        ECPAY_INVOICE: {
-            MERCHANT_ID: '2000132',
-            HASHKEY: 'ejCk326UnaZWKisg',
-            HASHIV: 'q9jcZX8Ib9LM8wYk'
-        },
-        // https://cwww.spgateway.com/main/login_center/single_login
-        // 帳號: chatshierTest
-        // 密碼: chatshier2018
-        SPGATEWAY: {
-            MERCHANT_ID: 'MS14252185',
-            HASHKEY: 'iPHEdSO5VGjEomtL0jzUl4VfyLxXhUuK',
-            HASHIV: 'XvE76gjbleESG5Ng'
-        },
-        // https://cinv.pay2go.com/main/Login_center/single_login
-        // 統編: 53212539
-        // 帳號: chatshierTest
-        // 密碼: chatshier2018
-        SPGATEWAY_INVOICE: {
-            MERCHANT_ID: '31104030',
-            HASHKEY: 'FrlNPVjLFPwYRz8cyRg67L4ZTyxunv7W',
-            HASHIV: 'GTCrWZHkx3ySlEs0'
-        }
+    // test key for ECPAY
+    // https://vendor-stage.ecpay.com.tw
+    // 帳號: StageTest
+    // 密碼: test1234
+    ECPAY: {
+        MERCHANT_ID: '2000132',
+        HASHKEY: '5294y06JbISpM5x9',
+        HASHIV: 'v77hoKGq4kWxNNIS'
+    },
+    // test key for ECPAY INVOICE
+    // https://vendor-stage.ecpay.com.tw/Einvoice/Index
+    // 帳號: StageTest
+    // 密碼: test1234
+    ECPAY_INVOICE: {
+        MERCHANT_ID: '2000132',
+        HASHKEY: 'ejCk326UnaZWKisg',
+        HASHIV: 'q9jcZX8Ib9LM8wYk'
+    },
+    // test key for SPGATEWAY
+    // https://cwww.spgateway.com/main/login_center/single_login
+    // 帳號: chatshierTest
+    // 密碼: chatshier2018
+    SPGATEWAY: {
+        MERCHANT_ID: 'MS14252185',
+        HASHKEY: 'iPHEdSO5VGjEomtL0jzUl4VfyLxXhUuK',
+        HASHIV: 'XvE76gjbleESG5Ng'
+    },
+    // test key for SPGATEWAY INVOICE
+    // https://cinv.pay2go.com/main/Login_center/single_login
+    // 統編: 53212539
+    // 帳號: chatshierTest
+    // 密碼: chatshier2018
+    SPGATEWAY_INVOICE: {
+        MERCHANT_ID: '31104030',
+        HASHKEY: 'FrlNPVjLFPwYRz8cyRg67L4ZTyxunv7W',
+        HASHIV: 'GTCrWZHkx3ySlEs0'
     }
 };
