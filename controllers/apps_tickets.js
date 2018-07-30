@@ -97,6 +97,7 @@ module.exports = (function() {
             ('number' === typeof req.body.dueTime) && (putTikcket.dueTime = req.body.dueTime);
             ('number' === typeof req.body.priority) && (putTikcket.priority = req.body.priority);
             ('number' === typeof req.body.status) && (putTikcket.status = req.body.status);
+            ('string' === typeof req.body.platformUid) && (putTikcket.platformUid = req.body.platformUid);
             ('string' === typeof req.body.assigned_id) && (putTikcket.assigned_id = req.body.assigned_id);
 
             return this.appsRequestVerify(req).then(() => {

@@ -11,7 +11,7 @@ window.CHATSHIER = {
         OTHER_MAX_SIZE: 100 * 1024 * 1024 // 100 MB
     },
     FACEBOOK: {
-        APP_ID: '203545926984167', // facebook appId
+        APP_ID: '203545926984167', // facebook APP_ID
         COOKIE: true,
         XFBML: true,
         VERSION: 'v3.0'
