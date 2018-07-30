@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const API_ERROR = require('../config/api_error.json');
     const SOCKET_EVENTS = require('../config/socket-events');
-    const chatshierCfg = require('../config/chatshier');
+    const CHATSHIER_CFG = require('../config/chatshier');
 
     const cipherHlp = require('../helpers/cipher');
     const spgatewayHlp = require('../helpers/spgateway');
@@ -22,6 +22,8 @@ module.exports = (function() {
 
     const ECPAY = 'ECPAY';
     const SPGATEWAY = 'SPGATEWAY';
+    const TEST = 'TEST';
+    const PRODUCTION = 'PRODUCTION';
 
     class PaymentController extends ControllerCore {
         constructor() {
@@ -76,13 +78,12 @@ module.exports = (function() {
                 let plainHtml = '';
                 switch (payment.type) {
                     case ECPAY:
-                        if (payment.merchantId === chatshierCfg.PAYMENT_TEST.ECPAY.MERCHANT_ID &&
-                            payment.hashKey === chatshierCfg.PAYMENT_TEST.ECPAY.HASHKEY &&
-                            payment.hashIV === chatshierCfg.PAYMENT_TEST.ECPAY.HASHIV) {
+                        if (this._isECPayTestMode(payment, req.hostname) ) {
+
                             ecpayHlp.mode = 'Test';
-                        } else {
-                            ecpayHlp.mode = 'Production';
                         }
+                        
+                        ecpayHlp.mode = 'Production';
 
                         // 由於 ECPay 的 SDK 計算驗證碼的 HashKey 與 HashIV 儲存在程式當中，而不是作為參數傳入
                         // 因此必須更換 ECPay 的參數數值
@@ -112,13 +113,10 @@ module.exports = (function() {
                         plainHtml = ecpayHlp.paymentClient.aio_check_out_all(params, {});
                         break;
                     case SPGATEWAY:
-                        if (payment.merchantId === chatshierCfg.PAYMENT_TEST.SPGATEWAY.MERCHANT_ID &&
-                            payment.hashKey === chatshierCfg.PAYMENT_TEST.SPGATEWAY.HASHKEY &&
-                            payment.hashIV === chatshierCfg.PAYMENT_TEST.SPGATEWAY.HASHIV) {
+                        if (this._isSpgatewayTestMode(payment, req.hostname) ) {
                             spgatewayHlp.mode = 'TEST';
-                        } else {
-                            spgatewayHlp.mode = 'PRODUCTION';
-                        }
+                        } 
+                        spgatewayHlp.mode = 'PRODUCTION';
 
                         /** @type {Spgateway.Payment.TradeInformation} */
                         let tradeInfo = {
@@ -191,7 +189,9 @@ module.exports = (function() {
                 if (!order) {
                     return Promise.resolve(void 0);
                 }
-                return this._issueInvoice(payment, order);
+                let isECPayTestMode = this._isECPayTestMode(payment, req.hostname);
+                let isSpgatewayTestMode = this._isSpgatewayTestMode(payment, req.hostname);
+                return this._issueInvoice(payment, order, isECPayTestMode, isSpgatewayTestMode);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -226,7 +226,9 @@ module.exports = (function() {
                 if (!order) {
                     return Promise.resolve(void 0);
                 }
-                return this._issueInvoice(payment, order);
+                let isECPayTestMode = this._isECPayTestMode(payment, req.hostname);
+                let isSpgatewayTestMode = this._isSpgatewayTestMode(payment, req.hostname);
+                return this._issueInvoice(payment, order, isECPayTestMode, isSpgatewayTestMode);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -244,7 +246,7 @@ module.exports = (function() {
          * @param {Chatshier.Models.Payment} payment
          * @param {Chatshier.Models.Order} order
          */
-        _issueInvoice(payment, order) {
+        _issueInvoice(payment, order, isECPayTestMode, isSpgatewayTestMode) {
             let orderId = order._id;
             let appId = order.app_id;
             let consumerUid = order.consumerUid;
@@ -267,13 +269,11 @@ module.exports = (function() {
                 // 因此在智付通支付完成後，必須再使用 Pay2Go 的電子發票 API 來開立發票
                 return Promise.resolve().then(() => {
                     if (ECPAY === payment.type) {
-                        if (payment.invoiceMerchantId === chatshierCfg.PAYMENT_TEST.ECPAY_INVOICE.MERCHANT_ID &&
-                            payment.invoiceHashKey === chatshierCfg.PAYMENT_TEST.ECPAY_INVOICE.HASHKEY &&
-                            payment.invoiceHashIV === chatshierCfg.PAYMENT_TEST.ECPAY_INVOICE.HASHIV) {
+                        if (isECPayTestMode) {
                             ecpayHlp.mode = 'Test';
-                        } else {
-                            ecpayHlp.mode = 'Production';
-                        }
+                        } 
+                        
+                        ecpayHlp.mode = 'Production';
 
                         return ecpayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then((invoice) => {
                             let putOrder = {
@@ -284,13 +284,11 @@ module.exports = (function() {
                             return putOrder;
                         });
                     } else if (SPGATEWAY === payment.type) {
-                        if (payment.invoiceMerchantId === chatshierCfg.PAYMENT_TEST.SPGATEWAY_INVOICE.MERCHANT_ID &&
-                            payment.invoiceHashKey === chatshierCfg.PAYMENT_TEST.SPGATEWAY_INVOICE.HASHKEY &&
-                            payment.invoiceHashIV === chatshierCfg.PAYMENT_TEST.SPGATEWAY_INVOICE.HASHIV) {
+                        if (isSpgatewayTestMode) {
                             spgatewayHlp.mode = 'TEST';
-                        } else {
-                            spgatewayHlp.mode = 'PRODUCTION';
-                        }
+                        } 
+                            
+                        spgatewayHlp.mode = 'PRODUCTION';
 
                         return spgatewayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then((invoice) => {
                             let putOrder = {
@@ -479,6 +477,31 @@ module.exports = (function() {
                     return Promise.resolve(orders[orderId]);
                 });
             });
+        }
+
+        _isECPayTestMode(payment, hostname){
+            if ((payment.invoiceMerchantId === CHATSHIER_CFG.ECPAY_INVOICE.MERCHANT_ID &&
+                payment.invoiceHashKey === CHATSHIER_CFG.ECPAY_INVOICE.HASHKEY &&
+                payment.invoiceHashIV === CHATSHIER_CFG.ECPAY_INVOICE.HASHIV) || 
+                hostname.toLowerCase().includes('.dev.') || 
+                hostname.toLowerCase().includes('.rel.')) {
+               return true;
+           }
+
+           return false;
+        }
+
+        _isSpgatewayTestMode(payment, hostname){
+            if ((payment.invoiceMerchantId === CHATSHIER_CFG.SPGATEWAY_INVOICE.MERCHANT_ID &&
+                payment.invoiceHashKey === CHATSHIER_CFG.SPGATEWAY_INVOICE.HASHKEY &&
+                payment.invoiceHashIV === CHATSHIER_CFG.SPGATEWAY_INVOICE.HASHIV) || 
+                hostname.toLowerCase().includes('.dev.') || 
+                hostname.toLowerCase().includes('.rel.')) {
+
+                return true;
+            }
+
+            return false;
         }
     }
 

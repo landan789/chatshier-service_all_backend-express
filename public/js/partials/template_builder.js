@@ -5,7 +5,6 @@
  * @link http://idangero.us/swiper/api/
  */
 window.TemplateBuilder = (function() {
-    let chatshierCfg = window.CHATSHIER && window.CHATSHIER.CONFIG;
 
     const KILO_BYTE = 1024;
     const MEGA_BYTE = KILO_BYTE * 1024;
@@ -499,7 +498,7 @@ window.TemplateBuilder = (function() {
                                 ? '<button type="button" class="image-upload-btn">' +
                                 '<div><i class="fas fa-image"></i></div>' +
                                 '<div>上傳圖片 <span class="small">(選填)</span></div>' +
-                                '<div class="text-danger small">(圖片大小不能超過 ' + Math.floor(chatshierCfg.imageFileMaxSize / MEGA_BYTE) + ' MB)</div>' +
+                                '<div class="text-danger small">(圖片大小不能超過 ' + Math.floor(window.CHATSHIER.FILE.IMAGE_MAX_SIZE / MEGA_BYTE) + ' MB)</div>' +
                             '</button>' : '') +
                             '<img class="image-fit" src="' + ((column.thumbnailImageUrl) || '') + '" alt="" />' +
                         '</div>' +
@@ -791,8 +790,8 @@ window.TemplateBuilder = (function() {
                 return Promise.reject(new Error(ERRORS.NOT_A_IMAGE));
             }
 
-            if (imageFile.size > chatshierCfg.imageFileMaxSize) {
-                $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(chatshierCfg.imageFileMaxSize / MEGA_BYTE) + ' MB');
+            if (imageFile.size > window.CHATSHIER.FILE.IMAGE_MAX_SIZE) {
+                $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(window.CHATSHIER.FILE.IMAGE_MAX_SIZE / MEGA_BYTE) + ' MB');
                 return Promise.reject(new Error(ERRORS.IMAGE_SIZE_TOO_LARGE));
             }
 

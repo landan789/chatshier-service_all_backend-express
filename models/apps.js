@@ -49,7 +49,7 @@ module.exports = (function() {
             appIds instanceof Array && (_query._id = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
             webhookId && (_query.webhook_id = this.Types.ObjectId(webhookId));
 
-            return this.AppsModel.find(_query, this.project).then((results) => {
+            return this.AppsModel.find(_query, this.project).sort({ createdTime: -1 }).then((results) => {
                 let apps = {};
                 if (0 === results.length) {
                     return apps;

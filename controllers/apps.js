@@ -31,6 +31,7 @@ module.exports = (function() {
         }
 
         getAll(req, res, next) {
+            
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     let userId = req.params.userid;

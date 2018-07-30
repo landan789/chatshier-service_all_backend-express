@@ -41,7 +41,7 @@ module.exports = (function() {
                 };
             }
 
-            return this.Model.find(query).then((results) => {
+            return this.Model.find(query).sort({ createdTime: -1 }).then((results) => {
                 let users = {};
                 if (0 !== results.length) {
                     users = this.toObject(results);

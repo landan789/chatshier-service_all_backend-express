@@ -2,11 +2,11 @@ module.exports = (function() {
     require('isomorphic-fetch'); // polyfill fetch method for Dropbox SDK
     const request = require('request');
     const PassThrough = require('stream').PassThrough;
-    const chatshierCfg = require('../config/chatshier');
+    const CHATSHIER_CFG = require('../config/chatshier');
 
     const Dropbox = require('dropbox').Dropbox;
     const dbx = new Dropbox({
-        accessToken: chatshierCfg.STORAGE.DROPBOX_ACCESS_TOKEN
+        accessToken: CHATSHIER_CFG.STORAGE.DROPBOX_ACCESS_TOKEN
     });
     const POLL_INTERVAL = 250; // 每秒詢問 4 次
 
@@ -184,7 +184,7 @@ module.exports = (function() {
          * @returns {Promise<{ shortLink: string, previewLink: string }>}
          */
         FDLcreate(url) {
-            let apiEndpoint = FDL_API_ENDPOINT + '?key=' + chatshierCfg.GOOGLE.serverAPIKey;
+            let apiEndpoint = FDL_API_ENDPOINT + '?key=' + CHATSHIER_CFG.GOOGLE.SERVER_API_KEY;
             let reqHeaders = new Headers({
                 'Content-Type': 'application/json',
                 'referer': FDL_REFERER
@@ -192,7 +192,7 @@ module.exports = (function() {
 
             let args = {
                 dynamicLinkInfo: {
-                    dynamicLinkDomain: chatshierCfg.GOOGLE.FDLdomain,
+                    dynamicLinkDomain: CHATSHIER_CFG.GOOGLE.FDL_DOMAIN,
                     link: url
                 },
                 suffix: {

@@ -99,6 +99,10 @@ module.exports = (function() {
                     $project: {
                         richmenus: true
                     }
+                }, {
+                    $sort: {
+                        'richmenus.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 
