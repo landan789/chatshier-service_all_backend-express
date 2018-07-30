@@ -292,6 +292,15 @@ p:empty:not(:focus)::before {
         transform: scale(1.2);
     }
 
+.bot-item-popover {
+    top: .5rem !important;
+    left: 2.5rem !important; }
+.bot-popover-backdrop {
+    left: 0;
+    top: 0;
+    background-color: transparent;
+    z-index: 1059; }
+
 @media (min-width: 576px) {
     .apps-body.card-columns {
         column-count: 2; }
@@ -301,4 +310,3 @@ p:empty:not(:focus)::before {
     .apps-body.card-columns {
         column-count: 3; }
 }
-
