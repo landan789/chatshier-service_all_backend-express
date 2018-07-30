@@ -33,9 +33,9 @@ module.exports = {
     },
     FACEBOOK: {
         // https://developers.facebook.com/apps
-        APP_ID: '203545926984167', // facebook appId
-        APP_SECRET: '46aa7e2f586a202b412aca2722fd2e09', // facebook appSecret
-        CLIENT_TOKEN: 'f85d12004b7a0c170c2f45d66dd50da9', // facebook appAccessToken
+        APP_ID: '203545926984167', // facebook APP_ID
+        APP_SECRET: '46aa7e2f586a202b412aca2722fd2e09', // facebook APP_SECRET
+        CLIENT_TOKEN: 'f85d12004b7a0c170c2f45d66dd50da9', // facebook CLIENT_TOKEN
         VERSION: 'v3.0'
     },
     GOOGLE: {
