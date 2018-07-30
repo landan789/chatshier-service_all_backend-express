@@ -1,33 +1,32 @@
 interface Window {
     CHATSHIER: {
-        CONFIG: {
-            richmenuImageFileMaxSize: number,
-            imageFileMaxSize: number,
-            videoFileMaxSize: number,
-            audioFileMaxSize: number
+        FILE: {
+            RICHMENU_IMAGE_MAX_SIZE: number,
+            IMAGE_MAX_SIZE: number,
+            VIDEO_MAX_SIZE: number,
+            AUDIO_MAX_SIZE: number,
+            OTHER_MAX_SIZE: number
         },
         FACEBOOK: {
-            appId: string,
-            cookie: boolean,
-            xfbml: boolean,
-            version: string
+            APP_ID: string,
+            COOKIE: boolean,
+            XFBML: boolean,
+            VERSION: string
         },
-        GOOGLE: {
-            CALENDAR: {
-                API_KEY: string,
-                CLIENT_ID: string,
-                DISCOVERY_DOCS: string[],
-                SCOPES: string
-            }
+        GOOGLE_CALENDAR: {
+            API_KEY: string,
+            CLIENT_ID: string,
+            DISCOVERY_DOCS: string[],
+            SCOPES: string
         },
         URL: {
-            wwwUrl: string,
+            WWW: string,
             port: string,
             index: string,
             terms: string,
             privacy: string,
-            webhookUrl: string,
-            apiUrl: string
+            WEBHOOK: string,
+            API: string
         }
     },
     SOCKET_EVENTS: {

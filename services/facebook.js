@@ -1,16 +1,16 @@
 module.exports = (function() {
     const request = require('request');
-    const chatshierCfg = require('../config/chatshier');
+    const CHATSHIER_CFG = require('../config/chatshier');
 
     const API_ENDPOINT = 'https://graph.facebook.com';
 
     class FacebookService {
         constructor() {
-            if (chatshierCfg && chatshierCfg.FACEBOOK) {
-                this.appId = chatshierCfg.FACEBOOK.appId;
-                this.appSecret = chatshierCfg.FACEBOOK.appSecret;
-                this.appAccessToken = chatshierCfg.FACEBOOK.appAccessToken;
-                this.apiVersion = chatshierCfg.FACEBOOK.apiVersion || 'v3.0';
+            if (CHATSHIER_CFG && CHATSHIER_CFG.FACEBOOK) {
+                this.appId = CHATSHIER_CFG.FACEBOOK.APP_ID;
+                this.appSecret = CHATSHIER_CFG.FACEBOOK.APP_SECRET;
+                this.appAccessToken = CHATSHIER_CFG.FACEBOOK.CLIENT_TOKEN;
+                this.version = CHATSHIER_CFG.FACEBOOK.VERSION || 'v3.0';
             }
         }
 
@@ -50,7 +50,7 @@ module.exports = (function() {
         setFanPageSubscribeApp(pageId, pageToken) {
             let options = {
                 method: 'POST',
-                url: API_ENDPOINT + '/' + this.apiVersion + '/' + pageId + '/subscribed_apps?access_token=' + pageToken
+                url: API_ENDPOINT + '/' + this.version + '/' + pageId + '/subscribed_apps?access_token=' + pageToken
             };
             return this._sendRequest(options);
         }
@@ -62,7 +62,7 @@ module.exports = (function() {
         setFanPageUnsubscribeApp(pageId, pageToken) {
             let options = {
                 method: 'DELETE',
-                url: API_ENDPOINT + '/' + this.apiVersion + '/' + pageId + '/subscribed_apps?access_token=' + pageToken
+                url: API_ENDPOINT + '/' + this.version + '/' + pageId + '/subscribed_apps?access_token=' + pageToken
             };
             return this._sendRequest(options);
         }

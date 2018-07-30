@@ -671,7 +671,7 @@ const ConditionSelector = (function() {
     });
 
     const SOCKET_NAMESPACE = '/chatshier';
-    const SOCKET_SERVER_URL = window.CHATSHIER.URL.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    const SOCKET_SERVER_URL = window.CHATSHIER.URL.API.replace('..', window.location.origin) + SOCKET_NAMESPACE;
     const SOCKET_EVENTS = window.SOCKET_EVENTS;
     const socket = io(SOCKET_SERVER_URL);
 

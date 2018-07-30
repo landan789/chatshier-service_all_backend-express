@@ -8,7 +8,7 @@ module.exports = (function() {
     const Wechat = require('wechat');
     const WechatAPI = require('wechat-api');
     const bodyParser = require('body-parser');
-    const chatshierCfg = require('../config/chatshier');
+    const CHATSHIER_CFG = require('../config/chatshier');
 
     const appsMdl = require('../models/apps');
     const appsChatroomsMdl = require('../models/apps_chatrooms');
@@ -964,7 +964,7 @@ module.exports = (function() {
                         if ('video' === message.type) {
                             messages.push({
                                 type: message.type,
-                                previewImageUrl: chatshierCfg.LINE.VIDEO_PREVIEW_IMAGE_URL,
+                                previewImageUrl: CHATSHIER_CFG.LINE.VIDEO_PREVIEW_IMAGE_URL,
                                 originalContentUrl: message.src
                             });
                         }
@@ -987,7 +987,7 @@ module.exports = (function() {
                                 text: message.text
                             }, {
                                 type: 'imagemap',
-                                baseUrl: chatshierCfg.LINE.FILE_IMAGE_BASE_URL,
+                                baseUrl: CHATSHIER_CFG.LINE.FILE_IMAGE_BASE_URL,
                                 altText: fileTitle,
                                 baseSize: {
                                     height: 1040,
