@@ -14,7 +14,7 @@ declare module Chatshier {
             token2: string,
             type: 'LINE' | 'FACEBOOK' | 'WECHAT' | 'CHATSHIER',
             webhook_id: string,
-            hasAgentName: boolean
+            hasUserName: boolean
         }
     }
 }

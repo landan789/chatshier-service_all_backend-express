@@ -89,10 +89,6 @@
     // 停用所有 form 的提交
     $(document).on('submit', 'form', function(ev) { return ev.preventDefault(); });
 
-    $(document).on('click', '[data-toggle="popover"]', function() {
-        $(this).popover();
-    });
-
     $(document).on('click', '#changePasswordBtn', function(ev) {
         let $changePasswordCollapse = $('#changePasswordCollapse');
         $(ev.target).text($changePasswordCollapse.hasClass('show') ? '展開' : '關閉');
@@ -773,16 +769,16 @@
         appTypeChange({ target: $appTypeSelect.get(0) });
     });
 
-    $(document).on('change', '#show-agent-name', function() {
+    $(document).on('change', '#has-user-name', function() {
         let appId = $(this).attr('app-id');
         let status = $(this).val();
         let putApp;
         if (status === 'hide') {
-            putApp = { hasAgentName: true };
+            putApp = { hasUserName: true };
             $(this).attr('checked', true);
             $(this).val('show');
         } else {
-            putApp = { hasAgentName: false };
+            putApp = { hasUserName: false };
             $(this).removeAttr('checked');
             $(this).val('hide');
         }
@@ -963,21 +959,22 @@
 
     function generateAppItem(appId, app) {
         let baseWebhookUrl = window.CHATSHIER.URL.webhookUrl;
+        let content = `<div class='form-check mt-3'><input class='form-check-input' type='checkbox' value='${(app.hasUserName ? 'show' : 'hide')}' id='has-user-name' app-id='${appId}' ${(app.hasUserName ? 'checked' : '')}/><label class='form-check-label'>回復訊息顯示專員名稱</label></div>`;
         let itemHtml = (
             '<div class="shadow card text-dark bot-item" app-id="' + appId + '">' +
                 '<div class="bar">' +
                 '</div>' +
                 '<div class="p-3 card-body">' +
                     '<div class="row">' +
-                        '<div class="mb-3 d-flex align-items-center col-md-6">' +
+                        '<div class="mb-3 d-flex align-items-center col-10">' +
                             '<i class="mr-2 fas fa-user-astronaut fa-fw fa-3x text-chsr"></i>' +
                             '<span class="font-weight-bolde d-inline-grid">' +
                                 '<div class="app-name text-dark font-weight-bold">' + app.name + '</div>' +
                                 '<div class="app-id1 font-weight-light">' + app.id1 + '</div>' + 
                             '</span>' +
                         '</div>' +
-                        '<div class="enter-popover col-md-6">' +
-                            `<i class="fas fa-ellipsis-v fa-2x mt-2 float-right" title="設定" data-toggle="popover" data-placement="left" data-html="true" data-content="<div class='form-check mt-3'><input class='form-check-input' type='checkbox' value='${(app.hasAgentName ? 'show' : 'hide')}' id='show-agent-name' app-id='${appId}' ${(app.hasAgentName ? 'checked' : '')}/><label class='form-check-label'>回復訊息顯示專員名稱</label></div>">` +
+                        '<div class="enter-popover col-2">' +
+                            `<i class="fas fa-ellipsis-v fa-2x px-3 mt-1 float-right cursor-pointer" id="setting-popover" data-toggle="popover">` +
                             '</i>' +
                         '</div>' +
                     '</div>' +
@@ -1040,6 +1037,14 @@
                 '</div>' +
             '</div>'
         );
+        $(document).on('click', '[data-toggle="popover"]', function() {
+            $(this).popover({
+                html: true,
+                placement: 'left',
+                title: '設定',
+                content
+            });
+        });
         itemHtml && $('.apps-body[group-id="' + app.group_id + '"]').append(itemHtml);
     }
 
