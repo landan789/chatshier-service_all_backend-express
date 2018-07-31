@@ -2683,7 +2683,7 @@
     }
 
     function updateChatroomTab(appId, chatroomId, messager) {
-        var $chatroomTablinks = $ctrlPanelChatroomCollapse.find('.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        var $chatroomTablinks = $ctrlPanelChatroomCollapse.find('.collapse .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
         var messagerSelf = findMessagerSelf(appId, chatroomId);
 
@@ -2715,15 +2715,17 @@
 
         var $unreadCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unread');
         var $unreadChatroomTab = $unreadCollapse.find('.list-group-item[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-        if (currentUnread) {
-            if (0 === $unreadChatroomTab.length) {
-                $unreadCollapse.prepend($chatroomTablinks.first().clone());
-            } else {
-                $unreadChatroomTab.prependTo($unreadCollapse);
-            }
-        } else if (0 < $unreadChatroomTab.length) {
+        if (currentUnread && 0 === $unreadChatroomTab.length) {
+            $unreadChatroomTab = $chatroomTablinks.first().clone();
+            $unreadCollapse.prepend($unreadChatroomTab);
+        } else if (!currentUnread && 0 < $unreadChatroomTab.length) {
             $unreadChatroomTab.remove();
         }
+
+        $chatroomTablinks.each((i, elem) => {
+            let $chatroomTablink = $(elem);
+            $chatroomTablink.prependTo($chatroomTablink.parent());
+        });
     }
 
     function updateMessagePanel(messager, message, appId, chatroomId) {

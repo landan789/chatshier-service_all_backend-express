@@ -1,6 +1,6 @@
 {
     "name": "api-chatshier",
-    "version": "1.4.2",
+    "version": "1.4.3",
     "private": true,
     "scripts": {
         "init": "npm install -g pm2 && npm install -g supervisor",
