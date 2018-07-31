@@ -88,10 +88,6 @@ p:empty:not(:focus)::before {
 /*******************/
 /* #region 內部群組相關設置 */
 
-.cursor-pointer {
-    cursor: pointer;
-}
-
 .group-tab, .group-app {
     padding: 1rem 0;
     margin-bottom: 0;

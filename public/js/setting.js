@@ -969,8 +969,8 @@
                                 '<div class="app-id1 font-weight-light small">' + app.id1 + '</div>' +
                             '</span>' +
                         '</div>' +
-                        '<div class="enter-popover">' +
-                            '<i class="fas fa-ellipsis-v fa-2x px-2 py-1 cursor-pointer options-popover"></i>' +
+                        '<div class="options-popover cursor-pointer">' +
+                            '<i class="px-2 py-1 fas fa-ellipsis-v fa-2x"></i>' +
                         '</div>' +
                     '</div>' +
                     (function() {
