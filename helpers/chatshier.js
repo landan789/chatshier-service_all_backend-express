@@ -17,6 +17,7 @@ module.exports = (function() {
     const consumersMdl = require('../models/consumers');
 
     const fuseHlp = require('../helpers/fuse');
+    const gcalendarHlp = require('../helpers/gcalendar');
     const jwtHlp = require('../helpers/jwt');
 
     const LINE = 'LINE';
@@ -455,6 +456,11 @@ module.exports = (function() {
                         continue;
                     }
 
+                    let noProductsMessage = {
+                        type: 'text',
+                        text: '很抱歉，該預約目錄內沒有可預約的項目。'
+                    };
+
                     let categoryId = payload.categoryId || '';
                     let productPromise = appsCategoriesMdl.find(appId, categoryId).then((appsCategories) => {
                         if (!(appsCategories && appsCategories[appId])) {
@@ -469,20 +475,12 @@ module.exports = (function() {
                         let category = appsCategories[appId].categories[categoryId] || {};
                         let productIds = category.product_ids || [];
                         if (0 === productIds.length) {
-                            let noProductsMessage = {
-                                type: 'text',
-                                text: '很抱歉，該預約目錄內沒有可預約的項目。'
-                            };
                             repliedMessages.push(noProductsMessage);
                             return Promise.resolve();
                         }
 
                         return appsProductsMdl.find(appId, productIds).then((appsProducts) => {
                             if (!(appsProducts && appsProducts[appId])) {
-                                let noProductsMessage = {
-                                    type: 'text',
-                                    text: '很抱歉，該預約目錄內沒有可預約的項目。'
-                                };
                                 repliedMessages.push(noProductsMessage);
                                 return Promise.resolve();
                             }
@@ -535,7 +533,7 @@ module.exports = (function() {
                                                     data: 'none'
                                                 };
 
-                                                if (!receptionistId) {
+                                                if (!(receptionistId && receptionists[receptionistId])) {
                                                     return action;
                                                 }
 
@@ -565,6 +563,10 @@ module.exports = (function() {
                                     });
                                 });
                             })).then(() => {
+                                if (0 === productsMessage.template.columns.length) {
+                                    repliedMessages.push(noProductsMessage);
+                                    return;
+                                }
                                 repliedMessages.push(productsMessage);
                             });
                         });
@@ -600,7 +602,7 @@ module.exports = (function() {
                         if (0 === schedules.length) {
                             let noDateMessage = {
                                 type: 'text',
-                                text: '很抱歉，目前沒有可預約的日期。'
+                                text: '很抱歉，' + receptionist.name + ' 目前沒有可預約的日期。'
                             };
                             repliedMessages.push(noDateMessage);
                             return;
@@ -889,12 +891,13 @@ module.exports = (function() {
                         continue;
                     }
 
+                    let invalidMessage = {
+                        type: 'text',
+                        text: '很抱歉，無法建立此預約！請重新操作。'
+                    };
+
                     let appointmentId = payload.appointmentId || '';
                     if (!appointmentId) {
-                        let invalidMessage = {
-                            type: 'text',
-                            text: '很抱歉，無法建立此預約！請重新操作。'
-                        };
                         repliedMessages.push(invalidMessage);
                         continue;
                     }
@@ -915,43 +918,77 @@ module.exports = (function() {
                             return;
                         }
 
-                        let _appointment = {
-                            _id: appointmentId,
-                            product_id: productId,
-                            receptionist_id: receptionistId,
-                            platformUid: platformUid,
-                            startedTime: new Date(appointDate + ' ' + startedTime).getTime(),
-                            endedTime: new Date(appointDate + ' ' + endedTime).getTime()
-                        };
-
-                        return appsAppointmentsMdl.insert(appId, _appointment).then((appsAppointments) => {
-                            if (!(appsAppointments && appsAppointments[appId])) {
-                                let failedMessage = {
-                                    type: 'text',
-                                    text: '很抱歉！此預約建立失敗，請聯絡客服或重新操作'
-                                };
-                                repliedMessages.push(failedMessage);
+                        return Promise.all([
+                            appsProductsMdl.find(appId, productId),
+                            appsReceptionistsMdl.find(appId, receptionistId),
+                            appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false),
+                            consumersMdl.find(platformUid)
+                        ]).then(([ appsProducts, appsReceptionists, appsChatroomsMessagers, consumers ]) => {
+                            if (!(appsProducts && appsProducts[appId]) ||
+                                !(appsReceptionists && appsReceptionists[appId]) ||
+                                !(appsChatroomsMessagers && appsChatroomsMessagers[appId]) ||
+                                !(consumers && consumers[platformUid])) {
+                                repliedMessages.push(invalidMessage);
                                 return;
                             }
 
-                            return consumersMdl.find(platformUid).then((consumers) => {
-                                let consumer = (consumers || {})[platformUid] || {};
-                                let successMessage = {
-                                    type: 'text',
-                                    text: (
-                                        (consumer.name ? consumer.name + ' ' : '') + '您好:\n' +
-                                        '\n' +
-                                        '已為你建立預約。' +
-                                        '\n' +
-                                        '時間為:\n' +
-                                        '\n' +
-                                        '【' + appointDate + '】\n' +
-                                        '【' + startedTime + ' ~ ' + endedTime + '】\n' +
-                                        '\n' +
-                                        '感謝您的預約！'
-                                    )
-                                };
-                                repliedMessages.push(successMessage);
+                            let product = appsProducts[appId].products[productId];
+                            let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                            let messager = Object.values(appsChatroomsMessagers[appId].chatrooms)[0].messagers[platformUid];
+                            let consumer = consumers[platformUid];
+                            let summary = consumer.name + ' 向您預約 ' + product.name;
+                            let description = (
+                                '大頭貼: <a href="' + consumer.photo + '">連結</a>\n' +
+                                '名稱: ' + consumer.name + '\n' +
+                                'Email: ' + messager.email + '\n' +
+                                '電話: ' + messager.phone + '\n' +
+                                '性別: ' + ('MALE' === messager.gender ? '男' : '女') + '\n' +
+                                '年齡: ' + messager.age + '\n'
+                            );
+
+                            let startedDate = new Date(appointDate + ' ' + startedTime);
+                            let endedDate = new Date(appointDate + ' ' + endedTime);
+                            let _appointment = {
+                                _id: appointmentId,
+                                product_id: productId,
+                                receptionist_id: receptionistId,
+                                platformUid: platformUid,
+                                startedTime: startedDate.getTime(),
+                                endedTime: endedDate.getTime()
+                            };
+
+                            return gcalendarHlp.insertEvent(receptionist.gcalendarId, summary, description, startedDate, endedDate).then((gcalendarEvent) => {
+                                _appointment.eventId = gcalendarEvent.id;
+                                _appointment.summary = gcalendarEvent.summary;
+                                _appointment.description = gcalendarEvent.description;
+
+                                return appsAppointmentsMdl.insert(appId, _appointment).then((appsAppointments) => {
+                                    if (!(appsAppointments && appsAppointments[appId])) {
+                                        let failedMessage = {
+                                            type: 'text',
+                                            text: '很抱歉！此預約建立失敗，請聯絡客服或重新操作'
+                                        };
+                                        repliedMessages.push(failedMessage);
+                                        return;
+                                    }
+
+                                    let successMessage = {
+                                        type: 'text',
+                                        text: (
+                                            (consumer.name ? consumer.name + ' ' : '') + '您好:\n' +
+                                            '\n' +
+                                            '已為你建立預約。' +
+                                            '\n' +
+                                            '時間為:\n' +
+                                            '\n' +
+                                            '【' + appointDate + '】\n' +
+                                            '【' + startedTime + ' ~ ' + endedTime + '】\n' +
+                                            '\n' +
+                                            '感謝您的預約！'
+                                        )
+                                    };
+                                    repliedMessages.push(successMessage);
+                                });
                             });
                         });
                     });

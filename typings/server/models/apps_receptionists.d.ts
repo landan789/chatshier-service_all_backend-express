@@ -18,12 +18,12 @@ declare module Chatshier {
             timezoneOffset: number,
             maxNumber: number,
             interval: number,
-            schedules: (ReceptionistSchedule | void)[]
-        }
-
-        interface ReceptionistSchedule {
-            startedTime: Date | number,
-            endedTime: Date | number
+            schedules: ({
+                startedTime: Date | number,
+                endedTime: Date | number
+            } | void)[],
+            gcalendarId: string,
+            appointment_ids: string[]
         }
     }
 }

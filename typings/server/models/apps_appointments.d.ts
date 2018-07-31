@@ -16,6 +16,8 @@ declare module Chatshier {
             platformUid: string,
             startedTime: Date | number,
             endedTime: Date | number,
+            summary: string,
+            description: string,
             eventId: string
         }
     }

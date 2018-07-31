@@ -216,7 +216,9 @@ module.exports = (function() {
         'schedules': [{
             'startedTime': {type: Date, default: Date.now()},
             'endedTime': {type: Date, default: Date.now()}
-        }]
+        }],
+        'gcalendarId': {type: String, default: ''},
+        'appointment_ids': {type: [{type: String}], default: []}
     });
 
     const AppointmentsSchema = new Schema({
@@ -227,6 +229,8 @@ module.exports = (function() {
         'platformUid': {type: String, default: ''},
         'startedTime': {type: Date, default: Date.now()},
         'endedTime': {type: Date, default: Date.now()},
+        'summary': {type: String, default: ''},
+        'description': {type: String, default: ''},
         'eventId': {type: String, default: ''} // Google calendar event
     });
 

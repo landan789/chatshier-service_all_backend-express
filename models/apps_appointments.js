@@ -177,9 +177,62 @@ module.exports = (function() {
             postAppointment._id = appointmentId;
             postAppointment.createdTime = postAppointment.updatedTime = Date.now();
 
+            // 新增一筆預約項目時，服務人員與產品為必填
+            if (!(postAppointment.receptionist_id && postAppointment.product_id)) {
+                ('function' === typeof callback) && callback(null);
+                return Promise.resolve(null);
+            }
+
             return this.AppsModel.findById(appId).then((app) => {
                 app.appointments.push(postAppointment);
                 return app.save();
+            }).then(() => {
+                let receptionistId = postAppointment.receptionist_id;
+                let aggregations = [
+                    {
+                        $unwind: '$receptionists'
+                    }, {
+                        $match: {
+                            '_id': this.Types.ObjectId(appId),
+                            'isDeleted': false,
+                            'receptionists.isDeleted': false,
+                            'receptionists._id': this.Types.ObjectId(receptionistId)
+                        }
+                    }, {
+                        $project: {
+                            receptionists: true
+                        }
+                    }
+                ];
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    if (0 === results.length) {
+                        return;
+                    }
+
+                    let receptionists = this.toObject(results.shift().receptionists);
+                    /** @type {Chatshier.Models.Receptionist} */
+                    let receptionist = receptionists[receptionistId];
+                    let appointmentIds = receptionist.appointment_ids || [];
+                    let _appointmentId = appointmentId.toHexString();
+
+                    if (appointmentIds.includes(_appointmentId)) {
+                        return;
+                    }
+
+                    appointmentIds.push(_appointmentId);
+                    let query = {
+                        '_id': this.Types.ObjectId(appId),
+                        'receptionists._id': this.Types.ObjectId(receptionistId)
+                    };
+
+                    let updateOper = {
+                        $set: {
+                            'receptionists.$.updatedTime': Date.now(),
+                            'receptionists.$.appointment_ids': appointmentIds
+                        }
+                    };
+                    return this.AppsModel.update(query, updateOper);
+                });
             }).then(() => {
                 return this.find(appId, appointmentId.toHexString());
             }).then((appsAppointments) => {

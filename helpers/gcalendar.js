@@ -2,6 +2,8 @@ module.exports = (function() {
     const CHATSHIER_CFG = require('../config/chatshier.js');
     const google = require('googleapis').google;
     const OAuth2 = google.auth.OAuth2;
+    const DEFAULT_ROLE = 'reader';
+    const DEFAULT_SCOPE_TYPE = 'user';
 
     class GoogleCalendarHelper {
         constructor() {
@@ -35,7 +37,7 @@ module.exports = (function() {
 
         /**
          * @param {string} summary - Title of the calendar.
-         * @param {string} [description] - Description of the calendar.
+         * @param {string} [description=''] - Description of the calendar.
          * @returns {Promise<Chatshier.GCalendar.CalendarResource>}
          */
         insertCalendar(summary, description = '') {
@@ -170,10 +172,10 @@ module.exports = (function() {
         /**
          * @param {string} calendarId - Calendar identifier
          * @param {string} email
-         * @param {string} [scopeType='user']
+         * @param {string} [scopeType=DEFAULT_SCOPE_TYPE]
          * @returns {Promise<Chatshier.GCalendar.AccessControllResource>}
          */
-        getCalendarACR(calendarId, email, scopeType = 'user') {
+        getCalendarACR(calendarId, email, scopeType = DEFAULT_SCOPE_TYPE) {
             return new Promise((resolve, reject) => {
                 if (!calendarId) {
                     return reject(new Error('calendarId is empty.'));
@@ -205,11 +207,11 @@ module.exports = (function() {
         /**
          * @param {string} calendarId - Calendar identifier
          * @param {string} email - gmail of share target
-         * @param {string} [role='writer']
-         * @param {string} [scopeType='user']
+         * @param {string} [role=DEFAULT_ROLE]
+         * @param {string} [scopeType=DEFAULT_SCOPE_TYPE]
          * @returns {Promise<Chatshier.GCalendar.AccessControllResource>}
          */
-        sharingCalendar(calendarId, email, role = 'writer', scopeType = 'user') {
+        sharingCalendar(calendarId, email, role = DEFAULT_ROLE, scopeType = DEFAULT_SCOPE_TYPE) {
             return this.getCalendarACR(calendarId, email, scopeType).then((acr) => {
                 if (acr) {
                     return acr;
@@ -218,7 +220,6 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     this.client.acl.insert({
                         calendarId: calendarId,
-                        sendNotifications: false,
                         requestBody: {
                             role: role,
                             scope: {
@@ -239,10 +240,10 @@ module.exports = (function() {
         /**
          * @param {string} calendarId - Calendar identifier
          * @param {string} email
-         * @param {string} [scopeType='user']
+         * @param {string} [scopeType=DEFAULT_SCOPE_TYPE]
          * @returns {Promise<string>}
          */
-        cancelCalendarSharing(calendarId, email, scopeType = 'user') {
+        cancelCalendarSharing(calendarId, email, scopeType = DEFAULT_SCOPE_TYPE) {
             return this.getCalendarACR(calendarId, email, scopeType).then((acr) => {
                 if (!acr) {
                     return '';
@@ -258,6 +259,64 @@ module.exports = (function() {
                         }
                         return resolve(res.data);
                     });
+                });
+            });
+        }
+
+        /**
+         * @param {string} calendarId - Calendar identifier
+         * @returns {Promise<Chatshier.GCalendar.EventList>}
+         */
+        getEventList(calendarId) {
+            return new Promise((resolve, reject) => {
+                if (!calendarId) {
+                    return reject(new Error('calendarId is empty'));
+                }
+
+                this.client.events.list({
+                    calendarId: calendarId
+                }, (err, res) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(res.data);
+                });
+            });
+        }
+
+        /**
+         * @param {string} calendarId
+         * @param {string} summary
+         * @param {string} description
+         * @param {Date} startDatetime
+         * @param {Date} endDatetime
+         * @returns {Promise<Chatshier.GCalendar.EventResource>}
+         */
+        insertEvent(calendarId, summary, description, startDatetime, endDatetime) {
+            return new Promise((resolve, reject) => {
+                if (!calendarId) {
+                    return reject(new Error('calendarId is empty'));
+                }
+
+                this.client.events.insert({
+                    calendarId: calendarId,
+                    requestBody: {
+                        summary: summary,
+                        description: description,
+                        start: {
+                            dateTime: startDatetime.toISOString(),
+                            timeZone: 'UTC'
+                        },
+                        end: {
+                            dateTime: endDatetime.toISOString(),
+                            timeZone: 'UTC'
+                        }
+                    }
+                }, (err, res) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(res.data);
                 });
             });
         }

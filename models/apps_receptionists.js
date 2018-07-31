@@ -1,5 +1,7 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
+    const CHATSHIER_CFG = require('../config/chatshier');
+    const gcalendarHlp = require('../helpers/gcalendar');
     const APPS = 'apps';
 
     class AppsReceptionistsModel extends ModelCore {
@@ -82,17 +84,32 @@ module.exports = (function() {
             _receptionist._id = receptionistId;
             _receptionist.createdTime = _receptionist.updatedTime = Date.now();
 
+            if (!_receptionist.name) {
+                ('function' === typeof callback) && callback(null);
+                return Promise.resolve(null);
+            }
+
             let query = {
-                '_id': this.Types.ObjectId(appId)
+                '_id': this.Types.ObjectId(appId),
+                'isDeleted': false
             };
 
-            let updateOper = {
-                $push: {
-                    receptionists: _receptionist
-                }
-            };
+            return this.AppsModel.findOne(query).then((result) => {
+                /** @type {Chatshier.Models.App} */
+                let app = result;
+                let summary = '[' + _receptionist.name + '] ' + app.name + ' - ' + receptionistId.toHexString();
+                let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
+                return gcalendarHlp.insertCalendar(summary, description);
+            }).then((gcalendar) => {
+                _receptionist.gcalendarId = gcalendar.id;
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+                let updateOper = {
+                    $push: {
+                        receptionists: _receptionist
+                    }
+                };
+                return this.AppsModel.update(query, updateOper);
+            }).then(() => {
                 return this.find(appId, receptionistId.toHexString());
             }).then((appsReceptionists) => {
                 ('function' === typeof callback) && callback(appsReceptionists);
@@ -142,25 +159,19 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string | string[]} appIds
+         * @param {string} appId
          * @param {string} receptionistId
          * @param {(appsReceptionists: Chatshier.Models.AppsReceptionists | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsReceptionists | null>}
          */
-        remove(appIds, receptionistId, callback) {
-            if (!(appIds instanceof Array)) {
-                appIds = [appIds];
-            }
-
+        remove(appId, receptionistId, callback) {
             let receptionist = {
                 isDeleted: true,
                 updatedTime: Date.now()
             };
 
             let query = {
-                '_id': {
-                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                },
+                '_id': this.Types.ObjectId(appId),
                 'receptionists._id': this.Types.ObjectId(receptionistId)
             };
 
@@ -170,10 +181,6 @@ module.exports = (function() {
             }
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                if (!(appIds instanceof Array)) {
-                    appIds = [appIds];
-                }
-
                 let aggregations = [
                     {
                         $unwind: '$receptionists'
@@ -197,6 +204,15 @@ module.exports = (function() {
                         Object.assign(output[app._id].receptionists, this.toObject(app.receptionists));
                         return output;
                     }, {});
+                    return appsReceptionists;
+                });
+            }).then((appsReceptionists) => {
+                let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                if (!receptionist.gcalendarId) {
+                    return appsReceptionists;
+                }
+
+                return gcalendarHlp.deleteCalendar(receptionist.gcalendarId).then(() => {
                     return appsReceptionists;
                 });
             }).then((appsReceptionists) => {

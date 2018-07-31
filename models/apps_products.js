@@ -72,6 +72,55 @@ module.exports = (function() {
 
         /**
          * @param {string} appId
+         * @param {string} receptionistId
+         * @param {(appsProducts: Chatshier.Models.AppsProducts | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.AppsProducts | null>}
+         */
+        findByReceptionistId(appId, receptionistId, callback) {
+            let query = {
+                '_id': this.Types.ObjectId(appId),
+                'isDeleted': false,
+                'products.isDeleted': false,
+                'products.receptionist_ids': {
+                    $in: [receptionistId]
+                }
+            };
+
+            let aggregations = [
+                {
+                    $unwind: '$products'
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        products: true
+                    }
+                }
+            ];
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsProducts = {};
+                if (0 === results.length) {
+                    return appsProducts;
+                }
+
+                appsProducts = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { products: {} };
+                    Object.assign(output[app._id].products, this.toObject(app.products));
+                    return output;
+                }, {});
+                return appsProducts;
+            }).then((appsProducts) => {
+                ('function' === typeof callback) && callback(appsProducts);
+                return appsProducts;
+            }).catch((err) => {
+                console.log(err);
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string} appId
          * @param {any} [product]
          * @param {(appsProducts: Chatshier.Models.AppsProducts | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsProducts | null>}
