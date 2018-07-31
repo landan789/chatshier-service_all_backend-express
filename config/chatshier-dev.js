@@ -46,6 +46,16 @@ module.exports = {
         // https://console.firebase.google.com/u/0/project/chatshier-d4dfd/settings/general/
         FDL_DOMAIN: 'chatshier9450.page.link'
     },
+    GAPI: {
+        USER: 'human@chatshier.com',
+        // https://developers.google.com/oauthplayground
+        CLIENT_ID: '1074711200692-ds4lin2uh3q4bs5doqsdipuak83j6te1.apps.googleusercontent.com',
+        CLIENT_SECRET: '91Bn0GnAEnGuJRWj_9Im-_oq',
+        // Google 所配發的 refreshToken 不會失效，會失效可能是以下原因
+        // 1. 使用者解除授權 app
+        // 2. 使用者授權 app 時，授權的 scope 發生變更
+        REFRESH_TOKEN: '1/rBgB_AywuhwQuZpqnYSAfqtVK8u5ll6Vp2S-XDaLY2hzDFEHIU9C9wNXHivtmo-X'
+    },
     JWT: {
         EXPIRES: EXPIRES,
         SUBJECT: 'support@chatshier.com',
@@ -67,16 +77,6 @@ module.exports = {
         METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         ALLOWED_HEADERS: ['Content-Type', 'Authorization'],
         CREDENTIALS: true
-    },
-    GMAIL: {
-        USER: 'human@chatshier.com',
-        // https://developers.google.com/oauthplayground
-        CLIENT_ID: '1074711200692-ds4lin2uh3q4bs5doqsdipuak83j6te1.apps.googleusercontent.com',
-        CLIENT_SECRET: '91Bn0GnAEnGuJRWj_9Im-_oq',
-        // Google 所配發的 refreshToken 不會失效，會失效可能是以下原因
-        // 1. 使用者解除授權 app
-        // 2. 使用者授權 app 時，授權的 scope 發生變更
-        REFRESH_TOKEN: '1/rBgB_AywuhwQuZpqnYSAfqtVK8u5ll6Vp2S-XDaLY2hzDFEHIU9C9wNXHivtmo-X'
     },
     // test key for ECPAY
     // https://vendor-stage.ecpay.com.tw
