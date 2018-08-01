@@ -264,6 +264,26 @@ module.exports = (function() {
         }
 
         /**
+         * @param {string} channelId
+         * @param {string} resourceId
+         */
+        stopChannel(channelId, resourceId) {
+            return new Promise((resolve, reject) => {
+                this.client.channels.stop({
+                    requestBody: {
+                        id: channelId,
+                        resourceId: resourceId
+                    }
+                }, (err, res) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(res.data);
+                });
+            });
+        }
+
+        /**
          * @param {string} calendarId - Calendar identifier
          * @returns {Promise<Chatshier.GCalendar.EventList>}
          */
@@ -310,6 +330,46 @@ module.exports = (function() {
                         end: {
                             dateTime: endDatetime.toISOString(),
                             timeZone: 'UTC'
+                        },
+                        reminders: {
+                            useDefault: false,
+                            // 預設:
+                            // 1 週前 email 提醒 (由 Google 行事曆系統發出)
+                            // 1 天前通知提醒 (只有裝有 Google 行事曆的行動裝置或在 Google 行事曆的網頁上才收的到通知)
+                            overrides: [{
+                                method: 'email',
+                                minutes: 10080
+                            }, {
+                                method: 'popup',
+                                minutes: 1440
+                            }]
+                        }
+                    }
+                }, (err, res) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(res.data);
+                });
+            });
+        }
+
+        /**
+         * @param {string} calendarId
+         * @param {string} eventId
+         * @param {string} serverAddr
+         */
+        watchEvent(calendarId, eventId, serverAddr) {
+            return new Promise((resolve, reject) => {
+                this.client.events.watch({
+                    calendarId: calendarId,
+                    requestBody: {
+                        id: eventId,
+                        type: 'web_hook',
+                        token: CHATSHIER_CFG.JWT.SECRET,
+                        address: serverAddr + '/google-webhook/gcalendar/event/' + eventId,
+                        params: {
+                            ttl: 31536000
                         }
                     }
                 }, (err, res) => {

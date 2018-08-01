@@ -12,6 +12,7 @@ let apiDatabase = require('./routes/api_database');
 let apiSign = require('./routes/api_sign');
 let apiBot = require('./routes/api_bot');
 let webhookBot = require('./routes/webhook_bot');
+let webhookGoogle = require('./routes/webhook_google');
 let webhookPayment = require('./routes/webhook_payment');
 let apiImage = require('./routes/api_image');
 
@@ -34,6 +35,7 @@ app.use(cors(corsCfg));
 app.use(cookieParser());
 
 app.use('/webhook', webhookBot);
+app.use('/webhook-google', webhookGoogle);
 app.use('/webhook-payment', webhookPayment);
 
 // API JWT 權限驗證
