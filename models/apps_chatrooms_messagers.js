@@ -51,10 +51,12 @@ module.exports = (function() {
 
             let getFilterCond = (messagerIds, messagerType) => {
 
+                if (!(messagerIds instanceof Array)) {
+                    messagerIds = [messagerIds];
+                }
+
                 if (messagerIds) {
-                    if (!(messagerIds instanceof Array)) {
-                        messagerIds = [messagerIds];
-                    }
+
                     return {
                         $or: messagerIds.map((messagerId) => prepareCond(messagerId))
                     };
