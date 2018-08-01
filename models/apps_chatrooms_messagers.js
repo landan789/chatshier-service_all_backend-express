@@ -49,7 +49,7 @@ module.exports = (function() {
                 };
             }
 
-            let getFilterCond = () => {
+            let getFilterCond = (messagerIds, messagerType) => {
 
                 if (messagerIds) {
                     if (!(messagerIds instanceof Array)) {
@@ -106,7 +106,7 @@ module.exports = (function() {
                                 $filter: {
                                     input: '$chatrooms.messagers',
                                     as: 'messager',
-                                    cond: getFilterCond()
+                                    cond: getFilterCond(messagerIds, messagerType)
                                 }
                             }
                         }
