@@ -51,7 +51,7 @@ module.exports = (function() {
 
             let getFilterCond = (messagerIds, messagerType) => {
 
-                if (!(messagerIds instanceof Array)) {
+                if (!(messagerIds instanceof Array) && messagerIds) {
                     messagerIds = [messagerIds];
                 }
 
