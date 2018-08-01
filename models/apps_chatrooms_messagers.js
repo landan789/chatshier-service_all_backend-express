@@ -82,7 +82,7 @@ module.exports = (function() {
                 } else if (messagerType) {
                     return prepareCond(void 0, messagerType);
                 }
-                return prepareCond(messagerType);
+                return prepareCond();
             };
 
             let aggregations = [
