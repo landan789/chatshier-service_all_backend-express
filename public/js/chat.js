@@ -1192,6 +1192,11 @@
                 let chatroomB = chatrooms[b];
                 let messageIdsA = Object.keys(chatroomA.messages);
                 let messageIdsB = Object.keys(chatroomB.messages);
+
+                if (0 === messageIdsA.length || 0 === messageIdsB.length) {
+                    return 0;
+                }
+
                 let lastMessageDateA = new Date(chatroomA.messages[messageIdsA[messageIdsA.length - 1]].time);
                 let lastMessageDateB = new Date(chatroomB.messages[messageIdsB[messageIdsB.length - 1]].time);
 
@@ -2326,7 +2331,6 @@
 
         var appId = $messageView.attr('app-id');
         var appType = apps[appId].type;
-        var hasUserName = apps[appId].hasUserName;
         var chatroomId = $messageView.attr('chatroom-id');
         var platformMessager = findChatroomMessager(appId, chatroomId, appType);
         var messagerSelf = findMessagerSelf(appId, chatroomId);
@@ -2337,7 +2341,7 @@
         }
 
         // 發送給各平台時，文字訊息前面加上自己的名稱當成前輟
-        var messagePrefix = appType !== CHATSHIER && hasUserName ? '[' + users[userId].name + ']\n' : '';
+        var messagePrefix = appType !== CHATSHIER ? '[' + users[userId].name + ']\n' : '';
 
         /** @type {ChatshierMessage} */
         var messageToSend = {
