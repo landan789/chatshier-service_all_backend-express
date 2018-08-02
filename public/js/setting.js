@@ -776,6 +776,12 @@
         appTypeChange({ target: $appTypeSelect.get(0) });
     });
 
+    $(document).on('change', '#has-user-name', function() {
+        let appId = $(this).attr('app-id');
+        let putApp = { hasUserName: $(this).prop('checked') };
+        updateOneApp(appId, putApp);
+    });
+
     function findAllGroups() {
         $('#addGroupNameAppBtn').attr('disabled', true);
         return api.groups.findAll(userId).then(function(resJson) {
@@ -950,17 +956,22 @@
 
     function generateAppItem(appId, app) {
         let baseWebhookUrl = window.CHATSHIER.URL.WEBHOOK;
-        let itemHtml = (
+        let $botItem = $(
             '<div class="shadow card text-dark bot-item" app-id="' + appId + '">' +
                 '<div class="bar">' +
                 '</div>' +
                 '<div class="p-3 card-body">' +
-                    '<div class="mb-3 d-flex align-items-center">' +
-                        '<i class="mr-2 fas fa-user-astronaut fa-fw fa-3x text-chsr"></i>' +
-                        '<span class="font-weight-bolde d-inline-grid">' +
-                            '<div class="app-name text-dark font-weight-bold">' + app.name + '</div>' +
-                            '<div class="app-id1 font-weight-light">' + app.id1 + '</div>' + 
-                        '</span>' +
+                    '<div class="d-flex flex-nowrap mb-3">' +
+                        '<div class="w-100 d-flex align-items-center">' +
+                            '<i class="mr-2 fas fa-user-astronaut fa-fw fa-3x text-chsr"></i>' +
+                            '<span class="font-weight-bolde d-inline-grid">' +
+                                '<div class="app-name text-dark font-weight-bold">' + app.name + '</div>' +
+                                '<div class="app-id1 font-weight-light small">' + app.id1 + '</div>' +
+                            '</span>' +
+                        '</div>' +
+                        '<div class="options-popover cursor-pointer">' +
+                            '<i class="px-2 py-1 fas fa-ellipsis-v fa-2x"></i>' +
+                        '</div>' +
                     '</div>' +
                     (function() {
                         switch (app.type) {
@@ -995,12 +1006,12 @@
                     })() +
 
                     '<label class="font-weight-bold">Webhook URL:</label>' +
-                        '<div class="text-muted-muted app-webhook-id" app-type="' + app.type + '" ' + (FACEBOOK === app.type ? '' : 'data-toggle="tooltip"') +  ' data-placement="top" title="點擊複製至剪貼簿">' +
-                        ( FACEBOOK === app.type ? '--' : createWebhookUrl(baseWebhookUrl, app.webhook_id)) +
+                        '<div class="text-muted-muted app-webhook-id" app-type="' + app.type + '" ' + (FACEBOOK === app.type ? '' : 'data-toggle="tooltip"') + ' data-placement="top" title="點擊複製至剪貼簿">' +
+                        (FACEBOOK === app.type ? '--' : createWebhookUrl(baseWebhookUrl, app.webhook_id)) +
                     '</div>' +
 
                     '<div class="position-absolute w-100 p-3 footer-buttons">' +
-                        '<div class="d-flex justify-content-around">' + 
+                        '<div class="d-flex justify-content-around">' +
                             '<div class="" data-toggle="tooltip" data-placement="top" title="設定金流服務">' +
                                 '<button type="button" class="mr-1 btn btn-block set-payment-btn" app-id="' + appId + '" data-toggle="modal" data-target="#paymentModal">' +
                                     '<i class="fas fa-hand-holding-usd fa-fw text-muted fa-1p5x"></i>' +
@@ -1021,7 +1032,42 @@
                 '</div>' +
             '</div>'
         );
-        itemHtml && $('.apps-body[group-id="' + app.group_id + '"]').append(itemHtml);
+        $('.apps-body[group-id="' + app.group_id + '"]').append($botItem);
+
+        $botItem.on('click', '.options-popover', function() {
+            let $popoverTarget = $(this);
+            $popoverTarget.popover('toggle');
+        });
+
+        let $popoverBackdrop;
+        $botItem.find('.options-popover').popover({
+            html: true,
+            placement: 'left',
+            trigger: 'manual',
+            template: (
+                '<div class="popover bot-item-popover" role="tooltip">' +
+                    '<div class="py-2 popover-body"></div>' +
+                '</div>'
+            ),
+            content: (
+                '<div class="form-check">' +
+                    '<label class="form-check-label">' +
+                        '<input class="h-100 mt-0 form-check-input" type="checkbox" id="has-user-name" app-id="' + appId + '"' + (app.hasUserName ? ' checked=true' : '') + ' />' +
+                        '回覆訊息<br/>顯示專員名稱' +
+                    '</label>' +
+                '</div>'
+            )
+        }).on('shown.bs.popover', function() {
+            $popoverBackdrop && $popoverBackdrop.remove();
+            $popoverBackdrop = $('<div class="position-absolute w-100 h-100 bot-popover-backdrop"></div>');
+            $popoverBackdrop.on('click', function() {
+                $('.bot-item .options-popover').popover('hide');
+            });
+            $(document.body).append($popoverBackdrop);
+        }).on('hide.bs.popover', function() {
+            $popoverBackdrop && $popoverBackdrop.remove();
+            $popoverBackdrop = void 0;
+        });
     }
 
     function generateEditAppForm(appId, app) {
