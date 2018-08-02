@@ -258,7 +258,9 @@ p:empty:not(:focus)::before {
         .apps-body .bot-item .footer-buttons button {
             height: 3rem;
             width: 3rem;
-            border: none; }
+            background-color: transparent;
+            border: none;
+            border-radius: 50%; }
 
         .apps-body .bot-item .footer-buttons button:focus {
             box-shadow: none; 
@@ -266,8 +268,7 @@ p:empty:not(:focus)::before {
 }
 
         .apps-body .bot-item .footer-buttons button:hover {
-            background-color: #e0dede; 
-            border-radius: 50%;
+            background-color: #e0dede;
 }
 
     .apps-body .bot-item .fa-facebook-messenger {
