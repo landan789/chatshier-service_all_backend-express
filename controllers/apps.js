@@ -334,8 +334,7 @@ module.exports = (function() {
                 secret: undefined === req.body.secret ? null : req.body.secret,
                 token1: undefined === req.body.token1 ? null : req.body.token1,
                 token2: undefined === req.body.token2 ? null : req.body.token2,
-                type: undefined === req.body.type ? null : req.body.type,
-                hasUserName: undefined === req.body.hasUserName ? true : req.body.hasUserName
+                type: undefined === req.body.type ? null : req.body.type
             };
             // app.group_id 無法經由 HTTP PUT 更改
 
