@@ -46,6 +46,10 @@ module.exports = (function() {
                     $project: {
                         categories: true
                     }
+                }, {
+                    $sort: {
+                        'receptionists.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 

@@ -48,6 +48,10 @@ module.exports = (function() {
                     $project: {
                         receptionists: true
                     }
+                }, {
+                    $sort: {
+                        'receptionists.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 
@@ -94,22 +98,29 @@ module.exports = (function() {
                 'isDeleted': false
             };
 
-            return this.AppsModel.findOne(query).then((result) => {
-                /** @type {Chatshier.Models.App} */
-                let app = result;
-                let summary = '[' + _receptionist.name + '] ' + app.name + ' - ' + receptionistId.toHexString();
-                let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
-                return gcalendarHlp.insertCalendar(summary, description);
-            }).then((gcalendar) => {
-                _receptionist.gcalendarId = gcalendar.id;
+            // return this.AppsModel.findOne(query).then((result) => {
+            //     /** @type {Chatshier.Models.App} */
+            //     let app = result;
+            //     let summary = '[' + _receptionist.name + '] ' + app.name + ' - ' + receptionistId.toHexString();
+            //     let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
+            //     return gcalendarHlp.insertCalendar(summary, description);
+            // }).then((gcalendar) => {
+            //     _receptionist.gcalendarId = gcalendar.id;
 
-                let updateOper = {
-                    $push: {
-                        receptionists: _receptionist
-                    }
-                };
-                return this.AppsModel.update(query, updateOper);
-            }).then(() => {
+            //     let updateOper = {
+            //         $push: {
+            //             receptionists: _receptionist
+            //         }
+            //     };
+            //     return this.AppsModel.update(query, updateOper);
+
+            let updateOper = {
+                $push: {
+                    receptionists: _receptionist
+                }
+            };
+
+            return this.AppsModel.update(query, updateOper).then(() => {
                 return this.find(appId, receptionistId.toHexString());
             }).then((appsReceptionists) => {
                 ('function' === typeof callback) && callback(appsReceptionists);

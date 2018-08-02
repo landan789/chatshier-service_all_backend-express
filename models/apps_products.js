@@ -46,6 +46,10 @@ module.exports = (function() {
                     $project: {
                         products: true
                     }
+                }, {
+                    $sort: {
+                        'products.createdTime': -1 // 最晚建立的在最前頭
+                    }
                 }
             ];
 
@@ -94,6 +98,10 @@ module.exports = (function() {
                 }, {
                     $project: {
                         products: true
+                    }
+                }, {
+                    $sort: {
+                        'products.createdTime': -1 // 最晚建立的在最前頭
                     }
                 }
             ];
