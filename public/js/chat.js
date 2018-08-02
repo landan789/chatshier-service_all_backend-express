@@ -1192,6 +1192,11 @@
                 let chatroomB = chatrooms[b];
                 let messageIdsA = Object.keys(chatroomA.messages);
                 let messageIdsB = Object.keys(chatroomB.messages);
+
+                if (0 === messageIdsA.length || 0 === messageIdsB.length) {
+                    return 0;
+                }
+
                 let lastMessageDateA = new Date(chatroomA.messages[messageIdsA[messageIdsA.length - 1]].time);
                 let lastMessageDateB = new Date(chatroomB.messages[messageIdsB[messageIdsB.length - 1]].time);
 
