@@ -49,8 +49,21 @@ module.exports = (function() {
                 };
             }
 
-            let getFilterCond = () => {
-                let prepareCond = (messagerId, messagerType) => {
+            let getFilterCond = (messagerIds, messagerType) => {
+                if (!(messagerIds instanceof Array) && messagerIds) {
+                    messagerIds = [messagerIds];
+                }
+
+                if (messagerIds) {
+                    return {
+                        $or: messagerIds.map((messagerId) => prepareCond(messagerId))
+                    };
+                } else if (messagerType) {
+                    return prepareCond(void 0, messagerType);
+                }
+                return prepareCond();
+
+                function prepareCond (messagerId, messagerType) {
                     /** @type {any} */
                     let cond = {
                         $and: [{
@@ -70,19 +83,7 @@ module.exports = (function() {
                         });
                     }
                     return cond;
-                };
-
-                if (messagerIds) {
-                    if (!(messagerIds instanceof Array)) {
-                        messagerIds = [messagerIds];
-                    }
-                    return {
-                        $or: messagerIds.map((messagerId) => prepareCond(messagerId))
-                    };
-                } else if (messagerType) {
-                    return prepareCond(void 0, messagerType);
                 }
-                return prepareCond();
             };
 
             let aggregations = [
@@ -103,7 +104,7 @@ module.exports = (function() {
                                 $filter: {
                                     input: '$chatrooms.messagers',
                                     as: 'messager',
-                                    cond: getFilterCond()
+                                    cond: getFilterCond(messagerIds, messagerType)
                                 }
                             }
                         }

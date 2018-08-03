@@ -22,8 +22,6 @@ module.exports = (function() {
 
     const ECPAY = 'ECPAY';
     const SPGATEWAY = 'SPGATEWAY';
-    const TEST = 'TEST';
-    const PRODUCTION = 'PRODUCTION';
 
     class PaymentController extends ControllerCore {
         constructor() {
@@ -78,12 +76,7 @@ module.exports = (function() {
                 let plainHtml = '';
                 switch (payment.type) {
                     case ECPAY:
-                        if (this._isECPayTestMode(payment, req.hostname) ) {
-
-                            ecpayHlp.mode = 'Test';
-                        }
-                        
-                        ecpayHlp.mode = 'Production';
+                        ecpayHlp.mode = this._isTestMode(payment, req.hostname) ? 'Test' : 'Production';
 
                         // 由於 ECPay 的 SDK 計算驗證碼的 HashKey 與 HashIV 儲存在程式當中，而不是作為參數傳入
                         // 因此必須更換 ECPay 的參數數值
@@ -113,10 +106,7 @@ module.exports = (function() {
                         plainHtml = ecpayHlp.paymentClient.aio_check_out_all(params, {});
                         break;
                     case SPGATEWAY:
-                        if (this._isSpgatewayTestMode(payment, req.hostname) ) {
-                            spgatewayHlp.mode = 'TEST';
-                        } 
-                        spgatewayHlp.mode = 'PRODUCTION';
+                        spgatewayHlp.mode = this._isTestMode(payment, req.hostname) ? 'TEST' : 'PRODUCTION';
 
                         /** @type {Spgateway.Payment.TradeInformation} */
                         let tradeInfo = {
@@ -189,9 +179,8 @@ module.exports = (function() {
                 if (!order) {
                     return Promise.resolve(void 0);
                 }
-                let isECPayTestMode = this._isECPayTestMode(payment, req.hostname);
-                let isSpgatewayTestMode = this._isSpgatewayTestMode(payment, req.hostname);
-                return this._issueInvoice(payment, order, isECPayTestMode, isSpgatewayTestMode);
+                let isTestMode = this._isTestMode(payment, req.hostname);
+                return this._issueInvoice(payment, order, isTestMode);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -226,9 +215,8 @@ module.exports = (function() {
                 if (!order) {
                     return Promise.resolve(void 0);
                 }
-                let isECPayTestMode = this._isECPayTestMode(payment, req.hostname);
-                let isSpgatewayTestMode = this._isSpgatewayTestMode(payment, req.hostname);
-                return this._issueInvoice(payment, order, isECPayTestMode, isSpgatewayTestMode);
+                let isTestMode = this._isTestMode(payment, req.hostname);
+                return this._issueInvoice(payment, order, isTestMode);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
             });
@@ -246,7 +234,7 @@ module.exports = (function() {
          * @param {Chatshier.Models.Payment} payment
          * @param {Chatshier.Models.Order} order
          */
-        _issueInvoice(payment, order, isECPayTestMode, isSpgatewayTestMode) {
+        _issueInvoice(payment, order, isTestMode) {
             let orderId = order._id;
             let appId = order.app_id;
             let consumerUid = order.consumerUid;
@@ -269,11 +257,7 @@ module.exports = (function() {
                 // 因此在智付通支付完成後，必須再使用 Pay2Go 的電子發票 API 來開立發票
                 return Promise.resolve().then(() => {
                     if (ECPAY === payment.type) {
-                        if (isECPayTestMode) {
-                            ecpayHlp.mode = 'Test';
-                        } 
-                        
-                        ecpayHlp.mode = 'Production';
+                        ecpayHlp.mode = isTestMode ? 'Test' : 'Production';
 
                         return ecpayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then((invoice) => {
                             let putOrder = {
@@ -284,11 +268,7 @@ module.exports = (function() {
                             return putOrder;
                         });
                     } else if (SPGATEWAY === payment.type) {
-                        if (isSpgatewayTestMode) {
-                            spgatewayHlp.mode = 'TEST';
-                        } 
-                            
-                        spgatewayHlp.mode = 'PRODUCTION';
+                        spgatewayHlp.mode = isTestMode ? 'TEST' : 'PRODUCTION';
 
                         return spgatewayHlp.issueInvoice(order, payment.invoiceMerchantId, payment.invoiceHashKey, payment.invoiceHashIV).then((invoice) => {
                             let putOrder = {
@@ -479,29 +459,35 @@ module.exports = (function() {
             });
         }
 
-        _isECPayTestMode(payment, hostname){
-            if ((payment.invoiceMerchantId === CHATSHIER_CFG.ECPAY_INVOICE.MERCHANT_ID &&
-                payment.invoiceHashKey === CHATSHIER_CFG.ECPAY_INVOICE.HASHKEY &&
-                payment.invoiceHashIV === CHATSHIER_CFG.ECPAY_INVOICE.HASHIV) || 
-                hostname.toLowerCase().includes('.dev.') || 
-                hostname.toLowerCase().includes('.rel.')) {
-               return true;
-           }
-
-           return false;
-        }
-
-        _isSpgatewayTestMode(payment, hostname){
-            if ((payment.invoiceMerchantId === CHATSHIER_CFG.SPGATEWAY_INVOICE.MERCHANT_ID &&
-                payment.invoiceHashKey === CHATSHIER_CFG.SPGATEWAY_INVOICE.HASHKEY &&
-                payment.invoiceHashIV === CHATSHIER_CFG.SPGATEWAY_INVOICE.HASHIV) || 
-                hostname.toLowerCase().includes('.dev.') || 
-                hostname.toLowerCase().includes('.rel.')) {
-
-                return true;
+        /**
+         * @param {Chatshier.Models.Payment} payment
+         * @param {string} hostname
+         */
+        _isTestMode(payment, hostname) {
+            switch (payment.type) {
+                case 'ECPAY':
+                    return (
+                        (
+                            payment.invoiceMerchantId === CHATSHIER_CFG.ECPAY_INVOICE.MERCHANT_ID &&
+                            payment.invoiceHashKey === CHATSHIER_CFG.ECPAY_INVOICE.HASHKEY &&
+                            payment.invoiceHashIV === CHATSHIER_CFG.ECPAY_INVOICE.HASHIV
+                        ) ||
+                        hostname.toLowerCase().includes('.dev.') ||
+                        hostname.toLowerCase().includes('.rel.')
+                    );
+                case 'SPGATEWAY':
+                    return (
+                        (
+                            payment.invoiceMerchantId === CHATSHIER_CFG.SPGATEWAY_INVOICE.MERCHANT_ID &&
+                            payment.invoiceHashKey === CHATSHIER_CFG.SPGATEWAY_INVOICE.HASHKEY &&
+                            payment.invoiceHashIV === CHATSHIER_CFG.SPGATEWAY_INVOICE.HASHIV
+                        ) ||
+                        hostname.toLowerCase().includes('.dev.') ||
+                        hostname.toLowerCase().includes('.rel.')
+                    );
+                default:
+                    return false;
             }
-
-            return false;
         }
     }
 
