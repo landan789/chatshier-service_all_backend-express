@@ -1,6 +1,9 @@
 
 module.exports = (function() {
-    let ModelCore = require('../cores/model');
+    const ModelCore = require('../cores/model');
+    const CHATSHIER_CFG = require('../config/chatshier');
+    const gcalendarHlp = require('../helpers/gcalendar');
+
     const APPS = 'apps';
     const USERS = 'users';
     const GROUPS = 'GROUPS';
@@ -28,7 +31,8 @@ module.exports = (function() {
                 token1: true,
                 token2: true,
                 type: true,
-                webhook_id: true
+                webhook_id: true,
+                gcalendarId: true
             };
         }
 
@@ -83,7 +87,7 @@ module.exports = (function() {
             let groupId = postApp.group_id;
 
             /** @type {Chatshier.Models.App} */
-            let _apps = {
+            let _app = {
                 _id: appId,
                 id1: postApp.id1 || '',
                 id2: postApp.id2 || '',
@@ -94,13 +98,20 @@ module.exports = (function() {
                 type: postApp.type || '',
                 group_id: postApp.group_id,
                 webhook_id: CHATSHIER === postApp.type ? '' : webhookId,
+                gcalendarId: postApp.gcalendarId || '',
                 isDeleted: false,
                 updatedTime: Date.now(),
                 createdTime: Date.now()
             };
-            let newApp = new this.AppsModel(_apps);
 
-            return newApp.save().then((__apps) => {
+            let summary = '[' + _app.name + '] - ' + appId.toHexString();
+            let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
+
+            return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
+                _app.gcalendarId = gcalendar.id;
+                let newApp = new this.AppsModel(_app);
+                return newApp.save();
+            }).then((__apps) => {
                 let query = {
                     '_id': groupId
                 };
@@ -146,9 +157,10 @@ module.exports = (function() {
                 '_id': this.Types.ObjectId(appId)
             };
 
-            let doc = {
-                $set: putApp
-            };
+            let doc = { $set: {} };
+            for (let prop in putApp) {
+                doc.$set[prop] = putApp[prop];
+            }
 
             return this.AppsModel.update(query, doc).then((result) => {
                 if (!result.ok) {

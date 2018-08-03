@@ -182,9 +182,9 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
+        'type': {type: String, default: 'NORMAL'},
         'parent_id': {type: String, default: ''},
         'name': {type: String, default: ''},
-        'description': {type: String, default: ''},
         'product_ids': {type: [{type: String}], default: []}
     });
 
@@ -192,12 +192,12 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
+        'type': {type: String, default: 'NORMAL'},
         'name': {type: String, default: ''},
         'description': {type: String, default: ''},
         'price': {type: Number, default: 0},
         'quantity': {type: Number, default: 0},
         'src': {type: String, default: ''},
-        'canAppoint': {type: Boolean, default: false},
         'isOnShelves': {type: Boolean, default: false},
         'receptionist_ids': {type: [{type: String}], default: []}
     });
@@ -208,7 +208,7 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()},
         'name': {type: String, default: ''},
         'photo': {type: String, default: ''},
-        'gmail': {type: String, default: ''},
+        'email': {type: String, default: ''},
         'phone': {type: String, default: ''},
         'timezoneOffset': {type: Number, default: 0},
         'maxNumber': {type: Number, default: 1},
@@ -231,7 +231,9 @@ module.exports = (function() {
         'endedTime': {type: Date, default: Date.now()},
         'summary': {type: String, default: ''},
         'description': {type: String, default: ''},
-        'eventId': {type: String, default: ''} // Google calendar event
+        'eventId': {type: String, default: ''}, // Google calendar event,
+        'eventChannelId': {type: String, default: ''},
+        'isAccepted': {type: Boolean, default: false}
     });
 
     const FieldsSchema = new Schema({
@@ -286,7 +288,7 @@ module.exports = (function() {
         'token2': {type: String, default: ''},
         'type': {type: String, default: ''},
         'webhook_id': {type: String, default: ''},
-        'googleCalendarId': {type: String, default: ''},
+        'gcalendarId': {type: String, default: ''},
 
         'payments': [PaymentsSchema],
         'autoreplies': [AutorepliesSchema],

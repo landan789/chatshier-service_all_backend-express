@@ -11,9 +11,9 @@ declare module Chatshier {
         }
 
         interface Category extends BaseProperty {
+            type: 'NORMAL' | 'APPOINTMENT',
             parent_id: string,
             name: string,
-            description: string,
             product_ids: string[]
         }
     }

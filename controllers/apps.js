@@ -31,7 +31,6 @@ module.exports = (function() {
         }
 
         getAll(req, res, next) {
-            
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     let userId = req.params.userid;
@@ -154,7 +153,7 @@ module.exports = (function() {
                 postApp.token1 = postApp.token1 || fbSvc.appAccessToken;
             }
 
-            Promise.resolve().then(() => {
+            return Promise.resolve().then(() => {
                 if (!userId) {
                     return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
                 }

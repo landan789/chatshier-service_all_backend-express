@@ -5,6 +5,9 @@ module.exports = (function() {
     const DEFAULT_ROLE = 'reader';
     const DEFAULT_SCOPE_TYPE = 'user';
 
+    const NOT_FOUND = 404;
+    const GONE = 410;
+
     class GoogleCalendarHelper {
         constructor() {
             const oauth2Client = new OAuth2(CHATSHIER_CFG.GAPI.CLIENT_ID, CHATSHIER_CFG.GAPI.CLIENT_SECRET);
@@ -127,24 +130,14 @@ module.exports = (function() {
                     calendarId: calendarId
                 }, (err, res) => {
                     if (err) {
+                        if (NOT_FOUND === err['code'] ||
+                            GONE === err['code']) {
+                            return resolve('');
+                        }
                         return reject(err);
                     }
                     return resolve(res.data);
                 });
-            });
-        }
-
-        /**
-         * @returns {Promise<string[]>}
-         */
-        deleteAllCalendars() {
-            return this.getCalendarList().then((gcalendarList) => {
-                return Promise.all(gcalendarList.items.map((gcalendar) => {
-                    if (CHATSHIER_CFG.GAPI.USER === gcalendar.id) {
-                        return Promise.resolve('');
-                    }
-                    return this.deleteCalendar(gcalendar.id);
-                }));
             });
         }
 
@@ -255,6 +248,10 @@ module.exports = (function() {
                         ruleId: scopeType + ':' + email
                     }, (err, res) => {
                         if (err) {
+                            if (NOT_FOUND === err['code'] ||
+                                GONE === err['code']) {
+                                return resolve('');
+                            }
                             return reject(err);
                         }
                         return resolve(res.data);
@@ -264,18 +261,23 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string} channelId
+         * @param {string} targetId
          * @param {string} resourceId
+         * @returns {Promise<string>}
          */
-        stopChannel(channelId, resourceId) {
+        stopChannel(targetId, resourceId) {
             return new Promise((resolve, reject) => {
                 this.client.channels.stop({
                     requestBody: {
-                        id: channelId,
-                        resourceId: resourceId
+                        id: targetId,
+                        resourceId: resourceId,
+                        token: CHATSHIER_CFG.JWT.SECRET
                     }
                 }, (err, res) => {
                     if (err) {
+                        if (404 === err['code']) {
+                            return resolve('');
+                        }
                         return reject(err);
                     }
                     return resolve(res.data);
@@ -306,13 +308,43 @@ module.exports = (function() {
 
         /**
          * @param {string} calendarId
-         * @param {string} summary
-         * @param {string} description
-         * @param {Date} startDatetime
-         * @param {Date} endDatetime
+         * @param {string} eventId
          * @returns {Promise<Chatshier.GCalendar.EventResource>}
          */
-        insertEvent(calendarId, summary, description, startDatetime, endDatetime) {
+        getEvent(calendarId, eventId) {
+            return new Promise((resolve, reject) => {
+                if (!calendarId) {
+                    return reject(new Error('calendarId is empty'));
+                }
+
+                if (!eventId) {
+                    return reject(new Error('eventId is empty'));
+                }
+
+                this.client.events.get({
+                    calendarId: calendarId,
+                    eventId: eventId
+                }, (err, res) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(res.data);
+                });
+            });
+        }
+
+        /**
+         * @typedef EventUpdateParams
+         * @property {string} summary
+         * @property {string} [description]
+         * @property {Date} startDatetime
+         * @property {Date} endDatetime
+         * @property {any[]} attendees
+         * @param {string} calendarId
+         * @param {EventUpdateParams} params
+         * @returns {Promise<Chatshier.GCalendar.EventResource>}
+         */
+        insertEvent(calendarId, params) {
             return new Promise((resolve, reject) => {
                 if (!calendarId) {
                     return reject(new Error('calendarId is empty'));
@@ -320,29 +352,55 @@ module.exports = (function() {
 
                 this.client.events.insert({
                     calendarId: calendarId,
+                    sendNotifications: true,
                     requestBody: {
-                        summary: summary,
-                        description: description,
+                        summary: params.summary || '',
+                        description: params.description || '',
                         start: {
-                            dateTime: startDatetime.toISOString(),
+                            dateTime: params.startDatetime.toISOString(),
                             timeZone: 'UTC'
                         },
                         end: {
-                            dateTime: endDatetime.toISOString(),
+                            dateTime: params.endDatetime.toISOString(),
                             timeZone: 'UTC'
                         },
-                        reminders: {
-                            useDefault: false,
-                            // 預設:
-                            // 1 週前 email 提醒 (由 Google 行事曆系統發出)
-                            // 1 天前通知提醒 (只有裝有 Google 行事曆的行動裝置或在 Google 行事曆的網頁上才收的到通知)
-                            overrides: [{
-                                method: 'email',
-                                minutes: 10080
-                            }, {
-                                method: 'popup',
-                                minutes: 1440
-                            }]
+                        attendees: params.attendees.map((attendee) => {
+                            return {
+                                displayName: attendee.name,
+                                email: attendee.email,
+                                optional: true // 可不參加
+                            };
+                        }),
+                        guestsCanModify: false,
+                        guestsCanInviteOthers: false,
+                        guestsCanSeeOtherGuests: true
+                    }
+                }, (err, res) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(res.data);
+                });
+            });
+        }
+
+        /**
+         * @param {string} calendarId
+         * @param {string} eventId
+         * @param {string} webhookUrl
+         * @returns {Promise<Chatshier.GCalendar.WebhookChannel>}
+         */
+        watchEvent(calendarId, eventId, webhookUrl) {
+            return new Promise((resolve, reject) => {
+                this.client.events.watch({
+                    calendarId: calendarId,
+                    requestBody: {
+                        id: eventId,
+                        type: 'web_hook',
+                        token: CHATSHIER_CFG.JWT.SECRET,
+                        address: webhookUrl,
+                        params: {
+                            ttl: 63072000 // webhook 時效性 2 年
                         }
                     }
                 }, (err, res) => {
@@ -357,23 +415,27 @@ module.exports = (function() {
         /**
          * @param {string} calendarId
          * @param {string} eventId
-         * @param {string} serverAddr
+         * @returns {Promise<string>}
          */
-        watchEvent(calendarId, eventId, serverAddr) {
+        deleteEvent(calendarId, eventId) {
             return new Promise((resolve, reject) => {
-                this.client.events.watch({
+                if (!calendarId) {
+                    return reject(new Error('calendarId is empty'));
+                }
+
+                if (!eventId) {
+                    return reject(new Error('eventId is empty'));
+                }
+
+                this.client.events.delete({
                     calendarId: calendarId,
-                    requestBody: {
-                        id: eventId,
-                        type: 'web_hook',
-                        token: CHATSHIER_CFG.JWT.SECRET,
-                        address: serverAddr + '/google-webhook/gcalendar/event/' + eventId,
-                        params: {
-                            ttl: 31536000
-                        }
-                    }
+                    eventId: eventId
                 }, (err, res) => {
                     if (err) {
+                        if (NOT_FOUND === err['code'] ||
+                            GONE === err['code']) {
+                            return resolve('');
+                        }
                         return reject(err);
                     }
                     return resolve(res.data);

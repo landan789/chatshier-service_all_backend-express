@@ -1,5 +1,14 @@
 declare module Chatshier {
     namespace GCalendar {
+        interface WebhookChannel {
+            kind: 'api#channel',
+            id: string,
+            resourceId: string,
+            resourceUri: string,
+            token?: string,
+            long?: number
+        }
+
         interface AccessControllList {
             kind: 'calendar#acl',
             etag: string,

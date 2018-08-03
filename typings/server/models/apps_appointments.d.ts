@@ -18,7 +18,9 @@ declare module Chatshier {
             endedTime: Date | number,
             summary: string,
             description: string,
-            eventId: string
+            eventId: string,
+            eventChannelId: string,
+            isAccepted: boolean
         }
     }
 }

@@ -5,7 +5,7 @@
     var cookieManager = window.chatshierCookie.manager;
     cookieManager.deleteCookie(CHSR_COOKIE.USER_NAME);
     cookieManager.deleteCookie(CHSR_COOKIE.USER_EMAIL);
-    window.localStorage.removeItem('jwt');
+    window.localStorage.setItem('jwt', '');
 
     return window.googleClientHelper.loadAPI().then(function() {
         return window.googleClientHelper.init(window.CHATSHIER.GOOGLE_CALENDAR);

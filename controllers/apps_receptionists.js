@@ -41,7 +41,7 @@ module.exports = (function() {
             let postReceptionist = {
                 name: ('string' === typeof req.body.name) ? req.body.name : '',
                 photo: ('string' === typeof req.body.photo) ? req.body.photo : '',
-                gmail: ('string' === typeof req.body.gmail) ? req.body.gmail : '',
+                email: ('string' === typeof req.body.email) ? req.body.email : '',
                 phone: ('string' === typeof req.body.phone) ? req.body.phone : '',
                 timezoneOffset: ('number' === typeof req.body.timezoneOffset) ? req.body.timezoneOffset : 0,
                 maxNumber: ('number' === typeof req.body.maxNumber) ? req.body.maxNumber : 0,
@@ -74,7 +74,7 @@ module.exports = (function() {
             let putReceptionist = {};
             ('string' === typeof req.body.name) && (putReceptionist.name = req.body.name);
             ('string' === typeof req.body.photo) && (putReceptionist.photo = req.body.photo);
-            ('string' === typeof req.body.gmail) && (putReceptionist.gmail = req.body.gmail);
+            ('string' === typeof req.body.email) && (putReceptionist.email = req.body.email);
             ('string' === typeof req.body.phone) && (putReceptionist.phone = req.body.phone);
             ('number' === typeof req.body.timezoneOffset) && (putReceptionist.timezoneOffset = req.body.timezoneOffset);
             ('number' === typeof req.body.maxNumber) && (putReceptionist.maxNumber = req.body.maxNumber);
@@ -82,12 +82,16 @@ module.exports = (function() {
             (req.body.schedules instanceof Array) && (putReceptionist.schedules = req.body.schedules);
 
             return this.appsRequestVerify(req).then(() => {
-                return appsReceptionistsMdl.update(appId, receptionistId, putReceptionist);
-            }).then((appsReceptionists) => {
-                if (!(appsReceptionists && appsReceptionists[appId])) {
-                    return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_UPDATE);
+                if (0 === Object.keys(putReceptionist).length) {
+                    return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
                 }
-                return Promise.resolve(appsReceptionists);
+
+                return appsReceptionistsMdl.update(appId, receptionistId, putReceptionist).then((appsReceptionists) => {
+                    if (!(appsReceptionists && appsReceptionists[appId])) {
+                        return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_UPDATE);
+                    }
+                    return Promise.resolve(appsReceptionists);
+                });
             }).then((appsReceptionists) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,

@@ -1,6 +1,5 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
-    const CHATSHIER_CFG = require('../config/chatshier');
     const gcalendarHlp = require('../helpers/gcalendar');
     const APPS = 'apps';
 

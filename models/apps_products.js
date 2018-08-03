@@ -11,21 +11,22 @@ module.exports = (function() {
         /**
          * @param {string | string[]} appIds
          * @param {string | string[]} [productIds]
+         * @param {any} [query]
          * @param {(appsProducts: Chatshier.Models.AppsProducts | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsProducts | null>}
          */
-        find(appIds, productIds, callback) {
+        find(appIds, productIds, query, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            let query = {
+            query = Object.assign({
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false,
                 'products.isDeleted': false
-            };
+            }, query || {});
 
             if (productIds && !(productIds instanceof Array)) {
                 productIds = [productIds];

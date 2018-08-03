@@ -33,6 +33,7 @@
     "RICHMENU_HAS_TWO_OR_MORE_IDS": { "MSG": "richmenu has 2 or more ids", "CODE": "1.26" },
     "PAYMENTID_WAS_EMPTY": {"MSG": "paymentid was empty", "CODE": "1.27"},
     "WEBHOOKID_WAS_EMPTY": { "MSG": "webhookid was empty", "CODE": "1.28" },
+    "APPOINTMENTID_WAS_EMPTY": { "MSG": "appointmentid was empty", "CODE": "1.29" },
 
     "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
     "PASSWORD_WAS_INCORRECT": { "MSG": "password was incorrect", "CODE": "2.2"},
@@ -201,5 +202,8 @@
     "APP_PRODUCT_FAILED_TO_FIND": { "MSG": "app product failed to find", "CODE": "27.1" },
     "APP_PRODUCT_FAILED_TO_INSERT": { "MSG": "app product failed to insert", "CODE": "27.2" },
     "APP_PRODUCT_FAILED_TO_UPDATE": { "MSG": "app product failed to update", "CODE": "27.3" },
-    "APP_PRODUCT_FAILED_TO_REMOVE": { "MSG": "app product failed to remove", "CODE": "27.4" }
+    "APP_PRODUCT_FAILED_TO_REMOVE": { "MSG": "app product failed to remove", "CODE": "27.4" },
+
+    "GOOGLE_CALENDAR_FAILED_TO_INSERT": { "MSG": "google calendar failed to insert", "CODE": "28.2" },
+    "GOOGLE_CALENDAR_FAILED_TO_UPDATE": { "MSG": "google calendar failed to remove", "CODE": "28.3" }
 }

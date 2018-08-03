@@ -1,8 +1,10 @@
 module.exports = (function() {
     /** @type {any} */
     const API_ERROR = require('../config/api_error.json');
+    const CHATSHIER_CFG = require('../config/chatshier');
     const GenericTemplateBuilder = require('facebook-bot-messenger').GenericTemplateBuilder;
 
+    const appsMdl = require('../models/apps');
     const appsAppointmentsMdl = require('../models/apps_appointments');
     const appsAutorepliesMdl = require('../models/apps_autoreplies');
     const appsCategoriesMdl = require('../models/apps_categories');
@@ -379,7 +381,7 @@ module.exports = (function() {
                     });
                     promises.push(confirmPromise);
                 } else if (POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES === payload.action) {
-                    let categoryPromise = appsCategoriesMdl.find(appId).then((appsCategories) => {
+                    let categoryPromise = appsCategoriesMdl.find(appId, void 0, { 'categories.type': 'APPOINTMENT' }).then((appsCategories) => {
                         if (!(appsCategories && appsCategories[appId])) {
                             let noCategoriesMessage = {
                                 type: 'text',
@@ -462,7 +464,7 @@ module.exports = (function() {
                     };
 
                     let categoryId = payload.categoryId || '';
-                    let productPromise = appsCategoriesMdl.find(appId, categoryId).then((appsCategories) => {
+                    let productPromise = appsCategoriesMdl.find(appId, categoryId, { 'categories.type': 'APPOINTMENT' }).then((appsCategories) => {
                         if (!(appsCategories && appsCategories[appId])) {
                             let noCategoriesMessage = {
                                 type: 'text',
@@ -479,7 +481,7 @@ module.exports = (function() {
                             return Promise.resolve();
                         }
 
-                        return appsProductsMdl.find(appId, productIds).then((appsProducts) => {
+                        return appsProductsMdl.find(appId, productIds, { 'products.type': 'APPOINTMENT' }).then((appsProducts) => {
                             if (!(appsProducts && appsProducts[appId])) {
                                 repliedMessages.push(noProductsMessage);
                                 return Promise.resolve();
@@ -549,6 +551,14 @@ module.exports = (function() {
                                                 action.label = receptionist.name;
                                                 action.data = JSON.stringify(payloadJson);
                                                 return action;
+                                            }).sort((a, b) => {
+                                                if ('none' === a.data && 'none' !== b.data) {
+                                                    return 1;
+                                                } else if ('none' !== a.data && 'none' === b.data) {
+                                                    return -1;
+                                                } else {
+                                                    return 0;
+                                                }
                                             })
                                         };
                                         return column;
@@ -821,8 +831,8 @@ module.exports = (function() {
                     }
 
                     let confirmPromise = Promise.all([
-                        appsCategoriesMdl.find(appId, categoryId),
-                        appsProductsMdl.find(appId, productId),
+                        appsCategoriesMdl.find(appId, categoryId, { 'categories.type': 'APPOINTMENT' }),
+                        appsProductsMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
                         appsReceptionistsMdl.find(appId, receptionistId)
                     ]).then(([ appsCategories, appsProducts, appsReceptionists ]) => {
                         if (!(appsCategories && appsCategories[appId]) ||
@@ -919,12 +929,14 @@ module.exports = (function() {
                         }
 
                         return Promise.all([
-                            appsProductsMdl.find(appId, productId),
+                            appsMdl.find(appId),
+                            appsProductsMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
                             appsReceptionistsMdl.find(appId, receptionistId),
                             appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false),
                             consumersMdl.find(platformUid)
-                        ]).then(([ appsProducts, appsReceptionists, appsChatroomsMessagers, consumers ]) => {
-                            if (!(appsProducts && appsProducts[appId]) ||
+                        ]).then(([ apps, appsProducts, appsReceptionists, appsChatroomsMessagers, consumers ]) => {
+                            if (!(apps && apps[appId]) ||
+                                !(appsProducts && appsProducts[appId]) ||
                                 !(appsReceptionists && appsReceptionists[appId]) ||
                                 !(appsChatroomsMessagers && appsChatroomsMessagers[appId]) ||
                                 !(consumers && consumers[platformUid])) {
@@ -932,6 +944,7 @@ module.exports = (function() {
                                 return;
                             }
 
+                            let app = apps[appId];
                             let product = appsProducts[appId].products[productId];
                             let receptionist = appsReceptionists[appId].receptionists[receptionistId];
                             let messager = Object.values(appsChatroomsMessagers[appId].chatrooms)[0].messagers[platformUid];
@@ -946,8 +959,9 @@ module.exports = (function() {
                                 '年齡: ' + messager.age + '\n'
                             );
 
-                            let startedDate = new Date(appointDate + ' ' + startedTime);
-                            let endedDate = new Date(appointDate + ' ' + endedTime);
+                            let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                            let startedDate = new Date(new Date(appointDate + ' ' + startedTime).getTime() + timezoneOffset);
+                            let endedDate = new Date(new Date(appointDate + ' ' + endedTime).getTime() + timezoneOffset);
                             let _appointment = {
                                 _id: appointmentId,
                                 product_id: productId,
@@ -957,37 +971,74 @@ module.exports = (function() {
                                 endedTime: endedDate.getTime()
                             };
 
-                            return gcalendarHlp.insertEvent(receptionist.gcalendarId, summary, description, startedDate, endedDate).then((gcalendarEvent) => {
-                                _appointment.eventId = gcalendarEvent.id;
-                                _appointment.summary = gcalendarEvent.summary;
-                                _appointment.description = gcalendarEvent.description;
+                            return Promise.resolve().then(() => {
+                                let gcalendarId = app.gcalendarId;
+                                if (!gcalendarId) {
+                                    let summary = '[' + app.name + '] - ' + appId;
+                                    let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
 
-                                return appsAppointmentsMdl.insert(appId, _appointment).then((appsAppointments) => {
-                                    if (!(appsAppointments && appsAppointments[appId])) {
-                                        let failedMessage = {
+                                    return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
+                                        gcalendarId = gcalendar.id;
+                                        let _app = { gcalendarId: gcalendarId };
+                                        return appsMdl.update(appId, _app);
+                                    }).then(() => {
+                                        return Promise.resolve(gcalendarId);
+                                    });
+                                }
+                                return Promise.resolve(gcalendarId);
+                            }).then((gcalendarId) => {
+                                let attendees = [{
+                                    name: receptionist.name,
+                                    email: receptionist.email
+                                }];
+
+                                messager.email && attendees.push({
+                                    name: consumer.name,
+                                    email: messager.email
+                                });
+
+                                return gcalendarHlp.insertEvent(gcalendarId, {
+                                    summary: summary,
+                                    description: description,
+                                    startDatetime: startedDate,
+                                    endDatetime: endedDate,
+                                    attendees: attendees
+                                }).then((gcalendarEvent) => {
+                                    _appointment.eventId = gcalendarEvent.id;
+                                    _appointment.summary = gcalendarEvent.summary;
+                                    _appointment.description = gcalendarEvent.description;
+
+                                    let webhookUrl = webhookInfo.serverAddress + '/webhook-google/gcalendar/events/apps/' + appId;
+                                    return gcalendarHlp.watchEvent(gcalendarId, _appointment.eventId, webhookUrl).then((channel) => {
+                                        _appointment.eventChannelId = channel.resourceId;
+                                        return appsAppointmentsMdl.insert(appId, _appointment);
+                                    }).then((appsAppointments) => {
+                                        if (!(appsAppointments && appsAppointments[appId])) {
+                                            let failedMessage = {
+                                                type: 'text',
+                                                text: '很抱歉！此預約建立失敗，請聯絡客服或重新操作'
+                                            };
+                                            repliedMessages.push(failedMessage);
+                                            return;
+                                        }
+
+                                        let successMessage = {
                                             type: 'text',
-                                            text: '很抱歉！此預約建立失敗，請聯絡客服或重新操作'
+                                            text: (
+                                                (consumer.name ? consumer.name + ' ' : '') + '您好:\n' +
+                                                '\n' +
+                                                '已為你建立預約。' +
+                                                '\n' +
+                                                '時間為:\n' +
+                                                '\n' +
+                                                '【' + appointDate + '】\n' +
+                                                '【' + startedTime + ' ~ ' + endedTime + '】\n' +
+                                                '\n' +
+                                                '感謝您的預約！'
+                                            )
                                         };
-                                        repliedMessages.push(failedMessage);
-                                        return;
-                                    }
-
-                                    let successMessage = {
-                                        type: 'text',
-                                        text: (
-                                            (consumer.name ? consumer.name + ' ' : '') + '您好:\n' +
-                                            '\n' +
-                                            '已為你建立預約。' +
-                                            '\n' +
-                                            '時間為:\n' +
-                                            '\n' +
-                                            '【' + appointDate + '】\n' +
-                                            '【' + startedTime + ' ~ ' + endedTime + '】\n' +
-                                            '\n' +
-                                            '感謝您的預約！'
-                                        )
-                                    };
-                                    repliedMessages.push(successMessage);
+                                        repliedMessages.push(successMessage);
+                                    });
                                 });
                             });
                         });

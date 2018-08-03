@@ -9,26 +9,27 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string|string[]} appIds
-         * @param {string|string[]} [appointmentIds]
+         * @param {string | string[]} appIds
+         * @param {string | string[]} [appointmentIds]
+         * @param {any} [query]
          * @param {(appsAppointments: Chatshier.Models.AppsAppointments | null) => any} [callback]
          * @return {Promise<Chatshier.Models.AppsAppointments | null>}
          */
-        find(appIds, appointmentIds, callback) {
+        find(appIds, appointmentIds, query, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            let query = {
+            query = Object.assign({
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false,
                 'appointments.isDeleted': false
-            };
+            }, query || {});
 
             if (appointmentIds) {
-                if (!(appointmentIds instanceof Array)) appointmentIds = [appointmentIds];
+                !(appointmentIds instanceof Array) && (appointmentIds = [appointmentIds]);
                 query['appointments._id'] = {
                     $in: appointmentIds.map((appointmentId) => this.Types.ObjectId(appointmentId))
                 };

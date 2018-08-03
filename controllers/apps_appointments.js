@@ -6,6 +6,8 @@ module.exports = (function() {
     const API_SUCCESS = require('../config/api_success.json');
 
     const appsAppointmentsMdl = require('../models/apps_appointments');
+    const appsReceptionistsMdl = require('../models/apps_receptionists');
+    const gcalendarHlp = require('../helpers/gcalendar');
 
     class AppsAppointmentsController extends ControllerCore {
         constructor() {
@@ -99,7 +101,7 @@ module.exports = (function() {
             });
         }
 
-        deleteOne(req, res, next) {
+        deleteOne(req, res) {
             let appId = req.params.appid;
             let appointmentId = req.params.appointmentid;
 
@@ -113,11 +115,31 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                 }
 
-                if (!appointments[appointmentId]) {
+                let appointment = appointments[appointmentId];
+                if (!appointment) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APPOINTMENT);
                 }
 
-                return appsAppointmentsMdl.remove(appId, appointmentId).then((appsAppointments) => {
+                let eventId = appointment.eventId;
+                let resourceId = appointment.eventChannelId;
+                let receptionistId = appointment.receptionist_id;
+
+                return Promise.all([
+                    appsReceptionistsMdl.find(appId, receptionistId),
+                    eventId && resourceId && gcalendarHlp.stopChannel(eventId, resourceId)
+                ]).then(([ appsReceptionists ]) => {
+                    if (!appsReceptionists) {
+                        return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                    }
+
+                    let appReceptionists = appsReceptionists[appId] || { receptionists: {} };
+                    let receptionist = appReceptionists.receptionists[receptionistId];
+                    let gcalendarId = receptionist ? receptionist.gcalendarId : '';
+                    return Promise.all([
+                        appsAppointmentsMdl.remove(appId, appointmentId),
+                        gcalendarId && eventId && gcalendarHlp.deleteEvent(gcalendarId, eventId)
+                    ]);
+                }).then(([ appsAppointments ]) => {
                     if (!appsAppointments) {
                         return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_REMOVE);
                     }

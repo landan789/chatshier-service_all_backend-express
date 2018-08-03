@@ -44,10 +44,10 @@ module.exports = (function() {
                 price: ('number' === typeof req.body.price) ? req.body.price : 0,
                 quantity: ('number' === typeof req.body.quantity) ? req.body.quantity : 0,
                 src: ('string' === typeof req.body.src) ? req.body.src : '',
-                canAppoint: !!req.body.canAppoint,
                 isOnShelves: !!req.body.isOnShelves,
                 receptionist_ids: (req.body.receptionist_ids instanceof Array) ? req.body.receptionist_ids : []
             };
+            ('string' === typeof req.body.type) && (postProduct.type = req.body.type);
 
             return this.appsRequestVerify(req).then(() => {
                 if (!postProduct.name) {
@@ -75,6 +75,7 @@ module.exports = (function() {
             let productId = req.params.productid;
 
             let putProduct = {};
+            ('string' === typeof req.body.type) && (putProduct.type = req.body.type);
             ('string' === typeof req.body.name) && (putProduct.name = req.body.name);
             ('string' === typeof req.body.description) && (putProduct.description = req.body.description);
             ('number' === typeof req.body.price) && (putProduct.price = req.body.price);
@@ -107,11 +108,10 @@ module.exports = (function() {
 
         deleteOne(req, res) {
             let appId = req.params.appid;
-            let categoryId = req.params.categoryid;
             let productId = req.params.productid;
 
             return this.appsRequestVerify(req).then(() => {
-                return appsProductsMdl.remove(appId, categoryId, productId);
+                return appsProductsMdl.remove(appId, productId);
             }).then((appsProducts) => {
                 if (!(appsProducts && appsProducts[appId])) {
                     return Promise.reject(API_ERROR.APP_PRODUCTS_FAILED_TO_REMOVE);
