@@ -88,10 +88,6 @@ p:empty:not(:focus)::before {
 /*******************/
 /* #region 內部群組相關設置 */
 
-.cursor-pointer {
-    cursor: pointer;
-}
-
 .group-tab, .group-app {
     padding: 1rem 0;
     margin-bottom: 0;
@@ -292,7 +288,15 @@ p:empty:not(:focus)::before {
         -webkit-transform: scale(1.2);
         transform: scale(1.2);
     }
-    .apps-body .bot-item .fa-facebook {
+
+.bot-item-popover {
+    top: .5rem !important;
+    left: 2.5rem !important; }
+.bot-popover-backdrop {
+    left: 0;
+    top: 0;
+    background-color: transparent;
+    z-index: 1059; }
 
 @media (min-width: 576px) {
     .apps-body.card-columns {
@@ -303,4 +307,3 @@ p:empty:not(:focus)::before {
     .apps-body.card-columns {
         column-count: 3; }
 }
-
