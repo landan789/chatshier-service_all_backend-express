@@ -19,8 +19,7 @@ declare module Chatshier {
             summary: string,
             description: string,
             eventId: string,
-            eventChannelId: string,
-            isAccepted: boolean
+            eventChannelId: string
         }
     }
 }

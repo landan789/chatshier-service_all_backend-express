@@ -206,6 +206,7 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
+        'gcalendarId': {type: String, default: ''},
         'name': {type: String, default: ''},
         'photo': {type: String, default: ''},
         'email': {type: String, default: ''},
@@ -213,12 +214,18 @@ module.exports = (function() {
         'timezoneOffset': {type: Number, default: 0},
         'maxNumber': {type: Number, default: 1},
         'interval': {type: Number, default: 0}, // Unit time
+        'timesOfAppointment': {type: Number, default: 0},
         'schedules': [{
-            'startedTime': {type: Date, default: Date.now()},
-            'endedTime': {type: Date, default: Date.now()}
-        }],
-        'gcalendarId': {type: String, default: ''},
-        'appointment_ids': {type: [{type: String}], default: []}
+            'start': {
+                'date': {type: Date, default: Date.now()},
+                'dateTime': {type: Date, default: Date.now()}
+            },
+            'end': {
+                'date': {type: Date, default: Date.now()},
+                'dateTime': {type: Date, default: Date.now()}
+            },
+            'recurrence': {type: [{type: String}], default: []}
+        }]
     });
 
     const AppointmentsSchema = new Schema({
@@ -232,8 +239,7 @@ module.exports = (function() {
         'summary': {type: String, default: ''},
         'description': {type: String, default: ''},
         'eventId': {type: String, default: ''}, // Google calendar event,
-        'eventChannelId': {type: String, default: ''},
-        'isAccepted': {type: Boolean, default: false}
+        'eventChannelId': {type: String, default: ''}
     });
 
     const FieldsSchema = new Schema({
