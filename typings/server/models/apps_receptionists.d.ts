@@ -29,6 +29,7 @@ declare module Chatshier {
         }
 
         interface Schedule extends BaseProperty {
+            eventId: string,
             summary: string,
             description: string,
             start: {

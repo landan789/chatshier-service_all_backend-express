@@ -1,5 +1,6 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
+    const gcalendarHlp = require('../helpers/gcalendar');
     const APPS = 'apps';
 
     class AppsChatroomsMessagersModel extends ModelCore {
@@ -34,6 +35,7 @@ module.exports = (function() {
                         // 篩選需要的項目
                         receptionists: {
                             _id: '$receptionists._id',
+                            gcalendarId: '$receptionists.gcalendarId',
                             schedules: {
                                 $filter: {
                                     input: '$receptionists.schedules',
@@ -111,8 +113,26 @@ module.exports = (function() {
                 }]
             };
 
+            let _scheduleId = scheduleId.toHexString();
             return this.AppsModel.update(query, doc, options).then(() => {
-                return this.find(appId, receptionistId, scheduleId.toHexString());
+                return this.find(appId, receptionistId, _scheduleId);
+            }).then((appsReceptionistsSchedules) => {
+                if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
+                    return Promise.reject(new Error('NULL'));
+                }
+
+                let receptionist = appsReceptionistsSchedules[appId].receptionists[receptionistId];
+                let gcalendarId = receptionist.gcalendarId;
+                let _schedule = receptionist.schedules[_scheduleId];
+                return gcalendarHlp.insertEvent(gcalendarId, {
+                    summary: _schedule.summary,
+                    description: _schedule.description,
+                    startDatetime: new Date(_schedule.start.dateTime),
+                    endDatetime: new Date(_schedule.end.dateTime),
+                    recurrence: _schedule.recurrence
+                }).then((gcEvent) => {
+                    return this.update(appId, receptionistId, _scheduleId, { eventId: gcEvent.id });
+                });
             }).then((appsReceptionistsSchedules) => {
                 ('function' === typeof callback) && callback(appsReceptionistsSchedules);
                 return appsReceptionistsSchedules;
@@ -154,6 +174,24 @@ module.exports = (function() {
 
             return this.AppsModel.update(query, doc, options).then(() => {
                 return this.find(appId, receptionistId, scheduleId);
+            }).then((appsReceptionistsSchedules) => {
+                if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
+                    return Promise.reject(new Error('NULL'));
+                }
+
+                let receptionist = appsReceptionistsSchedules[appId].receptionists[receptionistId];
+                let gcalendarId = receptionist.gcalendarId;
+                let _schedule = receptionist.schedules[scheduleId];
+                let eventId = _schedule.eventId;
+                return gcalendarHlp.updateEvent(gcalendarId, eventId, {
+                    summary: _schedule.summary,
+                    description: _schedule.description,
+                    startDatetime: new Date(_schedule.start.dateTime),
+                    endDatetime: new Date(_schedule.end.dateTime),
+                    recurrence: _schedule.recurrence
+                }).then(() => {
+                    return appsReceptionistsSchedules;
+                });
             }).then((appsReceptionistsSchedules) => {
                 ('function' === typeof callback) && callback(appsReceptionistsSchedules);
                 return appsReceptionistsSchedules;
@@ -210,6 +248,7 @@ module.exports = (function() {
                             // 篩選需要的項目
                             receptionists: {
                                 _id: '$receptionists._id',
+                                gcalendarId: '$receptionists.gcalendarId',
                                 schedules: {
                                     $filter: {
                                         input: '$receptionists.schedules',
@@ -243,12 +282,28 @@ module.exports = (function() {
                             output[app._id].receptionists[app.receptionists._id] = { schedules: {} };
                         }
 
-                        let chatroom = output[app._id].receptionists[app.receptionists._id];
-                        Object.assign(chatroom.schedules, this.toObject(app.receptionists.schedules));
-                        chatroom.schedules = this.toObject(app.receptionists.schedules);
+                        Object.assign(output[app._id].receptionists, this.toObject(app.receptionists));
+                        let receptionists = output[app._id].receptionists;
+                        receptionists[app.receptionists._id].schedules = this.toObject(app.receptionists.schedules);
                         return output;
                     }, {});
                     return appsReceptionistsSchedules;
+                }).then((appsReceptionistsSchedules) => {
+                    if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
+                        return Promise.reject(new Error('NULL'));
+                    }
+
+                    let receptionist = appsReceptionistsSchedules[appId].receptionists[receptionistId];
+                    let schedule = receptionist.schedules[scheduleId];
+                    let eventId = schedule.eventId;
+                    if (!eventId) {
+                        return appsReceptionistsSchedules;
+                    }
+
+                    let gcalendarId = receptionist.gcalendarId;
+                    return gcalendarHlp.deleteEvent(gcalendarId, eventId).then(() => {
+                        return appsReceptionistsSchedules;
+                    });
                 });
             }).then((appsReceptionistsSchedules) => {
                 ('function' === typeof callback) && callback(appsReceptionistsSchedules);

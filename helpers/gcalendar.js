@@ -26,7 +26,7 @@ module.exports = (function() {
          */
         getCalendarList() {
             return new Promise((resolve, reject) => {
-                this.client.calendarList.list({
+                return this.client.calendarList.list({
                     // 只抓取是本身擁有的日曆
                     minAccessRole: 'owner'
                 }, (err, res) => {
@@ -49,7 +49,7 @@ module.exports = (function() {
                     return reject(new Error('summary is empty.'));
                 }
 
-                this.client.calendars.insert({
+                return this.client.calendars.insert({
                     requestBody: {
                         summary: summary,
                         description: description
@@ -83,7 +83,7 @@ module.exports = (function() {
                 ('string' === typeof timeZone) && (requestBody.timeZone = timeZone);
                 ('string' === typeof location) && (requestBody.location = location);
 
-                this.client.calendars.update({
+                return this.client.calendars.update({
                     calendarId: calendarId,
                     requestBody: requestBody
                 }, (err, res) => {
@@ -105,7 +105,7 @@ module.exports = (function() {
                     return reject(new Error('calendarId is empty.'));
                 }
 
-                this.client.calendars.clear({
+                return this.client.calendars.clear({
                     calendarId: calendarId
                 }, (err, res) => {
                     if (err) {
@@ -126,7 +126,7 @@ module.exports = (function() {
                     return reject(new Error('calendarId is empty.'));
                 }
 
-                this.client.calendars.delete({
+                return this.client.calendars.delete({
                     calendarId: calendarId
                 }, (err, res) => {
                     if (err) {
@@ -151,7 +151,7 @@ module.exports = (function() {
                     return reject(new Error('calendarId is empty.'));
                 }
 
-                this.client.acl.list({
+                return this.client.acl.list({
                     calendarId: calendarId
                 }, (err, res) => {
                     if (err) {
@@ -178,7 +178,7 @@ module.exports = (function() {
                     return reject(new Error('email is empty.'));
                 }
 
-                this.client.acl.get({
+                return this.client.acl.get({
                     calendarId: calendarId,
                     ruleId: scopeType + ':' + email
                 }, (err, res) => {
@@ -211,7 +211,7 @@ module.exports = (function() {
                 }
 
                 return new Promise((resolve, reject) => {
-                    this.client.acl.insert({
+                    return this.client.acl.insert({
                         calendarId: calendarId,
                         requestBody: {
                             role: role,
@@ -243,7 +243,7 @@ module.exports = (function() {
                 }
 
                 return new Promise((resolve, reject) => {
-                    this.client.acl.delete({
+                    return this.client.acl.delete({
                         calendarId: calendarId,
                         ruleId: scopeType + ':' + email
                     }, (err, res) => {
@@ -267,7 +267,7 @@ module.exports = (function() {
          */
         stopChannel(targetId, resourceId) {
             return new Promise((resolve, reject) => {
-                this.client.channels.stop({
+                return this.client.channels.stop({
                     requestBody: {
                         id: targetId,
                         resourceId: resourceId,
@@ -295,7 +295,7 @@ module.exports = (function() {
                     return reject(new Error('calendarId is empty'));
                 }
 
-                this.client.events.list({
+                return this.client.events.list({
                     calendarId: calendarId
                 }, (err, res) => {
                     if (err) {
@@ -321,7 +321,7 @@ module.exports = (function() {
                     return reject(new Error('eventId is empty'));
                 }
 
-                this.client.events.get({
+                return this.client.events.get({
                     calendarId: calendarId,
                     eventId: eventId
                 }, (err, res) => {
@@ -335,11 +335,12 @@ module.exports = (function() {
 
         /**
          * @typedef EventUpdateParams
-         * @property {string} summary
+         * @property {string} [summary]
          * @property {string} [description]
-         * @property {Date} startDatetime
-         * @property {Date} endDatetime
-         * @property {any[]} attendees
+         * @property {Date} [startDatetime]
+         * @property {Date} [endDatetime]
+         * @property {any[]} [attendees]
+         * @property {string[]} [recurrence]
          * @param {string} calendarId
          * @param {EventUpdateParams} params
          * @returns {Promise<Chatshier.GCalendar.EventResource>}
@@ -350,7 +351,7 @@ module.exports = (function() {
                     return reject(new Error('calendarId is empty'));
                 }
 
-                this.client.events.insert({
+                return this.client.events.insert({
                     calendarId: calendarId,
                     sendNotifications: true,
                     requestBody: {
@@ -364,17 +365,61 @@ module.exports = (function() {
                             dateTime: params.endDatetime.toISOString(),
                             timeZone: 'UTC'
                         },
-                        attendees: params.attendees.map((attendee) => {
+                        attendees: params.attendees ? params.attendees.map((attendee) => {
                             return {
                                 displayName: attendee.name,
                                 email: attendee.email,
                                 optional: true // 可不參加
                             };
-                        }),
+                        }) : [],
+                        recurrence: (params.recurrence || []).filter((recu) => !!recu),
                         guestsCanModify: false,
                         guestsCanInviteOthers: false,
                         guestsCanSeeOtherGuests: true
                     }
+                }, (err, res) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(res.data);
+                });
+            });
+        }
+
+        /**
+         * @param {string} calendarId
+         * @param {string} eventId
+         * @param {EventUpdateParams} params
+         * @returns {Promise<Chatshier.GCalendar.EventResource>}
+         */
+        updateEvent(calendarId, eventId, params) {
+            return new Promise((resolve, reject) => {
+                if (!calendarId) {
+                    return reject(new Error('calendarId is empty'));
+                }
+
+                if (!eventId) {
+                    return reject(new Error('eventId is empty'));
+                }
+
+                let requestBody = {};
+                params.summary && (requestBody.summary = params.summary);
+                params.description && (requestBody.description = params.description);
+                params.startDatetime && (requestBody.start = {
+                    dateTime: params.startDatetime.toISOString(),
+                    timeZone: 'UTC'
+                });
+                params.endDatetime && (requestBody.end = {
+                    dateTime: params.endDatetime.toISOString(),
+                    timeZone: 'UTC'
+                });
+                params.recurrence && (requestBody.recurrence = params.recurrence.filter((recu) => !!recu));
+
+                return this.client.events.update({
+                    calendarId: calendarId,
+                    eventId: eventId,
+                    sendNotifications: false,
+                    requestBody: requestBody
                 }, (err, res) => {
                     if (err) {
                         return reject(err);
@@ -392,7 +437,7 @@ module.exports = (function() {
          */
         watchEvent(calendarId, eventId, webhookUrl) {
             return new Promise((resolve, reject) => {
-                this.client.events.watch({
+                return this.client.events.watch({
                     calendarId: calendarId,
                     requestBody: {
                         id: eventId,
@@ -427,7 +472,7 @@ module.exports = (function() {
                     return reject(new Error('eventId is empty'));
                 }
 
-                this.client.events.delete({
+                return this.client.events.delete({
                     calendarId: calendarId,
                     eventId: eventId
                 }, (err, res) => {
