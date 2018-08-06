@@ -20,10 +20,26 @@ declare module Chatshier {
             maxNumber: number,
             interval: number,
             timesOfAppointment: number,
-            schedules: ({
-                startedTime: Date | number,
-                endedTime: Date | number
-            } | void)[]
+            isCalendarShared: boolean,
+            schedules: Schedules
+        }
+
+        interface Schedules {
+            [scheduleId: string]: Schedule
+        }
+
+        interface Schedule extends BaseProperty {
+            summary: string,
+            description: string,
+            start: {
+                date: Date | number,
+                dateTime: Date | number
+            },
+            end: {
+                date: Date | number,
+                dateTime: Date | number
+            },
+            recurrence: string[]
         }
     }
 }

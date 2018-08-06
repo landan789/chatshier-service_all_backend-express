@@ -207,6 +207,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'gcalendarId': {type: String, default: ''},
+        'isCalendarShared': {type: Boolean, default: false},
         'name': {type: String, default: ''},
         'photo': {type: String, default: ''},
         'email': {type: String, default: ''},
@@ -216,6 +217,11 @@ module.exports = (function() {
         'interval': {type: Number, default: 0}, // Unit time
         'timesOfAppointment': {type: Number, default: 0},
         'schedules': [{
+            'isDeleted': {type: Boolean, default: false},
+            'createdTime': {type: Date, default: Date.now()},
+            'updatedTime': {type: Date, default: Date.now()},
+            'summary': {type: String, default: ''},
+            'description': {type: String, default: ''},
             'start': {
                 'date': {type: Date, default: Date.now()},
                 'dateTime': {type: Date, default: Date.now()}

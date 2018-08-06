@@ -210,26 +210,18 @@ module.exports = (function() {
                         return;
                     }
 
-                    let receptionists = this.toObject(results.shift().receptionists);
-                    /** @type {Chatshier.Models.Receptionist} */
-                    let receptionist = receptionists[receptionistId];
-                    let appointmentIds = receptionist.appointment_ids || [];
-                    let _appointmentId = appointmentId.toHexString();
-
-                    if (appointmentIds.includes(_appointmentId)) {
-                        return;
-                    }
-
-                    appointmentIds.push(_appointmentId);
                     let query = {
                         '_id': this.Types.ObjectId(appId),
                         'receptionists._id': this.Types.ObjectId(receptionistId)
                     };
 
+                    let receptionists = this.toObject(results.shift().receptionists);
+                    /** @type {Chatshier.Models.Receptionist} */
+                    let receptionist = receptionists[receptionistId];
                     let updateOper = {
                         $set: {
                             'receptionists.$.updatedTime': Date.now(),
-                            'receptionists.$.appointment_ids': appointmentIds
+                            'receptionists.$.timesOfAppointment': receptionist.timesOfAppointment + 1
                         }
                     };
                     return this.AppsModel.update(query, updateOper);

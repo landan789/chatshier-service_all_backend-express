@@ -16,6 +16,7 @@ const appsKeywordrepliesCtl = require('../controllers/apps_keywordreplies');
 const appsPaymentsCtl = require('../controllers/apps_payments');
 const appsProductsCtl = require('../controllers/apps_products');
 const appsReceptionistsCtl = require('../controllers/apps_receptionists');
+const appsReceptionistsSchedulesCtl = require('../controllers/apps_receptionists_schedules');
 const appsRichmenusCtl = require('../controllers/apps_richmenus');
 const appsTemplateCtl = require('../controllers/apps_templates');
 const appsTicketsCtl = require('../controllers/apps_tickets');
@@ -155,6 +156,9 @@ router.get('/apps-receptionists/apps/:appid/users/:userid', appsReceptionistsCtl
 router.post('/apps-receptionists/apps/:appid/users/:userid', appsReceptionistsCtl.postOne);
 router.put('/apps-receptionists/apps/:appid/receptionists/:receptionistid/users/:userid', appsReceptionistsCtl.putOne);
 router.delete('/apps-receptionists/apps/:appid/receptionists/:receptionistid/users/:userid', appsReceptionistsCtl.deleteOne);
+router.post('/apps-receptionists-schedules/apps/:appid/receptionists/:receptionistid/users/:userid', appsReceptionistsSchedulesCtl.postOne);
+router.put('/apps-receptionists-schedules/apps/:appid/receptionists/:receptionistid/schedules/:scheduleid/users/:userid', appsReceptionistsSchedulesCtl.putOne);
+router.delete('/apps-receptionists-schedules/apps/:appid/receptionists/:receptionistid/schedules/:scheduleid/users/:userid', appsReceptionistsSchedulesCtl.deleteOne);
 // ==========
 
 // ==========

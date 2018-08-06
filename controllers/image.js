@@ -18,14 +18,14 @@ module.exports = (function() {
             let file = req.body.file;
             let fileName = req.body.fileName;
             let ext = fileName.split('.').pop();
-            let originalFilePath = `/temp/${Date.now()}.${ext}`;
+            let originalFilePath = '/temp/' + Date.now() + '.' + ext;
 
             return Promise.resolve().then(() => {
                 if (!(file && fileName)) {
                     return Promise.reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
                 }
                 return storageHlp.filesUpload(originalFilePath, file);
-            }).then((response) => {
+            }).then(() => {
                 return storageHlp.sharingCreateSharedLink(originalFilePath);
             }).then((url) => {
                 let suc = {

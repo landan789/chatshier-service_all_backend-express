@@ -1,5 +1,6 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
+    const CHATSHIER_CFG = require('../config/chatshier');
     const gcalendarHlp = require('../helpers/gcalendar');
     const APPS = 'apps';
 
@@ -45,7 +46,28 @@ module.exports = (function() {
                     $match: query
                 }, {
                     $project: {
-                        receptionists: true
+                        receptionists: {
+                            _id: '$receptionists._id',
+                            gcalendarId: '$receptionists.gcalendarId',
+                            name: '$receptionists.name',
+                            photo: '$receptionists.photo',
+                            email: '$receptionists.email',
+                            phone: '$receptionists.phone',
+                            timezoneOffset: '$receptionists.timezoneOffset',
+                            maxNumber: '$receptionists.maxNumber',
+                            interval: '$receptionists.interval',
+                            timesOfAppointment: '$receptionists.timesOfAppointment',
+                            isCalendarShared: '$receptionists.isCalendarShared',
+                            schedules: {
+                                $filter: {
+                                    input: '$receptionists.schedules',
+                                    as: 'schedule',
+                                    cond: {
+                                        $eq: [ '$$schedule.isDeleted', false ]
+                                    }
+                                }
+                            }
+                        }
                     }
                 }, {
                     $sort: {
@@ -62,7 +84,13 @@ module.exports = (function() {
 
                 appsReceptionists = results.reduce((output, app) => {
                     output[app._id] = output[app._id] || { receptionists: {} };
+                    if (!output[app._id].receptionists[app.receptionists._id]) {
+                        output[app._id].receptionists[app.receptionists._id] = { schedules: {} };
+                    }
+
                     Object.assign(output[app._id].receptionists, this.toObject(app.receptionists));
+                    let receptionists = output[app._id].receptionists;
+                    receptionists[app.receptionists._id].schedules = this.toObject(app.receptionists.schedules);
                     return output;
                 }, {});
                 return appsReceptionists;
@@ -97,29 +125,22 @@ module.exports = (function() {
                 'isDeleted': false
             };
 
-            // return this.AppsModel.findOne(query).then((result) => {
-            //     /** @type {Chatshier.Models.App} */
-            //     let app = result;
-            //     let summary = '[' + _receptionist.name + '] ' + app.name + ' - ' + receptionistId.toHexString();
-            //     let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
-            //     return gcalendarHlp.insertCalendar(summary, description);
-            // }).then((gcalendar) => {
-            //     _receptionist.gcalendarId = gcalendar.id;
-
-            //     let updateOper = {
-            //         $push: {
-            //             receptionists: _receptionist
-            //         }
-            //     };
-            //     return this.AppsModel.update(query, updateOper);
-
-            let updateOper = {
-                $push: {
-                    receptionists: _receptionist
-                }
-            };
-
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.findOne(query).then((result) => {
+                /** @type {Chatshier.Models.App} */
+                let app = result;
+                let summary = '[' + _receptionist.name + '][' + app.name + '] - ' + receptionistId.toHexString();
+                let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
+                return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
+                    _receptionist.gcalendarId = gcalendar.id;
+                });
+            }).then(() => {
+                let updateOper = {
+                    $push: {
+                        receptionists: _receptionist
+                    }
+                };
+                return this.AppsModel.update(query, updateOper);
+            }).then(() => {
                 return this.find(appId, receptionistId.toHexString());
             }).then((appsReceptionists) => {
                 ('function' === typeof callback) && callback(appsReceptionists);

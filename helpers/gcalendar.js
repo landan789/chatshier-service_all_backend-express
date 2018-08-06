@@ -165,7 +165,7 @@ module.exports = (function() {
         /**
          * @param {string} calendarId - Calendar identifier
          * @param {string} email
-         * @param {string} [scopeType=DEFAULT_SCOPE_TYPE]
+         * @param {'default' | 'user' | 'group' | 'domain'} [scopeType=DEFAULT_SCOPE_TYPE]
          * @returns {Promise<Chatshier.GCalendar.AccessControllResource>}
          */
         getCalendarACR(calendarId, email, scopeType = DEFAULT_SCOPE_TYPE) {
@@ -200,8 +200,8 @@ module.exports = (function() {
         /**
          * @param {string} calendarId - Calendar identifier
          * @param {string} email - gmail of share target
-         * @param {string} [role=DEFAULT_ROLE]
-         * @param {string} [scopeType=DEFAULT_SCOPE_TYPE]
+         * @param {'none' | 'freeBusyReader' | 'reader' | 'writer' | 'owner'} [role=DEFAULT_ROLE]
+         * @param {'default' | 'user' | 'group' | 'domain'} [scopeType=DEFAULT_SCOPE_TYPE]
          * @returns {Promise<Chatshier.GCalendar.AccessControllResource>}
          */
         sharingCalendar(calendarId, email, role = DEFAULT_ROLE, scopeType = DEFAULT_SCOPE_TYPE) {
@@ -233,7 +233,7 @@ module.exports = (function() {
         /**
          * @param {string} calendarId - Calendar identifier
          * @param {string} email
-         * @param {string} [scopeType=DEFAULT_SCOPE_TYPE]
+         * @param {'default' | 'user' | 'group' | 'domain'} [scopeType=DEFAULT_SCOPE_TYPE]
          * @returns {Promise<string>}
          */
         cancelCalendarSharing(calendarId, email, scopeType = DEFAULT_SCOPE_TYPE) {

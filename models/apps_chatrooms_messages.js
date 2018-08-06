@@ -87,23 +87,16 @@ module.exports = (function() {
 
                 appsChatroomsMessages = results.reduce((output, app) => {
                     if (!output[app._id]) {
-                        output[app._id] = {
-                            chatrooms: {}
-                        };
+                        output[app._id] = { chatrooms: {} };
                     }
 
                     if (!output[app._id].chatrooms[app.chatrooms._id]) {
-                        output[app._id].chatrooms[app.chatrooms._id] = {
-                            messages: {}
-                        };
+                        output[app._id].chatrooms[app.chatrooms._id] = { messages: {} };
                     }
 
-                    let chatroom = output[app._id].chatrooms[app.chatrooms._id];
-                    chatroom._id = app.chatrooms._id;
-                    chatroom.name = app.chatrooms.name;
-                    chatroom.platformGroupId = app.chatrooms.platformGroupId;
-                    chatroom.platformGroupType = app.chatrooms.platformGroupType;
-                    Object.assign(chatroom.messages, this.toObject(app.chatrooms.messages));
+                    Object.assign(output[app._id].chatrooms, this.toObject(app.chatrooms));
+                    let chatrooms = output[app._id].chatrooms;
+                    chatrooms[app.chatrooms._id].messages = this.toObject(app.chatrooms.messages);
                     return output;
                 }, {});
                 return appsChatroomsMessages;

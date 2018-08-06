@@ -4,7 +4,10 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
+    const CHATSHIER_CFG = require('../config/chatshier.js');
 
+    let gcalendarHlp = require('../helpers/gcalendar');
+    let appsMdl = require('../models/apps');
     let appsReceptionistsMdl = require('../models/apps_receptionists');
 
     class AppsReceptionistsController extends ControllerCore {
@@ -81,17 +84,55 @@ module.exports = (function() {
             ('number' === typeof req.body.interval) && (putReceptionist.interval = req.body.interval);
             (req.body.schedules instanceof Array) && (putReceptionist.schedules = req.body.schedules);
 
+            let shareTo = req.body.shareTo;
+
             return this.appsRequestVerify(req).then(() => {
                 if (0 === Object.keys(putReceptionist).length) {
                     return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
                 }
 
-                return appsReceptionistsMdl.update(appId, receptionistId, putReceptionist).then((appsReceptionists) => {
-                    if (!(appsReceptionists && appsReceptionists[appId])) {
-                        return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_UPDATE);
-                    }
-                    return Promise.resolve(appsReceptionists);
-                });
+                if (shareTo) {
+                    /** @type {Chatshier.Models.Receptionist} */
+                    let receptionist;
+                    return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+                        if (!(appsReceptionists && appsReceptionists[appId])) {
+                            return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                        }
+
+                        receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                        let gcalendarId = receptionist.gcalendarId;
+                        return Promise.resolve().then(() => {
+                            if (!gcalendarId) {
+                                return appsMdl.find(appId).then((apps) => {
+                                    if (!(apps && apps[appId])) {
+                                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                                    }
+
+                                    let summary = '[' + receptionist.name + '][' + apps[appId].name + '] - ' + receptionistId;
+                                    let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
+                                    return gcalendarHlp.insertCalendar(summary, description);
+                                }).then((gcalendar) => {
+                                    gcalendarId = putReceptionist.gcalendarId = gcalendar.id;
+                                    return gcalendarId;
+                                });
+                            }
+                            return gcalendarId;
+                        });
+                    }).then((gcalendarId) => {
+                        return gcalendarHlp.sharingCalendar(gcalendarId, shareTo);
+                    }).then(() => {
+                        if (shareTo === receptionist.email) {
+                            putReceptionist.isCalendarShared = true;
+                        }
+                        return appsReceptionistsMdl.update(appId, receptionistId, putReceptionist);
+                    });
+                }
+                return appsReceptionistsMdl.update(appId, receptionistId, putReceptionist);
+            }).then((appsReceptionists) => {
+                if (!(appsReceptionists && appsReceptionists[appId])) {
+                    return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_UPDATE);
+                }
+                return Promise.resolve(appsReceptionists);
             }).then((appsReceptionists) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,

@@ -203,7 +203,7 @@
 
                 return Promise.all(fileMoveTasks.map((fromPath) => {
                     let fileName = fromPath.split('/').pop();
-                    let toPath = `/apps/${appId}/template/${templateId}/src/${fileName}`;
+                    let toPath = `/apps/${appId}/templates/${templateId}/src/${fileName}`;
                     return api.image.moveFile(userId, fromPath, toPath);
                 }));
             }).then(() => {
