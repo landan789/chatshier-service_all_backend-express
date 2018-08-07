@@ -604,12 +604,8 @@ module.exports = (function() {
                         }
 
                         let receptionist = appsReceptionists[appId].receptionists[receptionistId];
-                        let dateNow = Date.now();
-                        let schedules = (receptionist.schedules || []).filter((schedule) => {
-                            return schedule && new Date(schedule.startedTime).getTime() >= dateNow;
-                        });
-
-                        if (0 === schedules.length) {
+                        let schedules = receptionist.schedules;
+                        if (0 === Object.keys(schedules).length) {
                             let noDateMessage = {
                                 type: 'text',
                                 text: '很抱歉，' + receptionist.name + ' 目前沒有可預約的日期。'
@@ -618,12 +614,25 @@ module.exports = (function() {
                             return;
                         }
 
-                        // 預約日期數量有可能超過 3 個，因此每 3 筆資料切成一張卡片
-                        let scheduleColumns = [];
-                        while (schedules.length > 3) {
-                            scheduleColumns.push(schedules.splice(0, 3));
+                        let scheduleIds = Object.keys(schedules);
+                        scheduleIds.sort((a, b) => {
+                            if (schedules[a].start.dateTime > schedules[b].start.dateTime) {
+                                return 1;
+                            } else if (schedules[a].start.dateTime < schedules[b].start.dateTime) {
+                                return -1;
+                            } else {
+                                return 0;
+                            }
+                        });
+
+                        /** @type {{[scheduleId: string]: Date[]}} */
+                        let scheduleDates = {};
+                        for (let i in scheduleIds) {
+                            let scheduleId = scheduleIds[i];
+                            let schedule = schedules[scheduleId];
+                            let dates = gcalendarHlp.getDateList(schedule, 30);
+                            dates.length > 0 && (scheduleDates[scheduleId] = dates);
                         }
-                        scheduleColumns.push(schedules);
 
                         let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
                         let datesMessage = {
@@ -632,49 +641,73 @@ module.exports = (function() {
                             template: {
                                 type: 'carousel',
                                 /** @type {Chatshier.Models.TemplateColumn[]} */
-                                columns: scheduleColumns.map((schedules) => {
-                                    if (scheduleColumns.length > 1) {
-                                        while (schedules.length < 3) {
-                                            schedules.push(void 0);
-                                        }
-                                    }
+                                columns: []
+                            }
+                        };
 
+                        let columns = [];
+                        let actions = [];
+                        for (let scheduleId in scheduleDates) {
+                            let dates = scheduleDates[scheduleId];
+
+                            while (dates.length > 0 && columns.length < 10) {
+                                let date = dates.shift();
+                                if (!date) {
+                                    continue;
+                                }
+
+                                /** @type {Chatshier.Models.TemplateAction} */
+                                let action = {
+                                    type: 'postback',
+                                    label: '　',
+                                    data: 'none'
+                                };
+
+                                /** @type {Webhook.Chatshier.PostbackPayload} */
+                                let payloadJson = {
+                                    action: 'SEND_APPOINTMENT_TIME',
+                                    productId: productId,
+                                    receptionistId: receptionistId,
+                                    scheduleId: scheduleId,
+                                    timestamp: Date.now()
+                                };
+
+                                let startedTimeLocal = new Date(date.getTime() - timezoneOffset);
+                                let appointDate = startedTimeLocal.toISOString().split('T').shift();
+                                action.label = appointDate || action.label;
+                                action.data = JSON.stringify(payloadJson);
+                                actions.push(action);
+
+                                if (actions.length >= 3) {
                                     /** @type {Chatshier.Models.TemplateColumn} */
                                     let column = {
                                         title: '預約 - ' + receptionist.name,
                                         text: '請選擇要預約的日期',
                                         thumbnailImageUrl: receptionist.photo || url + '/image/logo-no-transparent.png',
-                                        actions: schedules.map((schedule) => {
-                                            /** @type {Chatshier.Models.TemplateAction} */
-                                            let action = {
-                                                type: 'postback',
-                                                label: '　',
-                                                data: 'none'
-                                            };
-
-                                            if (!schedule) {
-                                                return action;
-                                            }
-
-                                            let startedTimeLocal = new Date(new Date(schedule.startedTime).getTime() - timezoneOffset);
-                                            /** @type {Webhook.Chatshier.PostbackPayload} */
-                                            let payloadJson = {
-                                                action: 'SEND_APPOINTMENT_TIME',
-                                                productId: productId,
-                                                receptionistId: receptionistId,
-                                                appointDate: startedTimeLocal.toISOString().split('T').shift(),
-                                                timestamp: Date.now()
-                                            };
-
-                                            action.label = payloadJson.appointDate || action.label;
-                                            action.data = JSON.stringify(payloadJson);
-                                            return action;
-                                        })
+                                        actions: actions.slice()
                                     };
-                                    return column;
-                                })
+                                    actions.length = 0;
+                                    columns.push(column);
+
+                                    if (columns.length >= 10) {
+                                        break;
+                                    }
+                                }
                             }
-                        };
+                        }
+
+                        if (actions.length > 0 && columns.length < 10) {
+                            /** @type {Chatshier.Models.TemplateColumn} */
+                            let column = {
+                                title: '預約 - ' + receptionist.name,
+                                text: '請選擇要預約的日期',
+                                thumbnailImageUrl: receptionist.photo || url + '/image/logo-no-transparent.png',
+                                actions: actions.slice()
+                            };
+                            columns.push(column);
+                            actions.length = 0;
+                        }
+                        datesMessage.template.columns = columns;
                         repliedMessages.push(datesMessage);
                     });
                     promises.push(datePromise);
@@ -688,58 +721,49 @@ module.exports = (function() {
 
                     let productId = payload.productId || '';
                     let receptionistId = payload.receptionistId || '';
-                    let appointDate = new Date(payload.appointDate ? payload.appointDate : Date.now());
+                    let scheduleId = payload.scheduleId || '';
+
+                    let noTimeMessage = {
+                        type: 'text',
+                        text: '很抱歉，目前沒有可預約的時間。'
+                    };
+                    if (!scheduleId) {
+                        repliedMessages.push(noTimeMessage);
+                        continue;
+                    }
+
                     let timePromise = appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
                         if (!(appsReceptionists && appsReceptionists[appId])) {
-                            let noTimeMessage = {
-                                type: 'text',
-                                text: '很抱歉，目前沒有可預約的時間。'
-                            };
                             repliedMessages.push(noTimeMessage);
                             return;
                         }
 
                         let receptionist = appsReceptionists[appId].receptionists[receptionistId];
-                        let schedule = (receptionist.schedules || []).filter((schedule) => {
-                            if (!schedule) {
-                                return false;
-                            }
-                            let startedTime = new Date(schedule.startedTime);
-                            return (
-                                startedTime.getFullYear() === appointDate.getFullYear() &&
-                                startedTime.getMonth() === appointDate.getMonth() &&
-                                startedTime.getDate() === appointDate.getDate()
-                            );
-                        }).shift();
-
-                        if (!schedule) {
-                            let noTimeMessage = {
-                                type: 'text',
-                                text: '很抱歉，目前沒有可預約的時間。'
-                            };
-                            repliedMessages.push(noTimeMessage);
-                            return;
-                        }
+                        let schedule = receptionist.schedules[scheduleId];
 
                         let serviceInterval = receptionist.interval;
                         let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
-                        let startedTime = new Date(schedule.startedTime);
-                        let serviceTimes = Math.floor((new Date(schedule.endedTime).getTime() - startedTime.getTime()) / serviceInterval);
-                        startedTime = new Date(startedTime.getTime() - timezoneOffset);
+                        let startTime = new Date(schedule.start.dateTime);
+                        let endTime = new Date(schedule.end.dateTime);
+                        endTime.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+
+                        let serviceTimes = Math.floor((endTime.getTime() - startTime.getTime()) / serviceInterval);
+                        startTime = new Date(startTime.getTime() - timezoneOffset);
 
                         let availableTimes = [];
                         for (let i = 0; i < serviceTimes; i++) {
-                            startedTime = new Date(startedTime.getTime() + serviceInterval);
-                            let endedTime = new Date(startedTime.getTime() + serviceInterval);
+                            endTime = new Date(startTime.getTime() + serviceInterval);
 
-                            let start = startedTime.toISOString(); // 2018-07-29T07:00:10.411Z
+                            let start = startTime.toISOString(); // 2018-07-29T07:00:10.411Z
                             start = start.split('T').pop() || ''; // 07:00:10.411Z
                             start = start.substring(0, 5); // 07:00
 
-                            let end = endedTime.toISOString(); // 2018-07-29T08:00:10.411Z
+                            let end = endTime.toISOString(); // 2018-07-29T08:00:10.411Z
                             end = end.split('T').pop() || ''; // 08:00:10.411Z
                             end = end.substring(0, 5); // 08:00
+
                             availableTimes.push(start + ' ~ ' + end);
+                            startTime = new Date(startTime.getTime() + serviceInterval);
                         }
 
                         // 預約時間數量有可能超過 3 個，因此每 3 筆資料切成一張卡片
@@ -788,7 +812,7 @@ module.exports = (function() {
                                                 action: 'SEND_APPOINTMENT_CONFIRM',
                                                 productId: productId,
                                                 receptionistId: receptionistId,
-                                                appointDate: payload.appointDate,
+                                                scheduleId: scheduleId,
                                                 startedTime: startedTime,
                                                 endedTime: endedTime,
                                                 timestamp: Date.now()
@@ -817,11 +841,11 @@ module.exports = (function() {
                     let categoryId = payload.categoryId || '';
                     let productId = payload.productId || '';
                     let receptionistId = payload.receptionistId || '';
-                    let appointDate = payload.appointDate;
+                    let scheduleId = payload.scheduleId || '';
                     let startedTime = payload.startedTime;
                     let endedTime = payload.endedTime;
 
-                    if (!(receptionistId && appointDate && startedTime && endedTime)) {
+                    if (!(receptionistId && scheduleId && startedTime && endedTime)) {
                         let invalidMessage = {
                             type: 'text',
                             text: '很抱歉，無法確認您的預約資料，請重新操作。'
@@ -848,6 +872,11 @@ module.exports = (function() {
 
                         let product = appsProducts[appId].products[productId];
                         let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                        let schedule = receptionist.schedules[scheduleId];
+                        let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                        let startedTimeLocal = new Date(new Date(schedule.start.dateTime).getTime() - timezoneOffset);
+                        let appointDate = startedTimeLocal.toISOString().split('T').shift();
+
                         let infoMessage = {
                             type: 'text',
                             text: (
@@ -871,7 +900,7 @@ module.exports = (function() {
                             appointmentId: appointmentId,
                             productId: productId,
                             receptionistId: receptionistId,
-                            appointDate: payload.appointDate,
+                            scheduleId: payload.scheduleId,
                             startedTime: startedTime,
                             endedTime: endedTime,
                             timestamp: Date.now()
@@ -914,7 +943,7 @@ module.exports = (function() {
 
                     let productId = payload.productId || '';
                     let receptionistId = payload.receptionistId || '';
-                    let appointDate = payload.appointDate;
+                    let scheduleId = payload.scheduleId || '';
                     let startedTime = payload.startedTime;
                     let endedTime = payload.endedTime;
 
@@ -933,7 +962,8 @@ module.exports = (function() {
                             appsProductsMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
                             appsReceptionistsMdl.find(appId, receptionistId),
                             appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false),
-                            consumersMdl.find(platformUid)
+                            consumersMdl.find(platformUid),
+                            appsAppointmentsMdl.insert(appId, { _id: appointmentId })
                         ]).then(([ apps, appsProducts, appsReceptionists, appsChatroomsMessagers, consumers ]) => {
                             if (!(apps && apps[appId]) ||
                                 !(appsProducts && appsProducts[appId]) ||
@@ -960,16 +990,11 @@ module.exports = (function() {
                             );
 
                             let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
-                            let startedDate = new Date(new Date(appointDate + ' ' + startedTime).getTime() + timezoneOffset);
-                            let endedDate = new Date(new Date(appointDate + ' ' + endedTime).getTime() + timezoneOffset);
-                            let _appointment = {
-                                _id: appointmentId,
-                                product_id: productId,
-                                receptionist_id: receptionistId,
-                                platformUid: platformUid,
-                                startedTime: startedDate.getTime(),
-                                endedTime: endedDate.getTime()
-                            };
+                            let schedule = receptionist.schedules[scheduleId];
+                            let startDateTime = new Date(schedule.start.dateTime);
+                            let endDateTime = new Date(schedule.end.dateTime);
+                            let startTimeLocal = new Date(startDateTime.getTime() - timezoneOffset);
+                            let appointDate = startTimeLocal.toISOString().split('T').shift();
 
                             return Promise.resolve().then(() => {
                                 let gcalendarId = app.gcalendarId;
@@ -1000,18 +1025,24 @@ module.exports = (function() {
                                 return gcalendarHlp.insertEvent(gcalendarId, {
                                     summary: summary,
                                     description: description,
-                                    startDatetime: startedDate,
-                                    endDatetime: endedDate,
+                                    startDateTime: startDateTime,
+                                    endDateTime: endDateTime,
                                     attendees: attendees
                                 }).then((gcalendarEvent) => {
-                                    _appointment.eventId = gcalendarEvent.id;
-                                    _appointment.summary = gcalendarEvent.summary;
-                                    _appointment.description = gcalendarEvent.description;
-
                                     let webhookUrl = webhookInfo.serverAddress + '/webhook-google/gcalendar/events/apps/' + appId;
-                                    return gcalendarHlp.watchEvent(gcalendarId, _appointment.eventId, webhookUrl).then((channel) => {
-                                        _appointment.eventChannelId = channel.resourceId;
-                                        return appsAppointmentsMdl.insert(appId, _appointment);
+                                    return gcalendarHlp.watchEvent(gcalendarId, gcalendarEvent.id, webhookUrl).then((channel) => {
+                                        let _appointment = {
+                                            product_id: productId,
+                                            receptionist_id: receptionistId,
+                                            platformUid: platformUid,
+                                            startedTime: new Date(schedule.start.dateTime).getTime(),
+                                            endedTime: new Date(schedule.end.dateTime).getTime(),
+                                            eventId: gcalendarEvent.id,
+                                            eventChannelId: channel.resourceId,
+                                            summary: gcalendarEvent.summary,
+                                            description: gcalendarEvent.description
+                                        };
+                                        return appsAppointmentsMdl.update(appId, appointmentId, _appointment);
                                     }).then((appsAppointments) => {
                                         if (!(appsAppointments && appsAppointments[appId])) {
                                             let failedMessage = {

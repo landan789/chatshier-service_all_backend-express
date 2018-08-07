@@ -59,10 +59,9 @@ declare module Webhook {
              */
             productId?: string,
             /**
-             * APPOINTMENT_TIME
-             * format: YYYY-MM-DD
+             * APPOINTMENT_DATE | APPOINTMENT_TIME
              */
-            appointDate?: string,
+            scheduleId?: string,
             /**
              * SEND_APPOINTMENT_CONFIRM
              * format: hh:mm

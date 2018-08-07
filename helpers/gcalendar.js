@@ -1,4 +1,9 @@
 module.exports = (function() {
+    const rrule = require('rrule');
+    const RRule = rrule.RRule;
+    const RRuleSet = rrule.RRuleSet;
+    const rrulestr = rrule.rrulestr;
+
     const CHATSHIER_CFG = require('../config/chatshier.js');
     const google = require('googleapis').google;
     const OAuth2 = google.auth.OAuth2;
@@ -19,6 +24,29 @@ module.exports = (function() {
                 version: 'v3',
                 auth: oauth2Client
             });
+        }
+
+        /**
+         * @param {Chatshier.GCalendar.EventResource | Chatshier.Models.Schedule} event
+         * @param {number} maxDates
+         * @returns {Date[]}
+         */
+        getDateList(event, maxDates = 30) {
+            let recurrence = event.recurrence || [];
+            let startDateTime = new Date(event.start.dateTime);
+            let endDateTime = new Date(event.end.dateTime);
+            if (!recurrence[0]) {
+                let rruleSet = new RRuleSet();
+                rruleSet.rrule(new RRule({
+                    freq: RRule.DAILY,
+                    dtstart: startDateTime,
+                    until: endDateTime
+                }));
+                return rruleSet.all((d, len) => len <= maxDates);
+            }
+
+            let rruleSet = rrulestr(recurrence.join('\n'), { forceset: true });
+            return rruleSet.all((d, len) => len <= maxDates).filter((d) => d >= startDateTime && d <= endDateTime);
         }
 
         /**
@@ -337,8 +365,8 @@ module.exports = (function() {
          * @typedef EventUpdateParams
          * @property {string} [summary]
          * @property {string} [description]
-         * @property {Date} [startDatetime]
-         * @property {Date} [endDatetime]
+         * @property {Date} [startDateTime]
+         * @property {Date} [endDateTime]
          * @property {any[]} [attendees]
          * @property {string[]} [recurrence]
          * @param {string} calendarId
@@ -358,11 +386,11 @@ module.exports = (function() {
                         summary: params.summary || '',
                         description: params.description || '',
                         start: {
-                            dateTime: params.startDatetime.toISOString(),
+                            dateTime: params.startDateTime.toISOString(),
                             timeZone: 'UTC'
                         },
                         end: {
-                            dateTime: params.endDatetime.toISOString(),
+                            dateTime: params.endDateTime.toISOString(),
                             timeZone: 'UTC'
                         },
                         attendees: params.attendees ? params.attendees.map((attendee) => {
@@ -405,12 +433,12 @@ module.exports = (function() {
                 let requestBody = {};
                 params.summary && (requestBody.summary = params.summary);
                 params.description && (requestBody.description = params.description);
-                params.startDatetime && (requestBody.start = {
-                    dateTime: params.startDatetime.toISOString(),
+                params.startDateTime && (requestBody.start = {
+                    dateTime: params.startDateTime.toISOString(),
                     timeZone: 'UTC'
                 });
-                params.endDatetime && (requestBody.end = {
-                    dateTime: params.endDatetime.toISOString(),
+                params.endDateTime && (requestBody.end = {
+                    dateTime: params.endDateTime.toISOString(),
                     timeZone: 'UTC'
                 });
                 params.recurrence && (requestBody.recurrence = params.recurrence.filter((recu) => !!recu));

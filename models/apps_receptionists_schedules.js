@@ -127,8 +127,8 @@ module.exports = (function() {
                 return gcalendarHlp.insertEvent(gcalendarId, {
                     summary: _schedule.summary,
                     description: _schedule.description,
-                    startDatetime: new Date(_schedule.start.dateTime),
-                    endDatetime: new Date(_schedule.end.dateTime),
+                    startDateTime: new Date(_schedule.start.dateTime),
+                    endDateTime: new Date(_schedule.end.dateTime),
                     recurrence: _schedule.recurrence
                 }).then((gcEvent) => {
                     return this.update(appId, receptionistId, _scheduleId, { eventId: gcEvent.id });
@@ -186,8 +186,8 @@ module.exports = (function() {
                 return gcalendarHlp.updateEvent(gcalendarId, eventId, {
                     summary: _schedule.summary,
                     description: _schedule.description,
-                    startDatetime: new Date(_schedule.start.dateTime),
-                    endDatetime: new Date(_schedule.end.dateTime),
+                    startDateTime: new Date(_schedule.start.dateTime),
+                    endDateTime: new Date(_schedule.end.dateTime),
                     recurrence: _schedule.recurrence
                 }).then(() => {
                     return appsReceptionistsSchedules;

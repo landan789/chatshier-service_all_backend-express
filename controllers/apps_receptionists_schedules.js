@@ -24,7 +24,7 @@ module.exports = (function() {
                 description: ('string' === typeof req.body.description) ? req.body.description : '',
                 start: ('object' === typeof req.body.start) ? req.body.start : {},
                 end: ('object' === typeof req.body.end) ? req.body.end : {},
-                recurrence: ('string' === typeof req.body.recurrence) ? req.body.recurrence : ''
+                recurrence: (req.body.recurrence instanceof Array) ? req.body.recurrence : []
             };
 
             return this.appsRequestVerify(req).then(() => {
@@ -55,7 +55,7 @@ module.exports = (function() {
             ('string' === typeof req.body.description) && (putSchdule.description = req.body.description);
             ('object' === typeof req.body.start) && (putSchdule.start = req.body.start);
             ('object' === typeof req.body.end) && (putSchdule.end = req.body.end);
-            ('string' === typeof req.body.recurrence) && (putSchdule.recurrence = req.body.recurrence);
+            (req.body.recurrence instanceof Array) && (putSchdule.recurrence = req.body.recurrence);
 
             return this.appsRequestVerify(req).then(() => {
                 if (0 === Object.keys(putSchdule).length) {
