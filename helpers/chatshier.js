@@ -1045,7 +1045,7 @@ module.exports = (function() {
                                 let startTimeLocal = new Date(startDateTime.getTime() - timezoneOffset);
                                 let appointDate = startTimeLocal.toISOString().split('T').shift();
                                 startTimeLocal = new Date(appointDate + ' ' + startedTimeStr);
-                                startTimeLocal = new Date(startTimeLocal.getTime() + timezoneOffset);
+                                startDateTime = new Date(startTimeLocal.getTime() + timezoneOffset);
 
                                 let endTimeLocal = new Date(appointDate + ' ' + endedTimeStr);
                                 let endDateTime = new Date(endTimeLocal.getTime() + timezoneOffset);
