@@ -34,6 +34,7 @@
     "PAYMENTID_WAS_EMPTY": {"MSG": "paymentid was empty", "CODE": "1.27"},
     "WEBHOOKID_WAS_EMPTY": { "MSG": "webhookid was empty", "CODE": "1.28" },
     "APPOINTMENTID_WAS_EMPTY": { "MSG": "appointmentid was empty", "CODE": "1.29" },
+    "UNAVAILABLE_GMAIL": { "MSG": "unavailable gmail", "CODE": "1.30" },
 
     "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
     "PASSWORD_WAS_INCORRECT": { "MSG": "password was incorrect", "CODE": "2.2"},

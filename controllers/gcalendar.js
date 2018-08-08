@@ -30,8 +30,7 @@ module.exports = (function() {
             let eventId = req.headers['x-goog-channel-id'];
             let channelToken = req.headers['x-goog-channel-token'];
             let resourceState = req.headers['x-goog-resource-state'];
-            // let resourceId = req.headers['x-goog-resource-id'];
-            // let resourceUri = req.headers['x-goog-resource-uri'];
+            let resourceId = req.headers['x-goog-resource-id'];
 
             if (CHATSHIER_CFG.JWT.SECRET !== channelToken) {
                 return !res.headersSent && res.sendStatus(400);
@@ -47,34 +46,58 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
                 }
 
-                return Promise.all([
-                    appsMdl.find(appId),
-                    appsAppointmentsMdl.find(appId, void 0, { 'appointments.eventId': eventId })
-                ]).then(([ apps, appsAppointments ]) => {
-                    if (!(apps && apps[appId])) {
-                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
-                    }
+                let query = {
+                    'appointments.eventId': eventId,
+                    'appointments.isDeleted': false
+                };
+                if (GOOGLE_RESOURCE_STATE.NOT_EXISTS === resourceState) {
+                    return appsAppointmentsMdl.find(appId, void 0, query).then((appsAppointments) => {
+                        if (!(appsAppointments && appsAppointments[appId])) {
+                            return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                        }
+                        let appointmentId = Object.keys(appsAppointments[appId].appointments).shift() || '';
+                        return appsAppointmentsMdl.remove(appId, appointmentId);
+                    }).then((appsAppointments) => {
+                        if (!(appsAppointments && appsAppointments[appId])) {
+                            return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_REMOVE);
+                        }
+                        return gcalendarHlp.stopChannel(eventId, resourceId);
+                    }).then(() => {
+                        return Promise.resolve(void 0);
+                    });
+                }
 
+                return appsAppointmentsMdl.find(appId, void 0, query).then((appsAppointments) => {
                     if (!(appsAppointments && appsAppointments[appId])) {
+                        !res.headersSent && res.sendStatus(200);
+                        gcalendarHlp.stopChannel(eventId, resourceId);
                         return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                     }
 
-                    let app = apps[appId];
                     let appointmentId = Object.keys(appsAppointments[appId].appointments).shift() || '';
                     if (!appointmentId) {
                         return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                     }
 
                     let appointment = appsAppointments[appId].appointments[appointmentId];
+                    if (appointment.isAccepted) {
+                        return gcalendarHlp.stopChannel(eventId, resourceId).then(() => void 0);
+                    }
+
                     let receptionistId = appointment.receptionist_id;
                     let platformUid = appointment.platformUid;
                     let productId = appointment.product_id;
 
                     return Promise.all([
+                        appsMdl.find(appId),
                         appsReceptionistsMdl.find(appId, receptionistId),
                         appsProductMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
                         consumersMdl.find(platformUid)
-                    ]).then(([ appsReceptionists, appsProducts, consumers ]) => {
+                    ]).then(([ apps, appsReceptionists, appsProducts, consumers ]) => {
+                        if (!(apps && apps[appId])) {
+                            return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        }
+
                         if (!(appsReceptionists && appsReceptionists[appId])) {
                             return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
                         }
@@ -87,49 +110,53 @@ module.exports = (function() {
                             return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
                         }
 
-                        let product = appsProducts[appId].products[productId];
-                        let receptionist = appsReceptionists[appId].receptionists[receptionistId];
-                        let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
-                        let startedDate = new Date(new Date(appointment.startedTime).getTime() - timezoneOffset);
-                        let endedDate = new Date(new Date(appointment.endedTime).getTime() - timezoneOffset);
-                        let consumer = consumers[platformUid];
+                        let app = apps[appId];
                         let gcalendarId = app.gcalendarId;
-
-                        return gcalendarHlp.getEvent(gcalendarId, eventId).then((gcEvent) => {
-                            let attendees = gcEvent.attendees || [];
-                            return Promise.all(attendees.map((attendee) => {
-                                if (attendee.email !== receptionist.email) {
-                                    return Promise.resolve(void 0);
-                                }
-
-                                if (!appointment.isAccepted && 'accepted' === attendee.responseStatus) {
-                                    let startTime = startedDate.toISOString();
-                                    startTime = startTime.split('T').pop() || '';
-                                    startTime = startTime.substring(0, 5);
-
-                                    let endTime = endedDate.toISOString();
-                                    endTime = endTime.split('T').pop() || '';
-                                    endTime = endTime.substring(0, 5);
-
-                                    let acceptedMessage = {
-                                        type: 'text',
-                                        text: (
-                                            receptionist.name + ' 已接受了 ' + consumer.name + ' 您在\n\n' +
-                                            '【' + startedDate.toISOString().split('T').shift() + '】\n' +
-                                            '【' + startTime + ' ~ ' + endTime + '】\n\n' +
-                                            (product ? '對 ' + product.name + ' ' : '') + '的預約'
-                                        )
-                                    };
-
-                                    return Promise.all([
-                                        botSvc.pushMessage(platformUid, acceptedMessage, void 0, appId),
-                                        appsAppointmentsMdl.update(appId, appointmentId, { isAccepted: true }),
-                                        gcalendarHlp.stopChannel(eventId, appointment.eventChannelId)
-                                    ]);
-                                }
+                        return Promise.all([
+                            gcalendarHlp.getEvent(gcalendarId, eventId),
+                            appsProducts[appId].products[productId],
+                            appsReceptionists[appId].receptionists[receptionistId],
+                            consumers[platformUid]
+                        ]);
+                    }).then(([ gcEvent, product, receptionist, consumer ]) => {
+                        let attendees = gcEvent.attendees || [];
+                        return Promise.all(attendees.map((attendee) => {
+                            if (attendee.email !== receptionist.email) {
                                 return Promise.resolve(void 0);
-                            }));
-                        });
+                            }
+
+                            if (!appointment.isAccepted && 'accepted' === attendee.responseStatus) {
+                                let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                                let startedDate = new Date(new Date(appointment.startedTime).getTime() - timezoneOffset);
+                                let endedDate = new Date(new Date(appointment.endedTime).getTime() - timezoneOffset);
+
+                                let startTime = startedDate.toISOString();
+                                startTime = startTime.split('T').pop() || '';
+                                startTime = startTime.substring(0, 5);
+
+                                let endTime = endedDate.toISOString();
+                                endTime = endTime.split('T').pop() || '';
+                                endTime = endTime.substring(0, 5);
+
+                                let acceptedMessage = {
+                                    type: 'text',
+                                    text: (
+                                        receptionist.name + ' 已接受了 ' + consumer.name + ' 您在\n\n' +
+                                        '【' + startedDate.toISOString().split('T').shift() + '】\n' +
+                                        '【' + startTime + ' ~ ' + endTime + '】\n' +
+                                        (product ? '【' + product.name + '】\n\n' : '\n') +
+                                        '的預約'
+                                    )
+                                };
+
+                                return Promise.all([
+                                    botSvc.pushMessage(platformUid, acceptedMessage, void 0, appId),
+                                    appsAppointmentsMdl.update(appId, appointmentId, { isAccepted: true }),
+                                    gcalendarHlp.stopChannel(eventId, resourceId)
+                                ]);
+                            }
+                            return Promise.resolve(void 0);
+                        }));
                     });
                 });
             }).then(() => {

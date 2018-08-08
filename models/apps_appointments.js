@@ -24,9 +24,8 @@ module.exports = (function() {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
-                'isDeleted': false,
-                'appointments.isDeleted': false
-            }, query || {});
+                'isDeleted': false
+            }, query || { 'appointments.isDeleted': false });
 
             if (appointmentIds) {
                 !(appointmentIds instanceof Array) && (appointmentIds = [appointmentIds]);
@@ -42,7 +41,7 @@ module.exports = (function() {
                     $match: query
                 }, {
                     $project: {
-                        appointments: 1
+                        appointments: true
                     }
                 }
             ];
@@ -89,7 +88,7 @@ module.exports = (function() {
                     $match: query
                 }, {
                     $project: {
-                        appointments: 1
+                        appointments: true
                     }
                 }
             ];
@@ -257,7 +256,7 @@ module.exports = (function() {
                 updateOper.$set['appointments.$.' + prop] = putAppointment[prop];
             }
 
-            return this.AppsModel.findOneAndUpdate(query, updateOper).then(() => {
+            return this.AppsModel.update(query, updateOper).then(() => {
                 return this.find(appId, appointmentId);
             }).then((appsAppointments) => {
                 ('function' === typeof callback) && callback(appsAppointments);

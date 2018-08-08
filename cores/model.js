@@ -198,7 +198,7 @@ module.exports = (function() {
         'price': {type: Number, default: 0},
         'quantity': {type: Number, default: 0},
         'src': {type: String, default: ''},
-        'isOnShelves': {type: Boolean, default: false},
+        'isOnShelf': {type: Boolean, default: false},
         'receptionist_ids': {type: [{type: String}], default: []}
     });
 
@@ -239,6 +239,7 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
+        'product_id': {type: String, default: ''},
         'receptionist_id': {type: String, default: ''},
         'platformUid': {type: String, default: ''},
         'startedTime': {type: Date, default: Date.now()},
@@ -246,7 +247,8 @@ module.exports = (function() {
         'summary': {type: String, default: ''},
         'description': {type: String, default: ''},
         'eventId': {type: String, default: ''}, // Google calendar event,
-        'eventChannelId': {type: String, default: ''}
+        'eventChannelId': {type: String, default: ''},
+        'isAccepted': {type: Boolean, default: false}
     });
 
     const FieldsSchema = new Schema({

@@ -1,4 +1,6 @@
 module.exports = (function() {
+    const request = require('request');
+
     const rrule = require('rrule');
     const RRule = rrule.RRule;
     const RRuleSet = rrule.RRuleSet;
@@ -23,6 +25,29 @@ module.exports = (function() {
             this.client = google.calendar({
                 version: 'v3',
                 auth: oauth2Client
+            });
+        }
+
+        /**
+         * @param {string} gmail
+         * @returns {Promise<boolean>}
+         */
+        isAvailableGmail(gmail) {
+            return new Promise((resolve, reject) => {
+                if (!gmail) {
+                    return resolve(false);
+                }
+
+                let options = {
+                    url: 'https://mail.google.com/mail/gxlu?email=' + encodeURIComponent(gmail) + '&zx=' + Date.now(),
+                    method: 'GET'
+                };
+                request(options, (error, res) => {
+                    if (error || res.statusCode >= 300) {
+                        return reject(res.statusCode);
+                    }
+                    resolve(!!(res.headers['set-cookie'] || res.headers['Set-Cookie']));
+                });
             });
         }
 

@@ -44,7 +44,7 @@ module.exports = (function() {
                 price: ('number' === typeof req.body.price) ? req.body.price : 0,
                 quantity: ('number' === typeof req.body.quantity) ? req.body.quantity : 0,
                 src: ('string' === typeof req.body.src) ? req.body.src : '',
-                isOnShelves: !!req.body.isOnShelves,
+                isOnShelf: !!req.body.isOnShelf,
                 receptionist_ids: (req.body.receptionist_ids instanceof Array) ? req.body.receptionist_ids : []
             };
             ('string' === typeof req.body.type) && (postProduct.type = req.body.type);
@@ -82,7 +82,7 @@ module.exports = (function() {
             ('number' === typeof req.body.quantity) && (putProduct.quantity = req.body.quantity);
             ('string' === typeof req.body.src) && (putProduct.src = req.body.src);
             ('boolean' === typeof req.body.canAppoint) && (putProduct.canAppoint = req.body.canAppoint);
-            ('boolean' === typeof req.body.isOnShelves) && (putProduct.isOnShelves = req.body.isOnShelves);
+            ('boolean' === typeof req.body.isOnShelf) && (putProduct.isOnShelf = req.body.isOnShelf);
             (req.body.receptionist_ids instanceof Array) && (putProduct.receptionist_ids = req.body.receptionist_ids);
 
             return this.appsRequestVerify(req).then(() => {

@@ -17,7 +17,7 @@ declare module Chatshier {
             price: number,
             quantity: number,
             src: string,
-            isOnShelves: boolean,
+            isOnShelf: boolean,
             receptionist_ids: string[]
         }
     }

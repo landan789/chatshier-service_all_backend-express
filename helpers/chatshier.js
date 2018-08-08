@@ -481,7 +481,11 @@ module.exports = (function() {
                             return Promise.resolve();
                         }
 
-                        return appsProductsMdl.find(appId, productIds, { 'products.type': 'APPOINTMENT' }).then((appsProducts) => {
+                        let query = {
+                            'products.type': 'APPOINTMENT',
+                            'products.isOnShelf': true
+                        };
+                        return appsProductsMdl.find(appId, productIds, query).then((appsProducts) => {
                             if (!(appsProducts && appsProducts[appId])) {
                                 repliedMessages.push(noProductsMessage);
                                 return Promise.resolve();
@@ -704,6 +708,14 @@ module.exports = (function() {
                                 thumbnailImageUrl: receptionist.photo || url + '/image/logo-no-transparent.png',
                                 actions: actions.slice()
                             };
+
+                            while (column.actions.length < 3) {
+                                column.actions.push({
+                                    type: 'postback',
+                                    label: '　',
+                                    data: 'none'
+                                });
+                            }
                             columns.push(column);
                             actions.length = 0;
                         }
@@ -764,6 +776,11 @@ module.exports = (function() {
 
                             availableTimes.push(start + ' ~ ' + end);
                             startTime = new Date(startTime.getTime() + serviceInterval);
+                        }
+
+                        if (0 === availableTimes.length) {
+                            repliedMessages.push(noTimeMessage);
+                            return;
                         }
 
                         // 預約時間數量有可能超過 3 個，因此每 3 筆資料切成一張卡片
@@ -944,10 +961,10 @@ module.exports = (function() {
                     let productId = payload.productId || '';
                     let receptionistId = payload.receptionistId || '';
                     let scheduleId = payload.scheduleId || '';
-                    let startedTime = payload.startedTime;
-                    let endedTime = payload.endedTime;
+                    let startedTimeStr = payload.startedTime;
+                    let endedTimeStr = payload.endedTime;
 
-                    let finishPromise = appsAppointmentsMdl.find(appId, appointmentId).then((appsAppointments) => {
+                    let finishPromise = appsAppointmentsMdl.find(appId, appointmentId, {}).then((appsAppointments) => {
                         if (appsAppointments && appsAppointments[appId]) {
                             let existedMessage = {
                                 type: 'text',
@@ -957,13 +974,20 @@ module.exports = (function() {
                             return;
                         }
 
+                        let _appointment = {
+                            _id: appointmentId,
+                            product_id: productId,
+                            receptionist_id: receptionistId,
+                            platformUid: platformUid
+                        };
+
                         return Promise.all([
                             appsMdl.find(appId),
                             appsProductsMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
                             appsReceptionistsMdl.find(appId, receptionistId),
                             appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false),
                             consumersMdl.find(platformUid),
-                            appsAppointmentsMdl.insert(appId, { _id: appointmentId })
+                            appsAppointmentsMdl.insert(appId, _appointment)
                         ]).then(([ apps, appsProducts, appsReceptionists, appsChatroomsMessagers, consumers ]) => {
                             if (!(apps && apps[appId]) ||
                                 !(appsProducts && appsProducts[appId]) ||
@@ -979,22 +1003,15 @@ module.exports = (function() {
                             let receptionist = appsReceptionists[appId].receptionists[receptionistId];
                             let messager = Object.values(appsChatroomsMessagers[appId].chatrooms)[0].messagers[platformUid];
                             let consumer = consumers[platformUid];
-                            let summary = consumer.name + ' 向您預約 ' + product.name;
+                            let summary = consumer.name + ' 向 ' + receptionist.name + ' 預約 ' + product.name;
                             let description = (
-                                '大頭貼: <a href="' + consumer.photo + '">連結</a>\n' +
+                                '大頭貼: <a href="' + consumer.photo + '" target="_blank">連結</a>\n' +
                                 '名稱: ' + consumer.name + '\n' +
                                 'Email: ' + messager.email + '\n' +
                                 '電話: ' + messager.phone + '\n' +
                                 '性別: ' + ('MALE' === messager.gender ? '男' : '女') + '\n' +
                                 '年齡: ' + messager.age + '\n'
                             );
-
-                            let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
-                            let schedule = receptionist.schedules[scheduleId];
-                            let startDateTime = new Date(schedule.start.dateTime);
-                            let endDateTime = new Date(schedule.end.dateTime);
-                            let startTimeLocal = new Date(startDateTime.getTime() - timezoneOffset);
-                            let appointDate = startTimeLocal.toISOString().split('T').shift();
 
                             return Promise.resolve().then(() => {
                                 let gcalendarId = app.gcalendarId;
@@ -1022,6 +1039,17 @@ module.exports = (function() {
                                     email: messager.email
                                 });
 
+                                let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                                let schedule = receptionist.schedules[scheduleId];
+                                let startDateTime = new Date(schedule.start.dateTime);
+                                let startTimeLocal = new Date(startDateTime.getTime() - timezoneOffset);
+                                let appointDate = startTimeLocal.toISOString().split('T').shift();
+                                startTimeLocal = new Date(appointDate + ' ' + startedTimeStr);
+                                startTimeLocal = new Date(startTimeLocal.getTime() + timezoneOffset);
+
+                                let endTimeLocal = new Date(appointDate + ' ' + endedTimeStr);
+                                let endDateTime = new Date(endTimeLocal.getTime() + timezoneOffset);
+
                                 return gcalendarHlp.insertEvent(gcalendarId, {
                                     summary: summary,
                                     description: description,
@@ -1030,19 +1058,18 @@ module.exports = (function() {
                                     attendees: attendees
                                 }).then((gcalendarEvent) => {
                                     let webhookUrl = webhookInfo.serverAddress + '/webhook-google/gcalendar/events/apps/' + appId;
-                                    return gcalendarHlp.watchEvent(gcalendarId, gcalendarEvent.id, webhookUrl).then((channel) => {
-                                        let _appointment = {
-                                            product_id: productId,
-                                            receptionist_id: receptionistId,
-                                            platformUid: platformUid,
-                                            startedTime: new Date(schedule.start.dateTime).getTime(),
-                                            endedTime: new Date(schedule.end.dateTime).getTime(),
-                                            eventId: gcalendarEvent.id,
-                                            eventChannelId: channel.resourceId,
-                                            summary: gcalendarEvent.summary,
-                                            description: gcalendarEvent.description
-                                        };
-                                        return appsAppointmentsMdl.update(appId, appointmentId, _appointment);
+                                    let _appointment = {
+                                        startedTime: startDateTime,
+                                        endedTime: endDateTime,
+                                        eventId: gcalendarEvent.id,
+                                        summary: gcalendarEvent.summary,
+                                        description: gcalendarEvent.description
+                                    };
+                                    return Promise.all([
+                                        gcalendarHlp.watchEvent(gcalendarId, gcalendarEvent.id, webhookUrl),
+                                        appsAppointmentsMdl.update(appId, appointmentId, _appointment)
+                                    ]).then(([ channel ]) => {
+                                        return appsAppointmentsMdl.update(appId, appointmentId, { eventChannelId: channel.resourceId });
                                     }).then((appsAppointments) => {
                                         if (!(appsAppointments && appsAppointments[appId])) {
                                             let failedMessage = {
@@ -1063,7 +1090,7 @@ module.exports = (function() {
                                                 '時間為:\n' +
                                                 '\n' +
                                                 '【' + appointDate + '】\n' +
-                                                '【' + startedTime + ' ~ ' + endedTime + '】\n' +
+                                                '【' + startedTimeStr + ' ~ ' + endedTimeStr + '】\n' +
                                                 '\n' +
                                                 '感謝您的預約！'
                                             )

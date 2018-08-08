@@ -53,6 +53,11 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then(() => {
+                return gcalendarHlp.isAvailableGmail(postReceptionist.email);
+            }).then((isAvailable) => {
+                if (!isAvailable) {
+                    return Promise.reject(API_ERROR.UNAVAILABLE_GMAIL);
+                }
                 return appsReceptionistsMdl.insert(appId, postReceptionist);
             }).then((appsReceptionists) => {
                 if (!appsReceptionists) {
@@ -89,8 +94,16 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 if (0 === Object.keys(putReceptionist).length) {
                     return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                } else if (putReceptionist.email) {
+                    return gcalendarHlp.isAvailableGmail(putReceptionist.email).then((isAvailable) => {
+                        if (!isAvailable) {
+                            return Promise.reject(API_ERROR.UNAVAILABLE_GMAIL);
+                        }
+                        return Promise.resolve();
+                    });
                 }
-
+                return Promise.resolve();
+            }).then(() => {
                 if (shareTo) {
                     /** @type {Chatshier.Models.Receptionist} */
                     let receptionist;

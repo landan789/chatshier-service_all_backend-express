@@ -5,7 +5,6 @@
  * @link http://idangero.us/swiper/api/
  */
 window.TemplateBuilder = (function() {
-
     const KILO_BYTE = 1024;
     const MEGA_BYTE = KILO_BYTE * 1024;
     const MAX_TEMPLATE_CARD = 10;

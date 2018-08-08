@@ -5,8 +5,8 @@ module.exports = (function() {
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
+    const appsMdl = require('../models/apps');
     const appsAppointmentsMdl = require('../models/apps_appointments');
-    const appsReceptionistsMdl = require('../models/apps_receptionists');
     const gcalendarHlp = require('../helpers/gcalendar');
 
     class AppsAppointmentsController extends ControllerCore {
@@ -122,19 +122,17 @@ module.exports = (function() {
 
                 let eventId = appointment.eventId;
                 let resourceId = appointment.eventChannelId;
-                let receptionistId = appointment.receptionist_id;
 
                 return Promise.all([
-                    appsReceptionistsMdl.find(appId, receptionistId),
+                    appsMdl.find(appId),
                     eventId && resourceId && gcalendarHlp.stopChannel(eventId, resourceId)
-                ]).then(([ appsReceptionists ]) => {
-                    if (!appsReceptionists) {
-                        return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                ]).then(([ apps ]) => {
+                    if (!(apps && apps[appId])) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                     }
 
-                    let appReceptionists = appsReceptionists[appId] || { receptionists: {} };
-                    let receptionist = appReceptionists.receptionists[receptionistId];
-                    let gcalendarId = receptionist ? receptionist.gcalendarId : '';
+                    let app = apps[appId];
+                    let gcalendarId = app.gcalendarId;
                     return Promise.all([
                         appsAppointmentsMdl.remove(appId, appointmentId),
                         gcalendarId && eventId && gcalendarHlp.deleteEvent(gcalendarId, eventId)
