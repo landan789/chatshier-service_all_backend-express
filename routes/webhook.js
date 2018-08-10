@@ -217,6 +217,7 @@ router.post('/:webhookid', (req, res, next) => {
 
                     return Promise.resolve().then(() => {
                         let platformGroupId = webhookInfo.platformGroupId;
+                        console.log(platformGroupId);
                         if (!platformGroupId) {
                             return Promise.resolve(null);
                         }
@@ -249,6 +250,7 @@ router.post('/:webhookid', (req, res, next) => {
                         let platformUid = webhookInfo.platformUid;
 
                         return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid, !!groupChatroom).then((appsChatroomsMessagers) => {
+                            console.log(JSON.stringify(appsChatroomsMessagers, void 0, 4));
                             // 如果平台用戶已屬於某個聊天室中並已存在，則直接與用其 messager 資訊
                             if (appsChatroomsMessagers && appsChatroomsMessagers[appId]) {
                                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -292,6 +294,7 @@ router.post('/:webhookid', (req, res, next) => {
                             }
 
                             return Promise.resolve().then(() => {
+                                console.log(JSON.stringify(groupChatroom, void 0, 4));
                                 if (!groupChatroom) {
                                     // 如果是非平台群組聊天室(單一 consumer)的話
                                     // 首次聊天室自動為其建立聊天室
