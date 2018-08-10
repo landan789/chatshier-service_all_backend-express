@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -22,7 +22,7 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsTicketsMdl.find(appIds).then((appsTickets) => {
                     if (!appsTickets) {
-                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsTickets);
                 });
@@ -44,7 +44,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsTicketsMdl.find(appId, ticketId).then((appsTickets) => {
                     if (!(appsTickets && appsTickets[appId])) {
-                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsTickets);
                 });
@@ -73,7 +73,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsTicketsMdl.insert(appId, postTikeck).then((appsTickets) => {
                     if (!(appsTickets && appsTickets[appId])) {
-                        return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_TICKET_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(appsTickets);
                 });
@@ -102,23 +102,23 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!ticketId) {
-                    return Promise.reject(API_ERROR.TICKETID_WAS_EMPTY);
+                    return Promise.reject(ERROR.TICKETID_WAS_EMPTY);
                 }
                 return appsTicketsMdl.find(appId);
             }).then((appTickets) => {
                 if (!(appTickets && appTickets[appId])) {
-                    return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_TICKET_FAILED_TO_FIND);
                 }
 
                 // 判斷 tickets 中是否有目前 ticketId
                 let tickets = appTickets[appId].tickets;
                 if (!tickets[ticketId]) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
+                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
                 }
 
                 return appsTicketsMdl.update(appId, ticketId, putTikcket).then((appsTickets) => {
                     if (!(appsTickets && appsTickets[appId])) {
-                        return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.APP_TICKET_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(appsTickets);
                 });
@@ -139,24 +139,24 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!ticketId) {
-                    return Promise.reject(API_ERROR.TICKETID_WAS_EMPTY);
+                    return Promise.reject(ERROR.TICKETID_WAS_EMPTY);
                 }
                 // 取得目前 appId 下所有 tickets
                 return appsTicketsMdl.find(appId);
             }).then((appTickets) => {
                 if (!(appTickets && appTickets[appId])) {
-                    return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_TICKET_FAILED_TO_FIND);
                 }
 
                 // 判斷 tickets 中是否有目前 ticketId
                 let tickets = appTickets[appId].tickets;
                 if (!tickets[ticketId]) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
+                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
                 }
 
                 return appsTicketsMdl.remove(appId, ticketId).then((appsTickets) => {
                     if (!(appsTickets && appsTickets[appId])) {
-                        return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_TICKET_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsTickets);
                 });

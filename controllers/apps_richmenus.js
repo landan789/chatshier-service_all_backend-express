@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -24,7 +24,7 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsRichmenusMdl.find(appIds).then((appsRichmenus) => {
                     if (!appsRichmenus) {
-                        return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsRichmenus);
                 });
@@ -45,28 +45,28 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(API_ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
                 }
 
                 if (!richmenuId) {
-                    return Promise.reject(API_ERROR.RICHMENUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);
                 }
 
                 return appsRichmenusMdl.findRichmenus(appId).then((richmenus) => {
                     if (!richmenus) {
-                        return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_FIND);
                     }
 
                     // 判斷 richmenus 中是否有目前 richmenuId
                     if (!richmenus[richmenuId]) {
-                        return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
+                        return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
                     }
                     return Promise.resolve(richmenus);
                 });
             }).then(() => {
                 return appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
-                        return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsRichmenus);
                 });
@@ -112,12 +112,12 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(API_ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
                 }
 
                 if (!postRichmenu.platformMenuId) {
                     if (!(richmentImgFile && richmentImgFileName)) {
-                        return Promise.reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
+                        return Promise.reject(ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
                     }
 
                     // 將上傳的圖像檔案 stream 讀取成 buffer 後釋放 stream 資源
@@ -127,7 +127,7 @@ module.exports = (function() {
                         let fileSize = fileBinary.length / (1024 * 1024);
                         // 限定 richmenu 的圖檔大小在 1 MB 以下
                         if (fileSize > 1) {
-                            return Promise.reject(API_ERROR.BOT_UPLOAD_IMAGE_TOO_LARGE);
+                            return Promise.reject(ERROR.BOT_UPLOAD_IMAGE_TOO_LARGE);
                         }
                         return storageHlp.filesUpload(tempFilePath, fileBinary);
                     }).then(() => {
@@ -159,7 +159,7 @@ module.exports = (function() {
             }).then(() => {
                 return appsRichmenusMdl.insert(appId, postRichmenu).then((appsRichmenus) => {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
-                        return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(appsRichmenus);
                 });
@@ -208,22 +208,22 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(API_ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
                 }
 
                 if (!richmenuId) {
-                    return Promise.reject(API_ERROR.RICHMENUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);
                 }
                 return appsRichmenusMdl.find(appId, richmenuId);
             }).then((appsRichmenus) => {
                 if (!(appsRichmenus && appsRichmenus[appId])) {
-                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
 
                 // 判斷 richmenus 中是否有目前 richmenuId
                 let richmenu = appsRichmenus[appId].richmenus[richmenuId];
                 if (!richmenu) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
+                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
                 }
 
                 putRichmenu.size = putRichmenu.size || richmenu.size;
@@ -243,7 +243,7 @@ module.exports = (function() {
                         let fileSize = fileBinary.length / (1024 * 1024);
                         // 限定 richmenu 的圖檔大小在 1 MB 以下
                         if (fileSize > 1) {
-                            return Promise.reject(API_ERROR.BOT_UPLOAD_IMAGE_TOO_LARGE);
+                            return Promise.reject(ERROR.BOT_UPLOAD_IMAGE_TOO_LARGE);
                         }
 
                         let fileNameSplits = richmentImgFileName.split('.');
@@ -285,7 +285,7 @@ module.exports = (function() {
                 // 更新目前 richmenu
                 return appsRichmenusMdl.update(appId, richmenuId, putRichmenu).then((appsRichmenus) => {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
-                        return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(appsRichmenus);
                 });
@@ -306,22 +306,22 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(API_ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
                 }
 
                 if (!richmenuId) {
-                    return Promise.reject(API_ERROR.RICHMENUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);
                 }
                 return appsRichmenusMdl.findRichmenus(appId);
             }).then((richmenus) => {
                 if (!richmenus) {
-                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
 
                 // 判斷 richmenus 中是否有目前 richmenuId
                 let richmenu = richmenus[richmenuId];
                 if (!richmenu) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
+                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
                 }
 
                 let platformMenuId = richmenu.platformMenuId;
@@ -337,7 +337,7 @@ module.exports = (function() {
                 // 刪除目前 richmenu
                 return appsRichmenusMdl.remove(appId, richmenuId).then((appsRichmenus) => {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
-                        return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsRichmenus);
                 });

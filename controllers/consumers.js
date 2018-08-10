@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -22,7 +22,7 @@ module.exports = (function() {
                 return appsChatroomsMessagersMdl.find(appIds);
             }).then((appsChatroomsMessagers) => {
                 if (!appsChatroomsMessagers) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                 }
 
                 let platformUids = [];
@@ -39,7 +39,7 @@ module.exports = (function() {
 
                 return consumersMdl.find(platformUids).then((consumers) => {
                     if (!consumers) {
-                        return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.CONSUMER_FAILED_TO_FIND);
                     }
                     return Promise.resolve(consumers);
                 });
@@ -60,7 +60,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return consumersMdl.find(platformUid).then((consumers) => {
                     if (!consumers) {
-                        return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.CONSUMER_FAILED_TO_FIND);
                     }
                     return Promise.resolve(consumers);
                 });
@@ -90,12 +90,12 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!platformUid) {
-                    return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.PLATFORMUID_WAS_EMPTY);
                 }
 
                 return consumersMdl.replace(platformUid, consumer).then((consumers) => {
                     if (!consumers) {
-                        return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.CONSUMER_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(consumers);
                 });

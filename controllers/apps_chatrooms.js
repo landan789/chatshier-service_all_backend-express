@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -23,7 +23,7 @@ module.exports = (function() {
                 // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Chatrooms
                 return appsChatroomsMdl.find(appIds).then((appsChatrooms) => {
                     if (!appsChatrooms) {
-                        return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsChatrooms);
                 });
@@ -47,13 +47,13 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (0 === Object.keys(chatroom).length) {
-                    return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                    return Promise.reject(ERROR.INVALID_REQUEST_BODY_DATA);
                 }
                 return this.appsRequestVerify(req);
             }).then(() => {
                 return appsChatroomsMdl.update(appId, chatroomId, chatroom).then((appsChatrooms) => {
                     if (!appsChatrooms || (appsChatrooms && 0 === Object.keys(appsChatrooms).length)) {
-                        return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(appsChatrooms);
                 });

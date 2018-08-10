@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -29,7 +29,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     calendarsEventsMdl.find(calendarIds, eventId, (calendars) => {
                         if (!calendars) {
-                            reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_FIND);
+                            reject(ERROR.CALENDAR_EVENT_FAILED_TO_FIND);
                             return;
                         }
                         resolve(calendars);
@@ -60,7 +60,7 @@ module.exports = (function() {
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     if ('' === userId || null === userId || undefined === userId) {
-                        reject(API_ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USERID_WAS_EMPTY);
                         return;
                     }
                     resolve();
@@ -69,7 +69,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     userMdl.findCalendarId(userId, (calendarIds) => {
                         if (!calendarIds) {
-                            reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_INSERT);
+                            reject(ERROR.CALENDAR_EVENT_FAILED_TO_INSERT);
                             return;
                         };
                         // 首次插入資料時不會有 calendarIds
@@ -80,7 +80,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     calendarsEventsMdl.insert(calendarIds, event, (calendarsEvents) => {
                         if (!calendarsEvents) {
-                            reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_INSERT);
+                            reject(ERROR.CALENDAR_EVENT_FAILED_TO_INSERT);
                             return;
                         }
 
@@ -91,7 +91,7 @@ module.exports = (function() {
                             };
                             userMdl.update(userId, user, (users) => {
                                 if (!users || (users && 0 === Object.keys(users).length)) {
-                                    reject(API_ERROR.USER_FAILED_TO_UPDATE);
+                                    reject(ERROR.USER_FAILED_TO_UPDATE);
                                     return;
                                 }
                                 resolve(calendarsEvents);
@@ -130,17 +130,17 @@ module.exports = (function() {
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     if ('' === userId || null === userId || undefined === userId) {
-                        reject(API_ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USERID_WAS_EMPTY);
                         return;
                     }
 
                     if ('' === calendarId || null === calendarId || undefined === calendarId) {
-                        reject(API_ERROR.CALENDARID_WAS_EMPTY);
+                        reject(ERROR.CALENDARID_WAS_EMPTY);
                         return;
                     }
 
                     if ('' === eventId || null === eventId || undefined === eventId) {
-                        reject(API_ERROR.EVENTID_WAS_EMPTY);
+                        reject(ERROR.EVENTID_WAS_EMPTY);
                         return;
                     }
 
@@ -154,7 +154,7 @@ module.exports = (function() {
                         };
                         let calendarIds = userCalendarId || [];
                         if (!calendarIds.includes(calendarId)) {
-                            reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
+                            reject(ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                             return;
                         }
                         resolve();
@@ -192,7 +192,7 @@ module.exports = (function() {
                         };
                         let calendarIds = userCalendarId || [];
                         if (!calendarIds.includes(calendarId)) {
-                            reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
+                            reject(ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                             return;
                         }
                         resolve();
@@ -202,7 +202,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     calendarsEventsMdl.remove(calendarId, eventId, (result) => {
                         if (!result) {
-                            reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_REMOVE);
+                            reject(ERROR.CALENDAR_EVENT_FAILED_TO_REMOVE);
                             return;
                         }
                         let calendarsEvents = result;

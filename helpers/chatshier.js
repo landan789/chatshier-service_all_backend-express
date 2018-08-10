@@ -1,6 +1,6 @@
 module.exports = (function() {
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     const GenericTemplateBuilder = require('facebook-bot-messenger').GenericTemplateBuilder;
 
     const appsGreetingsMdl = require('../models/apps_greetings');
@@ -85,7 +85,7 @@ module.exports = (function() {
 
                         return appsAutorepliesMdl.findAutoreplies(appId).then((_autoreplies) => {
                             if (!_autoreplies) {
-                                return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                                return Promise.reject(ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                             }
 
                             let timeNow = Date.now();

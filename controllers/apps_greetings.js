@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -22,7 +22,7 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsGreetingsMdl.find(appIds).then((appsGreetings) => {
                     if (!appsGreetings) {
-                        return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_GREETING_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsGreetings);
                 });
@@ -43,12 +43,12 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!greetingId) {
-                    return Promise.reject(API_ERROR.GREETINGID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GREETINGID_WAS_EMPTY);
                 }
 
                 return appsGreetingsMdl.find(appId, greetingId).then((appsGreetings) => {
                     if (!(appsGreetings && appsGreetings[appId])) {
-                        return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_GREETING_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsGreetings);
                 });
@@ -76,7 +76,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsGreetingsMdl.insert(appId, postGreeting).then((appsGreetings) => {
                     if (!(appsGreetings && appsGreetings[appId])) {
-                        return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_GREETING_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(appsGreetings);
                 });
@@ -104,12 +104,12 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!greetingId) {
-                    return Promise.reject(API_ERROR.GREETINGID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GREETINGID_WAS_EMPTY);
                 }
 
                 return appsGreetingsMdl.update(appId, greetingId, putGreeting).then((appsGreetings) => {
                     if (!(appsGreetings && appsGreetings[appId])) {
-                        return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_GREETING_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(appsGreetings);
                 });
@@ -130,12 +130,12 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!greetingId) {
-                    return Promise.reject(API_ERROR.GREETINGID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GREETINGID_WAS_EMPTY);
                 }
 
                 return appsGreetingsMdl.remove(appId, greetingId).then((appsGreetings) => {
                     if (!(appsGreetings && appsGreetings[appId])) {
-                        return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_GREETING_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsGreetings);
                 });

@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -35,7 +35,7 @@ module.exports = (function() {
                 if (!app) {
                     return appsMdl.find(appId).then((apps) => {
                         if (!(apps && apps[appId])) {
-                            return Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APPS_FAILED_TO_FIND);
                         }
                         return Promise.resolve(apps[appId]);
                     });
@@ -91,7 +91,7 @@ module.exports = (function() {
                 return appsRichmenusMdl.find(appId, richmenuId);
             }).then((appsRichmenus) => {
                 if (!(appsRichmenus && appsRichmenus[appId])) {
-                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
                 activateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
 
@@ -99,7 +99,7 @@ module.exports = (function() {
                 // 沒有設定好 image 的 richmenu 無法被啟用
                 return botSvc.getRichMenuImage(activateRichmenu.platformMenuId, appId).then((imageBuffer) => {
                     if (!imageBuffer) {
-                        return Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.BOT_MENU_IMAGE_FAILED_TO_FIND);
                     }
 
                     if (!activateRichmenu.src) {
@@ -115,7 +115,7 @@ module.exports = (function() {
 
                     return Promise.resolve(imageBuffer);
                 }).catch(() => {
-                    return Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.BOT_MENU_IMAGE_FAILED_TO_FIND);
                 });
             }).then(() => {
                 // 查找是否已經有預設啟用的 richmenu
@@ -127,7 +127,7 @@ module.exports = (function() {
                 return appsRichmenusMdl.update(appId, richmenuId, putRichmenu);
             }).then((appsRichmenus) => {
                 if (!(appsRichmenus && appsRichmenus[appId])) {
-                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
+                    return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
                 }
                 activateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
 
@@ -138,7 +138,7 @@ module.exports = (function() {
                     // 取出此 app 底下所有聊天室的 platformUid
                     return appsMdl.find(appId).then((apps) => {
                         if (!(apps && apps[appId])) {
-                            return Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APPS_FAILED_TO_FIND);
                         }
                         let app = apps[appId];
                         return Promise.all([ app, this._findPlatformUids(appId, app) ]);
@@ -147,7 +147,7 @@ module.exports = (function() {
                         return Promise.all(platformUids.map((platformUid) => {
                             return botSvc.linkRichMenuToUser(platformUid, platformMenuId, appId, app).then((resJson) => {
                                 if (!resJson) {
-                                    return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                                    return Promise.reject(ERROR.BOT_MENU_FAILED_TO_LINK);
                                 }
                                 return Promise.resolve();
                             });
@@ -183,14 +183,14 @@ module.exports = (function() {
                 return appsRichmenusMdl.find(appId, richmenuId);
             }).then((appsRichmenus) => {
                 if (!(appsRichmenus && appsRichmenus[appId])) {
-                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
 
                 deactivateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
                 return appsRichmenusMdl.update(appId, richmenuId, { isActivated: false, isDefault: false });
             }).then((appsRichmenus) => {
                 if (!(appsRichmenus && appsRichmenus[appId])) {
-                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
+                    return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
                 }
                 let isDefault = deactivateRichmenu.isDefault;
                 deactivateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
@@ -219,7 +219,7 @@ module.exports = (function() {
 
                     return appsMdl.find(appId).then((apps) => {
                         if (!(apps && apps[appId])) {
-                            return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                         }
                         app = apps[appId];
                         return this._findPlatformUids(appId, app);
@@ -242,11 +242,11 @@ module.exports = (function() {
                             });
                         }).then((resJson) => {
                             if (!resJson) {
-                                return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                                return Promise.reject(ERROR.BOT_MENU_FAILED_TO_LINK);
                             }
                             return Promise.resolve();
                         }).catch(() => {
-                            return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                            return Promise.reject(ERROR.BOT_MENU_FAILED_TO_LINK);
                         });
                     }));
                 });
@@ -281,7 +281,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsMdl.find(appId).then((apps) => {
                     if (!(apps && apps[appId])) {
-                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                     }
                     app = apps[appId];
                     return this._findPlatformUids(appId, app);
@@ -301,7 +301,7 @@ module.exports = (function() {
                 return appsRichmenusMdl.find(appId, richmenuId);
             }).then((appsRichmenus) => {
                 if (!(appsRichmenus && appsRichmenus[appId])) {
-                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
                 let activateRichmenu = appsRichmenus[appId].richmenus[richmenuId];
 
@@ -320,7 +320,7 @@ module.exports = (function() {
                         return {};
                     }).then((resJson) => {
                         if (!resJson) {
-                            return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                            return Promise.reject(ERROR.BOT_MENU_FAILED_TO_LINK);
                         }
                         return Promise.resolve();
                     });
@@ -360,14 +360,14 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!appId) {
-                    return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APPID_WAS_EMPTY);
                 } else if (!platformUid) {
-                    return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.PLATFORMUID_WAS_EMPTY);
                 }
 
                 return appsMdl.find(appId).then((apps) => {
                     if (!apps) {
-                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                     }
                     return Promise.resolve(apps);
                 });
@@ -417,7 +417,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!(file && fileName)) {
-                    return Promise.reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
+                    return Promise.reject(ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
                 }
                 return storageHlp.filesUpload(originalFilePath, file);
             }).then((response) => {

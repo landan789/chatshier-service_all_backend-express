@@ -1,6 +1,6 @@
 module.exports = (function() {
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     const SOCKET_EVENTS = require('../config/socket-events');
 
     const LineBotSdk = require('@line/bot-sdk');
@@ -156,7 +156,7 @@ module.exports = (function() {
                             };
                             return appsMdl.update(appId, putApp).then((apps) => {
                                 if (!apps) {
-                                    callback(API_ERROR.APP_FAILED_TO_UPDATE);
+                                    callback(ERROR.APP_FAILED_TO_UPDATE);
                                     return;
                                 }
                                 callback();
@@ -272,7 +272,7 @@ module.exports = (function() {
                     if (isUnfollowed) {
                         return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, webhookInfo.platformUid).then((appsChatroomsMessagers) => {
                             if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                                return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                             }
 
                             let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -284,13 +284,13 @@ module.exports = (function() {
                             return Promise.all(Object.keys(chatrooms).map((_chatroomId) => {
                                 return appsChatroomsMessagersMdl.updateByPlatformUid(appId, _chatroomId, webhookInfo.platformUid, putMessagers).then((_appsChatroomsMessagers) => {
                                     if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                                     }
                                     platformMessager = _appsChatroomsMessagers[appId].chatrooms[_chatroomId].messagers[webhookInfo.platformUid];
                                     return appsChatroomsMessagersMdl.find(appId, _chatroomId, void 0, CHATSHIER);
                                 }).then((_appsChatroomsMessagers) => {
                                     if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                                     }
 
                                     let chatroom = _appsChatroomsMessagers[appId].chatrooms[_chatroomId];
@@ -329,7 +329,7 @@ module.exports = (function() {
                                     };
                                     return appsChatroomsMdl.insert(appId, chatroom).then((_appsChatrooms) => {
                                         if (!(_appsChatrooms && _appsChatrooms[appId])) {
-                                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
+                                            return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
                                         }
                                         return Promise.resolve(_appsChatrooms);
                                     });
@@ -345,7 +345,7 @@ module.exports = (function() {
                                 if (chatroom.isDeleted) {
                                     return appsChatroomsMdl.update(appId, chatroomId, { isDeleted: false }).then((_appsChatrooms) => {
                                         if (!(_appsChatrooms && _appsChatrooms[appId])) {
-                                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
+                                            return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
                                         }
                                         chatroom = _appsChatrooms[appId].chatrooms[chatroomId];
                                         return Promise.resolve(chatroom);
@@ -373,7 +373,7 @@ module.exports = (function() {
                                             }
 
                                             if (!consumers) {
-                                                return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                                                return Promise.reject(ERROR.CONSUMER_FAILED_TO_FIND);
                                             }
 
                                             let consumer = consumers[platformUid];
@@ -774,7 +774,7 @@ module.exports = (function() {
                             if (FACEBOOK_OAUTH_EXCEPTION === ex.error.code) {
                                 return appsMdl.remove(appId).then((apps) => {
                                     if (!apps || (apps && 0 === Object.keys(apps).length)) {
-                                        return Promise.reject(API_ERROR.APP_FAILED_TO_REMOVE);
+                                        return Promise.reject(ERROR.APP_FAILED_TO_REMOVE);
                                     }
                                     return Promise.resolve();
                                 });
@@ -1636,7 +1636,7 @@ module.exports = (function() {
                 apps = apps || {};
                 let app = apps[appId];
                 if (!app) {
-                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                 }
 
                 if (LINE === app.type) {
@@ -1646,7 +1646,7 @@ module.exports = (function() {
                         return appsChatroomsMdl.find(appId, chatroomId);
                     }).then((appsChatrooms) => {
                         if (!(appsChatrooms && appsChatrooms[appId])) {
-                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_FIND);
                         }
 
                         let chatroom = appsChatrooms[appId].chatrooms[chatroomId];
@@ -1688,7 +1688,7 @@ module.exports = (function() {
                 if (!app) {
                     return appsMdl.find(appId).then((apps) => {
                         if (!(apps && apps[appId])) {
-                            return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                         }
                         return Promise.resolve(apps[appId]);
                     });

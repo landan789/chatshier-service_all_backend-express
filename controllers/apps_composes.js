@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -22,7 +22,7 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsComposesMdl.find(appIds).then((appsComposes) => {
                     if (!appsComposes) {
-                        return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_COMPOSE_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsComposes);
                 });
@@ -44,7 +44,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsComposesMdl.find(appId, composeId).then((appsComposes) => {
                     if (!(appsComposes && appsComposes[appId])) {
-                        return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_COMPOSE_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsComposes);
                 });
@@ -77,13 +77,13 @@ module.exports = (function() {
             return Promise.resolve().then(() => {
                 // 檢查欲更新的群發發送時間比現在的時間還早的話不允許新增
                 if (!isImmediately && (!postCompose.time || new Date(postCompose.time).getTime() < Date.now())) {
-                    return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
+                    return Promise.reject(ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
                 }
 
                 return this.appsRequestVerify(req).then(() => {
                     return appsComposesMdl.insert(appId, postCompose).then((appsComposes) => {
                         if (!appsComposes || (appsComposes && 0 === Object.keys(appsComposes).length)) {
-                            return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_COMPOSE_FAILED_TO_FIND);
                         }
                         return Promise.resolve(appsComposes);
                     });
@@ -116,17 +116,17 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!composeId) {
-                    return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.COMPOSEID_WAS_EMPTY);
                 }
 
                 // 檢查欲更新的群發發送時間比現在的時間還早的話不允許更新
                 if (!isImmediately && putCompose.status && (!putCompose.time || new Date(putCompose.time).getTime() < Date.now())) {
-                    return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
+                    return Promise.reject(ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
                 }
 
                 return appsComposesMdl.update(appId, composeId, putCompose).then((_appsComposes) => {
                     if (!_appsComposes) {
-                        return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.APP_COMPOSE_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(_appsComposes);
                 });
@@ -147,23 +147,23 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!composeId) {
-                    return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.COMPOSEID_WAS_EMPTY);
                 };
                 return appsComposesMdl.find(appId, composeId);
             }).then((appsComposes) => {
                 if (!appsComposes) {
-                    return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_COMPOSE_FAILED_TO_FIND);
                 }
 
                 let app = appsComposes[appId];
                 let compose = app.composes[composeId];
                 if (true === compose.status && new Date(compose.time).getTime() < new Date().getTime()) {
-                    return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
+                    return Promise.reject(ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
                 }
 
                 return appsComposesMdl.remove(appId, composeId).then((appsCompose) => {
                     if (!appsCompose) {
-                        return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_COMPOSE_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsCompose);
                 });

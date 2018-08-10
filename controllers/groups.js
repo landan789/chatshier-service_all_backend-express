@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -32,13 +32,13 @@ module.exports = (function() {
             let proceed = Promise.resolve();
             proceed.then(() => {
                 if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
-                    return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
                 };
 
                 return new Promise((resolve, reject) => {
                     usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
-                            reject(API_ERROR.USER_FAILED_TO_FIND);
+                            reject(ERROR.USER_FAILED_TO_FIND);
                             return;
                         }
                         resolve(users[userId]);
@@ -49,7 +49,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(groupIds, req.params.userid, (groups) => {
                         if (!groups) {
-                            reject(API_ERROR.GROUP_FAILED_TO_FIND);
+                            reject(ERROR.GROUP_FAILED_TO_FIND);
                             return;
                         }
                         resolve(groups);
@@ -74,21 +74,21 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
                 } else if (!postGroup.name) {
-                    return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
+                    return Promise.reject(ERROR.NAME_WAS_EMPTY);
                 }
 
                 return usersMdl.find(userId).then((users) => {
                     if (!users) {
-                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.USER_FAILED_TO_FIND);
                     }
                     return Promise.resolve(users[userId]);
                 });
             }).then((user) => {
                 return groupsMdl.insert(userId, postGroup).then((groups) => {
                     if (!groups) {
-                        return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(groups);
                 }).then((groups) => {
@@ -114,20 +114,20 @@ module.exports = (function() {
                         return appsMdl.insert(postApp);
                     }).then((apps) => {
                         if (!apps || (apps && 0 === Object.keys(apps).length)) {
-                            return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
+                            return Promise.reject(ERROR.APP_FAILED_TO_INSERT);
                         }
                         let appId = Object.keys(apps).shift() || '';
 
                         // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
                         return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
                             if (!appsChatrooms) {
-                                return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                                return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
                             }
 
                             // 將預設的客戶分類條件資料新增至 App 中
                             return appsFieldsMdl.insertDefaultFields(appId).then((appsFields) => {
                                 if (!appsFields) {
-                                    return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
+                                    return Promise.reject(ERROR.APP_FAILED_TO_INSERT);
                                 }
                                 return Promise.resolve(appsFields);
                             });
@@ -164,20 +164,20 @@ module.exports = (function() {
 
             Promise.resolve().then(() => {
                 if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
-                    return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
                 };
 
                 if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
-                    return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
                 };
                 if (0 === Object.keys(putGroup).length) {
-                    return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                    return Promise.reject(ERROR.INVALID_REQUEST_BODY_DATA);
                 };
 
                 return new Promise((resolve, reject) => {
                     usersMdl.find(userId, void 0, (users) => {
                         if (!users) {
-                            reject(API_ERROR.USER_FAILED_TO_FIND);
+                            reject(ERROR.USER_FAILED_TO_FIND);
                             return;
                         }
                         resolve(users[userId]);
@@ -187,13 +187,13 @@ module.exports = (function() {
                 let groupIds = user.group_ids;
                 let index = groupIds.indexOf(groupId);
                 if (0 > index) {
-                    return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                 }
 
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(groupId, req.params.userid, (groups) => {
                         if (!groups) {
-                            reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
+                            reject(ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                             return;
                         }
                         resolve(groups);
@@ -211,13 +211,13 @@ module.exports = (function() {
                 // member 當下 userid 在此 group 對應到的 群組成員
                 let member = Object.values(members)[index];
                 if (READ === member.type) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP);
+                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP);
                 };
 
                 return new Promise((resolve, reject) => {
                     groupsMdl.update(groupId, putGroup, (groups) => {
                         if (!groups) {
-                            reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
+                            reject(ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
                             return;
                         }
                         resolve(groups);
@@ -229,11 +229,11 @@ module.exports = (function() {
                 return groupsMdl.findAppIds(groupId, userId);
             }).then((appIds) => {
                 if (!appIds) {
-                    return Promise.reject(API_ERROR.APPID_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APPID_FAILED_TO_FIND);
                 }
                 return appsMdl.find(appIds).then((apps) => {
                     if (!apps) {
-                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                     }
                     return Promise.resolve(apps);
                 });
@@ -249,7 +249,7 @@ module.exports = (function() {
                         return new Promise((resolve, reject) => {
                             appsMdl.update(appId, putApp).then((app) => {
                                 if (!app) {
-                                    reject(API_ERROR.APP_FAILED_TO_UPDATE);
+                                    reject(ERROR.APP_FAILED_TO_UPDATE);
                                     return;
                                 }
                                 resolve();

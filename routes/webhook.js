@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 
 const SOCKET_EVENTS = require('../config/socket-events');
 /** @type {any} */
-const API_ERROR = require('../config/api_error.json');
+const ERROR = require('../config/api_error.json');
 
 const chatshierHlp = require('../helpers/chatshier');
 const storageHlp = require('../helpers/storage');
@@ -68,7 +68,7 @@ router.post('/:webhookid', (req, res, next) => {
 
     let webhookPromise = Promise.all(webhookProcQueue).then(() => {
         if (!webhookid) {
-            return Promise.reject(API_ERROR.WEBHOOKID_WAS_EMPTY);
+            return Promise.reject(ERROR.WEBHOOKID_WAS_EMPTY);
         }
 
         let apps;
@@ -105,7 +105,7 @@ router.post('/:webhookid', (req, res, next) => {
 
                     // 如果發送者與接收者的其中資料缺一，代表 webhook 傳過來的資料有誤
                     if (!(senderUid && recipientUid)) {
-                        return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                        return Promise.reject(ERROR.INVALID_REQUEST_BODY_DATA);
                     }
 
                     // 發送者與接收者其中之一會是 facebook 粉絲專頁的 ID
@@ -116,7 +116,7 @@ router.post('/:webhookid', (req, res, next) => {
                     };
                     return appsMdl.find(void 0, void 0, query).then((apps) => {
                         if (!apps || (apps && 0 === Object.keys(apps).length)) {
-                            return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
+                            return Promise.reject(ERROR.APP_DID_NOT_EXIST);
                         }
                         return Promise.resolve(apps);
                     });
@@ -128,7 +128,7 @@ router.post('/:webhookid', (req, res, next) => {
                     // 找不到 app 時需回應 200
                     // 防止 facebook 收到非 200 回應時，會重新嘗試再傳送
                     !res.headersSent && res.status(200).send('');
-                    return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
+                    return Promise.reject(ERROR.APP_DID_NOT_EXIST);
                 }
 
                 // webhook 傳過來如果具有 webhookid 只會有一個 app 被找出來
@@ -183,7 +183,7 @@ router.post('/:webhookid', (req, res, next) => {
                         }
 
                         if (!consumers) {
-                            return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.CONSUMER_FAILED_TO_FIND);
                         }
 
                         let consumer = consumers[platformUid];
@@ -233,7 +233,7 @@ router.post('/:webhookid', (req, res, next) => {
                                 };
                                 return appsChatroomsMdl.insert(appId, chatroom).then((_appsChatrooms) => {
                                     if (!(_appsChatrooms && _appsChatrooms[appId])) {
-                                        return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                                        return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
                                     }
                                     return Promise.resolve(_appsChatrooms);
                                 });
@@ -262,7 +262,7 @@ router.post('/:webhookid', (req, res, next) => {
                                     let messageId = messager._id;
                                     return appsChatroomsMessagersMdl.update(appId, _chatroomId, messageId, { isUnfollowed: false }).then((_appsChatroomsMessagers) => {
                                         if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                                            return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                                         }
                                         let _chatrooms = _appsChatroomsMessagers[appId].chatrooms;
                                         let _messager = _chatrooms[_chatroomId].messagers[messageId];
@@ -277,7 +277,7 @@ router.post('/:webhookid', (req, res, next) => {
 
                                         return appsChatroomsMessagersMdl.find(appId, _chatroomId, void 0, CHATSHIER).then((__appsChatroomsMessagers) => {
                                             if (!(__appsChatroomsMessagers && __appsChatroomsMessagers[appId])) {
-                                                return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                                return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                                             }
 
                                             let __chatrooms = __appsChatroomsMessagers[appId].chatrooms;
@@ -298,7 +298,7 @@ router.post('/:webhookid', (req, res, next) => {
                                     // 首次聊天室自動為其建立聊天室
                                     return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
                                         if (!(appsChatrooms && appsChatrooms[appId])) {
-                                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                                            return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
                                         }
                                         let chatrooms = appsChatrooms[appId].chatrooms;
                                         let chatroomId = Object.keys(chatrooms).shift() || '';
@@ -317,7 +317,7 @@ router.post('/:webhookid', (req, res, next) => {
 
                                 return appsChatroomsMessagersMdl.insert(appId, webhookChatroomId, messager).then((_appsChatroomsMessagers) => {
                                     if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_INSERT);
+                                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_INSERT);
                                     }
                                     let chatrooms = _appsChatroomsMessagers[appId].chatrooms;
                                     let messagers = chatrooms[webhookChatroomId].messagers;
@@ -389,7 +389,7 @@ router.post('/:webhookid', (req, res, next) => {
                     // 將整個聊天室群組成員的聊天狀態更新
                     return appsChatroomsMessagersMdl.find(appId, webhookChatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
                         if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                         }
 
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -423,7 +423,7 @@ router.post('/:webhookid', (req, res, next) => {
 
                     return appsChatroomsMessagesMdl.insert(appId, webhookChatroomId, totalMessages).then((appsChatroomsMessages) => {
                         if (!appsChatroomsMessages) {
-                            return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
                         }
                         return Promise.resolve(appsChatroomsMessages[appId].chatrooms[webhookChatroomId].messages);
                     });
@@ -451,7 +451,7 @@ router.post('/:webhookid', (req, res, next) => {
                     // 讓前端能夠更新目前 messager 的聊天狀態
                     return appsChatroomsMessagersMdl.find(appId, webhookChatroomId).then((appsChatroomsMessagers) => {
                         if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                         }
 
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;

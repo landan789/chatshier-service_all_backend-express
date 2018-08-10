@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -23,7 +23,7 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsImagemapsMdl.find(appIds).then((appsImagemaps) => {
                     if (!appsImagemaps) {
-                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsImagemaps);
                 });
@@ -44,20 +44,20 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(API_ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
                 }
 
                 if (!imagemapId) {
-                    return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
 
                 return appsImagemapsMdl.findImagemaps(appId).then((appsImagemaps) => {
                     if (!appsImagemaps) {
-                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
                     }
 
                     if (!appsImagemaps[imagemapId]) {
-                        return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
+                        return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
                     }
 
                     return Promise.resolve(appsImagemaps);
@@ -97,7 +97,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsImagemapsMdl.insert(appId, postImagemap).then((_appsImagemaps) => {
                     if (!_appsImagemaps) {
-                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_IMAGEMAP_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(_appsImagemaps);
                 });
@@ -145,20 +145,20 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(API_ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
                 }
 
                 if (!imagemapId) {
-                    return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
 
                 return appsImagemapsMdl.findImagemaps(appId).then((imagemaps) => {
                     if (!imagemaps) {
-                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
                     }
 
                     if (!imagemaps[imagemapId]) {
-                        return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
+                        return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
                     }
 
                     return Promise.resolve(imagemaps);
@@ -166,7 +166,7 @@ module.exports = (function() {
             }).then(() => {
                 return appsImagemapsMdl.update(appId, imagemapId, putImagemap).then((appsImagemaps) => {
                     if (!(appsImagemaps && appsImagemaps[appId])) {
-                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.APP_IMAGEMAP_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(appsImagemaps);
                 });
@@ -187,19 +187,19 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(API_ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
                 }
 
                 if (!imagemapId) {
-                    return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
                 return appsImagemapsMdl.findImagemaps(appId).then((imagemaps) => {
                     if (!imagemaps) {
-                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
                     }
 
                     if (!imagemaps[imagemapId]) {
-                        return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
+                        return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
                     }
 
                     return Promise.resolve(imagemaps);
@@ -207,7 +207,7 @@ module.exports = (function() {
             }).then(() => {
                 return appsImagemapsMdl.remove(appId, imagemapId).then((appsImagemaps) => {
                     if (!(appsImagemaps && appsImagemaps[appId])) {
-                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_IMAGEMAP_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsImagemaps);
                 });

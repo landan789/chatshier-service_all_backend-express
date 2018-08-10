@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -22,7 +22,7 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsKeywordrepliesMdl.find(appIds).then((appsKeywordreplies) => {
                     if (!appsKeywordreplies) {
-                        return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsKeywordreplies);
                 });
@@ -44,7 +44,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsKeywordrepliesMdl.find(appId, keywordreplyId).then((appsKeywordreplies) => {
                     if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
-                        return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsKeywordreplies);
                 });
@@ -76,7 +76,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsKeywordrepliesMdl.insert(appId, postKeywordreply).then((appsKeywordreplies) => {
                     if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
-                        return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_KEYWORDREPLY_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(appsKeywordreplies);
                 });
@@ -108,7 +108,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsKeywordrepliesMdl.update(appId, keywordreplyId, putKeywordreply).then((appsKeywordreplies) => {
                     if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
-                        return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(appsKeywordreplies);
                 });
@@ -130,7 +130,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsKeywordrepliesMdl.remove(appId, keywordreplyId).then((appsKeywordreplies) => {
                     if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
-                        return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_KEYWORDREPLY_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsKeywordreplies);
                 });

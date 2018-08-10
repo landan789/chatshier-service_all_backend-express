@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -22,7 +22,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!(file && fileName)) {
-                    return Promise.reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
+                    return Promise.reject(ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
                 }
                 return storageHlp.filesUpload(originalFilePath, file);
             }).then((response) => {

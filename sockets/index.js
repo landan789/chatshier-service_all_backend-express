@@ -15,7 +15,7 @@ const usersMdl = require('../models/users');
 
 const SOCKET_EVENTS = require('../config/socket-events');
 /** @type {any} */
-const API_ERROR = require('../config/api_error.json');
+const ERROR = require('../config/api_error.json');
 
 const CHAT_COUNT_INTERVAL_TIME = 900000;
 
@@ -56,7 +56,7 @@ function init(server) {
 
             return appsMdl.find(appId).then((apps) => {
                 if (!apps) {
-                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                 }
                 app = apps[appId];
                 return botSvc.create(appId, app);
@@ -92,7 +92,7 @@ function init(server) {
                     }).then(() => {
                         return appsChatroomsMdl.find(appId, chatroomId).then((appsChatrooms) => {
                             if (!(appsChatrooms && appsChatrooms[appId])) {
-                                return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
+                                return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_FIND);
                             }
 
                             let chatroom = appsChatrooms[appId].chatrooms[chatroomId];
@@ -108,7 +108,7 @@ function init(server) {
                         delete message.duration;
                         return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]).then((appsChatroomsMessages) => {
                             if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
-                                return Promise.reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
+                                return Promise.reject(new Error(ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
                             }
                             return Promise.resolve(appsChatroomsMessages[appId].chatrooms[chatroomId].messages);
                         });
@@ -142,7 +142,7 @@ function init(server) {
                 // 更新發送者的聊天狀態
                 return appsChatroomsMessagersMdl.find(appId, chatroomId, senderMsgId).then((appsChatroomsMessagers) => {
                     if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                     }
 
                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -166,7 +166,7 @@ function init(server) {
                 });
             }).then((appsChatroomsMessagers) => {
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                 }
 
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -196,7 +196,7 @@ function init(server) {
 
             return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                 }
 
                 let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
@@ -239,7 +239,7 @@ function init(server) {
             return Promise.all(appIds.map((appId) => {
                 return appsMdl.find(appId).then((apps) => {
                     if (!(apps && apps[appId])) {
-                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                     }
 
                     return Promise.all([
@@ -268,7 +268,7 @@ function init(server) {
                                 return Promise.all(messages.map((message) => {
                                     return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]).then((appsChatroomsMessages) => {
                                         if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
-                                            return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
                                         };
 
                                         let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
@@ -294,7 +294,7 @@ function init(server) {
 
                                     return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
                                         if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                            return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                                         }
 
                                         let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
@@ -350,7 +350,7 @@ function init(server) {
 
             return groupsMdl.find(groupId, memberUserId).then((groups) => {
                 if (!(groups && groups[groupId])) {
-                    return Promise.reject(API_ERROR.GROUP_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.GROUP_FAILED_TO_FIND);
                 }
                 return Promise.resolve(groups[groupId]);
             }).then((group) => {
@@ -358,7 +358,7 @@ function init(server) {
 
                 return usersMdl.find(userId).then((users) => {
                     if (!(users && users[userId])) {
-                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.USER_FAILED_TO_FIND);
                     }
                     return Promise.resolve(users[userId]);
                 });

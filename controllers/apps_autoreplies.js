@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -22,7 +22,7 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsAutorepliesMdl.find(appIds).then((appsAutoreplies) => {
                     if (!appsAutoreplies) {
-                        return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsAutoreplies);
                 });
@@ -44,7 +44,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsAutorepliesMdl.find(appId, autoreplyId).then((appsAutoreplies) => {
                     if (!(appsAutoreplies && appsAutoreplies[appId])) {
-                        return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsAutoreplies);
                 });
@@ -76,12 +76,12 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!postAutoreply.title) {
-                    return Promise.reject(API_ERROR.APP_AUTOREPLY_TITLE_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_AUTOREPLY_TITLE_WAS_EMPTY);
                 }
 
                 return appsAutorepliesMdl.insert(appId, postAutoreply).then((appsAutoreplies) => {
                     if (!appsAutoreplies) {
-                        return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_AUTOREPLY_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(appsAutoreplies);
                 });
@@ -113,26 +113,26 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!autoreplyId) {
-                    return Promise.reject(API_ERROR.APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY);
                 }
 
                 if (!putAutoreply.title) {
-                    return Promise.reject(API_ERROR.APP_AUTOREPLY_TITLE_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_AUTOREPLY_TITLE_WAS_EMPTY);
                 }
 
                 return appsAutorepliesMdl.findAutoreplies(appId).then((autoreplies) => {
                     if (!autoreplies) {
-                        return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                     }
 
                     // 判斷 autoreplies 中是否有目前 autoreplyId
                     if (!autoreplies[autoreplyId]) {
-                        return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
+                        return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
                     }
 
                     return appsAutorepliesMdl.update(appId, autoreplyId, putAutoreply).then((appsAutoreplies) => {
                         if (!(appsAutoreplies && appsAutoreplies[appId])) {
-                            return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_UPDATE);
+                            return Promise.reject(ERROR.APP_AUTOREPLY_FAILED_TO_UPDATE);
                         }
                         return Promise.resolve(appsAutoreplies);
                     });
@@ -154,22 +154,22 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!autoreplyId) {
-                    return Promise.reject(API_ERROR.APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY);
                 }
                 return appsAutorepliesMdl.findAutoreplies(appId);
             }).then((autoreplies) => {
                 if (!autoreplies) {
-                    return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                 }
 
                 // 判斷 appId 中是否有目前 autoreplyId
                 if (!autoreplies[autoreplyId]) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
+                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
                 }
 
                 return appsAutorepliesMdl.remove(appId, autoreplyId).then((appsAutoreplies) => {
                     if (!appsAutoreplies) {
-                        return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_AUTOREPLY_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsAutoreplies);
                 });

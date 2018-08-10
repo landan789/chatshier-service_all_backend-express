@@ -6,7 +6,7 @@ module.exports = (function() {
     let jsonwebtoken = require('jsonwebtoken');
 
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     const CHATSHIER = require('../config/chatshier');
 
     const COOKIE = 'COOKIE';
@@ -52,16 +52,16 @@ module.exports = (function() {
                     let userId = payload.uid;
 
                     if (payload.exp < Date.now()) {
-                        return Promise.reject(API_ERROR.JWT_HAD_EXPIRED);
+                        return Promise.reject(ERROR.JWT_HAD_EXPIRED);
                     }
 
                     if (payload.uid !== req.params.userid) {
-                        return Promise.reject(API_ERROR.USER_WAS_NOT_PERMITTED);
+                        return Promise.reject(ERROR.USER_WAS_NOT_PERMITTED);
                     }
 
                     return usersMdl.find(userId).then((users) => {
                         if (!(users && users[userId])) {
-                            return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.USER_FAILED_TO_FIND);
                         }
                         return Promise.resolve(users);
                     });
@@ -84,8 +84,8 @@ module.exports = (function() {
                 if (err || !users) {
                     let json = {
                         status: 0,
-                        msg: ERROR.MSG || API_ERROR.USER_WAS_NOT_AUTHORIZED.MSG,
-                        code: ERROR.CODE || API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE
+                        msg: ERROR.MSG || ERROR.USER_WAS_NOT_AUTHORIZED.MSG,
+                        code: ERROR.CODE || ERROR.USER_WAS_NOT_AUTHORIZED.CODE
                     };
                     res.status(401).json(json);
                     return;

@@ -3,7 +3,7 @@ module.exports = (function() {
     const appsChatroomsMdl = require('../models/apps_chatrooms');
     const appsFieldsMdl = require('../models/apps_fields');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
 
     const CHATSHIER = 'CHATSHIER';
 
@@ -61,7 +61,7 @@ module.exports = (function() {
 
             return appsMdl.find(appId).then((apps) => {
                 if (!(apps && apps[appId])) {
-                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                 }
                 app = apps[appId];
                 return Promise.all([

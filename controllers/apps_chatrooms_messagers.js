@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/api_error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
@@ -23,7 +23,7 @@ module.exports = (function() {
 
                 return appsChatroomsMessagersMdl.find(appIds, chatroomId, messagerId).then((appsChatroomsMessagers) => {
                     if (!appsChatroomsMessagers) {
-                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsChatroomsMessagers);
                 });
@@ -65,7 +65,7 @@ module.exports = (function() {
                 return appsChatroomsMessagersMdl.update(appId, chatroomId, messagerId, putMessager);
             }).then((appsChatroomsMessagers) => {
                 if (!appsChatroomsMessagers) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                 }
                 return Promise.resolve(appsChatroomsMessagers);
             }).then((data) => {
