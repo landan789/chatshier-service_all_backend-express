@@ -3,7 +3,7 @@ module.exports = (function() {
     const appsChatroomsMdl = require('../models/apps_chatrooms');
     const appsFieldsMdl = require('../models/apps_fields');
     /** @type {any} */
-    const ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
 
     const CHATSHIER = 'CHATSHIER';
 

@@ -15,7 +15,7 @@ const usersMdl = require('../models/users');
 
 const SOCKET_EVENTS = require('../config/socket-events');
 /** @type {any} */
-const ERROR = require('../config/api_error.json');
+const ERROR = require('../config/error.json');
 
 const CHAT_COUNT_INTERVAL_TIME = 900000;
 

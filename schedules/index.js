@@ -10,7 +10,7 @@ const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 
 /** @type {any} */
-const ERROR = require('../config/api_error.json');
+const ERROR = require('../config/error.json');
 const SOCKET_EVENTS = require('../config/socket-events');
 
 const CHATSHIER = 'CHATSHIER';

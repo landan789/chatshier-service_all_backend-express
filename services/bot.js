@@ -1,6 +1,6 @@
 module.exports = (function() {
     /** @type {any} */
-    const ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     const SOCKET_EVENTS = require('../config/socket-events');
 
     const LineBotSdk = require('@line/bot-sdk');

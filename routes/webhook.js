@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 
 const SOCKET_EVENTS = require('../config/socket-events');
 /** @type {any} */
-const ERROR = require('../config/api_error.json');
+const ERROR = require('../config/error.json');
 
 const chatshierHlp = require('../helpers/chatshier');
 const storageHlp = require('../helpers/storage');

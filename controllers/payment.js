@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     const SOCKET_EVENTS = require('../config/socket-events');
     const CHATSHIER_CFG = require('../config/chatshier');
 

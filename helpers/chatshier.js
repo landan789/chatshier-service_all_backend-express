@@ -1,6 +1,6 @@
 module.exports = (function() {
     /** @type {any} */
-    const ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     const GenericTemplateBuilder = require('facebook-bot-messenger').GenericTemplateBuilder;
 
     const appsGreetingsMdl = require('../models/apps_greetings');

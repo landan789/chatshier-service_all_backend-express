@@ -4,7 +4,7 @@ module.exports = (function() {
 
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
     const CHATSHIER = require('../config/chatshier');

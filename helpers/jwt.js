@@ -6,7 +6,7 @@ module.exports = (function() {
     let jsonwebtoken = require('jsonwebtoken');
 
     /** @type {any} */
-    const ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     const CHATSHIER = require('../config/chatshier');
 
     const COOKIE = 'COOKIE';
