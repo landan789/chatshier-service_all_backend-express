@@ -111,7 +111,8 @@ router.post('/:webhookid', (req, res, next) => {
                     // 發送者與接收者其中之一會是 facebook 粉絲專頁的 ID
                     // 因此使用發送者與接收者 facebook uid 來查找 app
                     let query = {
-                        id1: { $in: [ senderUid, recipientUid ] }
+                        id1: { $in: [ senderUid, recipientUid ] },
+                        isDeleted: false
                     };
                     return appsMdl.find(void 0, void 0, query).then((apps) => {
                         if (!apps || (apps && 0 === Object.keys(apps).length)) {

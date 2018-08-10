@@ -2,7 +2,7 @@
   "apps" : [{
     "name"        : "api-chatshier",
     "script"      : "./bin/www",
-    "watch"       : true,
+    "watch"       : false,
     "env": {
       "NODE_ENV": "development"
     },
@@ -12,7 +12,7 @@
   },{
     "name"       : "schedule-chatshier",
     "script"     : "./schedules/index.js",
-    "watch"       : true,
+    "watch"       : false,
     "env": {
       "NODE_ENV": "development"
     },
