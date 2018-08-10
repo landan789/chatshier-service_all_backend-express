@@ -129,7 +129,7 @@ module.exports = (function() {
                 /** @type {Chatshier.Models.App} */
                 let app = result;
                 let summary = '[' + _receptionist.name + '][' + app.name + '] - ' + receptionistId.toHexString();
-                let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
+                let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
                 return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
                     _receptionist.gcalendarId = gcalendar.id;
                 });

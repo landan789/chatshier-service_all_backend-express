@@ -664,7 +664,7 @@ module.exports = (function() {
                             let column = {
                                 title: '預約目錄',
                                 text: '請選擇要預約的目錄',
-                                thumbnailImageUrl: url + '/image/logo-no-transparent.png',
+                                thumbnailImageUrl: url + '/image/default-category.jpg',
                                 actions: categoryIds.map((categoryId) => {
                                     /** @type {Chatshier.Models.TemplateAction} */
                                     let action = {
@@ -787,7 +787,7 @@ module.exports = (function() {
                                 let column = {
                                     title: '預約 - ' + product.name,
                                     text: '請選擇要預約的對象',
-                                    thumbnailImageUrl: product.src || (url + '/image/logo-no-transparent.png'),
+                                    thumbnailImageUrl: product.src || (url + '/image/default-product.png'),
                                     actions: receptionistIds.map((receptionistId) => {
                                         /** @type {Chatshier.Models.TemplateAction} */
                                         let action = {
@@ -949,7 +949,7 @@ module.exports = (function() {
                             let column = {
                                 title: '預約 - ' + receptionist.name,
                                 text: '請選擇要預約的日期',
-                                thumbnailImageUrl: receptionist.photo || (url + '/image/logo-no-transparent.png'),
+                                thumbnailImageUrl: receptionist.photo || (url + '/image/default-avatar.png'),
                                 actions: actions.slice()
                             };
                             actions.length = 0;
@@ -967,7 +967,7 @@ module.exports = (function() {
                     let column = {
                         title: '預約 - ' + receptionist.name,
                         text: '請選擇要預約的日期',
-                        thumbnailImageUrl: receptionist.photo || (url + '/image/logo-no-transparent.png'),
+                        thumbnailImageUrl: receptionist.photo || (url + '/image/default-avatar.png'),
                         actions: actions.slice()
                     };
 
@@ -1079,7 +1079,7 @@ module.exports = (function() {
                             let column = {
                                 title: '預約 - ' + receptionist.name,
                                 text: '請選擇要預約的時間',
-                                thumbnailImageUrl: receptionist.photo || url + '/image/logo-no-transparent.png',
+                                thumbnailImageUrl: receptionist.photo || url + '/image/default-avatar.png',
                                 actions: availableTimes.map((availableTime) => {
                                     /** @type {Chatshier.Models.TemplateAction} */
                                     let action = {

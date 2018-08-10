@@ -17,9 +17,9 @@ module.exports = (function() {
 
     class GoogleCalendarHelper {
         constructor() {
-            const oauth2Client = new OAuth2(CHATSHIER_CFG.GAPI.CLIENT_ID, CHATSHIER_CFG.GAPI.CLIENT_SECRET);
+            const oauth2Client = new OAuth2(CHATSHIER_CFG.GMAIL.CLIENT_ID, CHATSHIER_CFG.GMAIL.CLIENT_SECRET);
             oauth2Client.setCredentials({
-                refresh_token: CHATSHIER_CFG.GAPI.REFRESH_TOKEN
+                refresh_token: CHATSHIER_CFG.GMAIL.REFRESH_TOKEN
             });
 
             this.client = google.calendar({
@@ -59,6 +59,7 @@ module.exports = (function() {
         getEventDates(event, maxDates = 30) {
             let recurrence = event.recurrence || [];
             let dtstart = new Date(event.start.dateTime);
+            dtstart.setMinutes(0, 0, 0);
 
             let rruleSet = new RRuleSet();
             if (!recurrence[0]) {

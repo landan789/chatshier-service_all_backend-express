@@ -46,7 +46,7 @@ module.exports = {
         // https://console.firebase.google.com/u/0/project/chatshier-d4dfd/settings/general/
         FDL_DOMAIN: 'chatshier9450.page.link'
     },
-    GAPI: {
+    GMAIL: {
         USER: 'human@chatshier.com',
         // https://developers.google.com/oauthplayground
         CLIENT_ID: '1074711200692-ds4lin2uh3q4bs5doqsdipuak83j6te1.apps.googleusercontent.com',

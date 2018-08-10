@@ -122,7 +122,7 @@ module.exports = (function() {
                                     }
 
                                     let summary = '[' + receptionist.name + '][' + apps[appId].name + '] - ' + receptionistId;
-                                    let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
+                                    let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
                                     return gcalendarHlp.insertCalendar(summary, description);
                                 }).then((gcalendar) => {
                                     gcalendarId = putReceptionist.gcalendarId = gcalendar.id;

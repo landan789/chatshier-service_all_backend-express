@@ -6,16 +6,16 @@ module.exports = (function() {
     class EmailHelper {
         constructor() {
             this.senderName = '錢掌櫃 Chatshier';
-            this.sender = CHATSHIER_CFG.GAPI.USER;
+            this.sender = CHATSHIER_CFG.GMAIL.USER;
 
             this.smtpTransport = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
                     type: 'oauth2',
-                    user: CHATSHIER_CFG.GAPI.USER,
-                    clientId: CHATSHIER_CFG.GAPI.CLIENT_ID,
-                    clientSecret: CHATSHIER_CFG.GAPI.CLIENT_SECRET,
-                    refreshToken: CHATSHIER_CFG.GAPI.REFRESH_TOKEN
+                    user: CHATSHIER_CFG.GMAIL.USER,
+                    clientId: CHATSHIER_CFG.GMAIL.CLIENT_ID,
+                    clientSecret: CHATSHIER_CFG.GMAIL.CLIENT_SECRET,
+                    refreshToken: CHATSHIER_CFG.GMAIL.REFRESH_TOKEN
                 },
                 tls: {
                     rejectUnauthorized: true
