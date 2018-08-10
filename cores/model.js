@@ -221,6 +221,7 @@ module.exports = (function() {
             'createdTime': {type: Date, default: Date.now()},
             'updatedTime': {type: Date, default: Date.now()},
             'eventId': {type: String, default: ''},
+            'eventChannelId': {type: String, default: ''},
             'summary': {type: String, default: ''},
             'description': {type: String, default: ''},
             'start': {

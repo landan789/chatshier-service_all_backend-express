@@ -5,7 +5,11 @@ module.exports = (function() {
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
+    const gcalendarHlp = require('../helpers/gcalendar');
+    let appsReceptionistsMdl = require('../models/apps_receptionists');
     let appsReceptionistsSchedulesMdl = require('../models/apps_receptionists_schedules');
+
+    const WEBHOOK_PATH = '/webhook-google/calendar/receptionists/schedules';
 
     class AppsChatroomsMessagersController extends ControllerCore {
         constructor() {
@@ -32,7 +36,30 @@ module.exports = (function() {
                     if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
                         return Promise.reject(API_ERROR.APP_RECEPTIONIST_SCHEDULE_FAILED_TO_INSERT);
                     }
-                    return Promise.resolve(appsReceptionistsSchedules);
+
+                    let schedules = appsReceptionistsSchedules[appId].receptionists[receptionistId].schedules;
+                    let scheduleId = Object.keys(schedules).shift() || '';
+                    let schedule = schedules[scheduleId];
+
+                    return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+                        if (!(appsReceptionists && appsReceptionists[appId])) {
+                            return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                        }
+
+                        let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                        let gcalendarId = receptionist.gcalendarId;
+                        // let hostname = 'https://' + req.hostname;
+                        let hostname = 'https://3bd160b3.ngrok.io';
+                        let webhookUrl = hostname + WEBHOOK_PATH + '?appid=' + appId + '&receptionistid=' + receptionistId + '&scheduleid=' + scheduleId;
+                        return gcalendarHlp.watchEvent(gcalendarId, schedule.eventId, webhookUrl);
+                    }).then((channel) => {
+                        return appsReceptionistsSchedulesMdl.update(appId, receptionistId, scheduleId, { eventChannelId: channel.resourceId }).then((appsReceptionistsSchedules) => {
+                            if (!appsReceptionistsSchedules) {
+                                return Promise.reject(API_ERROR.APP_RECEPTIONIST_SCHEDULE_FAILED_TO_UPDATE);
+                            }
+                            return Promise.resolve(appsReceptionistsSchedules);
+                        });
+                    });
                 });
             }).then((appsReceptionistsSchedules) => {
                 let suc = {
@@ -89,9 +116,14 @@ module.exports = (function() {
                     if (!appsReceptionistsSchedules) {
                         return Promise.reject(API_ERROR.APP_RECEPTIONIST_SCHEDULE_FAILED_TO_REMOVE);
                     }
-                    return Promise.resolve(appsReceptionistsSchedules);
+
+                    let schedule = appsReceptionistsSchedules[appId].receptionists[receptionistId].schedules[scheduleId];
+                    return Promise.all([
+                        Promise.resolve(appsReceptionistsSchedules),
+                        schedule.eventId && schedule.eventChannelId && gcalendarHlp.stopChannel(schedule.eventId, schedule.eventChannelId)
+                    ]);
                 });
-            }).then((appsReceptionistsSchedules) => {
+            }).then(([ appsReceptionistsSchedules ]) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsReceptionistsSchedules

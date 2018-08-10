@@ -1,3 +1,23 @@
+/// <reference path='../server/models/core.d.ts' />
+/// <reference path='../server/models/apps_autoreplies.d.ts' />
+/// <reference path='../server/models/apps_categories.d.ts' />
+/// <reference path='../server/models/apps_chatrooms.d.ts' />
+/// <reference path='../server/models/apps_composes.d.ts' />
+/// <reference path='../server/models/apps_fields.d.ts' />
+/// <reference path='../server/models/apps_greetings.d.ts' />
+/// <reference path='../server/models/apps_imagemaps.d.ts' />
+/// <reference path='../server/models/apps_keywordreplies.d.ts' />
+/// <reference path='../server/models/apps_payments.d.ts' />
+/// <reference path='../server/models/apps_richmenus.d.ts' />
+/// <reference path='../server/models/apps_templates.d.ts' />
+/// <reference path='../server/models/apps_tickets.d.ts' />
+/// <reference path='../server/models/apps.d.ts' />
+/// <reference path='../server/models/calendars_events.d.ts' />
+/// <reference path='../server/models/consumers.d.ts' />
+/// <reference path='../server/models/groups_members.d.ts' />
+/// <reference path='../server/models/groups.d.ts' />
+/// <reference path='../server/models/users.d.ts' />
+
 interface Window {
     restfulAPI: {
         setJWT: (value: string) => void,
@@ -123,7 +143,7 @@ interface AppsTemplatesAPI {
 }
 
 interface AppsPaymentsAPI {
-    findAll: (appId?: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
+    findAll: (appId: string | void, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
     findOne: (appId: string, paymentId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
     insert: (appId: string, userId: string, postPayment: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
     update: (appId: string, paymentId: string, userId: string, putPayment: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
@@ -187,10 +207,10 @@ interface ConsumersAPI {
 }
 
 interface GroupsMembersAPI {
-    findAll: (groupId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
-    insert: (groupId: string, userId: string, postGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
-    update: (groupId: string, memberId: string, userId: string, putGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
-    remove: (groupId: string, memberId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
+    findAll: (groupId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
+    insert: (groupId: string, userId: string, postGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
+    update: (groupId: string, memberId: string, userId: string, putGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
+    remove: (groupId: string, memberId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
     TYPES: {
         OWNER: 'OWNER',
         ADMIN: 'ADMIN',

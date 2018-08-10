@@ -30,8 +30,8 @@ declare module Webhook {
                 'PAYMENT_CONFIRM' |
                 'SEND_APPOINTMENT_CATEGORIES' |
                 'SEND_APPOINTMENT_PRODUCTS' |
-                'SEND_APPOINTMENT_DATE' |
-                'SEND_APPOINTMENT_TIME' |
+                'SEND_APPOINTMENT_DATES' |
+                'SEND_APPOINTMENT_TIMES' |
                 'SEND_APPOINTMENT_CONFIRM' |
                 'APPOINTMENT_FINISH',
             /**

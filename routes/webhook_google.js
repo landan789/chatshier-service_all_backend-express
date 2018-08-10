@@ -11,5 +11,6 @@ router.use(
     bodyParser.json()
 );
 
-router.post('/gcalendar/events/apps/:appid', gcalendarCtl.postEvent);
+router.post('/calendar/appointments', gcalendarCtl.postAppointment);
+router.post('/calendar/receptionists/schedules', gcalendarCtl.postSchedules);
 module.exports = router;

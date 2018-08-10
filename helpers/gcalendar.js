@@ -56,22 +56,40 @@ module.exports = (function() {
          * @param {number} maxDates
          * @returns {Date[]}
          */
-        getDateList(event, maxDates = 30) {
+        getEventDates(event, maxDates = 30) {
             let recurrence = event.recurrence || [];
-            let startDateTime = new Date(event.start.dateTime);
-            let endDateTime = new Date(event.end.dateTime);
+            let dtstart = new Date(event.start.dateTime);
+
+            let rruleSet = new RRuleSet();
             if (!recurrence[0]) {
-                let rruleSet = new RRuleSet();
+                let endDateTime = new Date(event.end.dateTime);
                 rruleSet.rrule(new RRule({
                     freq: RRule.DAILY,
-                    dtstart: startDateTime,
+                    dtstart: dtstart,
+                    wkst: RRule.SU,
                     until: endDateTime
                 }));
                 return rruleSet.all((d, len) => len <= maxDates);
             }
 
-            let rruleSet = rrulestr(recurrence.join('\n'), { forceset: true });
-            return rruleSet.all((d, len) => len <= maxDates).filter((d) => d >= startDateTime && d <= endDateTime);
+            for (let i in recurrence) {
+                let _rrule = rrulestr(recurrence[i]);
+                /** @type {any} */
+                let options = Object.assign({}, _rrule.options);
+                if (null === options.freq) {
+                    continue;
+                }
+
+                // rrule.js 在 WEEKLY 的規則中處理有 bugs 因此轉為使用 DAILY 規則來達到相同結果
+                options.freq === RRule.WEEKLY && (options.freq = RRule.DAILY);
+                options.wkst = RRule.SU;
+                options.byhour = options.byminute = options.bysecond = null;
+                options.dtstart = dtstart;
+
+                let rrule = new RRule(options);
+                rruleSet.rrule(rrule);
+            }
+            return rruleSet.all((d, len) => len <= maxDates);
         }
 
         /**

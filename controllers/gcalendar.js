@@ -7,6 +7,7 @@ module.exports = (function() {
     const appsMdl = require('../models/apps');
     const appsAppointmentsMdl = require('../models/apps_appointments');
     const appsReceptionistsMdl = require('../models/apps_receptionists');
+    const appsReceptionistsSchedulesMdl = require('../models/apps_receptionists_schedules');
     const appsProductMdl = require('../models/apps_products');
     const consumersMdl = require('../models/consumers');
     const gcalendarHlp = require('../helpers/gcalendar');
@@ -22,22 +23,30 @@ module.exports = (function() {
     class GCalendarController extends ControllerCore {
         constructor() {
             super();
-            this.postEvent = this.postEvent.bind(this);
+            this.postAppointment = this.postAppointment.bind(this);
+            this.postSchedules = this.postSchedules.bind(this);
         }
 
-        postEvent(req, res) {
-            let appId = req.params.appid;
-            let eventId = req.headers['x-goog-channel-id'];
-            let channelToken = req.headers['x-goog-channel-token'];
-            let resourceState = req.headers['x-goog-resource-state'];
-            let resourceId = req.headers['x-goog-resource-id'];
+        getGoogleParams(headers = {}) {
+            return {
+                eventId: headers['x-goog-channel-id'],
+                channelToken: headers['x-goog-channel-token'],
+                resourceState: headers['x-goog-resource-state'],
+                resourceId: headers['x-goog-resource-id'],
+                resourceUri: headers['x-goog-resource-uri']
+            };
+        }
 
-            if (CHATSHIER_CFG.JWT.SECRET !== channelToken) {
+        postAppointment(req, res) {
+            let appId = req.query.appid;
+            let params = this.getGoogleParams(req.headers);
+
+            if (CHATSHIER_CFG.JWT.SECRET !== params.channelToken) {
                 return !res.headersSent && res.sendStatus(400);
             }
 
             // 當 webhook channel 被建立時，會收到資源 sync 狀態，此時不做任何處理
-            if (GOOGLE_RESOURCE_STATE.SYNC === resourceState) {
+            if (GOOGLE_RESOURCE_STATE.SYNC === params.resourceState) {
                 return !res.headersSent && res.sendStatus(200);
             }
 
@@ -47,21 +56,23 @@ module.exports = (function() {
                 }
 
                 let query = {
-                    'appointments.eventId': eventId,
+                    'appointments.eventId': params.eventId,
                     'appointments.isDeleted': false
                 };
-                if (GOOGLE_RESOURCE_STATE.NOT_EXISTS === resourceState) {
+                if (GOOGLE_RESOURCE_STATE.NOT_EXISTS === params.resourceState) {
                     return appsAppointmentsMdl.find(appId, void 0, query).then((appsAppointments) => {
                         if (!(appsAppointments && appsAppointments[appId])) {
+                            gcalendarHlp.stopChannel(params.eventId, params.resourceId);
                             return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                         }
                         let appointmentId = Object.keys(appsAppointments[appId].appointments).shift() || '';
                         return appsAppointmentsMdl.remove(appId, appointmentId);
                     }).then((appsAppointments) => {
                         if (!(appsAppointments && appsAppointments[appId])) {
+                            gcalendarHlp.stopChannel(params.eventId, params.resourceId);
                             return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_REMOVE);
                         }
-                        return gcalendarHlp.stopChannel(eventId, resourceId);
+                        return gcalendarHlp.stopChannel(params.eventId, params.resourceId);
                     }).then(() => {
                         return Promise.resolve(void 0);
                     });
@@ -70,7 +81,7 @@ module.exports = (function() {
                 return appsAppointmentsMdl.find(appId, void 0, query).then((appsAppointments) => {
                     if (!(appsAppointments && appsAppointments[appId])) {
                         !res.headersSent && res.sendStatus(200);
-                        gcalendarHlp.stopChannel(eventId, resourceId);
+                        gcalendarHlp.stopChannel(params.eventId, params.resourceId);
                         return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                     }
 
@@ -81,7 +92,7 @@ module.exports = (function() {
 
                     let appointment = appsAppointments[appId].appointments[appointmentId];
                     if (appointment.isAccepted) {
-                        return gcalendarHlp.stopChannel(eventId, resourceId).then(() => void 0);
+                        return gcalendarHlp.stopChannel(params.eventId, params.resourceId).then(() => void 0);
                     }
 
                     let receptionistId = appointment.receptionist_id;
@@ -113,7 +124,7 @@ module.exports = (function() {
                         let app = apps[appId];
                         let gcalendarId = app.gcalendarId;
                         return Promise.all([
-                            gcalendarHlp.getEvent(gcalendarId, eventId),
+                            gcalendarHlp.getEvent(gcalendarId, params.eventId),
                             appsProducts[appId].products[productId],
                             appsReceptionists[appId].receptionists[receptionistId],
                             consumers[platformUid]
@@ -152,13 +163,71 @@ module.exports = (function() {
                                 return Promise.all([
                                     botSvc.pushMessage(platformUid, acceptedMessage, void 0, appId),
                                     appsAppointmentsMdl.update(appId, appointmentId, { isAccepted: true }),
-                                    gcalendarHlp.stopChannel(eventId, resourceId)
+                                    gcalendarHlp.stopChannel(params.eventId, params.resourceId)
                                 ]);
                             }
                             return Promise.resolve(void 0);
                         }));
                     });
                 });
+            }).then(() => {
+                !res.headersSent && res.sendStatus(200);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
+            });
+        }
+
+        postSchedules(req, res) {
+            let appId = req.query.appid;
+            let receptionistId = req.query.receptionistid;
+            let scheduleId = req.query.scheduleid;
+            let params = this.getGoogleParams(req.headers);
+
+            if (CHATSHIER_CFG.JWT.SECRET !== params.channelToken) {
+                return !res.headersSent && res.sendStatus(400);
+            }
+
+            // 當 webhook channel 被建立時，會收到資源 sync 狀態，此時不做任何處理
+            if (GOOGLE_RESOURCE_STATE.SYNC === params.resourceState) {
+                return !res.headersSent && res.sendStatus(200);
+            }
+
+            return Promise.resolve().then(() => {
+                if (!appId) {
+                    return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+                }
+
+                if (!receptionistId) {
+                    return Promise.reject(API_ERROR.RECEPTIONISTID_WAS_EMPTY);
+                }
+
+                if (!scheduleId) {
+                    return Promise.reject(API_ERROR.SCHEDULEID_WAS_EMPTY);
+                }
+
+                return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+                    if (!(appsReceptionists && appsReceptionists[appId])) {
+                        return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                    }
+
+                    let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                    let gcalendarId = receptionist.gcalendarId;
+                    return gcalendarHlp.getEvent(gcalendarId, params.eventId);
+                }).then((gcEvent) => {
+                    let putSchedule = {
+                        summary: gcEvent.summary,
+                        description: gcEvent.description,
+                        start: gcEvent.start,
+                        end: gcEvent.end,
+                        recurrence: gcEvent.recurrence
+                    };
+                    return appsReceptionistsSchedulesMdl.update(appId, receptionistId, scheduleId, putSchedule);
+                });
+            }).then((appsReceptionistsSchedules) => {
+                if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
+                    return Promise.reject(API_ERROR.SCHEDULEID_WAS_EMPTY);
+                }
+                return Promise.resolve(appsReceptionistsSchedules);
             }).then(() => {
                 !res.headersSent && res.sendStatus(200);
             }).catch((err) => {

@@ -23,7 +23,6 @@ module.exports = (function() {
     const jwtHlp = require('../helpers/jwt');
 
     const LINE = 'LINE';
-    const FACEBOOK = 'FACEBOOK';
     const SYSTEM = 'SYSTEM';
 
     const POSTBACK_ACTIONS = Object.freeze({
@@ -36,13 +35,30 @@ module.exports = (function() {
 
         SEND_APPOINTMENT_CATEGORIES: 'SEND_APPOINTMENT_CATEGORIES',
         SEND_APPOINTMENT_PRODUCTS: 'SEND_APPOINTMENT_PRODUCTS',
-        SEND_APPOINTMENT_DATE: 'SEND_APPOINTMENT_DATE',
-        SEND_APPOINTMENT_TIME: 'SEND_APPOINTMENT_TIME',
+        SEND_APPOINTMENT_DATES: 'SEND_APPOINTMENT_DATES',
+        SEND_APPOINTMENT_TIMES: 'SEND_APPOINTMENT_TIMES',
         SEND_APPOINTMENT_CONFIRM: 'SEND_APPOINTMENT_CONFIRM',
         APPOINTMENT_FINISH: 'APPOINTMENT_FINISH'
     });
 
-    class ChatshierHelp {
+    class ChatshierHelper {
+        constructor() {
+            this.postbackEntries = {
+                [POSTBACK_ACTIONS.CHANGE_RICHMENU]: this._changeRichmenu.bind(this),
+                [POSTBACK_ACTIONS.SEND_REPLY_TEXT]: this._sendReplyText.bind(this),
+                [POSTBACK_ACTIONS.SEND_TEMPLATE]: this._sendTemplate.bind(this),
+                [POSTBACK_ACTIONS.SEND_IMAGEMAP]: this._sendImagemap.bind(this),
+                [POSTBACK_ACTIONS.SEND_CONSUMER_FORM]: this._sendConsumerForm.bind(this),
+                [POSTBACK_ACTIONS.PAYMENT_CONFIRM]: this._paymentConfirm.bind(this),
+                [POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES]: this._sendAppointmentCategories.bind(this),
+                [POSTBACK_ACTIONS.SEND_APPOINTMENT_PRODUCTS]: this._sendAppointmentProducts.bind(this),
+                [POSTBACK_ACTIONS.SEND_APPOINTMENT_DATES]: this._sendAppointmentDates.bind(this),
+                [POSTBACK_ACTIONS.SEND_APPOINTMENT_TIMES]: this._sendAppointmentTimes.bind(this),
+                [POSTBACK_ACTIONS.SEND_APPOINTMENT_CONFIRM]: this._sendAppointmentConfirm.bind(this),
+                [POSTBACK_ACTIONS.APPOINTMENT_FINISH]: this._appointmentFinish.bind(this)
+            };
+        }
+
         /**
          * 根據 HTTP request body 與 app.type 決定要回傳甚麼訊息
          * @param {any[]} messages
@@ -184,7 +200,6 @@ module.exports = (function() {
          * @returns {Promise<any[]>}
          */
         getPostbackReplies(messages, webhookInfo, appId, botSvc) {
-            let repliedMessages = [];
             let promises = [];
 
             while (messages.length > 0) {
@@ -203,909 +218,16 @@ module.exports = (function() {
 
                 /** @type {Webhook.Chatshier.PostbackPayload} */
                 let payload = JSON.parse(payloadStr);
-                let platformUid = webhookInfo.platformUid;
-                let url = webhookInfo.serverAddress;
-
-                if (POSTBACK_ACTIONS.CHANGE_RICHMENU === payload.action) {
-                    let richmenuId = payload.richmenuId || '';
-                    let richmenuPromise = appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
-                        if (!(appsRichmenus && appsRichmenus[appId])) {
-                            return;
-                        }
-
-                        // 如果此 richmenu 沒有啟用或者找不到，則不做任何處理
-                        let richmenu = appsRichmenus[appId].richmenus[richmenuId];
-                        if (!(richmenu && richmenu.isActivated)) {
-                            return;
-                        }
-
-                        let platformUid = webhookInfo.platformUid;
-                        return botSvc.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId);
-                    });
-                    promises.push(richmenuPromise);
-                } else if (POSTBACK_ACTIONS.SEND_REPLY_TEXT === payload.action && payload.replyText) {
-                    let replyTextMessage = {
-                        type: 'text',
-                        text: payload.replyText
-                    };
-                    repliedMessages.push(replyTextMessage);
-                } else if (POSTBACK_ACTIONS.SEND_TEMPLATE === payload.action) {
-                    let templateId = payload.templateId || '';
-                    let templatePromise = appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
-                        if (!(appsTemplates && appsTemplates[appId])) {
-                            return Promise.resolve();
-                        }
-
-                        let template = appsTemplates[appId].templates[templateId];
-
-                        if (payload.additionalText) {
-                            let additionalTextMessage = {
-                                type: 'text',
-                                text: payload.additionalText
-                            };
-                            repliedMessages.push(additionalTextMessage);
-                        }
-
-                        let templateMessage = {
-                            type: template.type,
-                            altText: template.altText,
-                            template: template.template
-                        };
-                        repliedMessages.push(templateMessage);
-                    });
-                    promises.push(templatePromise);
-                } else if (POSTBACK_ACTIONS.SEND_IMAGEMAP === payload.action) {
-                    let imagemapId = payload.imagemapId || '';
-                    let imagemapPromise = appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
-                        if (!(appsImagemaps && appsImagemaps[appId])) {
-                            return Promise.resolve();
-                        }
-
-                        if (payload.additionalText) {
-                            let additionalTextMessage = {
-                                type: 'text',
-                                text: payload.additionalText
-                            };
-                            repliedMessages.push(additionalTextMessage);
-                        }
-
-                        let imagemap = appsImagemaps[appId].imagemaps[imagemapId];
-                        let imagemapMessage = {
-                            type: imagemap.type,
-                            altText: imagemap.altText,
-                            baseUrl: imagemap.baseUrl,
-                            baseSize: imagemap.baseSize,
-                            actions: imagemap.actions
-                        };
-                        repliedMessages.push(imagemapMessage);
-                    });
-                    promises.push(imagemapPromise);
-                } else if (POSTBACK_ACTIONS.SEND_CONSUMER_FORM === payload.action) {
-                    let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                    url += '/consumer-form?aid=' + appId + '&t=' + token;
-
-                    let formMessage = {
-                        type: 'template',
-                        altText: '填寫基本資料範本訊息',
-                        template: {
-                            type: 'buttons',
-                            title: '填寫基本資料',
-                            text: '開啟以下連結進行填寫動作',
-                            actions: [{
-                                type: 'uri',
-                                label: '按此開啟',
-                                uri: url
-                            }]
-                        }
-                    };
-                    repliedMessages.push(formMessage);
-                } else if (POSTBACK_ACTIONS.PAYMENT_CONFIRM === payload.action) {
-                    let confirmPromise = appsPaymentsMdl.find(appId).then((appsPayments) => {
-                        // 如果此 App 尚未設定金流服務，則跳過處理
-                        if (!(appsPayments && appsPayments[appId])) {
-                            return Promise.resolve(void 0);
-                        }
-                        return Promise.resolve(Object.values(appsPayments[appId].payments).shift());
-                    }).then((payment) => {
-                        if (!payment) {
-                            return;
-                        }
-
-                        return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid).then((appsChatroomsMessagers) => {
-                            if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                                return;
-                            }
-
-                            // 當 consumer 點擊捐款時，檢查此 consumer 是否已經填寫完個人基本資料
-                            // 如果沒有填寫完基本資料，則發送填寫基本資料範本給使用者
-                            let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                            let chatroomId = Object.keys(chatrooms).shift() || '';
-                            let messager = chatrooms[chatroomId].messagers[platformUid];
-
-                            let hasFinishProfile = (
-                                messager.namings && messager.namings[platformUid] &&
-                                messager.email &&
-                                messager.phone &&
-                                messager.address
-                            );
-
-                            if (!hasFinishProfile) {
-                                let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                                url += '/consumer-form?aid=' + appId + '&t=' + token;
-
-                                let alertMessage = {
-                                    type: 'text',
-                                    text: '您尚未完成個人基本資料的填寫'
-                                };
-
-                                let formMessage = {
-                                    type: 'template',
-                                    altText: '填寫基本資料範本訊息',
-                                    template: {
-                                        type: 'buttons',
-                                        title: '填寫基本資料',
-                                        text: '開啟以下連結進行填寫動作',
-                                        actions: [{
-                                            type: 'uri',
-                                            label: '按此開啟',
-                                            uri: url
-                                        }]
-                                    }
-                                };
-                                repliedMessages.push(alertMessage, formMessage);
-                                return;
-                            }
-
-                            let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
-                            url += '/donation-confirm?aid=' + appId + '&t=' + token;
-                            if (payment.canIssueInvoice) {
-                                url += '&cii=1';
-                            }
-
-                            let linkMessage = {
-                                type: 'template',
-                                altText: '捐款連結訊息',
-                                template: {
-                                    type: 'buttons',
-                                    title: '捐款連結',
-                                    text: '開啟以下連結前往捐款資料確認',
-                                    actions: [{
-                                        type: 'uri',
-                                        label: '按此開啟',
-                                        uri: url
-                                    }]
-                                }
-                            };
-                            repliedMessages.push(linkMessage);
-                        });
-                    });
-                    promises.push(confirmPromise);
-                } else if (POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES === payload.action) {
-                    let categoryPromise = appsCategoriesMdl.find(appId, void 0, { 'categories.type': 'APPOINTMENT' }).then((appsCategories) => {
-                        if (!(appsCategories && appsCategories[appId])) {
-                            let noCategoriesMessage = {
-                                type: 'text',
-                                text: '很抱歉，現在沒有可預約的目錄。'
-                            };
-                            repliedMessages.push(noCategoriesMessage);
-                            return Promise.resolve(void 0);
-                        }
-
-                        let categories = appsCategories[appId].categories;
-                        let categoryIds = Object.keys(categories);
-
-                        /** @type {string[][]} */
-                        let categoryColumns = [];
-                        while (categoryIds.length > 3) {
-                            categoryColumns.push(categoryIds.splice(0, 3));
-                        }
-                        categoryColumns.push(categoryIds);
-
-                        let categoriesMessage = {
-                            type: 'template',
-                            altText: '預約目錄',
-                            template: {
-                                type: 'carousel',
-                                columns: categoryColumns.map((categoryIds) => {
-                                    if (categoryColumns.length > 1) {
-                                        while (categoryIds.length < 3) {
-                                            categoryIds.push('');
-                                        }
-                                    }
-
-                                    /** @type {Chatshier.Models.TemplateColumn} */
-                                    let column = {
-                                        title: '預約目錄',
-                                        text: '請選擇要預約的目錄',
-                                        thumbnailImageUrl: url + '/image/logo-no-transparent.png',
-                                        actions: categoryIds.map((categoryId) => {
-                                            /** @type {Chatshier.Models.TemplateAction} */
-                                            let action = {
-                                                type: 'postback',
-                                                label: '　',
-                                                data: 'none'
-                                            };
-
-                                            if (!categoryId) {
-                                                return action;
-                                            }
-
-                                            let category = categories[categoryId];
-                                            /** @type {Webhook.Chatshier.PostbackPayload} */
-                                            let payloadJson = {
-                                                action: 'SEND_APPOINTMENT_PRODUCTS',
-                                                categoryId: categoryId,
-                                                timestamp: Date.now()
-                                            };
-
-                                            action.label = category.name;
-                                            action.data = JSON.stringify(payloadJson);
-                                            return action;
-                                        })
-                                    };
-                                    return column;
-                                })
-                            }
-                        };
-                        repliedMessages.push(categoriesMessage);
-                    });
-                    promises.push(categoryPromise);
-                } else if (POSTBACK_ACTIONS.SEND_APPOINTMENT_PRODUCTS === payload.action) {
-                    let timestamp = payload.timestamp || 0;
-                    let timeoutMessage = this._checkTimeout(timestamp);
-                    if (timeoutMessage) {
-                        repliedMessages.push(timeoutMessage);
-                        continue;
-                    }
-
-                    let noProductsMessage = {
-                        type: 'text',
-                        text: '很抱歉，該預約目錄內沒有可預約的項目。'
-                    };
-
-                    let categoryId = payload.categoryId || '';
-                    let productPromise = appsCategoriesMdl.find(appId, categoryId, { 'categories.type': 'APPOINTMENT' }).then((appsCategories) => {
-                        if (!(appsCategories && appsCategories[appId])) {
-                            let noCategoriesMessage = {
-                                type: 'text',
-                                text: '很抱歉，找不到這個預約目錄。'
-                            };
-                            repliedMessages.push(noCategoriesMessage);
-                            return Promise.resolve();
-                        }
-
-                        let category = appsCategories[appId].categories[categoryId] || {};
-                        let productIds = category.product_ids || [];
-                        if (0 === productIds.length) {
-                            repliedMessages.push(noProductsMessage);
-                            return Promise.resolve();
-                        }
-
-                        let query = {
-                            'products.type': 'APPOINTMENT',
-                            'products.isOnShelf': true
-                        };
-                        return appsProductsMdl.find(appId, productIds, query).then((appsProducts) => {
-                            if (!(appsProducts && appsProducts[appId])) {
-                                repliedMessages.push(noProductsMessage);
-                                return Promise.resolve();
-                            }
-
-                            let products = appsProducts[appId].products;
-                            let productsMessage = {
-                                type: 'template',
-                                altText: '預約項目',
-                                template: {
-                                    type: 'carousel',
-                                    /** @type {Chatshier.Models.TemplateColumn[]} */
-                                    columns: []
-                                }
-                            };
-                            return Promise.all(productIds.map((productId) => {
-                                let product = products[productId];
-                                let receptionistIds = product.receptionist_ids || [];
-
-                                // 服務人員數量有可能超過 3 個，因此每 3 筆資料切成一張卡片
-                                let productColumns = [];
-                                while (receptionistIds.length > 3) {
-                                    productColumns.push(receptionistIds.splice(0, 3));
-                                }
-                                productColumns.push(receptionistIds);
-
-                                return Promise.all(productColumns.map((receptionistIds) => {
-                                    // 抓取出此產品內所有的服務人員，以便顯示服務人員名稱
-                                    return appsReceptionistsMdl.find(appId, receptionistIds).then((appsReceptionists) => {
-                                        if (!(appsReceptionists && appsReceptionists[appId])) {
-                                            return;
-                                        }
-
-                                        if (productIds.length > 1 || productColumns.length > 1) {
-                                            while (receptionistIds.length < 3) {
-                                                receptionistIds.push('');
-                                            }
-                                        }
-                                        let receptionists = appsReceptionists[appId].receptionists;
-
-                                        /** @type {Chatshier.Models.TemplateColumn} */
-                                        let column = {
-                                            title: '預約 - ' + product.name,
-                                            text: '請選擇要預約的對象',
-                                            thumbnailImageUrl: product.src || url + '/image/logo-no-transparent.png',
-                                            actions: receptionistIds.map((receptionistId) => {
-                                                /** @type {Chatshier.Models.TemplateAction} */
-                                                let action = {
-                                                    type: 'postback',
-                                                    label: '　',
-                                                    data: 'none'
-                                                };
-
-                                                if (!(receptionistId && receptionists[receptionistId])) {
-                                                    return action;
-                                                }
-
-                                                let receptionist = receptionists[receptionistId];
-                                                /** @type {Webhook.Chatshier.PostbackPayload} */
-                                                let payloadJson = {
-                                                    action: 'SEND_APPOINTMENT_DATE',
-                                                    productId: productId,
-                                                    receptionistId: receptionistId,
-                                                    timestamp: Date.now()
-                                                };
-
-                                                action.label = receptionist.name;
-                                                action.data = JSON.stringify(payloadJson);
-                                                return action;
-                                            }).sort((a, b) => {
-                                                if ('none' === a.data && 'none' !== b.data) {
-                                                    return 1;
-                                                } else if ('none' !== a.data && 'none' === b.data) {
-                                                    return -1;
-                                                } else {
-                                                    return 0;
-                                                }
-                                            })
-                                        };
-                                        return column;
-                                    });
-                                })).then((columns) => {
-                                    // 建立的卡片必須依照順序，因此須等到 Promise.all 結束後，再依照順序插入
-                                    columns.forEach((column) => {
-                                        if (!column) {
-                                            return;
-                                        }
-                                        productsMessage.template.columns.push(column);
-                                    });
-                                });
-                            })).then(() => {
-                                if (0 === productsMessage.template.columns.length) {
-                                    repliedMessages.push(noProductsMessage);
-                                    return;
-                                }
-                                repliedMessages.push(productsMessage);
-                            });
-                        });
-                    });
-                    promises.push(productPromise);
-                } else if (POSTBACK_ACTIONS.SEND_APPOINTMENT_DATE === payload.action) {
-                    let timestamp = payload.timestamp || 0;
-                    let timeoutMessage = this._checkTimeout(timestamp);
-                    if (timeoutMessage) {
-                        repliedMessages.push(timeoutMessage);
-                        continue;
-                    }
-
-                    let productId = payload.productId || '';
-                    let receptionistId = payload.receptionistId || '';
-
-                    let datePromise = appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
-                        if (!(appsReceptionists && appsReceptionists[appId])) {
-                            let noDateMessage = {
-                                type: 'text',
-                                text: '很抱歉，目前沒有可預約的日期。'
-                            };
-                            repliedMessages.push(noDateMessage);
-                            return;
-                        }
-
-                        let receptionist = appsReceptionists[appId].receptionists[receptionistId];
-                        let schedules = receptionist.schedules;
-                        if (0 === Object.keys(schedules).length) {
-                            let noDateMessage = {
-                                type: 'text',
-                                text: '很抱歉，' + receptionist.name + ' 目前沒有可預約的日期。'
-                            };
-                            repliedMessages.push(noDateMessage);
-                            return;
-                        }
-
-                        let scheduleIds = Object.keys(schedules);
-                        scheduleIds.sort((a, b) => {
-                            if (schedules[a].start.dateTime > schedules[b].start.dateTime) {
-                                return 1;
-                            } else if (schedules[a].start.dateTime < schedules[b].start.dateTime) {
-                                return -1;
-                            } else {
-                                return 0;
-                            }
-                        });
-
-                        /** @type {{[scheduleId: string]: Date[]}} */
-                        let scheduleDates = {};
-                        for (let i in scheduleIds) {
-                            let scheduleId = scheduleIds[i];
-                            let schedule = schedules[scheduleId];
-                            let dates = gcalendarHlp.getDateList(schedule, 30);
-                            dates.length > 0 && (scheduleDates[scheduleId] = dates);
-                        }
-
-                        let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
-                        let datesMessage = {
-                            type: 'template',
-                            altText: '預約日期',
-                            template: {
-                                type: 'carousel',
-                                /** @type {Chatshier.Models.TemplateColumn[]} */
-                                columns: []
-                            }
-                        };
-
-                        let columns = [];
-                        let actions = [];
-                        for (let scheduleId in scheduleDates) {
-                            let dates = scheduleDates[scheduleId];
-
-                            while (dates.length > 0 && columns.length < 10) {
-                                let date = dates.shift();
-                                if (!date) {
-                                    continue;
-                                }
-
-                                /** @type {Chatshier.Models.TemplateAction} */
-                                let action = {
-                                    type: 'postback',
-                                    label: '　',
-                                    data: 'none'
-                                };
-
-                                /** @type {Webhook.Chatshier.PostbackPayload} */
-                                let payloadJson = {
-                                    action: 'SEND_APPOINTMENT_TIME',
-                                    productId: productId,
-                                    receptionistId: receptionistId,
-                                    scheduleId: scheduleId,
-                                    timestamp: Date.now()
-                                };
-
-                                let startedTimeLocal = new Date(date.getTime() - timezoneOffset);
-                                let appointDate = startedTimeLocal.toISOString().split('T').shift();
-                                action.label = appointDate || action.label;
-                                action.data = JSON.stringify(payloadJson);
-                                actions.push(action);
-
-                                if (actions.length >= 3) {
-                                    /** @type {Chatshier.Models.TemplateColumn} */
-                                    let column = {
-                                        title: '預約 - ' + receptionist.name,
-                                        text: '請選擇要預約的日期',
-                                        thumbnailImageUrl: receptionist.photo || url + '/image/logo-no-transparent.png',
-                                        actions: actions.slice()
-                                    };
-                                    actions.length = 0;
-                                    columns.push(column);
-
-                                    if (columns.length >= 10) {
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (actions.length > 0 && columns.length < 10) {
-                            /** @type {Chatshier.Models.TemplateColumn} */
-                            let column = {
-                                title: '預約 - ' + receptionist.name,
-                                text: '請選擇要預約的日期',
-                                thumbnailImageUrl: receptionist.photo || url + '/image/logo-no-transparent.png',
-                                actions: actions.slice()
-                            };
-
-                            while (column.actions.length < 3) {
-                                column.actions.push({
-                                    type: 'postback',
-                                    label: '　',
-                                    data: 'none'
-                                });
-                            }
-                            columns.push(column);
-                            actions.length = 0;
-                        }
-                        datesMessage.template.columns = columns;
-                        repliedMessages.push(datesMessage);
-                    });
-                    promises.push(datePromise);
-                } else if (POSTBACK_ACTIONS.SEND_APPOINTMENT_TIME === payload.action) {
-                    let timestamp = payload.timestamp || 0;
-                    let timeoutMessage = this._checkTimeout(timestamp);
-                    if (timeoutMessage) {
-                        repliedMessages.push(timeoutMessage);
-                        continue;
-                    }
-
-                    let productId = payload.productId || '';
-                    let receptionistId = payload.receptionistId || '';
-                    let scheduleId = payload.scheduleId || '';
-
-                    let noTimeMessage = {
-                        type: 'text',
-                        text: '很抱歉，目前沒有可預約的時間。'
-                    };
-                    if (!scheduleId) {
-                        repliedMessages.push(noTimeMessage);
-                        continue;
-                    }
-
-                    let timePromise = appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
-                        if (!(appsReceptionists && appsReceptionists[appId])) {
-                            repliedMessages.push(noTimeMessage);
-                            return;
-                        }
-
-                        let receptionist = appsReceptionists[appId].receptionists[receptionistId];
-                        let schedule = receptionist.schedules[scheduleId];
-
-                        let serviceInterval = receptionist.interval;
-                        let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
-                        let startTime = new Date(schedule.start.dateTime);
-                        let endTime = new Date(schedule.end.dateTime);
-                        endTime.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
-
-                        let serviceTimes = Math.floor((endTime.getTime() - startTime.getTime()) / serviceInterval);
-                        startTime = new Date(startTime.getTime() - timezoneOffset);
-
-                        let availableTimes = [];
-                        for (let i = 0; i < serviceTimes; i++) {
-                            endTime = new Date(startTime.getTime() + serviceInterval);
-
-                            let start = startTime.toISOString(); // 2018-07-29T07:00:10.411Z
-                            start = start.split('T').pop() || ''; // 07:00:10.411Z
-                            start = start.substring(0, 5); // 07:00
-
-                            let end = endTime.toISOString(); // 2018-07-29T08:00:10.411Z
-                            end = end.split('T').pop() || ''; // 08:00:10.411Z
-                            end = end.substring(0, 5); // 08:00
-
-                            availableTimes.push(start + ' ~ ' + end);
-                            startTime = new Date(startTime.getTime() + serviceInterval);
-                        }
-
-                        if (0 === availableTimes.length) {
-                            repliedMessages.push(noTimeMessage);
-                            return;
-                        }
-
-                        // 預約時間數量有可能超過 3 個，因此每 3 筆資料切成一張卡片
-                        let timeColumns = [];
-                        while (availableTimes.length > 3) {
-                            timeColumns.push(availableTimes.splice(0, 3));
-                        }
-                        timeColumns.push(availableTimes);
-
-                        let timesMessage = {
-                            type: 'template',
-                            altText: '預約時間',
-                            template: {
-                                type: 'carousel',
-                                /** @type {Chatshier.Models.TemplateColumn[]} */
-                                columns: timeColumns.map((availableTimes) => {
-                                    if (timeColumns.length > 1) {
-                                        while (availableTimes.length < 3) {
-                                            availableTimes.push('');
-                                        }
-                                    }
-
-                                    /** @type {Chatshier.Models.TemplateColumn} */
-                                    let column = {
-                                        title: '預約 - ' + receptionist.name,
-                                        text: '請選擇要預約的時間',
-                                        thumbnailImageUrl: receptionist.photo || url + '/image/logo-no-transparent.png',
-                                        actions: availableTimes.map((availableTime) => {
-                                            /** @type {Chatshier.Models.TemplateAction} */
-                                            let action = {
-                                                type: 'postback',
-                                                label: '　',
-                                                data: 'none'
-                                            };
-
-                                            if (!availableTime) {
-                                                return action;
-                                            }
-
-                                            let timeSplits = availableTime.split('~');
-                                            let startedTime = (timeSplits.shift() || '　').trim();
-                                            let endedTime = (timeSplits.shift() || '　').trim();
-
-                                            /** @type {Webhook.Chatshier.PostbackPayload} */
-                                            let payloadJson = {
-                                                action: 'SEND_APPOINTMENT_CONFIRM',
-                                                productId: productId,
-                                                receptionistId: receptionistId,
-                                                scheduleId: scheduleId,
-                                                startedTime: startedTime,
-                                                endedTime: endedTime,
-                                                timestamp: Date.now()
-                                            };
-
-                                            action.label = availableTime;
-                                            action.data = JSON.stringify(payloadJson);
-                                            return action;
-                                        })
-                                    };
-                                    return column;
-                                })
-                            }
-                        };
-                        repliedMessages.push(timesMessage);
-                    });
-                    promises.push(timePromise);
-                } else if (POSTBACK_ACTIONS.SEND_APPOINTMENT_CONFIRM === payload.action) {
-                    let timestamp = payload.timestamp || 0;
-                    let timeoutMessage = this._checkTimeout(timestamp);
-                    if (timeoutMessage) {
-                        repliedMessages.push(timeoutMessage);
-                        continue;
-                    }
-
-                    let categoryId = payload.categoryId || '';
-                    let productId = payload.productId || '';
-                    let receptionistId = payload.receptionistId || '';
-                    let scheduleId = payload.scheduleId || '';
-                    let startedTime = payload.startedTime;
-                    let endedTime = payload.endedTime;
-
-                    if (!(receptionistId && scheduleId && startedTime && endedTime)) {
-                        let invalidMessage = {
-                            type: 'text',
-                            text: '很抱歉，無法確認您的預約資料，請重新操作。'
-                        };
-                        repliedMessages.push(invalidMessage);
-                        continue;
-                    }
-
-                    let confirmPromise = Promise.all([
-                        appsCategoriesMdl.find(appId, categoryId, { 'categories.type': 'APPOINTMENT' }),
-                        appsProductsMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
-                        appsReceptionistsMdl.find(appId, receptionistId)
-                    ]).then(([ appsCategories, appsProducts, appsReceptionists ]) => {
-                        if (!(appsCategories && appsCategories[appId]) ||
-                            !(appsProducts && appsProducts[appId]) ||
-                            !(appsReceptionists && appsReceptionists[appId])) {
-                            let invalidMessage = {
-                                type: 'text',
-                                text: '很抱歉，無法建立此預約！請重新操作。'
-                            };
-                            repliedMessages.push(invalidMessage);
-                            return;
-                        }
-
-                        let product = appsProducts[appId].products[productId];
-                        let receptionist = appsReceptionists[appId].receptionists[receptionistId];
-                        let schedule = receptionist.schedules[scheduleId];
-                        let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
-                        let startedTimeLocal = new Date(new Date(schedule.start.dateTime).getTime() - timezoneOffset);
-                        let appointDate = startedTimeLocal.toISOString().split('T').shift();
-
-                        let infoMessage = {
-                            type: 'text',
-                            text: (
-                                '以下是您的預約資料:\n' +
-                                '\n' +
-                                '預約項目: ' + product.name + '\n' +
-                                '\n' +
-                                '預約對象: ' + receptionist.name + '\n' +
-                                '\n' +
-                                '預約時間:\n' +
-                                '\n' +
-                                '【' + appointDate + '】\n' +
-                                '【' + startedTime + ' ~ ' + endedTime + '】'
-                            )
-                        };
-
-                        let appointmentId = appsAppointmentsMdl.Types.ObjectId().toHexString();
-                        /** @type {Webhook.Chatshier.PostbackPayload} */
-                        let payloadJson = {
-                            action: 'APPOINTMENT_FINISH',
-                            appointmentId: appointmentId,
-                            productId: productId,
-                            receptionistId: receptionistId,
-                            scheduleId: payload.scheduleId,
-                            startedTime: startedTime,
-                            endedTime: endedTime,
-                            timestamp: Date.now()
-                        };
-                        let confirmMessage = {
-                            type: 'template',
-                            altText: '預約時間',
-                            template: {
-                                type: 'buttons',
-                                title: '確認預約',
-                                text: '請確認以上資料是否無誤',
-                                actions: [{
-                                    type: 'postback',
-                                    label: '確認預約',
-                                    data: JSON.stringify(payloadJson)
-                                }]
-                            }
-                        };
-                        repliedMessages.push(infoMessage, confirmMessage);
-                    });
-                    promises.push(confirmPromise);
-                } else if (POSTBACK_ACTIONS.APPOINTMENT_FINISH === payload.action) {
-                    let timestamp = payload.timestamp || 0;
-                    let timeoutMessage = this._checkTimeout(timestamp);
-                    if (timeoutMessage) {
-                        repliedMessages.push(timeoutMessage);
-                        continue;
-                    }
-
-                    let invalidMessage = {
-                        type: 'text',
-                        text: '很抱歉，無法建立此預約！請重新操作。'
-                    };
-
-                    let appointmentId = payload.appointmentId || '';
-                    if (!appointmentId) {
-                        repliedMessages.push(invalidMessage);
-                        continue;
-                    }
-
-                    let productId = payload.productId || '';
-                    let receptionistId = payload.receptionistId || '';
-                    let scheduleId = payload.scheduleId || '';
-                    let startedTimeStr = payload.startedTime;
-                    let endedTimeStr = payload.endedTime;
-
-                    let finishPromise = appsAppointmentsMdl.find(appId, appointmentId, {}).then((appsAppointments) => {
-                        if (appsAppointments && appsAppointments[appId]) {
-                            let existedMessage = {
-                                type: 'text',
-                                text: '此預約已經建立，感謝您的預約！'
-                            };
-                            repliedMessages.push(existedMessage);
-                            return;
-                        }
-
-                        let _appointment = {
-                            _id: appointmentId,
-                            product_id: productId,
-                            receptionist_id: receptionistId,
-                            platformUid: platformUid
-                        };
-
-                        return Promise.all([
-                            appsMdl.find(appId),
-                            appsProductsMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
-                            appsReceptionistsMdl.find(appId, receptionistId),
-                            appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false),
-                            consumersMdl.find(platformUid),
-                            appsAppointmentsMdl.insert(appId, _appointment)
-                        ]).then(([ apps, appsProducts, appsReceptionists, appsChatroomsMessagers, consumers ]) => {
-                            if (!(apps && apps[appId]) ||
-                                !(appsProducts && appsProducts[appId]) ||
-                                !(appsReceptionists && appsReceptionists[appId]) ||
-                                !(appsChatroomsMessagers && appsChatroomsMessagers[appId]) ||
-                                !(consumers && consumers[platformUid])) {
-                                repliedMessages.push(invalidMessage);
-                                return;
-                            }
-
-                            let app = apps[appId];
-                            let product = appsProducts[appId].products[productId];
-                            let receptionist = appsReceptionists[appId].receptionists[receptionistId];
-                            let messager = Object.values(appsChatroomsMessagers[appId].chatrooms)[0].messagers[platformUid];
-                            let consumer = consumers[platformUid];
-                            let summary = consumer.name + ' 向 ' + receptionist.name + ' 預約 ' + product.name;
-                            let description = (
-                                '大頭貼: <a href="' + consumer.photo + '" target="_blank">連結</a>\n' +
-                                '名稱: ' + consumer.name + '\n' +
-                                'Email: ' + messager.email + '\n' +
-                                '電話: ' + messager.phone + '\n' +
-                                '性別: ' + ('MALE' === messager.gender ? '男' : '女') + '\n' +
-                                '年齡: ' + messager.age + '\n'
-                            );
-
-                            return Promise.resolve().then(() => {
-                                let gcalendarId = app.gcalendarId;
-                                if (!gcalendarId) {
-                                    let summary = '[' + app.name + '] - ' + appId;
-                                    let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
-
-                                    return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
-                                        gcalendarId = gcalendar.id;
-                                        let _app = { gcalendarId: gcalendarId };
-                                        return appsMdl.update(appId, _app);
-                                    }).then(() => {
-                                        return Promise.resolve(gcalendarId);
-                                    });
-                                }
-                                return Promise.resolve(gcalendarId);
-                            }).then((gcalendarId) => {
-                                let attendees = [{
-                                    name: receptionist.name,
-                                    email: receptionist.email
-                                }];
-
-                                messager.email && attendees.push({
-                                    name: consumer.name,
-                                    email: messager.email
-                                });
-
-                                let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
-                                let schedule = receptionist.schedules[scheduleId];
-                                let startDateTime = new Date(schedule.start.dateTime);
-                                let startTimeLocal = new Date(startDateTime.getTime() - timezoneOffset);
-                                let appointDate = startTimeLocal.toISOString().split('T').shift();
-                                startTimeLocal = new Date(appointDate + ' ' + startedTimeStr);
-                                startDateTime = new Date(startTimeLocal.getTime() + timezoneOffset);
-
-                                let endTimeLocal = new Date(appointDate + ' ' + endedTimeStr);
-                                let endDateTime = new Date(endTimeLocal.getTime() + timezoneOffset);
-
-                                return gcalendarHlp.insertEvent(gcalendarId, {
-                                    summary: summary,
-                                    description: description,
-                                    startDateTime: startDateTime,
-                                    endDateTime: endDateTime,
-                                    attendees: attendees
-                                }).then((gcalendarEvent) => {
-                                    let webhookUrl = webhookInfo.serverAddress + '/webhook-google/gcalendar/events/apps/' + appId;
-                                    let _appointment = {
-                                        startedTime: startDateTime,
-                                        endedTime: endDateTime,
-                                        eventId: gcalendarEvent.id,
-                                        summary: gcalendarEvent.summary,
-                                        description: gcalendarEvent.description
-                                    };
-                                    return Promise.all([
-                                        gcalendarHlp.watchEvent(gcalendarId, gcalendarEvent.id, webhookUrl),
-                                        appsAppointmentsMdl.update(appId, appointmentId, _appointment)
-                                    ]).then(([ channel ]) => {
-                                        return appsAppointmentsMdl.update(appId, appointmentId, { eventChannelId: channel.resourceId });
-                                    }).then((appsAppointments) => {
-                                        if (!(appsAppointments && appsAppointments[appId])) {
-                                            let failedMessage = {
-                                                type: 'text',
-                                                text: '很抱歉！此預約建立失敗，請聯絡客服或重新操作'
-                                            };
-                                            repliedMessages.push(failedMessage);
-                                            return;
-                                        }
-
-                                        let successMessage = {
-                                            type: 'text',
-                                            text: (
-                                                (consumer.name ? consumer.name + ' ' : '') + '您好:\n' +
-                                                '\n' +
-                                                '已為你建立預約。' +
-                                                '\n' +
-                                                '時間為:\n' +
-                                                '\n' +
-                                                '【' + appointDate + '】\n' +
-                                                '【' + startedTimeStr + ' ~ ' + endedTimeStr + '】\n' +
-                                                '\n' +
-                                                '感謝您的預約！'
-                                            )
-                                        };
-                                        repliedMessages.push(successMessage);
-                                    });
-                                });
-                            });
-                        });
-                    });
-                    promises.push(finishPromise);
+                let entryFunc = this.postbackEntries[payload.action];
+                if (!entryFunc) {
+                    continue;
                 }
+                promises.push(entryFunc(payload, appId, webhookInfo, botSvc));
             }
 
-            return Promise.all(promises).then(() => repliedMessages);
+            return Promise.all(promises).then((repliedMessagesArray) => {
+                return repliedMessagesArray.reduce((total, messages = []) => total.concat(messages), []);
+            });
         }
 
         getKeywordreplies(messages, appId) {
@@ -1264,7 +386,1020 @@ module.exports = (function() {
             };
             return timeoutMessage;
         }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @param {string} appId
+         * @param {Webhook.Chatshier.Information} webhookInfo
+         * @param {any} botSvc
+         * @returns {Promise<any[]>}
+         */
+        _changeRichmenu(payload, appId, webhookInfo, botSvc) {
+            let richmenuId = payload.richmenuId || '';
+
+            return appsRichmenusMdl.find(appId, richmenuId).then((appsRichmenus) => {
+                if (!(appsRichmenus && appsRichmenus[appId])) {
+                    return;
+                }
+
+                // 如果此 richmenu 沒有啟用或者找不到，則不做任何處理
+                let richmenu = appsRichmenus[appId].richmenus[richmenuId];
+                if (!(richmenu && richmenu.isActivated)) {
+                    return;
+                }
+
+                let platformUid = webhookInfo.platformUid;
+                return botSvc.linkRichMenuToUser(platformUid, richmenu.platformMenuId, appId);
+            }).then(() => []);
+        }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @returns {Promise<any[]>}
+         */
+        _sendReplyText(payload) {
+            if (!(payload && payload.replyText)) {
+                return Promise.resolve([]);
+            }
+            let replyTextMessage = {
+                type: 'text',
+                text: payload.replyText
+            };
+            return Promise.resolve([ replyTextMessage ]);
+        }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @param {string} appId
+         * @returns {Promise<any[]>}
+         */
+        _sendTemplate(payload, appId) {
+            let templateId = payload.templateId || '';
+            let repliedMessages = [];
+
+            return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
+                if (!(appsTemplates && appsTemplates[appId])) {
+                    return Promise.resolve(repliedMessages);
+                }
+
+                let template = appsTemplates[appId].templates[templateId];
+
+                if (payload.additionalText) {
+                    let additionalTextMessage = {
+                        type: 'text',
+                        text: payload.additionalText
+                    };
+                    repliedMessages.push(additionalTextMessage);
+                }
+
+                let templateMessage = {
+                    type: template.type,
+                    altText: template.altText,
+                    template: template.template
+                };
+                repliedMessages.push(templateMessage);
+                return repliedMessages;
+            });
+        }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @param {string} appId
+         * @returns {Promise<any[]>}
+         */
+        _sendImagemap(payload, appId) {
+            let imagemapId = payload.imagemapId || '';
+            let repliedMessages = [];
+
+            return appsImagemapsMdl.find(appId, imagemapId).then((appsImagemaps) => {
+                if (!(appsImagemaps && appsImagemaps[appId])) {
+                    return Promise.resolve(repliedMessages);
+                }
+
+                if (payload.additionalText) {
+                    let additionalTextMessage = {
+                        type: 'text',
+                        text: payload.additionalText
+                    };
+                    repliedMessages.push(additionalTextMessage);
+                }
+
+                let imagemap = appsImagemaps[appId].imagemaps[imagemapId];
+                let imagemapMessage = {
+                    type: imagemap.type,
+                    altText: imagemap.altText,
+                    baseUrl: imagemap.baseUrl,
+                    baseSize: imagemap.baseSize,
+                    actions: imagemap.actions
+                };
+                repliedMessages.push(imagemapMessage);
+                return repliedMessages;
+            });
+        }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @param {string} appId
+         * @param {Webhook.Chatshier.Information} webhookInfo
+         * @returns {Promise<any[]>}
+         */
+        _sendConsumerForm(payload, appId, webhookInfo) {
+            let platformUid = webhookInfo.platformUid;
+            let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+            let url = webhookInfo.serverAddress + '/consumer-form?aid=' + appId + '&t=' + token;
+
+            let formMessage = {
+                type: 'template',
+                altText: '填寫基本資料範本訊息',
+                template: {
+                    type: 'buttons',
+                    title: '填寫基本資料',
+                    text: '開啟以下連結進行填寫動作',
+                    actions: [{
+                        type: 'uri',
+                        label: '按此開啟',
+                        uri: url
+                    }]
+                }
+            };
+            return Promise.resolve([ formMessage ]);
+        }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @param {string} appId
+         * @param {Webhook.Chatshier.Information} webhookInfo
+         * @returns {Promise<any[]>}
+         */
+        _paymentConfirm(payload, appId, webhookInfo) {
+            let repliedMessages = [];
+
+            return appsPaymentsMdl.find(appId).then((appsPayments) => {
+                // 如果此 App 尚未設定金流服務，則跳過處理
+                if (!(appsPayments && appsPayments[appId])) {
+                    return Promise.resolve(void 0);
+                }
+                return Promise.resolve(Object.values(appsPayments[appId].payments).shift());
+            }).then((payment) => {
+                if (!payment) {
+                    return repliedMessages;
+                }
+
+                let platformUid = webhookInfo.platformUid;
+                return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid).then((appsChatroomsMessagers) => {
+                    if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                        return repliedMessages;
+                    }
+
+                    // 當 consumer 點擊捐款時，檢查此 consumer 是否已經填寫完個人基本資料
+                    // 如果沒有填寫完基本資料，則發送填寫基本資料範本給使用者
+                    let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                    let chatroomId = Object.keys(chatrooms).shift() || '';
+                    let messager = chatrooms[chatroomId].messagers[platformUid];
+
+                    let hasFinishProfile = (
+                        messager.namings && messager.namings[platformUid] &&
+                        messager.email &&
+                        messager.phone &&
+                        messager.address
+                    );
+
+                    let url = webhookInfo.serverAddress;
+                    if (!hasFinishProfile) {
+                        let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+                        url += '/consumer-form?aid=' + appId + '&t=' + token;
+
+                        let alertMessage = {
+                            type: 'text',
+                            text: '您尚未完成個人基本資料的填寫'
+                        };
+
+                        let formMessage = {
+                            type: 'template',
+                            altText: '填寫基本資料範本訊息',
+                            template: {
+                                type: 'buttons',
+                                title: '填寫基本資料',
+                                text: '開啟以下連結進行填寫動作',
+                                actions: [{
+                                    type: 'uri',
+                                    label: '按此開啟',
+                                    uri: url
+                                }]
+                            }
+                        };
+                        repliedMessages.push(alertMessage, formMessage);
+                        return repliedMessages;
+                    }
+
+                    let token = jwtHlp.sign(platformUid, 30 * 60 * 1000);
+                    url += '/donation-confirm?aid=' + appId + '&t=' + token;
+                    if (payment.canIssueInvoice) {
+                        url += '&cii=1';
+                    }
+
+                    let linkMessage = {
+                        type: 'template',
+                        altText: '捐款連結訊息',
+                        template: {
+                            type: 'buttons',
+                            title: '捐款連結',
+                            text: '開啟以下連結前往捐款資料確認',
+                            actions: [{
+                                type: 'uri',
+                                label: '按此開啟',
+                                uri: url
+                            }]
+                        }
+                    };
+                    repliedMessages.push(linkMessage);
+                    return repliedMessages;
+                });
+            });
+        }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @param {string} appId
+         * @param {Webhook.Chatshier.Information} webhookInfo
+         * @returns {Promise<any[]>}
+         */
+        _sendAppointmentCategories(payload, appId, webhookInfo) {
+            let repliedMessages = [];
+
+            return appsCategoriesMdl.find(appId, void 0, { 'categories.type': 'APPOINTMENT' }).then((appsCategories) => {
+                if (!(appsCategories && appsCategories[appId])) {
+                    let noCategoriesMessage = {
+                        type: 'text',
+                        text: '很抱歉，現在沒有可預約的目錄。'
+                    };
+                    repliedMessages.push(noCategoriesMessage);
+                    return repliedMessages;
+                }
+
+                let categories = appsCategories[appId].categories;
+                let categoryIds = Object.keys(categories);
+
+                /** @type {string[][]} */
+                let categoryColumns = [];
+                while (categoryIds.length > 3) {
+                    categoryColumns.push(categoryIds.splice(0, 3));
+                }
+                categoryColumns.push(categoryIds);
+
+                let url = webhookInfo.serverAddress;
+                let categoriesMessage = {
+                    type: 'template',
+                    altText: '預約目錄',
+                    template: {
+                        type: 'carousel',
+                        columns: categoryColumns.map((categoryIds) => {
+                            if (categoryColumns.length > 1) {
+                                while (categoryIds.length < 3) {
+                                    categoryIds.push('');
+                                }
+                            }
+
+                            /** @type {Chatshier.Models.TemplateColumn} */
+                            let column = {
+                                title: '預約目錄',
+                                text: '請選擇要預約的目錄',
+                                thumbnailImageUrl: url + '/image/logo-no-transparent.png',
+                                actions: categoryIds.map((categoryId) => {
+                                    /** @type {Chatshier.Models.TemplateAction} */
+                                    let action = {
+                                        type: 'postback',
+                                        label: '　',
+                                        data: 'none'
+                                    };
+
+                                    if (!categoryId) {
+                                        return action;
+                                    }
+
+                                    let category = categories[categoryId];
+                                    /** @type {Webhook.Chatshier.PostbackPayload} */
+                                    let payloadJson = {
+                                        action: 'SEND_APPOINTMENT_PRODUCTS',
+                                        categoryId: categoryId,
+                                        timestamp: Date.now()
+                                    };
+
+                                    action.label = category.name;
+                                    action.data = JSON.stringify(payloadJson);
+                                    return action;
+                                })
+                            };
+                            return column;
+                        })
+                    }
+                };
+                repliedMessages.push(categoriesMessage);
+                return repliedMessages;
+            });
+        }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @param {string} appId
+         * @param {Webhook.Chatshier.Information} webhookInfo
+         * @returns {Promise<any[]>}
+         */
+        _sendAppointmentProducts(payload, appId, webhookInfo) {
+            let repliedMessages = [];
+            let timestamp = payload.timestamp || 0;
+            let timeoutMessage = this._checkTimeout(timestamp);
+            if (timeoutMessage) {
+                repliedMessages.push(timeoutMessage);
+                return Promise.resolve(repliedMessages);
+            }
+
+            let noProductsMessage = {
+                type: 'text',
+                text: '很抱歉，該預約目錄內沒有可預約的項目。'
+            };
+
+            let categoryId = payload.categoryId || '';
+            return appsCategoriesMdl.find(appId, categoryId, { 'categories.type': 'APPOINTMENT' }).then((appsCategories) => {
+                if (!(appsCategories && appsCategories[appId])) {
+                    let noCategoriesMessage = {
+                        type: 'text',
+                        text: '很抱歉，找不到這個預約目錄。'
+                    };
+                    repliedMessages.push(noCategoriesMessage);
+                    return repliedMessages;
+                }
+
+                let category = appsCategories[appId].categories[categoryId] || {};
+                let productIds = category.product_ids || [];
+                if (0 === productIds.length) {
+                    repliedMessages.push(noProductsMessage);
+                    return repliedMessages;
+                }
+
+                let query = {
+                    'products.type': 'APPOINTMENT',
+                    'products.isOnShelf': true
+                };
+                return appsProductsMdl.find(appId, productIds, query).then((appsProducts) => {
+                    if (!(appsProducts && appsProducts[appId])) {
+                        repliedMessages.push(noProductsMessage);
+                        return repliedMessages;
+                    }
+
+                    let products = appsProducts[appId].products;
+                    let productsMessage = {
+                        type: 'template',
+                        altText: '預約項目',
+                        template: {
+                            type: 'carousel',
+                            /** @type {Chatshier.Models.TemplateColumn[]} */
+                            columns: []
+                        }
+                    };
+                    return Promise.all(productIds.map((productId) => {
+                        let product = products[productId];
+                        let receptionistIds = product.receptionist_ids || [];
+
+                        // 服務人員數量有可能超過 3 個，因此每 3 筆資料切成一張卡片
+                        let productColumns = [];
+                        while (receptionistIds.length > 3) {
+                            productColumns.push(receptionistIds.splice(0, 3));
+                        }
+                        productColumns.push(receptionistIds);
+
+                        return Promise.all(productColumns.map((receptionistIds) => {
+                            // 抓取出此產品內所有的服務人員，以便顯示服務人員名稱
+                            return appsReceptionistsMdl.find(appId, receptionistIds).then((appsReceptionists) => {
+                                if (!(appsReceptionists && appsReceptionists[appId])) {
+                                    return;
+                                }
+
+                                if (productIds.length > 1 || productColumns.length > 1) {
+                                    while (receptionistIds.length < 3) {
+                                        receptionistIds.push('');
+                                    }
+                                }
+                                let receptionists = appsReceptionists[appId].receptionists;
+                                let url = webhookInfo.serverAddress;
+
+                                /** @type {Chatshier.Models.TemplateColumn} */
+                                let column = {
+                                    title: '預約 - ' + product.name,
+                                    text: '請選擇要預約的對象',
+                                    thumbnailImageUrl: product.src || (url + '/image/logo-no-transparent.png'),
+                                    actions: receptionistIds.map((receptionistId) => {
+                                        /** @type {Chatshier.Models.TemplateAction} */
+                                        let action = {
+                                            type: 'postback',
+                                            label: '　',
+                                            data: 'none'
+                                        };
+
+                                        if (!(receptionistId && receptionists[receptionistId])) {
+                                            return action;
+                                        }
+
+                                        let receptionist = receptionists[receptionistId];
+                                        /** @type {Webhook.Chatshier.PostbackPayload} */
+                                        let payloadJson = {
+                                            action: 'SEND_APPOINTMENT_DATES',
+                                            productId: productId,
+                                            receptionistId: receptionistId,
+                                            timestamp: Date.now()
+                                        };
+
+                                        action.label = receptionist.name;
+                                        action.data = JSON.stringify(payloadJson);
+                                        return action;
+                                    }).sort((a, b) => {
+                                        if ('none' === a.data && 'none' !== b.data) {
+                                            return 1;
+                                        } else if ('none' !== a.data && 'none' === b.data) {
+                                            return -1;
+                                        } else {
+                                            return 0;
+                                        }
+                                    })
+                                };
+                                return column;
+                            });
+                        })).then((columns) => {
+                            // 建立的卡片必須依照順序，因此須等到 Promise.all 結束後，再依照順序插入
+                            columns.forEach((column) => {
+                                if (!column) {
+                                    return;
+                                }
+                                productsMessage.template.columns.push(column);
+                            });
+                        });
+                    })).then(() => {
+                        if (0 === productsMessage.template.columns.length) {
+                            repliedMessages.push(noProductsMessage);
+                        } else {
+                            repliedMessages.push(productsMessage);
+                        }
+                        return repliedMessages;
+                    });
+                });
+            });
+        }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @param {string} appId
+         * @param {Webhook.Chatshier.Information} webhookInfo
+         * @returns {Promise<any[]>}
+         */
+        _sendAppointmentDates(payload, appId, webhookInfo) {
+            let repliedMessages = [];
+            let timestamp = payload.timestamp || 0;
+            let timeoutMessage = this._checkTimeout(timestamp);
+            if (timeoutMessage) {
+                repliedMessages.push(timeoutMessage);
+                return Promise.resolve(repliedMessages);
+            }
+
+            let productId = payload.productId || '';
+            let receptionistId = payload.receptionistId || '';
+            let noDateMessage = {
+                type: 'text',
+                text: '很抱歉，目前沒有可預約的日期。'
+            };
+
+            return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+                if (!(appsReceptionists && appsReceptionists[appId])) {
+                    repliedMessages.push(noDateMessage);
+                    return repliedMessages;
+                }
+
+                let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                let schedules = receptionist.schedules;
+                let scheduleIds = Object.keys(schedules).sort((a, b) => {
+                    if (schedules[a].start.dateTime > schedules[b].start.dateTime) {
+                        return 1;
+                    } else if (schedules[a].start.dateTime < schedules[b].start.dateTime) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                });
+
+                if (0 === scheduleIds.length) {
+                    repliedMessages.push(noDateMessage);
+                    return repliedMessages;
+                }
+
+                /** @type {{[scheduleId: string]: Date[]}} */
+                let scheduleDates = {};
+                for (let i in scheduleIds) {
+                    let scheduleId = scheduleIds[i];
+                    let schedule = schedules[scheduleId];
+                    let dates = gcalendarHlp.getEventDates(schedule, 30);
+                    dates.length > 0 && (scheduleDates[scheduleId] = dates);
+                }
+
+                let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                let datesMessage = {
+                    type: 'template',
+                    altText: '預約日期',
+                    template: {
+                        type: 'carousel',
+                        /** @type {Chatshier.Models.TemplateColumn[]} */
+                        columns: []
+                    }
+                };
+
+                let url = webhookInfo.serverAddress;
+                let columns = [];
+                let actions = [];
+                for (let scheduleId in scheduleDates) {
+                    let dates = scheduleDates[scheduleId];
+
+                    while (dates.length > 0 && columns.length < 10) {
+                        let date = dates.shift();
+                        if (!date) {
+                            continue;
+                        }
+
+                        /** @type {Chatshier.Models.TemplateAction} */
+                        let action = {
+                            type: 'postback',
+                            label: '　',
+                            data: 'none'
+                        };
+
+                        /** @type {Webhook.Chatshier.PostbackPayload} */
+                        let payloadJson = {
+                            action: 'SEND_APPOINTMENT_TIMES',
+                            productId: productId,
+                            receptionistId: receptionistId,
+                            scheduleId: scheduleId,
+                            timestamp: Date.now()
+                        };
+
+                        let startedTimeLocal = new Date(date.getTime() - timezoneOffset);
+                        let appointDate = startedTimeLocal.toISOString().split('T').shift();
+                        action.label = appointDate || action.label;
+                        action.data = JSON.stringify(payloadJson);
+                        actions.push(action);
+
+                        if (actions.length >= 3) {
+                            /** @type {Chatshier.Models.TemplateColumn} */
+                            let column = {
+                                title: '預約 - ' + receptionist.name,
+                                text: '請選擇要預約的日期',
+                                thumbnailImageUrl: receptionist.photo || (url + '/image/logo-no-transparent.png'),
+                                actions: actions.slice()
+                            };
+                            actions.length = 0;
+                            columns.push(column);
+
+                            if (columns.length >= 10) {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (actions.length > 0 && columns.length < 10) {
+                    /** @type {Chatshier.Models.TemplateColumn} */
+                    let column = {
+                        title: '預約 - ' + receptionist.name,
+                        text: '請選擇要預約的日期',
+                        thumbnailImageUrl: receptionist.photo || (url + '/image/logo-no-transparent.png'),
+                        actions: actions.slice()
+                    };
+
+                    while (column.actions.length < 3) {
+                        column.actions.push({
+                            type: 'postback',
+                            label: '　',
+                            data: 'none'
+                        });
+                    }
+                    columns.push(column);
+                    actions.length = 0;
+                }
+                datesMessage.template.columns = columns;
+                repliedMessages.push(datesMessage);
+                return repliedMessages;
+            });
+        }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @param {string} appId
+         * @param {Webhook.Chatshier.Information} webhookInfo
+         * @returns {Promise<any[]>}
+         */
+        _sendAppointmentTimes(payload, appId, webhookInfo) {
+            let repliedMessages = [];
+            let timestamp = payload.timestamp || 0;
+            let timeoutMessage = this._checkTimeout(timestamp);
+            if (timeoutMessage) {
+                repliedMessages.push(timeoutMessage);
+                return Promise.resolve(repliedMessages);
+            }
+
+            let productId = payload.productId || '';
+            let receptionistId = payload.receptionistId || '';
+            let scheduleId = payload.scheduleId || '';
+
+            let noTimeMessage = {
+                type: 'text',
+                text: '很抱歉，目前沒有可預約的時間。'
+            };
+            if (!scheduleId) {
+                repliedMessages.push(noTimeMessage);
+                return Promise.resolve(repliedMessages);
+            }
+
+            return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+                if (!(appsReceptionists && appsReceptionists[appId])) {
+                    repliedMessages.push(noTimeMessage);
+                    return repliedMessages;
+                }
+
+                let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                let schedule = receptionist.schedules[scheduleId];
+
+                let serviceInterval = receptionist.interval;
+                let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                let startTime = new Date(schedule.start.dateTime);
+                let endTime = new Date(schedule.end.dateTime);
+                endTime.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+
+                let serviceTimes = Math.floor((endTime.getTime() - startTime.getTime()) / serviceInterval);
+                startTime = new Date(startTime.getTime() - timezoneOffset);
+
+                let availableTimes = [];
+                for (let i = 0; i < serviceTimes; i++) {
+                    endTime = new Date(startTime.getTime() + serviceInterval);
+
+                    let start = startTime.toISOString(); // 2018-07-29T07:00:10.411Z
+                    start = start.split('T').pop() || ''; // 07:00:10.411Z
+                    start = start.substring(0, 5); // 07:00
+
+                    let end = endTime.toISOString(); // 2018-07-29T08:00:10.411Z
+                    end = end.split('T').pop() || ''; // 08:00:10.411Z
+                    end = end.substring(0, 5); // 08:00
+
+                    availableTimes.push(start + ' ~ ' + end);
+                    startTime = new Date(startTime.getTime() + serviceInterval);
+                }
+
+                if (0 === availableTimes.length) {
+                    repliedMessages.push(noTimeMessage);
+                    return repliedMessages;
+                }
+
+                // 預約時間數量有可能超過 3 個，因此每 3 筆資料切成一張卡片
+                let timeColumns = [];
+                while (availableTimes.length > 3) {
+                    timeColumns.push(availableTimes.splice(0, 3));
+                }
+                timeColumns.push(availableTimes);
+
+                let url = webhookInfo.serverAddress;
+                let timesMessage = {
+                    type: 'template',
+                    altText: '預約時間',
+                    template: {
+                        type: 'carousel',
+                        /** @type {Chatshier.Models.TemplateColumn[]} */
+                        columns: timeColumns.map((availableTimes) => {
+                            if (timeColumns.length > 1) {
+                                while (availableTimes.length < 3) {
+                                    availableTimes.push('');
+                                }
+                            }
+
+                            /** @type {Chatshier.Models.TemplateColumn} */
+                            let column = {
+                                title: '預約 - ' + receptionist.name,
+                                text: '請選擇要預約的時間',
+                                thumbnailImageUrl: receptionist.photo || url + '/image/logo-no-transparent.png',
+                                actions: availableTimes.map((availableTime) => {
+                                    /** @type {Chatshier.Models.TemplateAction} */
+                                    let action = {
+                                        type: 'postback',
+                                        label: '　',
+                                        data: 'none'
+                                    };
+
+                                    if (!availableTime) {
+                                        return action;
+                                    }
+
+                                    let timeSplits = availableTime.split('~');
+                                    let startedTime = (timeSplits.shift() || '　').trim();
+                                    let endedTime = (timeSplits.shift() || '　').trim();
+
+                                    /** @type {Webhook.Chatshier.PostbackPayload} */
+                                    let payloadJson = {
+                                        action: 'SEND_APPOINTMENT_CONFIRM',
+                                        productId: productId,
+                                        receptionistId: receptionistId,
+                                        scheduleId: scheduleId,
+                                        startedTime: startedTime,
+                                        endedTime: endedTime,
+                                        timestamp: Date.now()
+                                    };
+
+                                    action.label = availableTime;
+                                    action.data = JSON.stringify(payloadJson);
+                                    return action;
+                                })
+                            };
+                            return column;
+                        })
+                    }
+                };
+                repliedMessages.push(timesMessage);
+                return repliedMessages;
+            });
+        }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @param {string} appId
+         * @returns {Promise<any[]>}
+         */
+        _sendAppointmentConfirm(payload, appId) {
+            let repliedMessages = [];
+            let timestamp = payload.timestamp || 0;
+            let timeoutMessage = this._checkTimeout(timestamp);
+            if (timeoutMessage) {
+                repliedMessages.push(timeoutMessage);
+                return Promise.resolve(repliedMessages);
+            }
+
+            let categoryId = payload.categoryId || '';
+            let productId = payload.productId || '';
+            let receptionistId = payload.receptionistId || '';
+            let scheduleId = payload.scheduleId || '';
+            let startedTime = payload.startedTime;
+            let endedTime = payload.endedTime;
+
+            if (!(receptionistId && scheduleId && startedTime && endedTime)) {
+                let invalidMessage = {
+                    type: 'text',
+                    text: '很抱歉，無法確認您的預約資料，請重新操作。'
+                };
+                repliedMessages.push(invalidMessage);
+                return Promise.resolve(repliedMessages);
+            }
+
+            return Promise.all([
+                appsCategoriesMdl.find(appId, categoryId, { 'categories.type': 'APPOINTMENT' }),
+                appsProductsMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
+                appsReceptionistsMdl.find(appId, receptionistId)
+            ]).then(([ appsCategories, appsProducts, appsReceptionists ]) => {
+                if (!(appsCategories && appsCategories[appId]) ||
+                    !(appsProducts && appsProducts[appId]) ||
+                    !(appsReceptionists && appsReceptionists[appId])) {
+                    let invalidMessage = {
+                        type: 'text',
+                        text: '很抱歉，無法建立此預約！請重新操作。'
+                    };
+                    repliedMessages.push(invalidMessage);
+                    return repliedMessages;
+                }
+
+                let product = appsProducts[appId].products[productId];
+                let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                let schedule = receptionist.schedules[scheduleId];
+                let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                let startedTimeLocal = new Date(new Date(schedule.start.dateTime).getTime() - timezoneOffset);
+                let appointDate = startedTimeLocal.toISOString().split('T').shift();
+
+                let infoMessage = {
+                    type: 'text',
+                    text: (
+                        '以下是您的預約資料:\n' +
+                        '\n' +
+                        '預約項目: ' + product.name + '\n' +
+                        '\n' +
+                        '預約對象: ' + receptionist.name + '\n' +
+                        '\n' +
+                        '預約時間:\n' +
+                        '\n' +
+                        '【' + appointDate + '】\n' +
+                        '【' + startedTime + ' ~ ' + endedTime + '】'
+                    )
+                };
+
+                let appointmentId = appsAppointmentsMdl.Types.ObjectId().toHexString();
+                /** @type {Webhook.Chatshier.PostbackPayload} */
+                let payloadJson = {
+                    action: 'APPOINTMENT_FINISH',
+                    appointmentId: appointmentId,
+                    productId: productId,
+                    receptionistId: receptionistId,
+                    scheduleId: payload.scheduleId,
+                    startedTime: startedTime,
+                    endedTime: endedTime,
+                    timestamp: Date.now()
+                };
+                let confirmMessage = {
+                    type: 'template',
+                    altText: '預約時間',
+                    template: {
+                        type: 'buttons',
+                        title: '確認預約',
+                        text: '請確認以上資料是否無誤',
+                        actions: [{
+                            type: 'postback',
+                            label: '確認預約',
+                            data: JSON.stringify(payloadJson)
+                        }]
+                    }
+                };
+                repliedMessages.push(infoMessage, confirmMessage);
+                return repliedMessages;
+            });
+        }
+
+        /**
+         * @param {Webhook.Chatshier.PostbackPayload} payload
+         * @param {string} appId
+         * @param {Webhook.Chatshier.Information} webhookInfo
+         * @returns {Promise<any[]>}
+         */
+        _appointmentFinish(payload, appId, webhookInfo) {
+            let repliedMessages = [];
+            let timestamp = payload.timestamp || 0;
+            let timeoutMessage = this._checkTimeout(timestamp);
+            if (timeoutMessage) {
+                repliedMessages.push(timeoutMessage);
+                return Promise.resolve(repliedMessages);
+            }
+
+            let invalidMessage = {
+                type: 'text',
+                text: '很抱歉，無法建立此預約！請重新操作。'
+            };
+
+            let appointmentId = payload.appointmentId || '';
+            if (!appointmentId) {
+                repliedMessages.push(invalidMessage);
+                return Promise.resolve(repliedMessages);
+            }
+
+            let productId = payload.productId || '';
+            let receptionistId = payload.receptionistId || '';
+            let scheduleId = payload.scheduleId || '';
+            let startedTimeStr = payload.startedTime;
+            let endedTimeStr = payload.endedTime;
+            let platformUid = webhookInfo.platformUid;
+
+            return appsAppointmentsMdl.find(appId, appointmentId, {}).then((appsAppointments) => {
+                if (appsAppointments && appsAppointments[appId]) {
+                    let existedMessage = {
+                        type: 'text',
+                        text: '此預約已經建立，感謝您的預約！'
+                    };
+                    repliedMessages.push(existedMessage);
+                    return Promise.reject(new Error('MANUAL_ABORT'));
+                }
+
+                let _appointment = {
+                    _id: appointmentId,
+                    product_id: productId,
+                    receptionist_id: receptionistId,
+                    platformUid: platformUid
+                };
+
+                return Promise.all([
+                    appsMdl.find(appId),
+                    appsProductsMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
+                    appsReceptionistsMdl.find(appId, receptionistId),
+                    appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false),
+                    consumersMdl.find(platformUid),
+                    appsAppointmentsMdl.insert(appId, _appointment)
+                ]);
+            }).then(([ apps, appsProducts, appsReceptionists, appsChatroomsMessagers, consumers ]) => {
+                if (!(apps && apps[appId]) ||
+                    !(appsProducts && appsProducts[appId]) ||
+                    !(appsReceptionists && appsReceptionists[appId]) ||
+                    !(appsChatroomsMessagers && appsChatroomsMessagers[appId]) ||
+                    !(consumers && consumers[platformUid])) {
+                    repliedMessages.push(invalidMessage);
+                    return Promise.reject(new Error('MANUAL_ABORT'));
+                }
+
+                let app = apps[appId];
+                let product = appsProducts[appId].products[productId];
+                let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                let messager = Object.values(appsChatroomsMessagers[appId].chatrooms)[0].messagers[platformUid];
+                let consumer = consumers[platformUid];
+                let summary = consumer.name + ' 向 ' + receptionist.name + ' 預約 ' + product.name;
+                let description = (
+                    '大頭貼: <a href="' + consumer.photo + '" target="_blank">連結</a>\n' +
+                    '名稱: ' + consumer.name
+                );
+                messager.email && (description += '\nEmail: ' + messager.email);
+                messager.phone && (description += '\n電話: ' + messager.phone);
+                messager.gender && (description += '\n性別: ' + ('MALE' === messager.gender ? '男' : '女'));
+                messager.age && (description += '\n年齡: ' + messager.age);
+
+                return Promise.resolve().then(() => {
+                    let gcalendarId = app.gcalendarId;
+                    if (!gcalendarId) {
+                        let summary = '[' + app.name + '] - ' + appId;
+                        let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
+
+                        return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
+                            gcalendarId = gcalendar.id;
+                            let _app = { gcalendarId: gcalendarId };
+                            return appsMdl.update(appId, _app);
+                        }).then(() => {
+                            return Promise.resolve(gcalendarId);
+                        });
+                    }
+                    return Promise.resolve(gcalendarId);
+                }).then((gcalendarId) => {
+                    let attendees = [{
+                        name: receptionist.name,
+                        email: receptionist.email
+                    }];
+
+                    messager.email && attendees.push({
+                        name: consumer.name,
+                        email: messager.email
+                    });
+
+                    let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                    let schedule = receptionist.schedules[scheduleId];
+                    let startDateTime = new Date(schedule.start.dateTime);
+                    let startTimeLocal = new Date(startDateTime.getTime() - timezoneOffset);
+                    let appointDate = startTimeLocal.toISOString().split('T').shift();
+                    startTimeLocal = new Date(appointDate + ' ' + startedTimeStr);
+                    startDateTime = new Date(startTimeLocal.getTime() + timezoneOffset);
+
+                    let endTimeLocal = new Date(appointDate + ' ' + endedTimeStr);
+                    let endDateTime = new Date(endTimeLocal.getTime() + timezoneOffset);
+
+                    return gcalendarHlp.insertEvent(gcalendarId, {
+                        summary: summary,
+                        description: description,
+                        startDateTime: startDateTime,
+                        endDateTime: endDateTime,
+                        attendees: attendees
+                    }).then((gcalendarEvent) => {
+                        let webhookUrl = webhookInfo.serverAddress + '/webhook-google/calendar/appointments?appid=' + appId;
+                        let _appointment = {
+                            startedTime: startDateTime,
+                            endedTime: endDateTime,
+                            eventId: gcalendarEvent.id,
+                            summary: gcalendarEvent.summary,
+                            description: gcalendarEvent.description
+                        };
+
+                        return Promise.all([
+                            gcalendarHlp.watchEvent(gcalendarId, gcalendarEvent.id, webhookUrl),
+                            appsAppointmentsMdl.update(appId, appointmentId, _appointment)
+                        ]).then(([ channel ]) => {
+                            return appsAppointmentsMdl.update(appId, appointmentId, { eventChannelId: channel.resourceId });
+                        }).then((appsAppointments) => {
+                            if (!(appsAppointments && appsAppointments[appId])) {
+                                let failedMessage = {
+                                    type: 'text',
+                                    text: '很抱歉！此預約建立失敗，請聯絡客服或重新操作'
+                                };
+                                repliedMessages.push(failedMessage);
+                                return repliedMessages;
+                            }
+
+                            let successMessage = {
+                                type: 'text',
+                                text: (
+                                    (consumer.name ? consumer.name + ' ' : '') + '您好:\n' +
+                                    '\n' +
+                                    '已為您建立預約。' +
+                                    '\n\n' +
+                                    '【' + product.name + '】\n' +
+                                    '【' + receptionist.name + '】\n' +
+                                    '【' + appointDate + '】\n' +
+                                    '【' + startedTimeStr + ' ~ ' + endedTimeStr + '】\n' +
+                                    '\n' +
+                                    '感謝您的預約！'
+                                )
+                            };
+                            repliedMessages.push(successMessage);
+                            return repliedMessages;
+                        });
+                    });
+                });
+            }).catch((err) => {
+                if (err && 'MANUAL_ABORT' === err.message) {
+                    return repliedMessages;
+                }
+                return Promise.reject(err);
+            });
+        }
     }
 
-    return new ChatshierHelp();
+    return new ChatshierHelper();
 })();
