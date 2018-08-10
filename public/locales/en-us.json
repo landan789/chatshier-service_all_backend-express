@@ -2,9 +2,12 @@
     "Add": "Add",
     "Add bot": "Add bot",
     "Add calendar event": "Add calendar event",
+    "Add category": "Add category",
     "Add group": "Add group",
-    "Add To-Do item": "Add To-Do item",
+    "Add receptionist": "Add receptionist",
     "Add successful!": "Add successful!",
+    "Add product": "Add product",
+    "Add To-Do item": "Add To-Do item",
     "Age": "Age",
     "Already have an account?": "Already have an account?",
     "Analysis": "Analysis",
@@ -12,6 +15,7 @@
     "App ID can't be empty": "App ID can't be empty",
     "App secret can't be empty": "App secret can't be empty",
     "Appointment system": "Appointment system",
+    "Appointment categoies": "Appointment categoies",
     "April": "April",
     "Are you sure want to delete it?": "Are you sure want to delete it?",
     "Assigned": "Assigned",
@@ -35,19 +39,26 @@
     "Confirm": "Confirm",
     "Confirm password": "Confirm password",
     "Confirm new password": "Confirm new password",
+    "Custom": "Custom",
 
+    "Daily": "Daily",
     "Day": "Day",
     "December": "December",
     "Description": "Description",
+    "Does not repeat": "Does not repeat",
     "Don't have an account yet?": "Don't have an account yet?",
 
     "Edit bot": "Edit bot",
     "Edit calendar event": "Edit calendar event",
+    "Edit category": "Edit category",
     "Edit group": "Edit group",
+    "Edit receptionist": "Edit receptionist",
+    "Edit product": "Edit product",
     "Email": "Email",
     "Email was empty!": "Email was empty!",
     "End datetime": "End datetime",
     "Event description": "Event description",
+    "Every weekday (Monday to Friday)": "Every weekday (Monday to Friday)",
 
     "Failed to add!": "Failed to add!",
     "Failed to remove!": "Failed to remove!",
@@ -61,6 +72,8 @@
     "Fill the description": "Fill the description",
     "Fill the event title": "Fill the event title",
     "Fill the group name": "Fill the group name",
+    "Fill the receptionist's name": "Fill the receptionist's name",
+    "Fill the receptionist's Gmail": "Fill the receptionist's Gmail",
     "Fill the title": "Fill the title",
     "Fill your email": "Fill your email",
     "Fill your name": "Fill your name",
@@ -75,6 +88,7 @@
     "Group name": "Group name",
     "Groups": "Groups",
 
+    "Home": "Home",
     "Hour": "Hour",
 
     "I agree Chatshier": "I agree Chatshier",
@@ -131,6 +145,9 @@
     "Product management": "Product management",
 
     "Recent chat date": "Recent chat date",
+    "Receptionist management": "Receptionist management",
+    "Repeat every": "Repeat every",
+    "Repeat on": "Repeat on",
     "Remark": "Remark",
     "Remove": "Remove",
     "Remove successful!": "Remove successful!",
@@ -162,6 +179,8 @@
     "Token expired, please perform the reset password procedure again!": "Token expired, please perform the reset password procedure again!",
     "Total count of messages per hour": "Total count of messages per hour",
 
+    "View Appointments": "View Appointments",
+
     "Unassigned": "Unassigned",
     "Unit": "Unit",
     "Unread": "Unread",
@@ -169,6 +188,7 @@
     "Update successful!": "Update successful!",
     "User email had been signed up!": "User email had been signed up!",
 
+    "Weekly on Saturday": "Weekly on Saturday",
     "Welcome to Chatshier integration platform": "Welcome to Chatshier integration platform",
     "Wrong password!": "Wrong password!",
 
