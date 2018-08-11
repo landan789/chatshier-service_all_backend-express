@@ -44,12 +44,10 @@ module.exports = (function() {
             let richmenuId = req.params.richmenuid;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
-                }
+
 
                 if (!richmenuId) {
-                    return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_RICHMENU_RICHMENUID_WAS_EMPTY);
                 }
 
                 return appsRichmenusMdl.findRichmenus(appId).then((richmenus) => {
@@ -111,9 +109,6 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
-                }
 
                 if (!postRichmenu.platformMenuId) {
                     if (!(richmentImgFile && richmentImgFileName)) {
@@ -207,12 +202,9 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
-                }
 
                 if (!richmenuId) {
-                    return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_RICHMENU_RICHMENUID_WAS_EMPTY);
                 }
                 return appsRichmenusMdl.find(appId, richmenuId);
             }).then((appsRichmenus) => {
@@ -305,12 +297,9 @@ module.exports = (function() {
             let richmenuId = req.params.richmenuid;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
-                }
 
                 if (!richmenuId) {
-                    return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_RICHMENU_RICHMENUID_WAS_EMPTY);
                 }
                 return appsRichmenusMdl.findRichmenus(appId);
             }).then((richmenus) => {

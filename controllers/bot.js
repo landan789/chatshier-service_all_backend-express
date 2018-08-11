@@ -360,7 +360,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!appId) {
-                    return Promise.reject(ERROR.APPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_APPID_WAS_EMPTY);
                 } else if (!platformUid) {
                     return Promise.reject(ERROR.PLATFORMUID_WAS_EMPTY);
                 }

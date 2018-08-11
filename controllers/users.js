@@ -77,7 +77,7 @@ module.exports = (function() {
                     // 有 query email 就不搜尋使用者下的所有群組的的所有成員 USERIDs
                     return usersMdl.find(queryEmail ? void 0 : userIds, queryEmail).then((users) => {
                         if (!users) {
-                            return Promise.reject(ERROR.AUTHENTICATION_USER_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.USER_FAILED_TO_FIND);
                         }
                         return Promise.resolve(users);
                     });

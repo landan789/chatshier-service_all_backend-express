@@ -106,7 +106,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!paymentId) {
-                    return Promise.reject(ERROR.PAYMENTID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_PAYMENT_PAYMENTID_WAS_EMPTY);
                 }
                 return appsPaymentsMdl.find(appId);
             }).then((appPayments) => {
@@ -143,7 +143,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!paymentId) {
-                    return Promise.reject(ERROR.PAYMENTID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_PAYMENT_PAYMENTID_WAS_EMPTY);
                 }
                 // 取得目前 appId 下所有 payments
                 return appsPaymentsMdl.find(appId);

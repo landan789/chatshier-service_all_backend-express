@@ -229,7 +229,7 @@ module.exports = (function() {
                 return groupsMdl.findAppIds(groupId, userId);
             }).then((appIds) => {
                 if (!appIds) {
-                    return Promise.reject(ERROR.APPID_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_APPID_WAS_EMPTY);
                 }
                 return appsMdl.find(appIds).then((apps) => {
                     if (!apps) {

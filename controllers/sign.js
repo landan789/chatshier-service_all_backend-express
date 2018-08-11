@@ -49,7 +49,7 @@ module.exports = (function() {
             let domain = domainHlp.get(req.hostname);
             return Promise.resolve().then(() => {
                 if (!user.email) {
-                    return Promise.reject(ERROR.EMAIL_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_EMAIL_WAS_EMPTY);
                 };
 
                 if (!user.password) {
@@ -74,7 +74,7 @@ module.exports = (function() {
                 let user = users[userId];
                 // The encoded user password from front end must match to the user password in database
                 if (ciperHlp.encode(req.body.password) !== user.password) {
-                    return Promise.reject(ERROR.PASSWORD_WAS_INCORRECT);
+                    return Promise.reject(ERROR.USER_PASSWORD_WAS_INCORRECT);
                 };
                 // user password must never reponse to client
                 users[userId].password = void 0;
@@ -139,7 +139,7 @@ module.exports = (function() {
                 };
 
                 if (!userEmail) {
-                    return Promise.reject(ERROR.EMAIL_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_EMAIL_WAS_EMPTY);
                 };
 
                 if (!req.body.password) {
@@ -305,7 +305,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userEmail) {
-                    return Promise.reject(ERROR.EMAIL_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_EMAIL_WAS_EMPTY);
                 }
 
                 if (!recaptchaResponse) {
@@ -315,7 +315,7 @@ module.exports = (function() {
                 return grecaptchaHlp.verifyingUserResponse(recaptchaResponse);
             }).then((resJson) => {
                 if (!resJson.success) {
-                    return Promise.reject(ERROR.PASSWORD_FAILED_TO_RESET);
+                    return Promise.reject(ERROR.USER_PASSWORD_FAILED_TO_RESET);
                 }
                 return usersMdl.find(void 0, userEmail);
             }).then((users) => {
@@ -365,7 +365,7 @@ module.exports = (function() {
 
                     let user = users[userId];
                     if (ciperHlp.encode(password) !== user.password) {
-                        return Promise.reject(ERROR.PASSWORD_WAS_INCORRECT);
+                        return Promise.reject(ERROR.USER_PASSWORD_WAS_INCORRECT);
                     }
 
                     let postUser = {

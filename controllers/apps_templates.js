@@ -43,9 +43,7 @@ module.exports = (function() {
             let templateId = req.params.templateid;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
-                }
+
                 return appsTemplatesMdl.find(appId, templateId);
             }).then((appsTemplates) => {
                 if (!(appsTemplates && appsTemplates[appId])) {
@@ -73,9 +71,6 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
-                }
 
                 return appsTemplatesMdl.insert(appId, postTemplate).then((appsTemplates) => {
                     if (!appsTemplates || (appsTemplates && 0 === Object.keys(appsTemplates).length)) {
@@ -105,12 +100,9 @@ module.exports = (function() {
             ('object' === typeof req.body.template) && (putTemplateData.template = req.body.template);
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
-                }
 
                 if (!templateId) {
-                    return Promise.reject(ERROR.TEMPLATEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TEMPLATE_TEMPLATEID_WAS_EMPTY);
                 }
                 return appsTemplatesMdl.update(appId, templateId, putTemplateData);
             }).then((appsTemplate) => {
@@ -134,12 +126,9 @@ module.exports = (function() {
             let templateId = req.params.templateid;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
-                }
 
                 if (!templateId) {
-                    return Promise.reject(ERROR.TEMPLATEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TEMPLATE_TEMPLATEID_WAS_EMPTY);
                 }
 
                 return appsTemplatesMdl.remove(appId, templateId).then((appsTemplates) => {

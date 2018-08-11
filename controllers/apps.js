@@ -79,7 +79,7 @@ module.exports = (function() {
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     if ('' === appId || null === appId) {
-                        reject(ERROR.APPID_WAS_EMPTY);
+                        reject(ERROR.APP_APPID_WAS_EMPTY);
                         return;
                     }
 
@@ -165,7 +165,7 @@ module.exports = (function() {
 
                 // 只有 Facebook 需要輸入 id2
                 if (FACEBOOK === postApp.type && !postApp.id2) {
-                    return Promise.reject(ERROR.ID2_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_ID2_WAS_EMPTY);
                 }
 
                 if (!postApp.name) {
@@ -183,7 +183,7 @@ module.exports = (function() {
 
                 // 只有 Facebook 需要輸入 token2
                 if (FACEBOOK === postApp.type && !postApp.token2) {
-                    return Promise.reject(ERROR.TOKEN2_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TOKEN2_WAS_EMPTY);
                 }
 
                 if (!postApp.type) {
@@ -445,7 +445,7 @@ module.exports = (function() {
                 }
 
                 if (!appId) {
-                    return Promise.reject(ERROR.APPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_APPID_WAS_EMPTY);
                 }
 
                 return usersMdl.find(userId).then((users) => {
