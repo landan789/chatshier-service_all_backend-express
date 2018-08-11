@@ -35,10 +35,12 @@
     "PASSWORD_FAILED_TO_RESET": { "MSG": "password failed to reset", "CODE": "2.3"},
     "NEW_PASSWORD_WAS_INCONSISTENT": { "MSG": "new password was inconsistent", "CODE": "2.4"},
     "EMAIL_FAILED_TO_SEND": { "MSG": "email failed to send", "CODE": "2.5"},
+
     "USER_FAILED_TO_FIND": { "MSG": "user failed to find", "CODE": "3.1" },
     "USER_FAILED_TO_UPDATE": { "MSG": "user failed to update", "CODE": "3.11" },
     "USER_FAILED_TO_INSERT": { "MSG": "user failed to insert", "CODE": "3.12"},
     "USER_FAILED_TO_SIGNUP": { "MSG": "user failed to signup", "CODE": "3.13"},
+    
     "USER_DID_NOT_HAVE_THIS_APP": { "MSG": "user did not have this app", "CODE": "3.2" },
     "USER_WAS_NOT_IN_THIS_GROUP": { "MSG": "user was not in this group", "CODE": "3.3" },
     "USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER": { "MSG": "user did not have permissin to insert numer", "CODE": "3.4" },
