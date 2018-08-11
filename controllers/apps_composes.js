@@ -77,7 +77,7 @@ module.exports = (function() {
             return Promise.resolve().then(() => {
                 // 檢查欲更新的群發發送時間比現在的時間還早的話不允許新增
                 if (!isImmediately && (!postCompose.time || new Date(postCompose.time).getTime() < Date.now())) {
-                    return Promise.reject(ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
+                    return Promise.reject(ERROR.APP_COMPOSE_TIME_MIGHT_BE_LATER_THAN_NOW);
                 }
 
                 return this.appsRequestVerify(req).then(() => {
@@ -121,7 +121,7 @@ module.exports = (function() {
 
                 // 檢查欲更新的群發發送時間比現在的時間還早的話不允許更新
                 if (!isImmediately && putCompose.status && (!putCompose.time || new Date(putCompose.time).getTime() < Date.now())) {
-                    return Promise.reject(ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
+                    return Promise.reject(ERROR.APP_COMPOSE_TIME_MIGHT_BE_LATER_THAN_NOW);
                 }
 
                 return appsComposesMdl.update(appId, composeId, putCompose).then((_appsComposes) => {
@@ -158,7 +158,7 @@ module.exports = (function() {
                 let app = appsComposes[appId];
                 let compose = app.composes[composeId];
                 if (true === compose.status && new Date(compose.time).getTime() < new Date().getTime()) {
-                    return Promise.reject(ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
+                    return Promise.reject(ERROR.APP_COMPOSE_TIME_MIGHT_BE_LATER_THAN_NOW);
                 }
 
                 return appsComposesMdl.remove(appId, composeId).then((appsCompose) => {
