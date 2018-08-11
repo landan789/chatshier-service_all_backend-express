@@ -66,7 +66,6 @@
     "GROUP_MEMBER_FAILED_TO_INSERT": { "MSG": "group member failed to insert", "CODE": "5.2" },
     "GROUP_MEMBER_FAILED_TO_UPDATE": { "MSG": "group member failed to update", "CODE": "5.3" },
     "GROUP_MEMBER_FAILED_TO_REMOVE": { "MSG": "group member failed to remove", "CODE": "5.4" },
-    "GROUP_MEMBER_USER_FAILED_TO_FIND": { "MSG": "group member user failed to find", "CODE": "5.5" },
     "GROUP_MEMBER_MEMBERID_WAS_EMPTY": { "MSG": "group member memberid was empty", "CODE": "5.6" },
 
     "GROUP_FAILED_TO_FIND": { "MSG": "group failed to find", "CODE": "5.1" },

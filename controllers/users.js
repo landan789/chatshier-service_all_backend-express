@@ -70,7 +70,7 @@ module.exports = (function() {
 
                 return groupsMdl.findUserIds(groupIds, true).then((userIds) => {
                     if (!userIds) {
-                        return Promise.reject(ERROR.GROUP_MEMBER_USER_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                     }
                     (userIds.indexOf(userId) < 0) && userIds.push(userId);
 
