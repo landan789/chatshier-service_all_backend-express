@@ -14,7 +14,6 @@
     "TOKEN1_WAS_EMPTY": { "MSG": "token1 was empty", "CODE": "1.8" },
     "SECRET_WAS_EMPTY": { "MSG": "secret is empty", "CODE": "1.9" },
     "EVENTID_WAS_EMPTY": { "MSG": "eventid was empty", "CODE": "1.10" },
-    "CALENDARID_WAS_EMPTY": { "MSG": "calendarid was empty", "CODE": "1.11" },
     "PLATFORMUID_WAS_EMPTY": { "MSG": "platformuid was empty", "CODE": "1.15" },
 
     "NEW_PASSWORD_WAS_INCONSISTENT": { "MSG": "new password was inconsistent", "CODE": "2.4"},
@@ -98,6 +97,8 @@
     "BOT_MENU_FAILED_TO_LINK": { "MSG": "bot menu failed to link", "CODE": "8.9" },
     "BOT_MENU_FAILED_TO_UNLINK": { "MSG": "bot menu failed to unlink", "CODE": "8.91" },
 
+    "CALENDAR_CALENDARID_WAS_EMPTY": { "MSG": "calendar calendarid was empty", "CODE": "1.11" },
+    
     "CALENDAR_EVENT_FAILED_TO_FIND": { "MSG": "calendar event failed to find", "CODE": "9.1" },
     "CALENDAR_EVENT_FAILED_TO_INSERT": { "MSG": "calendar event failed to insert", "CODE": "9.2" },
     "CALENDAR_EVENT_FAILED_TO_UPDATE": { "MSG": "calendar event failed to update", "CODE": "9.3" },

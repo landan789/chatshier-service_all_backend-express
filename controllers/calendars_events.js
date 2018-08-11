@@ -135,7 +135,7 @@ module.exports = (function() {
                     }
 
                     if ('' === calendarId || null === calendarId || undefined === calendarId) {
-                        reject(ERROR.CALENDARID_WAS_EMPTY);
+                        reject(ERROR.CALENDAR_CALENDARID_WAS_EMPTY);
                         return;
                     }
 
