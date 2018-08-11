@@ -9,7 +9,6 @@
     "EMAIL_WAS_EMPTY": { "MSG": "email was empty", "CODE": "1.2" },
     "PASSWORD_WAS_EMPTY": { "MSG": "password was empty", "CODE": "1.2" },
     "USERID_WAS_EMPTY": { "MSG": "userid was empty", "CODE": "1.3" },
-    "APPID_WAS_EMPTY": { "MSG": "appid was empty", "CODE": "1.4" },
     "TICKETID_WAS_EMPTY": { "MSG": "ticketid was empty", "CODE": "1.5" },
     "ID1_WAS_EMPTY": { "MSG": "id1 was empty", "CODE": "1.6" },
     "NAME_WAS_EMPTY": { "MSG": "name was empty", "CODE": "1.7" },

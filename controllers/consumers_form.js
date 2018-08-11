@@ -26,7 +26,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!appId) {
-                    return Promise.reject(ERROR.APPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_APPID_WAS_EMPTY);
                 }
 
                 if (!platformUid) {
@@ -71,7 +71,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!appId) {
-                    return Promise.reject(ERROR.APPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_APPID_WAS_EMPTY);
                 }
 
                 if (!platformUid) {
