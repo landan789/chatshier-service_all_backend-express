@@ -317,7 +317,7 @@ router.post('/:webhookid', (req, res, next) => {
 
                                 return appsChatroomsMessagersMdl.insert(appId, webhookChatroomId, messager).then((_appsChatroomsMessagers) => {
                                     if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_INSERT);
+                                        return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_INSERT);
                                     }
                                     let chatrooms = _appsChatroomsMessagers[appId].chatrooms;
                                     let messagers = chatrooms[webhookChatroomId].messagers;
