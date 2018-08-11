@@ -22,7 +22,7 @@ let jobProcess = () => {
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
     return appsMdl.find().then((apps) => {
         if (!apps) {
-            return Promise.reject(ERROR.APPS_FAILED_TO_FIND);
+            return Promise.reject(ERROR.APP_FAILED_TO_FIND);
         }
 
         // LINE BOT 相異 apps 允許 同時間群發。

@@ -116,7 +116,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!composeId) {
-                    return Promise.reject(ERROR.COMPOSEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_COMPOSE_COMPOSEID_WAS_EMPTY);
                 }
 
                 // 檢查欲更新的群發發送時間比現在的時間還早的話不允許更新
@@ -147,7 +147,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!composeId) {
-                    return Promise.reject(ERROR.COMPOSEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_COMPOSE_COMPOSEID_WAS_EMPTY);
                 };
                 return appsComposesMdl.find(appId, composeId);
             }).then((appsComposes) => {

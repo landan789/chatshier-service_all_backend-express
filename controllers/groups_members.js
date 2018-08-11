@@ -443,7 +443,7 @@ module.exports = (function() {
                 // 群組成員的 userId 即是內部聊天室的 platformUid
                 return appsChatroomsMessagersMdl.remove(appIds, void 0, memberUserId).then((appsChatroomsMessagers) => {
                     if (!appsChatroomsMessagers) {
-                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_REMOVE);
                     };
                     return Promise.resolve(appsChatroomsMessagers);
                 });
