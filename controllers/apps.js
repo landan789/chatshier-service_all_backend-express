@@ -165,7 +165,7 @@ module.exports = (function() {
 
                 // 只有 Facebook 需要輸入 id2
                 if (FACEBOOK === postApp.type && !postApp.id2) {
-                    return Promise.reject(ERROR.ID2_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_ID2_WAS_EMPTY);
                 }
 
                 if (!postApp.name) {
