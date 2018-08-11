@@ -74,7 +74,7 @@ module.exports = (function() {
                 let user = users[userId];
                 // The encoded user password from front end must match to the user password in database
                 if (ciperHlp.encode(req.body.password) !== user.password) {
-                    return Promise.reject(ERROR.PASSWORD_WAS_INCORRECT);
+                    return Promise.reject(ERROR.USER_PASSWORD_WAS_INCORRECT);
                 };
                 // user password must never reponse to client
                 users[userId].password = void 0;
@@ -365,7 +365,7 @@ module.exports = (function() {
 
                     let user = users[userId];
                     if (ciperHlp.encode(password) !== user.password) {
-                        return Promise.reject(ERROR.PASSWORD_WAS_INCORRECT);
+                        return Promise.reject(ERROR.USER_PASSWORD_WAS_INCORRECT);
                     }
 
                     let postUser = {
