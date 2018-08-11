@@ -44,7 +44,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.TEMPLATE_HAD_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.TEMPLATE_HAD_MORE_THAN_2_IDS);
                 }
                 return appsTemplatesMdl.find(appId, templateId);
             }).then((appsTemplates) => {
@@ -74,7 +74,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.TEMPLATE_HAD_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.TEMPLATE_HAD_MORE_THAN_2_IDS);
                 }
 
                 return appsTemplatesMdl.insert(appId, postTemplate).then((appsTemplates) => {
@@ -106,7 +106,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.TEMPLATE_HAD_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.TEMPLATE_HAD_MORE_THAN_2_IDS);
                 }
 
                 if (!templateId) {
@@ -135,7 +135,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.TEMPLATE_HAD_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.TEMPLATE_HAD_MORE_THAN_2_IDS);
                 }
 
                 if (!templateId) {
