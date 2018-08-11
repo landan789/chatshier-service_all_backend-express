@@ -272,7 +272,7 @@ module.exports = (function() {
                     if (isUnfollowed) {
                         return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, webhookInfo.platformUid).then((appsChatroomsMessagers) => {
                             if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                                return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                             }
 
                             let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -290,7 +290,7 @@ module.exports = (function() {
                                     return appsChatroomsMessagersMdl.find(appId, _chatroomId, void 0, CHATSHIER);
                                 }).then((_appsChatroomsMessagers) => {
                                     if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                        return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                                     }
 
                                     let chatroom = _appsChatroomsMessagers[appId].chatrooms[_chatroomId];

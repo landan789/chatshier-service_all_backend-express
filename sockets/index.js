@@ -142,7 +142,7 @@ function init(server) {
                 // 更新發送者的聊天狀態
                 return appsChatroomsMessagersMdl.find(appId, chatroomId, senderMsgId).then((appsChatroomsMessagers) => {
                     if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                     }
 
                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -196,7 +196,7 @@ function init(server) {
 
             return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                 }
 
                 let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
@@ -294,7 +294,7 @@ function init(server) {
 
                                     return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
                                         if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                                            return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                                         }
 
                                         let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];

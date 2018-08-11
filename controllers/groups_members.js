@@ -336,7 +336,7 @@ module.exports = (function() {
                                 // 將新成員加入至所有 app 的 chatroom 中
                                 return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, ownerUserId).then((appsChatroomsMessagers) => {
                                     if (!appsChatroomsMessagers) {
-                                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                        return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                                     } else if (!appsChatroomsMessagers[appId]) {
                                         return [];
                                     }

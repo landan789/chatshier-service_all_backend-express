@@ -277,7 +277,7 @@ router.post('/:webhookid', (req, res, next) => {
 
                                         return appsChatroomsMessagersMdl.find(appId, _chatroomId, void 0, CHATSHIER).then((__appsChatroomsMessagers) => {
                                             if (!(__appsChatroomsMessagers && __appsChatroomsMessagers[appId])) {
-                                                return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                                return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                                             }
 
                                             let __chatrooms = __appsChatroomsMessagers[appId].chatrooms;
@@ -389,7 +389,7 @@ router.post('/:webhookid', (req, res, next) => {
                     // 將整個聊天室群組成員的聊天狀態更新
                     return appsChatroomsMessagersMdl.find(appId, webhookChatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
                         if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                            return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                         }
 
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -451,7 +451,7 @@ router.post('/:webhookid', (req, res, next) => {
                     // 讓前端能夠更新目前 messager 的聊天狀態
                     return appsChatroomsMessagersMdl.find(appId, webhookChatroomId).then((appsChatroomsMessagers) => {
                         if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                            return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                         }
 
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;

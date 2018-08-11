@@ -115,7 +115,7 @@ let jobProcess = () => {
 
                                         return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((_appsChatroomsMessagers) => {
                                             if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                                                return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                                return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                                             }
 
                                             let chatroom = _appsChatroomsMessagers[appId].chatrooms[chatroomId];

@@ -22,7 +22,7 @@ module.exports = (function() {
                 return appsChatroomsMessagersMdl.find(appIds);
             }).then((appsChatroomsMessagers) => {
                 if (!appsChatroomsMessagers) {
-                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                 }
 
                 let platformUids = [];

@@ -342,7 +342,7 @@ module.exports = (function() {
                 return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false);
             }).then((appsChatroomsMessagers) => {
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                 }
 
                 chatroomId = Object.keys(appsChatroomsMessagers[appId].chatrooms).shift() || '';
@@ -358,7 +358,7 @@ module.exports = (function() {
 
                 return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
                     if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                     }
 
                     let _chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
@@ -391,7 +391,7 @@ module.exports = (function() {
         _createOrder(appId, consumerUid, params) {
             return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, consumerUid).then((appsChatroomsMessagers) => {
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                 }
 
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;

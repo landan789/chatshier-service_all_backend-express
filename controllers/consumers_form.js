@@ -43,7 +43,7 @@ module.exports = (function() {
                 }
 
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                 }
 
                 let fields = appsFields[appId].fields;
@@ -81,7 +81,7 @@ module.exports = (function() {
                 return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid);
             }).then((appsChatroomsMessagers) => {
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                 }
 
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;

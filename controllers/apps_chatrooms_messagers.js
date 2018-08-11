@@ -23,7 +23,7 @@ module.exports = (function() {
 
                 return appsChatroomsMessagersMdl.find(appIds, chatroomId, messagerId).then((appsChatroomsMessagers) => {
                     if (!appsChatroomsMessagers) {
-                        return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsChatroomsMessagers);
                 });
