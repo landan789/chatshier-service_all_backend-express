@@ -1646,7 +1646,7 @@ module.exports = (function() {
                         return appsChatroomsMdl.find(appId, chatroomId);
                     }).then((appsChatrooms) => {
                         if (!(appsChatrooms && appsChatrooms[appId])) {
-                            return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_CHATROOM_FAILED_TO_FIND);
                         }
 
                         let chatroom = appsChatrooms[appId].chatrooms[chatroomId];

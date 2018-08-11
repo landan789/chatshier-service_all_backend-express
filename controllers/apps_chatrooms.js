@@ -23,7 +23,7 @@ module.exports = (function() {
                 // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Chatrooms
                 return appsChatroomsMdl.find(appIds).then((appsChatrooms) => {
                     if (!appsChatrooms) {
-                        return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_CHATROOM_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsChatrooms);
                 });
