@@ -233,7 +233,7 @@ router.post('/:webhookid', (req, res, next) => {
                                 };
                                 return appsChatroomsMdl.insert(appId, chatroom).then((_appsChatrooms) => {
                                     if (!(_appsChatrooms && _appsChatrooms[appId])) {
-                                        return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                                        return Promise.reject(ERROR.APP_CHATROOM_FAILED_TO_INSERT);
                                     }
                                     return Promise.resolve(_appsChatrooms);
                                 });
@@ -298,7 +298,7 @@ router.post('/:webhookid', (req, res, next) => {
                                     // 首次聊天室自動為其建立聊天室
                                     return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
                                         if (!(appsChatrooms && appsChatrooms[appId])) {
-                                            return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                                            return Promise.reject(ERROR.APP_CHATROOM_FAILED_TO_INSERT);
                                         }
                                         let chatrooms = appsChatrooms[appId].chatrooms;
                                         let chatroomId = Object.keys(chatrooms).shift() || '';

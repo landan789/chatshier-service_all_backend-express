@@ -121,7 +121,7 @@ module.exports = (function() {
                         // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
                         return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
                             if (!appsChatrooms) {
-                                return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                                return Promise.reject(ERROR.APP_CHATROOM_FAILED_TO_INSERT);
                             }
 
                             // 將預設的客戶分類條件資料新增至 App 中

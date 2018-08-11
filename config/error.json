@@ -121,7 +121,7 @@
     "APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY": {"MSG": "app autorelpy autoreplyid was empty", "CODE": "10.7"},
 
     "APP_CHATROOM_FAILED_TO_FIND": { "MSG": "app chatroom failed to find", "CODE": "11.11" },
-    "APP_CHATROOMS_FAILED_TO_INSERT": { "MSG": "app chatroom failed to insert", "CODE": "11.12" },
+    "APP_CHATROOM_FAILED_TO_INSERT": { "MSG": "app chatroom failed to insert", "CODE": "11.12" },
     "APP_CHATROOMS_FAILED_TO_UPDATE": { "MSG": "app chatroom failed to update", "CODE": "11.13" },
 
     "APP_CHATROOM_MESSAGE_FAILED_TO_INSERT": { "MSG": "app chatroom message failed to insert", "CODE": "11.22" },

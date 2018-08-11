@@ -218,9 +218,11 @@ module.exports = (function() {
                 let appId = Object.keys(apps).shift() || '';
 
                 // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
+
+                // TODO 耦合性太高 chatroom 不因該 相依於 signup
                 return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
                     if (!appsChatrooms) {
-                        return Promise.reject(ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_CHATROOM_FAILED_TO_INSERT);
                     }
 
                     // 將預設的客戶分類條件資料新增至 App 中
