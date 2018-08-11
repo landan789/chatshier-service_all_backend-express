@@ -69,7 +69,6 @@
     "APP_FAILED_TO_INSERT": { "MSG": "app failed to insert", "CODE": "4.3" },
     "APP_FAILED_TO_REMOVE": { "MSG": "app failed to remove", "CODE": "4.4" },
     "APPID_FAILED_TO_FIND": { "MSG": "appid failed to find", "CODE": "4.5"},
-    "APP_DID_NOT_EXIST": { "MSG": "app did not exist", "CODE": "4.7" },
 
     "GROUP_MEMBER_FAILED_TO_FIND": { "MSG": "group member failed to find", "CODE": "5.0" },
     "GROUP_MEMBER_FAILED_TO_INSERT": { "MSG": "group member failed to insert", "CODE": "5.1" },

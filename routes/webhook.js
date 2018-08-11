@@ -116,7 +116,7 @@ router.post('/:webhookid', (req, res, next) => {
                     };
                     return appsMdl.find(void 0, void 0, query).then((apps) => {
                         if (!apps || (apps && 0 === Object.keys(apps).length)) {
-                            return Promise.reject(ERROR.APP_DID_NOT_EXIST);
+                            return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                         }
                         return Promise.resolve(apps);
                     });
@@ -128,7 +128,7 @@ router.post('/:webhookid', (req, res, next) => {
                     // 找不到 app 時需回應 200
                     // 防止 facebook 收到非 200 回應時，會重新嘗試再傳送
                     !res.headersSent && res.status(200).send('');
-                    return Promise.reject(ERROR.APP_DID_NOT_EXIST);
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                 }
 
                 // webhook 傳過來如果具有 webhookid 只會有一個 app 被找出來
