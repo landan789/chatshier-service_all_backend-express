@@ -238,7 +238,7 @@ module.exports = (function() {
                 }
 
                 if ('' === memberId || undefined === memberId || null === memberId) {
-                    return Promise.reject(ERROR.MEMBERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_MEMBER_MEMBERID_WAS_EMPTY);
                 }
 
                 if (0 === Object.keys(putMember).length) {
@@ -384,7 +384,7 @@ module.exports = (function() {
                 } else if (!groupId) {
                     return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
                 } else if (!memberId) {
-                    return Promise.reject(ERROR.MEMBERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_MEMBER_MEMBERID_WAS_EMPTY);
                 }
 
                 return usersMdl.find(userId).then((users) => {

@@ -17,7 +17,6 @@
     "CALENDARID_WAS_EMPTY": { "MSG": "calendarid was empty", "CODE": "1.11" },
     "TYPE_WAS_EMPTY": { "MSG": "type was empty", "CODE": "1.12" },
     "GROUPID_WAS_EMPTY": { "MSG": "groupid was empty", "CODE": "1.13" },
-    "MEMBERID_WAS_EMPTY": { "MSG": "memberid was empty", "CODE": "1.14" },
     "PLATFORMUID_WAS_EMPTY": { "MSG": "platformuid was empty", "CODE": "1.15" },
 
     "NEW_PASSWORD_WAS_INCONSISTENT": { "MSG": "new password was inconsistent", "CODE": "2.4"},
@@ -68,6 +67,7 @@
     "GROUP_MEMBER_FAILED_TO_UPDATE": { "MSG": "group member failed to update", "CODE": "5.2" },
     "GROUP_MEMBER_FAILED_TO_REMOVE": { "MSG": "group member failed to remove", "CODE": "5.3" },
     "GROUP_MEMBER_USER_FAILED_TO_FIND": { "MSG": "group member user failed to find", "CODE": "5.4" },
+    "GROUP_MEMBER_MEMBERID_WAS_EMPTY": { "MSG": "group member memberid was empty", "CODE": "1.14" },
 
     "GROUP_FAILED_TO_FIND": { "MSG": "group failed to find", "CODE": "5.0" },
     "GROUP_FAILED_TO_INSERT": { "MSG": "group failed to insert", "CODE": "5.1" },
