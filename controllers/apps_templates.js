@@ -102,7 +102,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
 
                 if (!templateId) {
-                    return Promise.reject(ERROR.TEMPLATEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TEMPLATE_TEMPLATEID_WAS_EMPTY);
                 }
                 return appsTemplatesMdl.update(appId, templateId, putTemplateData);
             }).then((appsTemplate) => {
@@ -128,7 +128,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
 
                 if (!templateId) {
-                    return Promise.reject(ERROR.TEMPLATEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TEMPLATE_TEMPLATEID_WAS_EMPTY);
                 }
 
                 return appsTemplatesMdl.remove(appId, templateId).then((appsTemplates) => {
