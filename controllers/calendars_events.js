@@ -140,7 +140,7 @@ module.exports = (function() {
                     }
 
                     if ('' === eventId || null === eventId || undefined === eventId) {
-                        reject(ERROR.EVENTID_WAS_EMPTY);
+                        reject(ERROR.CALENDAR_EVENT_EVENTID_WAS_EMPTY);
                         return;
                     }
 

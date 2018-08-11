@@ -13,7 +13,6 @@
     "NAME_WAS_EMPTY": { "MSG": "name was empty", "CODE": "1.7" },
     "TOKEN1_WAS_EMPTY": { "MSG": "token1 was empty", "CODE": "1.8" },
     "SECRET_WAS_EMPTY": { "MSG": "secret is empty", "CODE": "1.9" },
-    "EVENTID_WAS_EMPTY": { "MSG": "eventid was empty", "CODE": "1.10" },
     "PLATFORMUID_WAS_EMPTY": { "MSG": "platformuid was empty", "CODE": "1.15" },
 
     "NEW_PASSWORD_WAS_INCONSISTENT": { "MSG": "new password was inconsistent", "CODE": "2.4"},
@@ -98,11 +97,12 @@
     "BOT_MENU_FAILED_TO_UNLINK": { "MSG": "bot menu failed to unlink", "CODE": "8.91" },
 
     "CALENDAR_CALENDARID_WAS_EMPTY": { "MSG": "calendar calendarid was empty", "CODE": "1.11" },
-    
+
     "CALENDAR_EVENT_FAILED_TO_FIND": { "MSG": "calendar event failed to find", "CODE": "9.1" },
     "CALENDAR_EVENT_FAILED_TO_INSERT": { "MSG": "calendar event failed to insert", "CODE": "9.2" },
     "CALENDAR_EVENT_FAILED_TO_UPDATE": { "MSG": "calendar event failed to update", "CODE": "9.3" },
     "CALENDAR_EVENT_FAILED_TO_REMOVE": { "MSG": "calendar event failed to remove", "CODE": "9.4" },
+    "CALENDAR_EVENT_EVENTID_WAS_EMPTY": { "MSG": "calendar event eventid was empty", "CODE": "9.5" },
 
     "APP_AUTOREPLY_FAILED_TO_FIND": { "MSG": "app autorelpy failed to find", "CODE": "10.1" },
     "APP_AUTOREPLY_FAILED_TO_INSERT": { "MSG": "app autorelpy failed to insert", "CODE": "10.2" },
