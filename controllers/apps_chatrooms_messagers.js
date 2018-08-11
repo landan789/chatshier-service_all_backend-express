@@ -65,7 +65,7 @@ module.exports = (function() {
                 return appsChatroomsMessagersMdl.update(appId, chatroomId, messagerId, putMessager);
             }).then((appsChatroomsMessagers) => {
                 if (!appsChatroomsMessagers) {
-                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_UPDATE);
                 }
                 return Promise.resolve(appsChatroomsMessagers);
             }).then((data) => {

@@ -166,7 +166,7 @@ function init(server) {
                 });
             }).then((appsChatroomsMessagers) => {
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_UPDATE);
                 }
 
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;

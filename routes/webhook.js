@@ -262,7 +262,7 @@ router.post('/:webhookid', (req, res, next) => {
                                     let messageId = messager._id;
                                     return appsChatroomsMessagersMdl.update(appId, _chatroomId, messageId, { isUnfollowed: false }).then((_appsChatroomsMessagers) => {
                                         if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                                            return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_UPDATE);
                                         }
                                         let _chatrooms = _appsChatroomsMessagers[appId].chatrooms;
                                         let _messager = _chatrooms[_chatroomId].messagers[messageId];

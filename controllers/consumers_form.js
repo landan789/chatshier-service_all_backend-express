@@ -100,7 +100,7 @@ module.exports = (function() {
                 return Promise.all(Object.keys(chatrooms).map((chatroomId) => {
                     return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, putMessager).then((_appsChatroomsMessagers) => {
                         if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                            return Promise.reject(ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_UPDATE);
                         }
                         return Promise.resolve(_appsChatroomsMessagers);
                     });
