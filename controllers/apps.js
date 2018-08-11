@@ -173,7 +173,7 @@ module.exports = (function() {
                 }
 
                 if (!postApp.secret) {
-                    return Promise.reject(ERROR.SECRET_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_SECRET_WAS_EMPTY);
                 }
 
                 // 只有 LINE 和 Facebook 需要輸入 token1

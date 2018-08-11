@@ -12,7 +12,6 @@
     "ID1_WAS_EMPTY": { "MSG": "id1 was empty", "CODE": "1.6" },
     "NAME_WAS_EMPTY": { "MSG": "name was empty", "CODE": "1.7" },
     "TOKEN1_WAS_EMPTY": { "MSG": "token1 was empty", "CODE": "1.8" },
-    "SECRET_WAS_EMPTY": { "MSG": "secret is empty", "CODE": "1.9" },
     "PLATFORMUID_WAS_EMPTY": { "MSG": "platformuid was empty", "CODE": "1.15" },
 
     "NEW_PASSWORD_WAS_INCONSISTENT": { "MSG": "new password was inconsistent", "CODE": "2.4"},
@@ -58,6 +57,7 @@
     "APP_TOKEN2_WAS_EMPTY": { "MSG": "app token2 was empty", "CODE": "4.7" },
     "APP_ID2_WAS_EMPTY": { "MSG": "app id2 was empty", "CODE": "4.8" },
     "APP_TYPE_WAS_EMPTY": { "MSG": "type was empty", "CODE": "4.9" },
+    "APP_SECRET_WAS_EMPTY": { "MSG": "app secret is empty", "CODE": "4.10" },
 
     "GROUP_MEMBER_FAILED_TO_FIND": { "MSG": "group member failed to find", "CODE": "5.1" },
     "GROUP_MEMBER_FAILED_TO_INSERT": { "MSG": "group member failed to insert", "CODE": "5.2" },
