@@ -191,7 +191,7 @@ module.exports = (function() {
                 }
 
                 if (!postApp.group_id) {
-                    return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                 }
 
                 return usersMdl.find(userId).then((users) => {

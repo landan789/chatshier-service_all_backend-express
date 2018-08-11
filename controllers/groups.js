@@ -168,7 +168,7 @@ module.exports = (function() {
                 };
 
                 if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
-                    return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                 };
                 if (0 === Object.keys(putGroup).length) {
                     return Promise.reject(ERROR.INVALID_REQUEST_BODY_DATA);

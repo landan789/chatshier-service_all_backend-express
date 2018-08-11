@@ -37,7 +37,7 @@ module.exports = (function() {
                 };
 
                 if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
-                    return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                 };
 
                 return new Promise((resolve, reject) => {
@@ -93,7 +93,7 @@ module.exports = (function() {
                     if (!userId) {
                         return reject(ERROR.USERID_WAS_EMPTY);
                     } else if (!groupId) {
-                        return reject(ERROR.GROUPID_WAS_EMPTY);
+                        return reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                     };
 
                     usersMdl.find(postMember.user_id, void 0, (users) => {
@@ -234,7 +234,7 @@ module.exports = (function() {
                 }
 
                 if ('' === groupId || undefined === groupId || null === groupId) {
-                    return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                 }
 
                 if ('' === memberId || undefined === memberId || null === memberId) {
@@ -382,7 +382,7 @@ module.exports = (function() {
                 if (!userId) {
                     return Promise.reject(ERROR.USERID_WAS_EMPTY);
                 } else if (!groupId) {
-                    return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                 } else if (!memberId) {
                     return Promise.reject(ERROR.GROUP_MEMBER_MEMBERID_WAS_EMPTY);
                 }

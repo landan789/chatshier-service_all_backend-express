@@ -16,7 +16,6 @@
     "EVENTID_WAS_EMPTY": { "MSG": "eventid was empty", "CODE": "1.10" },
     "CALENDARID_WAS_EMPTY": { "MSG": "calendarid was empty", "CODE": "1.11" },
     "TYPE_WAS_EMPTY": { "MSG": "type was empty", "CODE": "1.12" },
-    "GROUPID_WAS_EMPTY": { "MSG": "groupid was empty", "CODE": "1.13" },
     "PLATFORMUID_WAS_EMPTY": { "MSG": "platformuid was empty", "CODE": "1.15" },
 
     "NEW_PASSWORD_WAS_INCONSISTENT": { "MSG": "new password was inconsistent", "CODE": "2.4"},
@@ -72,6 +71,7 @@
     "GROUP_FAILED_TO_INSERT": { "MSG": "group failed to insert", "CODE": "5.2" },
     "GROUP_FAILED_TO_UPDATE": { "MSG": "group failed to update", "CODE": "5.3" },
     "GROUP_FAILED_TO_REMOVE": { "MSG": "group failed to remove", "CODE": "5.4" },
+    "GROUP_GROUPID_WAS_EMPTY": { "MSG": "groupid was empty", "CODE": "5.5" },
 
     "APP_TICKET_FAILED_TO_FIND": { "MSG": "app ticket failed to find", "CODE": "6.1" },
     "APP_TICKET_FAILED_TO_INSERT": { "MSG": "app ticket failed to insert", "CODE": "6.2" },
