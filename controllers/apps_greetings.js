@@ -43,7 +43,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!greetingId) {
-                    return Promise.reject(ERROR.GREETINGID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_GREETING_GREETINGID_WAS_EMPTY);
                 }
 
                 return appsGreetingsMdl.find(appId, greetingId).then((appsGreetings) => {
@@ -104,7 +104,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!greetingId) {
-                    return Promise.reject(ERROR.GREETINGID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_GREETING_GREETINGID_WAS_EMPTY);
                 }
 
                 return appsGreetingsMdl.update(appId, greetingId, putGreeting).then((appsGreetings) => {
@@ -130,7 +130,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!greetingId) {
-                    return Promise.reject(ERROR.GREETINGID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_GREETING_GREETINGID_WAS_EMPTY);
                 }
 
                 return appsGreetingsMdl.remove(appId, greetingId).then((appsGreetings) => {
