@@ -43,9 +43,6 @@ module.exports = (function() {
             let imagemapId = req.params.imagemapid;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.IMAGEMAP_HAD_MORE_THAN_2_IDS);
-                }
 
                 if (!imagemapId) {
                     return Promise.reject(ERROR.IMAGEMAPID_WAS_EMPTY);
@@ -144,9 +141,6 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.IMAGEMAP_HAD_MORE_THAN_2_IDS);
-                }
 
                 if (!imagemapId) {
                     return Promise.reject(ERROR.IMAGEMAPID_WAS_EMPTY);
@@ -186,9 +180,6 @@ module.exports = (function() {
             let imagemapId = req.params.imagemapid;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.IMAGEMAP_HAD_MORE_THAN_2_IDS);
-                }
 
                 if (!imagemapId) {
                     return Promise.reject(ERROR.IMAGEMAPID_WAS_EMPTY);

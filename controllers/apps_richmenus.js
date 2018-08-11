@@ -44,9 +44,7 @@ module.exports = (function() {
             let richmenuId = req.params.richmenuid;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAD_MORE_THAN_2_IDS);
-                }
+
 
                 if (!richmenuId) {
                     return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);
@@ -111,9 +109,6 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAD_MORE_THAN_2_IDS);
-                }
 
                 if (!postRichmenu.platformMenuId) {
                     if (!(richmentImgFile && richmentImgFileName)) {
@@ -207,9 +202,6 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAD_MORE_THAN_2_IDS);
-                }
 
                 if (!richmenuId) {
                     return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);
@@ -305,9 +297,6 @@ module.exports = (function() {
             let richmenuId = req.params.richmenuid;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAD_MORE_THAN_2_IDS);
-                }
 
                 if (!richmenuId) {
                     return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);

@@ -27,9 +27,6 @@
     "IMAGEMAPID_WAS_EMPTY": {"MSG": "imagemapid was empty", "CODE": "1.21"},
     "ID2_WAS_EMPTY": { "MSG": "id2 was empty", "CODE": "1.22" },
     "TOKEN2_WAS_EMPTY": { "MSG": "token2 was empty", "CODE": "1.23" },
-    "TEMPLATE_HAD_MORE_THAN_2_IDS": { "MSG": "template had more than 2 ids", "CODE": "1.24" },
-    "IMAGEMAP_HAD_MORE_THAN_2_IDS": { "MSG": "imagemap had more than 2 ids", "CODE": "1.25" },
-    "RICHMENU_HAD_MORE_THAN_2_IDS": { "MSG": "richmenu had more than 2 ids", "CODE": "1.26" },
     "PAYMENTID_WAS_EMPTY": {"MSG": "paymentid was empty", "CODE": "1.27"},
     "WEBHOOKID_WAS_EMPTY": { "MSG": "webhookid was empty", "CODE": "1.28" },
 
