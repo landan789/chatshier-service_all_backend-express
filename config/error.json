@@ -6,7 +6,6 @@
 
     "UNKNOWN": { "MSG": "unknown", "CODE": "0" },
     "INVALID_REQUEST_BODY_DATA": { "MSG": "invalid request body data", "CODE": "1.1" },
-    "EMAIL_WAS_EMPTY": { "MSG": "email was empty", "CODE": "1.2" },
     "PASSWORD_WAS_EMPTY": { "MSG": "password was empty", "CODE": "1.2" },
     "USERID_WAS_EMPTY": { "MSG": "userid was empty", "CODE": "1.3" },
     "TICKETID_WAS_EMPTY": { "MSG": "ticketid was empty", "CODE": "1.5" },
@@ -26,7 +25,6 @@
     "ID2_WAS_EMPTY": { "MSG": "id2 was empty", "CODE": "1.22" },
     "TOKEN2_WAS_EMPTY": { "MSG": "token2 was empty", "CODE": "1.23" },
     "PAYMENTID_WAS_EMPTY": {"MSG": "paymentid was empty", "CODE": "1.27"},
-    "WEBHOOKID_WAS_EMPTY": { "MSG": "webhookid was empty", "CODE": "1.28" },
 
     "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
     "PASSWORD_WAS_INCORRECT": { "MSG": "password was incorrect", "CODE": "2.2"},
@@ -38,7 +36,8 @@
     "USER_FAILED_TO_UPDATE": { "MSG": "user failed to update", "CODE": "3.11" },
     "USER_FAILED_TO_INSERT": { "MSG": "user failed to insert", "CODE": "3.12"},
     "USER_FAILED_TO_SIGNUP": { "MSG": "user failed to signup", "CODE": "3.13"},
-    
+    "USER_EMAIL_WAS_EMPTY": { "MSG": "user email was empty", "CODE": "1.2" },
+
     "USER_DID_NOT_HAVE_THIS_APP": { "MSG": "user did not have this app", "CODE": "3.2" },
     "USER_WAS_NOT_IN_THIS_GROUP": { "MSG": "user was not in this group", "CODE": "3.3" },
     "USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER": { "MSG": "user did not have permissin to insert numer", "CODE": "3.4" },
@@ -67,6 +66,7 @@
     "APP_FAILED_TO_INSERT": { "MSG": "app failed to insert", "CODE": "4.3" },
     "APP_FAILED_TO_REMOVE": { "MSG": "app failed to remove", "CODE": "4.4" },
     "APP_APPID_WAS_EMPTY": { "MSG": "app appid was empty", "CODE": "4.5"},
+    "APP_WEBHOOKID_WAS_EMPTY": { "MSG": "app webhookid was empty", "CODE": "4.6" },
 
     "GROUP_MEMBER_FAILED_TO_FIND": { "MSG": "group member failed to find", "CODE": "5.0" },
     "GROUP_MEMBER_FAILED_TO_INSERT": { "MSG": "group member failed to insert", "CODE": "5.1" },

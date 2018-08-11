@@ -49,7 +49,7 @@ module.exports = (function() {
             let domain = domainHlp.get(req.hostname);
             return Promise.resolve().then(() => {
                 if (!user.email) {
-                    return Promise.reject(ERROR.EMAIL_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_EMAIL_WAS_EMPTY);
                 };
 
                 if (!user.password) {
@@ -139,7 +139,7 @@ module.exports = (function() {
                 };
 
                 if (!userEmail) {
-                    return Promise.reject(ERROR.EMAIL_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_EMAIL_WAS_EMPTY);
                 };
 
                 if (!req.body.password) {
@@ -305,7 +305,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userEmail) {
-                    return Promise.reject(ERROR.EMAIL_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_EMAIL_WAS_EMPTY);
                 }
 
                 if (!recaptchaResponse) {

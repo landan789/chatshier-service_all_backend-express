@@ -68,7 +68,7 @@ router.post('/:webhookid', (req, res, next) => {
 
     let webhookPromise = Promise.all(webhookProcQueue).then(() => {
         if (!webhookid) {
-            return Promise.reject(ERROR.WEBHOOKID_WAS_EMPTY);
+            return Promise.reject(ERROR.APP_WEBHOOKID_WAS_EMPTY);
         }
 
         let apps;
