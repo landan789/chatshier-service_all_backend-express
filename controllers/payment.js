@@ -350,7 +350,7 @@ module.exports = (function() {
                 return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]);
             }).then((appsChatroomsMessages) => {
                 if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
-                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGE_FAILED_TO_INSERT);
                 }
                 return Promise.resolve(appsChatroomsMessages);
             }).then((appsChatroomsMessages) => {

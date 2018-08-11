@@ -89,7 +89,7 @@ let jobProcess = () => {
                                         console.log('[database] insert each message to chatroom - ' + chatroomId);
                                         return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]).then((appsChatroomsMessages) => {
                                             if (!appsChatroomsMessages) {
-                                                return Promise.reject(ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                                                return Promise.reject(ERROR.APP_CHATROOM_MESSAGE_FAILED_TO_INSERT);
                                             }
 
                                             let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;

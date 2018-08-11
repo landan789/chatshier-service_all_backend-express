@@ -423,7 +423,7 @@ router.post('/:webhookid', (req, res, next) => {
 
                     return appsChatroomsMessagesMdl.insert(appId, webhookChatroomId, totalMessages).then((appsChatroomsMessages) => {
                         if (!appsChatroomsMessages) {
-                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGE_FAILED_TO_INSERT);
                         }
                         return Promise.resolve(appsChatroomsMessages[appId].chatrooms[webhookChatroomId].messages);
                     });

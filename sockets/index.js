@@ -108,7 +108,7 @@ function init(server) {
                         delete message.duration;
                         return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]).then((appsChatroomsMessages) => {
                             if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
-                                return Promise.reject(new Error(ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
+                                return Promise.reject(new Error(ERROR.APP_CHATROOM_MESSAGE_FAILED_TO_INSERT));
                             }
                             return Promise.resolve(appsChatroomsMessages[appId].chatrooms[chatroomId].messages);
                         });
@@ -268,7 +268,7 @@ function init(server) {
                                 return Promise.all(messages.map((message) => {
                                     return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]).then((appsChatroomsMessages) => {
                                         if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
-                                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGE_FAILED_TO_INSERT);
                                         };
 
                                         let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
