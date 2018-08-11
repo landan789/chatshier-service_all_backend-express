@@ -315,7 +315,7 @@ module.exports = (function() {
                 return grecaptchaHlp.verifyingUserResponse(recaptchaResponse);
             }).then((resJson) => {
                 if (!resJson.success) {
-                    return Promise.reject(ERROR.PASSWORD_FAILED_TO_RESET);
+                    return Promise.reject(ERROR.USER_PASSWORD_FAILED_TO_RESET);
                 }
                 return usersMdl.find(void 0, userEmail);
             }).then((users) => {
