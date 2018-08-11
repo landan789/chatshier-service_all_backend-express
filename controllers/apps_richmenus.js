@@ -45,7 +45,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAD_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.RICHMENU_HAD_MORE_THAN_2_IDS);
                 }
 
                 if (!richmenuId) {
@@ -112,7 +112,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAD_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.RICHMENU_HAD_MORE_THAN_2_IDS);
                 }
 
                 if (!postRichmenu.platformMenuId) {
@@ -208,7 +208,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAD_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.RICHMENU_HAD_MORE_THAN_2_IDS);
                 }
 
                 if (!richmenuId) {
@@ -306,7 +306,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.RICHMENU_HAD_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.RICHMENU_HAD_MORE_THAN_2_IDS);
                 }
 
                 if (!richmenuId) {
