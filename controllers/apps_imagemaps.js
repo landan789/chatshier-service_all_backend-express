@@ -44,7 +44,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.IMAGEMAP_HAD_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.IMAGEMAP_HAD_MORE_THAN_2_IDS);
                 }
 
                 if (!imagemapId) {
@@ -145,7 +145,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.IMAGEMAP_HAD_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.IMAGEMAP_HAD_MORE_THAN_2_IDS);
                 }
 
                 if (!imagemapId) {
@@ -187,7 +187,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 if (checkedAppIds.length >= 2) {
-                    return Promise.reject(ERROR.IMAGEMAP_HAD_TWO_OR_MORE_IDS);
+                    return Promise.reject(ERROR.IMAGEMAP_HAD_MORE_THAN_2_IDS);
                 }
 
                 if (!imagemapId) {
