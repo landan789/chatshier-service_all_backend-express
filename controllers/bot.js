@@ -35,7 +35,7 @@ module.exports = (function() {
                 if (!app) {
                     return appsMdl.find(appId).then((apps) => {
                         if (!(apps && apps[appId])) {
-                            return Promise.reject(ERROR.APPS_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                         }
                         return Promise.resolve(apps[appId]);
                     });
@@ -138,7 +138,7 @@ module.exports = (function() {
                     // 取出此 app 底下所有聊天室的 platformUid
                     return appsMdl.find(appId).then((apps) => {
                         if (!(apps && apps[appId])) {
-                            return Promise.reject(ERROR.APPS_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                         }
                         let app = apps[appId];
                         return Promise.all([ app, this._findPlatformUids(appId, app) ]);
