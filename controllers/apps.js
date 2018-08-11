@@ -187,7 +187,7 @@ module.exports = (function() {
                 }
 
                 if (!postApp.type) {
-                    return Promise.reject(ERROR.TYPE_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TYPE_WAS_EMPTY);
                 }
 
                 if (!postApp.group_id) {
