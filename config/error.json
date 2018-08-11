@@ -23,7 +23,6 @@
     "TEMPLATEID_WAS_EMPTY": {"MSG": "templateid was empty", "CODE": "1.19"},
     "RICHMENUID_WAS_EMPTY": {"MSG": "richmenuid was empty", "CODE": "1.20"},
     "ID2_WAS_EMPTY": { "MSG": "id2 was empty", "CODE": "1.22" },
-    "TOKEN2_WAS_EMPTY": { "MSG": "token2 was empty", "CODE": "1.23" },
 
     "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
     "PASSWORD_WAS_INCORRECT": { "MSG": "password was incorrect", "CODE": "2.2"},
@@ -66,6 +65,7 @@
     "APP_FAILED_TO_REMOVE": { "MSG": "app failed to remove", "CODE": "4.4" },
     "APP_APPID_WAS_EMPTY": { "MSG": "app appid was empty", "CODE": "4.5"},
     "APP_WEBHOOKID_WAS_EMPTY": { "MSG": "app webhookid was empty", "CODE": "4.6" },
+    "APP_TOKEN2_WAS_EMPTY": { "MSG": "app token2 was empty", "CODE": "4.7" },
 
     "GROUP_MEMBER_FAILED_TO_FIND": { "MSG": "group member failed to find", "CODE": "5.0" },
     "GROUP_MEMBER_FAILED_TO_INSERT": { "MSG": "group member failed to insert", "CODE": "5.1" },

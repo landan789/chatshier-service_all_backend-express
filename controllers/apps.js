@@ -183,7 +183,7 @@ module.exports = (function() {
 
                 // 只有 Facebook 需要輸入 token2
                 if (FACEBOOK === postApp.type && !postApp.token2) {
-                    return Promise.reject(ERROR.TOKEN2_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TOKEN2_WAS_EMPTY);
                 }
 
                 if (!postApp.type) {
