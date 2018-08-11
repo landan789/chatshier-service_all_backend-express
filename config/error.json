@@ -24,7 +24,6 @@
     "RICHMENUID_WAS_EMPTY": {"MSG": "richmenuid was empty", "CODE": "1.20"},
     "ID2_WAS_EMPTY": { "MSG": "id2 was empty", "CODE": "1.22" },
     "TOKEN2_WAS_EMPTY": { "MSG": "token2 was empty", "CODE": "1.23" },
-    "PAYMENTID_WAS_EMPTY": {"MSG": "paymentid was empty", "CODE": "1.27"},
 
     "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
     "PASSWORD_WAS_INCORRECT": { "MSG": "password was incorrect", "CODE": "2.2"},
@@ -170,6 +169,7 @@
     "APP_PAYMENT_FAILED_TO_INSERT": { "MSG": "app payment failed to insert", "CODE": "22.2" },
     "APP_PAYMENT_FAILED_TO_UPDATE": { "MSG": "app payment failed to update", "CODE": "22.3" },
     "APP_PAYMENT_FAILED_TO_REMOVE": { "MSG": "app payment failed to remove", "CODE": "22.4" },
+    "APP_PAYMENT_PAYMENTID_WAS_EMPTY": {"MSG": "app payment paymentid was empty", "CODE": "22.5"},
 
     "ORDER_FAILED_TO_FIND": { "MSG": "order failed to find", "CODE": "23.1" },
     "ORDER_FAILED_TO_INSERT": { "MSG": "order failed to insert", "CODE": "23.2" },
