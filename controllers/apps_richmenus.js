@@ -47,7 +47,7 @@ module.exports = (function() {
 
 
                 if (!richmenuId) {
-                    return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_RICHMENU_RICHMENUID_WAS_EMPTY);
                 }
 
                 return appsRichmenusMdl.findRichmenus(appId).then((richmenus) => {
@@ -204,7 +204,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
 
                 if (!richmenuId) {
-                    return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_RICHMENU_RICHMENUID_WAS_EMPTY);
                 }
                 return appsRichmenusMdl.find(appId, richmenuId);
             }).then((appsRichmenus) => {
@@ -299,7 +299,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
 
                 if (!richmenuId) {
-                    return Promise.reject(ERROR.RICHMENUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_RICHMENU_RICHMENUID_WAS_EMPTY);
                 }
                 return appsRichmenusMdl.findRichmenus(appId);
             }).then((richmenus) => {

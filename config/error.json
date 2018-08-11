@@ -21,7 +21,6 @@
     "PLATFORMUID_WAS_EMPTY": { "MSG": "platformuid was empty", "CODE": "1.15" },
     "GREETINGID_WAS_EMPTY": {"MSG": "greetingid was empty", "CODE": "1.17"},
     "TEMPLATEID_WAS_EMPTY": {"MSG": "templateid was empty", "CODE": "1.19"},
-    "RICHMENUID_WAS_EMPTY": {"MSG": "richmenuid was empty", "CODE": "1.20"},
 
     "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
     "PASSWORD_WAS_INCORRECT": { "MSG": "password was incorrect", "CODE": "2.2"},
@@ -92,7 +91,8 @@
     "APP_RICHMENU_FAILED_TO_INSERT": { "MSG": "app richmenu failed to insert", "CODE": "8.2" },
     "APP_RICHMENU_FAILED_TO_UPDATE": { "MSG": "app richmenu failed to update", "CODE": "8.3" },
     "APP_RICHMENU_FAILED_TO_REMOVE": { "MSG": "app richmenu failed to remove", "CODE": "8.4" },
-    
+    "APP_RICHMENU_RICHMENUID_WAS_EMPTY": {"MSG": "app richmenu richmenuid was empty", "CODE": "8.5"},
+
     "BOT_MENU_FAILED_TO_FIND": { "MSG": "bot menu failed to find", "CODE": "8.5" },
     "BOT_MENU_FAILED_TO_INSERT": { "MSG": "bot menu failed to insert", "CODE": "8.6" },
     "BOT_MENU_IMAGE_FAILED_TO_INSERT": { "MSG": "bot menu image failed to insert", "CODE": "8.61" },
