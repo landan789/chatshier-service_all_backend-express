@@ -21,7 +21,6 @@
     "PLATFORMUID_WAS_EMPTY": { "MSG": "platformuid was empty", "CODE": "1.15" },
     "GREETINGID_WAS_EMPTY": {"MSG": "greetingid was empty", "CODE": "1.17"},
 
-    "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
     "PASSWORD_WAS_INCORRECT": { "MSG": "password was incorrect", "CODE": "2.2"},
     "PASSWORD_FAILED_TO_RESET": { "MSG": "password failed to reset", "CODE": "2.3"},
     "NEW_PASSWORD_WAS_INCONSISTENT": { "MSG": "new password was inconsistent", "CODE": "2.4"},
