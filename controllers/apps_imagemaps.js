@@ -45,7 +45,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
 
                 if (!imagemapId) {
-                    return Promise.reject(ERROR.IMAGEMAPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_IMAGEMAP_IMAGEMAPID_WAS_EMPTY);
                 }
 
                 return appsImagemapsMdl.findImagemaps(appId).then((appsImagemaps) => {
@@ -143,7 +143,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
 
                 if (!imagemapId) {
-                    return Promise.reject(ERROR.IMAGEMAPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_IMAGEMAP_IMAGEMAPID_WAS_EMPTY);
                 }
 
                 return appsImagemapsMdl.findImagemaps(appId).then((imagemaps) => {
@@ -182,7 +182,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
 
                 if (!imagemapId) {
-                    return Promise.reject(ERROR.IMAGEMAPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_IMAGEMAP_IMAGEMAPID_WAS_EMPTY);
                 }
                 return appsImagemapsMdl.findImagemaps(appId).then((imagemaps) => {
                     if (!imagemaps) {

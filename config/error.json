@@ -23,7 +23,6 @@
     "GREETINGID_WAS_EMPTY": {"MSG": "greetingid was empty", "CODE": "1.17"},
     "TEMPLATEID_WAS_EMPTY": {"MSG": "templateid was empty", "CODE": "1.19"},
     "RICHMENUID_WAS_EMPTY": {"MSG": "richmenuid was empty", "CODE": "1.20"},
-    "IMAGEMAPID_WAS_EMPTY": {"MSG": "imagemapid was empty", "CODE": "1.21"},
     "ID2_WAS_EMPTY": { "MSG": "id2 was empty", "CODE": "1.22" },
     "TOKEN2_WAS_EMPTY": { "MSG": "token2 was empty", "CODE": "1.23" },
     "PAYMENTID_WAS_EMPTY": {"MSG": "paymentid was empty", "CODE": "1.27"},
@@ -162,6 +161,7 @@
     "APP_IMAGEMAP_FAILED_TO_INSERT": { "MSG": "app imagemap failed to insert", "CODE": "20.2" },
     "APP_IMAGEMAP_FAILED_TO_UPDATE": { "MSG": "app imagemap failed to update", "CODE": "20.3" },
     "APP_IMAGEMAP_FAILED_TO_REMOVE": { "MSG": "app imagemap failed to remove", "CODE": "20.4" },
+    "APP_IMAGEMAP_IMAGEMAPID_WAS_EMPTY": {"MSG": "app imagemap imagemapid was empty", "CODE": "20.5"},
 
     "FACEBOOK_PAGE_FAILED_TO_SUBSCRIBE_APP": {"MSG": "facebook page failed to subscribe app", "CODE": "21.1"},
     "FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP": {"MSG": "facebook page failed to unsubscribe app", "CODE": "21.2"},
