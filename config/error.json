@@ -12,14 +12,14 @@
     "FACEBOOK_PAGE_FAILED_TO_SUBSCRIBE_APP": {"MSG": "facebook page failed to subscribe app", "CODE": "21.1"},
     "FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP": {"MSG": "facebook page failed to unsubscribe app", "CODE": "21.2"},
 
-    "BOT_MENU_FAILED_TO_FIND": { "MSG": "bot menu failed to find", "CODE": "8.5" },
-    "BOT_MENU_FAILED_TO_INSERT": { "MSG": "bot menu failed to insert", "CODE": "8.6" },
-    "BOT_MENU_IMAGE_FAILED_TO_INSERT": { "MSG": "bot menu image failed to insert", "CODE": "8.61" },
-    "BOT_MENU_IMAGE_FAILED_TO_FIND": { "MSG": "bot menu image failed to find", "CODE": "8.62" },
-    "BOT_MENU_FAILED_TO_UPDATE": { "MSG": "bot menu failed to update", "CODE": "8.7" },
-    "BOT_MENU_FAILED_TO_REMOVE": { "MSG": "bot menu failed to remove", "CODE": "8.8" },
-    "BOT_MENU_FAILED_TO_LINK": { "MSG": "bot menu failed to link", "CODE": "8.9" },
-    "BOT_MENU_FAILED_TO_UNLINK": { "MSG": "bot menu failed to unlink", "CODE": "8.91" },
+    "BOT_MENU_FAILED_TO_FIND": { "MSG": "bot richmenu failed to find", "CODE": "8.5" },
+    "BOT_MENU_FAILED_TO_INSERT": { "MSG": "bot richmenu failed to insert", "CODE": "8.6" },
+    "BOT_MENU_IMAGE_FAILED_TO_INSERT": { "MSG": "bot richmenu image failed to insert", "CODE": "8.61" },
+    "BOT_MENU_IMAGE_FAILED_TO_FIND": { "MSG": "bot richmenu image failed to find", "CODE": "8.62" },
+    "BOT_MENU_FAILED_TO_UPDATE": { "MSG": "bot richmenu failed to update", "CODE": "8.7" },
+    "BOT_MENU_FAILED_TO_REMOVE": { "MSG": "bot richmenu failed to remove", "CODE": "8.8" },
+    "BOT_MENU_FAILED_TO_LINK": { "MSG": "bot richmenu failed to link", "CODE": "8.9" },
+    "BOT_MENU_FAILED_TO_UNLINK": { "MSG": "bot richmenu failed to unlink", "CODE": "8.91" },
 
 
     "USER_FAILED_TO_FIND": { "MSG": "user failed to find", "CODE": "3.1" },
