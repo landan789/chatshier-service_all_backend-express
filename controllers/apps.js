@@ -203,7 +203,7 @@ module.exports = (function() {
             }).then((user) => {
                 let groupIds = user.group_ids || [];
                 if (0 > groupIds.indexOf(req.body.group_id)) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 };
 
                 return groupsMdl.find(req.body.group_id, req.params.userid).then((groups) => {
@@ -227,11 +227,11 @@ module.exports = (function() {
                 let member = Object.values(members)[index];
 
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 if (!member.status) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE);
                 }
 
                 if (READ === member.type) {
@@ -400,13 +400,13 @@ module.exports = (function() {
                 let index = userIds.indexOf(req.params.userid);
 
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 };
 
                 let member = Object.values(members)[index];
 
                 if (0 === member.status) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE);
                 };
 
                 if (READ === member.type) {
@@ -482,12 +482,12 @@ module.exports = (function() {
 
                 let index = userIds.indexOf(req.params.userid);
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 let member = Object.values(members)[index];
                 if (!member.status) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE);
                 }
 
                 if (READ === member.type) {

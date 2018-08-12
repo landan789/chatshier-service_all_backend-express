@@ -53,13 +53,13 @@ module.exports = (function() {
                 let groupIds = user.group_ids;
                 let index = groupIds.indexOf(groupId);
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 return new Promise((resolve, reject) => {
                     groupsMembersMdl.find(groupIds, void 0, (groupsMembers) => {
                         if (!groupsMembers) {
-                            reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                            reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                             return;
                         }
                         resolve(groupsMembers);
@@ -118,7 +118,7 @@ module.exports = (function() {
             }).then((user) => {
                 let groupIds = user.group_ids;
                 if (0 > groupIds.indexOf(groupId)) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 return groupsMembersMdl.findMembers(groupId, void 0, null).then((members) => {
@@ -146,7 +146,7 @@ module.exports = (function() {
                 }
 
                 if (0 <= bodyIndex && !bodyMember.isDeleted && !bodyMember.status) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE);
                 }
 
                 if (WRITE === paramsMember.type || READ === paramsMember.type) {
@@ -259,7 +259,7 @@ module.exports = (function() {
                 let groupIds = user.group_ids;
                 let index = groupIds.indexOf(groupId);
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 return groupsMembersMdl.findMembers(groupId).then((members) => {
@@ -397,7 +397,7 @@ module.exports = (function() {
                 let userGroupIds = user.group_ids;
                 let idx = userGroupIds.indexOf(groupId);
                 if (0 > idx) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 return groupsMembersMdl.findMembers(groupId);

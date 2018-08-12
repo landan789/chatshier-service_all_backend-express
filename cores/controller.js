@@ -74,7 +74,7 @@ module.exports = (function() {
                     let memberIdOfUser = Object.keys(members).filter((memberId) => userId === members[memberId].user_id).shift();
 
                     if (!(memberIdOfUser && members[memberIdOfUser])) {
-                        return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                        return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                     }
 
                     let memberOfUser = members[memberIdOfUser];

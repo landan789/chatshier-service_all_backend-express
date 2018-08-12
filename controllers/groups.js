@@ -187,7 +187,7 @@ module.exports = (function() {
                 let groupIds = user.group_ids;
                 let index = groupIds.indexOf(groupId);
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 return new Promise((resolve, reject) => {
