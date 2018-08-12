@@ -281,7 +281,7 @@ module.exports = (function() {
                 let index = userIds.indexOf(req.params.userid);
 
                 if (0 > index) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_HAD_BEEN_REMOVED_FROM_THIS_GROUP);
                 }
                 let _memberId = Object.keys(members)[index];
                 // member 當下使用者所對應到的 member 在 該 group 中
@@ -415,7 +415,7 @@ module.exports = (function() {
 
                 let index = groupUserIds.indexOf(userId);
                 if (0 > index) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_HAD_BEEN_REMOVED_FROM_THIS_GROUP);
                 }
 
                 let currentUserMemberId = Object.keys(members)[index];
@@ -431,7 +431,7 @@ module.exports = (function() {
 
                 let targetMember = members[memberId];
                 if (!targetMember) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_HAD_BEEN_REMOVED_FROM_THIS_GROUP);
                 }
                 memberUserId = targetMember.user_id;
 
