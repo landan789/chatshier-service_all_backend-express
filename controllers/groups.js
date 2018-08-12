@@ -211,7 +211,7 @@ module.exports = (function() {
                 // member 當下 userid 在此 group 對應到的 群組成員
                 let member = Object.values(members)[index];
                 if (READ === member.type) {
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP);
                 };
 
                 return new Promise((resolve, reject) => {
