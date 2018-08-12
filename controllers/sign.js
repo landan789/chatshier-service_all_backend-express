@@ -53,7 +53,7 @@ module.exports = (function() {
                 };
 
                 if (!user.password) {
-                    return Promise.reject(ERROR.PASSWORD_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_PASSWORD_WAS_EMPTY);
                 };
 
                 return Promise.resolve();
@@ -135,7 +135,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userName) {
-                    return Promise.reject(ERROR.NAME_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_NAME_WAS_EMPTY);
                 };
 
                 if (!userEmail) {
@@ -143,7 +143,7 @@ module.exports = (function() {
                 };
 
                 if (!req.body.password) {
-                    return Promise.reject(ERROR.PASSWORD_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_PASSWORD_WAS_EMPTY);
                 };
 
                 return Promise.resolve();
@@ -259,7 +259,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!req.params.userid) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 };
 
                 return Promise.resolve();
@@ -353,9 +353,9 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!password) {
-                    return Promise.reject(ERROR.PASSWORD_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_PASSWORD_WAS_EMPTY);
                 } else if (!(newPassword && newPasswordCfm && newPassword === newPasswordCfm)) {
-                    return Promise.reject(ERROR.NEW_PASSWORD_WAS_INCONSISTENT);
+                    return Promise.reject(ERROR.USER_NEW_PASSWORD_WAS_INCONSISTENT);
                 }
 
                 return usersMdl.find(userId).then((users) => {
@@ -409,7 +409,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!(newPassword && newPasswordCfm && newPassword === newPasswordCfm)) {
-                    return Promise.reject(ERROR.NEW_PASSWORD_WAS_INCONSISTENT);
+                    return Promise.reject(ERROR.USER_NEW_PASSWORD_WAS_INCONSISTENT);
                 }
 
                 return usersMdl.find(userId).then((users) => {

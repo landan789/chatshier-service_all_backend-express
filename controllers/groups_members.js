@@ -33,11 +33,11 @@ module.exports = (function() {
             let proceed = Promise.resolve();
             proceed.then(() => {
                 if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 };
 
                 if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
-                    return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                 };
 
                 return new Promise((resolve, reject) => {
@@ -53,13 +53,13 @@ module.exports = (function() {
                 let groupIds = user.group_ids;
                 let index = groupIds.indexOf(groupId);
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 return new Promise((resolve, reject) => {
                     groupsMembersMdl.find(groupIds, void 0, (groupsMembers) => {
                         if (!groupsMembers) {
-                            reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                            reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                             return;
                         }
                         resolve(groupsMembers);
@@ -91,9 +91,9 @@ module.exports = (function() {
             proceed.then(() => {
                 return new Promise((resolve, reject) => {
                     if (!userId) {
-                        return reject(ERROR.USERID_WAS_EMPTY);
+                        return reject(ERROR.USER_USERID_WAS_EMPTY);
                     } else if (!groupId) {
-                        return reject(ERROR.GROUPID_WAS_EMPTY);
+                        return reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                     };
 
                     usersMdl.find(postMember.user_id, void 0, (users) => {
@@ -118,7 +118,7 @@ module.exports = (function() {
             }).then((user) => {
                 let groupIds = user.group_ids;
                 if (0 > groupIds.indexOf(groupId)) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 return groupsMembersMdl.findMembers(groupId, void 0, null).then((members) => {
@@ -146,11 +146,11 @@ module.exports = (function() {
                 }
 
                 if (0 <= bodyIndex && !bodyMember.isDeleted && !bodyMember.status) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE);
                 }
 
                 if (WRITE === paramsMember.type || READ === paramsMember.type) {
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER);
                 }
 
                 if (0 <= bodyIndex && bodyMember.isDeleted) {
@@ -230,11 +230,11 @@ module.exports = (function() {
 
             proceed.then(() => {
                 if ('' === userId || undefined === userId || null === userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 }
 
                 if ('' === groupId || undefined === groupId || null === groupId) {
-                    return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                 }
 
                 if ('' === memberId || undefined === memberId || null === memberId) {
@@ -259,7 +259,7 @@ module.exports = (function() {
                 let groupIds = user.group_ids;
                 let index = groupIds.indexOf(groupId);
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 return groupsMembersMdl.findMembers(groupId).then((members) => {
@@ -281,34 +281,34 @@ module.exports = (function() {
                 let index = userIds.indexOf(req.params.userid);
 
                 if (0 > index) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_HAD_BEEN_REMOVED_FROM_THIS_GROUP);
                 }
                 let _memberId = Object.keys(members)[index];
                 // member 當下使用者所對應到的 member 在 該 group 中
                 let member = members[_memberId];
                 if (putMember.status && _memberId !== memberId) {
                     // 當下使用者只能改變自己的 member.status 狀態，回應邀請
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_STATUS);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER);
                 };
 
                 if (OWNER === putMember.type && OWNER === member.type) {
                     // 只有當下使用者為 OWNER 無法使其他成員成為 OWNER
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_TYPE);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER);
                 }
 
                 if (OWNER === putMember.type && ADMIN === member.type) {
                     // 當下使用者為 ADMIN 無法修改成員為 OWNER
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_TYPE);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER);
                 }
 
                 if (putMember.type && READ === member.type) {
                     // 當下使用者為 READ 不能 修改 成員的 權限狀態
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_TYPE);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER);
                 }
 
                 if (putMember.type && WRITE === member.type) {
                     // 當下使用者為 WRITE 不能夠 修改 成員的 權限狀態
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_TYPE);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER);
                 }
 
                 return new Promise((resolve, reject) => {
@@ -380,9 +380,9 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 } else if (!groupId) {
-                    return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                 } else if (!memberId) {
                     return Promise.reject(ERROR.GROUP_MEMBER_MEMBERID_WAS_EMPTY);
                 }
@@ -397,7 +397,7 @@ module.exports = (function() {
                 let userGroupIds = user.group_ids;
                 let idx = userGroupIds.indexOf(groupId);
                 if (0 > idx) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 return groupsMembersMdl.findMembers(groupId);
@@ -415,7 +415,7 @@ module.exports = (function() {
 
                 let index = groupUserIds.indexOf(userId);
                 if (0 > index) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_HAD_BEEN_REMOVED_FROM_THIS_GROUP);
                 }
 
                 let currentUserMemberId = Object.keys(members)[index];
@@ -426,12 +426,12 @@ module.exports = (function() {
                     currentUserMemberId !== memberId) {
                     // 只有當下使用者為 OWNER 或 ADMIN 才能夠 刪除 成員
                     // 但是自己可以離開群組
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_REMOVE_GROUP_MEMBER);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMISSION_TO_REMOVE_GROUP_MEMBER);
                 }
 
                 let targetMember = members[memberId];
                 if (!targetMember) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_HAD_BEEN_REMOVED_FROM_THIS_GROUP);
                 }
                 memberUserId = targetMember.user_id;
 

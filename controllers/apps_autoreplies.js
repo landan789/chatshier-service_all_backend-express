@@ -127,7 +127,7 @@ module.exports = (function() {
 
                     // 判斷 autoreplies 中是否有目前 autoreplyId
                     if (!autoreplies[autoreplyId]) {
-                        return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
+                        return Promise.reject(ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                     }
 
                     return appsAutorepliesMdl.update(appId, autoreplyId, putAutoreply).then((appsAutoreplies) => {
@@ -164,7 +164,7 @@ module.exports = (function() {
 
                 // 判斷 appId 中是否有目前 autoreplyId
                 if (!autoreplies[autoreplyId]) {
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
+                    return Promise.reject(ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                 }
 
                 return appsAutorepliesMdl.remove(appId, autoreplyId).then((appsAutoreplies) => {

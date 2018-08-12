@@ -32,7 +32,7 @@ module.exports = (function() {
             let proceed = Promise.resolve();
             proceed.then(() => {
                 if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 };
 
                 return new Promise((resolve, reject) => {
@@ -74,9 +74,9 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 } else if (!postGroup.name) {
-                    return Promise.reject(ERROR.NAME_WAS_EMPTY);
+                    return Promise.reject(ERROR.GRUOP_NAME_WAS_EMPTY);
                 }
 
                 return usersMdl.find(userId).then((users) => {
@@ -164,11 +164,11 @@ module.exports = (function() {
 
             Promise.resolve().then(() => {
                 if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 };
 
                 if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
-                    return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                 };
                 if (0 === Object.keys(putGroup).length) {
                     return Promise.reject(ERROR.INVALID_REQUEST_BODY_DATA);
@@ -187,7 +187,7 @@ module.exports = (function() {
                 let groupIds = user.group_ids;
                 let index = groupIds.indexOf(groupId);
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 return new Promise((resolve, reject) => {
@@ -211,7 +211,7 @@ module.exports = (function() {
                 // member 當下 userid 在此 group 對應到的 群組成員
                 let member = Object.values(members)[index];
                 if (READ === member.type) {
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP);
                 };
 
                 return new Promise((resolve, reject) => {

@@ -60,7 +60,7 @@ module.exports = (function() {
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     if ('' === userId || null === userId || undefined === userId) {
-                        reject(ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USER_USERID_WAS_EMPTY);
                         return;
                     }
                     resolve();
@@ -130,17 +130,17 @@ module.exports = (function() {
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     if ('' === userId || null === userId || undefined === userId) {
-                        reject(ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USER_USERID_WAS_EMPTY);
                         return;
                     }
 
                     if ('' === calendarId || null === calendarId || undefined === calendarId) {
-                        reject(ERROR.CALENDARID_WAS_EMPTY);
+                        reject(ERROR.CALENDAR_CALENDARID_WAS_EMPTY);
                         return;
                     }
 
                     if ('' === eventId || null === eventId || undefined === eventId) {
-                        reject(ERROR.EVENTID_WAS_EMPTY);
+                        reject(ERROR.CALENDAR_EVENT_EVENTID_WAS_EMPTY);
                         return;
                     }
 
@@ -154,7 +154,7 @@ module.exports = (function() {
                         };
                         let calendarIds = userCalendarId || [];
                         if (!calendarIds.includes(calendarId)) {
-                            reject(ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
+                            reject(ERROR.CALENDAR_FAILED_TO_FIND);
                             return;
                         }
                         resolve();
@@ -192,7 +192,7 @@ module.exports = (function() {
                         };
                         let calendarIds = userCalendarId || [];
                         if (!calendarIds.includes(calendarId)) {
-                            reject(ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
+                            reject(ERROR.CALENDAR_FAILED_TO_FIND);
                             return;
                         }
                         resolve();
