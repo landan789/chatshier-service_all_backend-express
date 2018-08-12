@@ -99,7 +99,7 @@ module.exports = (function() {
                 // 沒有設定好 image 的 richmenu 無法被啟用
                 return botSvc.getRichMenuImage(activateRichmenu.platformMenuId, appId).then((imageBuffer) => {
                     if (!imageBuffer) {
-                        return Promise.reject(ERROR.BOT_MENU_IMAGE_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.BOT_RICHMENU_IMAGE_FAILED_TO_FIND);
                     }
 
                     if (!activateRichmenu.src) {
@@ -115,7 +115,7 @@ module.exports = (function() {
 
                     return Promise.resolve(imageBuffer);
                 }).catch(() => {
-                    return Promise.reject(ERROR.BOT_MENU_IMAGE_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.BOT_RICHMENU_IMAGE_FAILED_TO_FIND);
                 });
             }).then(() => {
                 // 查找是否已經有預設啟用的 richmenu
@@ -147,7 +147,7 @@ module.exports = (function() {
                         return Promise.all(platformUids.map((platformUid) => {
                             return botSvc.linkRichMenuToUser(platformUid, platformMenuId, appId, app).then((resJson) => {
                                 if (!resJson) {
-                                    return Promise.reject(ERROR.BOT_MENU_FAILED_TO_LINK);
+                                    return Promise.reject(ERROR.BOT_RICHMENU_FAILED_TO_LINK);
                                 }
                                 return Promise.resolve();
                             });
@@ -242,11 +242,11 @@ module.exports = (function() {
                             });
                         }).then((resJson) => {
                             if (!resJson) {
-                                return Promise.reject(ERROR.BOT_MENU_FAILED_TO_LINK);
+                                return Promise.reject(ERROR.BOT_RICHMENU_FAILED_TO_LINK);
                             }
                             return Promise.resolve();
                         }).catch(() => {
-                            return Promise.reject(ERROR.BOT_MENU_FAILED_TO_LINK);
+                            return Promise.reject(ERROR.BOT_RICHMENU_FAILED_TO_LINK);
                         });
                     }));
                 });
@@ -320,7 +320,7 @@ module.exports = (function() {
                         return {};
                     }).then((resJson) => {
                         if (!resJson) {
-                            return Promise.reject(ERROR.BOT_MENU_FAILED_TO_LINK);
+                            return Promise.reject(ERROR.BOT_RICHMENU_FAILED_TO_LINK);
                         }
                         return Promise.resolve();
                     });
