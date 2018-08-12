@@ -90,7 +90,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!platformUid) {
-                    return Promise.reject(ERROR.PLATFORMUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.CONSUMER_PLATFORMUID_WAS_EMPTY);
                 }
 
                 return consumersMdl.replace(platformUid, consumer).then((consumers) => {

@@ -32,7 +32,7 @@ module.exports = (function() {
             let proceed = Promise.resolve();
             proceed.then(() => {
                 if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 };
 
                 return new Promise((resolve, reject) => {
@@ -74,7 +74,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 } else if (!postGroup.name) {
                     return Promise.reject(ERROR.GRUOP_NAME_WAS_EMPTY);
                 }
@@ -164,7 +164,7 @@ module.exports = (function() {
 
             Promise.resolve().then(() => {
                 if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 };
 
                 if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {

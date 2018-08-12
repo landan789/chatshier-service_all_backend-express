@@ -28,7 +28,7 @@ module.exports = (function() {
             if (useFuzzy) {
                 return Promise.resolve().then(() => {
                     if (!userId) {
-                        return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                        return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                     }
 
                     // 沒有輸入搜尋的關鍵字樣本，回傳空陣列
@@ -56,7 +56,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 }
 
                 return usersMdl.find(userId).then((users) => {
@@ -103,7 +103,7 @@ module.exports = (function() {
 
             return new Promise((resolve, reject) => {
                 if (!userId) {
-                    reject(ERROR.USERID_WAS_EMPTY);
+                    reject(ERROR.USER_USERID_WAS_EMPTY);
                     return;
                 }
 

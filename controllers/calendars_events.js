@@ -60,7 +60,7 @@ module.exports = (function() {
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     if ('' === userId || null === userId || undefined === userId) {
-                        reject(ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USER_USERID_WAS_EMPTY);
                         return;
                     }
                     resolve();
@@ -130,7 +130,7 @@ module.exports = (function() {
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     if ('' === userId || null === userId || undefined === userId) {
-                        reject(ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USER_USERID_WAS_EMPTY);
                         return;
                     }
 

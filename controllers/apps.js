@@ -36,7 +36,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     let userId = req.params.userid;
                     if (!userId) {
-                        reject(ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USER_USERID_WAS_EMPTY);
                         return;
                     };
                     usersMdl.find(userId, void 0, (users) => {
@@ -84,7 +84,7 @@ module.exports = (function() {
                     }
 
                     if ('' === userId || null === userId) {
-                        reject(ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USER_USERID_WAS_EMPTY);
                         return;
                     }
 
@@ -156,11 +156,11 @@ module.exports = (function() {
 
             Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 }
 
                 if (!postApp.id1) {
-                    return Promise.reject(ERROR.ID1_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_ID1_WAS_EMPTY);
                 }
 
                 // 只有 Facebook 需要輸入 id2
@@ -348,7 +348,7 @@ module.exports = (function() {
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     if ('' === userId || null === userId || undefined === userId) {
-                        reject(ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USER_USERID_WAS_EMPTY);
                         return;
                     }
                     if (0 === Object.keys(putApp).length) {
@@ -441,7 +441,7 @@ module.exports = (function() {
 
             Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 }
 
                 if (!appId) {

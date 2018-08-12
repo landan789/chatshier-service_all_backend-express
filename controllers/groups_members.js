@@ -33,7 +33,7 @@ module.exports = (function() {
             let proceed = Promise.resolve();
             proceed.then(() => {
                 if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 };
 
                 if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
@@ -91,7 +91,7 @@ module.exports = (function() {
             proceed.then(() => {
                 return new Promise((resolve, reject) => {
                     if (!userId) {
-                        return reject(ERROR.USERID_WAS_EMPTY);
+                        return reject(ERROR.USER_USERID_WAS_EMPTY);
                     } else if (!groupId) {
                         return reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                     };
@@ -230,7 +230,7 @@ module.exports = (function() {
 
             proceed.then(() => {
                 if ('' === userId || undefined === userId || null === userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 }
 
                 if ('' === groupId || undefined === groupId || null === groupId) {
@@ -380,7 +380,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 } else if (!groupId) {
                     return Promise.reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                 } else if (!memberId) {

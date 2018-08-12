@@ -362,7 +362,7 @@ module.exports = (function() {
                 if (!appId) {
                     return Promise.reject(ERROR.APP_APPID_WAS_EMPTY);
                 } else if (!platformUid) {
-                    return Promise.reject(ERROR.PLATFORMUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.CONSUMER_PLATFORMUID_WAS_EMPTY);
                 }
 
                 return appsMdl.find(appId).then((apps) => {

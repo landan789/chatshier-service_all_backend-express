@@ -102,7 +102,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!ticketId) {
-                    return Promise.reject(ERROR.TICKETID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TICKET_TICKETID_WAS_EMPTY);
                 }
                 return appsTicketsMdl.find(appId);
             }).then((appTickets) => {
@@ -139,7 +139,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!ticketId) {
-                    return Promise.reject(ERROR.TICKETID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TICKET_TICKETID_WAS_EMPTY);
                 }
                 // 取得目前 appId 下所有 tickets
                 return appsTicketsMdl.find(appId);
