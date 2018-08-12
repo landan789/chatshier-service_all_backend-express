@@ -16,7 +16,7 @@
     const USER_NAME_WAS_EMPTY = '1.7';
     const NO_PERMISSION_CODE = '3.16';
     const USER_PASSWORD_WAS_INCORRECT = '2.2';
-    const NEW_PASSWORD_WAS_INCONSISTENT = '2.4';
+    const USER_NEW_PASSWORD_WAS_INCONSISTENT = '2.4';
 
     const ECPAY = 'ECPAY';
     const SPGATEWAY = 'SPGATEWAY';
@@ -143,7 +143,7 @@
             switch (err.code) {
                 case USER_PASSWORD_WAS_INCORRECT:
                     return $.notify('輸入的舊密碼不正確', { type: 'danger' });
-                case NEW_PASSWORD_WAS_INCONSISTENT:
+                case USER_NEW_PASSWORD_WAS_INCONSISTENT:
                     return $.notify('輸入的新密碼不一致', { type: 'danger' });
                 default:
                     return $.notify('密碼變更失敗', { type: 'danger' });

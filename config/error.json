@@ -7,7 +7,6 @@
     "UNKNOWN": { "MSG": "unknown", "CODE": "0" },
     "INVALID_REQUEST_BODY_DATA": { "MSG": "invalid request body data", "CODE": "1.1" },
 
-    "NEW_PASSWORD_WAS_INCONSISTENT": { "MSG": "new password was inconsistent", "CODE": "2.4"},
     "EMAIL_FAILED_TO_SEND": { "MSG": "email failed to send", "CODE": "2.5"},
 
     "USER_FAILED_TO_FIND": { "MSG": "user failed to find", "CODE": "3.1" },
@@ -20,6 +19,7 @@
     "USER_NAME_WAS_EMPTY": { "MSG": "user name was empty", "CODE": "1.7" },
     "USER_USERID_WAS_EMPTY": { "MSG": "user userid was empty", "CODE": "1.3" },
     "USER_PASSWORD_WAS_EMPTY": { "MSG": "user password was empty", "CODE": "1.2" },
+    "USER_NEW_PASSWORD_WAS_INCONSISTENT": { "MSG": "user new password was inconsistent", "CODE": "2.4"},
 
     "USER_DID_NOT_HAVE_THIS_APP": { "MSG": "user did not have this app", "CODE": "3.2" },
     "USER_WAS_NOT_IN_THIS_GROUP": { "MSG": "user was not in this group", "CODE": "3.3" },
