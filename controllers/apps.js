@@ -178,7 +178,7 @@ module.exports = (function() {
 
                 // 只有 LINE 和 Facebook 需要輸入 token1
                 if ((FACEBOOK === postApp.type || LINE === postApp.type) && !postApp.token1) {
-                    return Promise.reject(ERROR.TOKEN1_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TOKEN1_WAS_EMPTY);
                 }
 
                 // 只有 Facebook 需要輸入 token2
