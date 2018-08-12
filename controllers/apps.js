@@ -208,7 +208,7 @@ module.exports = (function() {
 
                 return groupsMdl.find(req.body.group_id, req.params.userid).then((groups) => {
                     if (!groups || (groups && 0 === Object.keys(groups).length)) {
-                        return Promise.reject(ERROR.GROUP_DID_NOT_EXIST);
+                        return Promise.reject(ERROR.GROUP_FAILED_TO_FIND);
                     }
                     return Promise.resolve(groups[req.body.group_id]);
                 });

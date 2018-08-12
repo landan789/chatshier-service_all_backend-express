@@ -32,7 +32,6 @@
     "USER_OF_GROUP_DID_NOT_HAVE_THIS_APP": { "MSG": "user of group did not have this app", "CODE": "3.14" },
     "GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP": { "MSG": "group member was not active in this group", "CODE": "3.15" },
     "GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP": { "MSG": "group member did not have permission to write app", "CODE": "3.16" },
-    "GROUP_DID_NOT_EXIST": { "MSG": "group did not exist", "CODE": "3.17" },
 
     "APP_FAILED_TO_FIND": { "MSG": "app failed to find", "CODE": "4.1" },
     "APP_FAILED_TO_UPDATE": { "MSG": "app failed to update", "CODE": "4.2" },
