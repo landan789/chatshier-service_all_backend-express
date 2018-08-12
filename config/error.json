@@ -4,10 +4,9 @@
     "JWT_HAD_EXPIRED": { "MSG": "jwt had expired", "CODE": "-2" },
     "USER_WAS_NOT_AUTHORIZED": { "MSG": "user was not authorized", "CODE": "-1" },
 
-    "UNKNOWN": { "MSG": "unknown", "CODE": "0" },
-    "INVALID_REQUEST_BODY_DATA": { "MSG": "invalid request body data", "CODE": "1.1" },
-
-    "EMAIL_FAILED_TO_SEND": { "MSG": "email failed to send", "CODE": "2.5"},
+    "UNKNOWN": { "MSG": "unknown", "CODE": "0.1" },
+    "INVALID_REQUEST_BODY_DATA": { "MSG": "invalid request body data", "CODE": "0.2" },
+    "EMAIL_FAILED_TO_SEND": { "MSG": "email failed to send", "CODE": "0.3"},
 
     "USER_FAILED_TO_FIND": { "MSG": "user failed to find", "CODE": "3.1" },
     "USER_FAILED_TO_UPDATE": { "MSG": "user failed to update", "CODE": "3.11" },
