@@ -1,9 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/api_success.json');
+    const API_SUCCESS = require('../config/success.json');
 
     let fuseHlp = require('../helpers/fuse');
     let redisHlp = require('../helpers/redis');
@@ -28,7 +28,7 @@ module.exports = (function() {
             if (useFuzzy) {
                 return Promise.resolve().then(() => {
                     if (!userId) {
-                        return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+                        return Promise.reject(ERROR.USERID_WAS_EMPTY);
                     }
 
                     // 沒有輸入搜尋的關鍵字樣本，回傳空陣列
@@ -56,12 +56,12 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
                 }
 
                 return usersMdl.find(userId).then((users) => {
                     if (!(users && users[userId])) {
-                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.USER_FAILED_TO_FIND);
                     }
                     return Promise.resolve(users[userId]);
                 });
@@ -70,14 +70,14 @@ module.exports = (function() {
 
                 return groupsMdl.findUserIds(groupIds, true).then((userIds) => {
                     if (!userIds) {
-                        return Promise.reject(API_ERROR.GROUP_MEMBER_USER_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.GROUP_MEMBER_USER_FAILED_TO_FIND);
                     }
                     (userIds.indexOf(userId) < 0) && userIds.push(userId);
 
                     // 有 query email 就不搜尋使用者下的所有群組的的所有成員 USERIDs
                     return usersMdl.find(queryEmail ? void 0 : userIds, queryEmail).then((users) => {
                         if (!users) {
-                            return Promise.reject(API_ERROR.AUTHENTICATION_USER_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.USER_FAILED_TO_FIND);
                         }
                         return Promise.resolve(users);
                     });
@@ -103,18 +103,18 @@ module.exports = (function() {
 
             return new Promise((resolve, reject) => {
                 if (!userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
+                    reject(ERROR.USERID_WAS_EMPTY);
                     return;
                 }
 
                 if ('string' === typeof putUser.name && 0 === putUser.name.length) {
-                    reject(API_ERROR.NAME_WAS_EMPTY);
+                    reject(ERROR.NAME_WAS_EMPTY);
                     return;
                 }
 
                 usersMdl.update(userId, putUser, (users) => {
                     if (!users) {
-                        reject(API_ERROR.USER_FAILED_TO_UPDATE);
+                        reject(ERROR.USER_FAILED_TO_UPDATE);
                         return;
                     }
                     resolve(users);

@@ -1,6 +1,6 @@
 module.exports = (function() {
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
 
     let appsMdl = require('../models/apps');
     let usersMdl = require('../models/users');
@@ -27,14 +27,14 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
                 }
 
                 // 1. 先用 userId 去 users model 找到 appId 清單
                 return usersMdl.find(userId).then((users) => {
                     // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
                     if (!(users && users[userId])) {
-                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.USER_FAILED_TO_FIND);
                     }
                     return Promise.resolve(users[userId]);
                 });
@@ -43,7 +43,7 @@ module.exports = (function() {
                     appIds = appIds || [];
                     if (appId && -1 === appIds.indexOf(appId)) {
                         // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appIds);
                 });
@@ -58,14 +58,14 @@ module.exports = (function() {
 
                 return appsMdl.find(appId).then((apps) => {
                     if (!(apps && apps[appId])) {
-                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                     }
                     return Promise.resolve(apps[appId]);
                 }).then((app) => {
                     let groupId = app.group_id;
                     return groupsMdl.find(groupId, userId).then((groups) => {
                         if (!(groups && groups[groupId])) {
-                            return Promise.reject(API_ERROR.GROUP_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.GROUP_FAILED_TO_FIND);
                         }
                         return Promise.resolve(groups[groupId]);
                     });
@@ -74,12 +74,12 @@ module.exports = (function() {
                     let memberIdOfUser = Object.keys(members).filter((memberId) => userId === members[memberId].user_id).shift();
 
                     if (!(memberIdOfUser && members[memberIdOfUser])) {
-                        return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                        return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                     }
 
                     let memberOfUser = members[memberIdOfUser];
                     if (READ === memberOfUser.type && (POST === method || PUT === method || DELETE === method)) {
-                        return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
+                        return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
                     }
                     return Promise.resolve([req.params.appid]);
                 });
@@ -105,7 +105,7 @@ module.exports = (function() {
                 msg: err.MSG || '',
                 code: err.CODE || ''
             };
-            return res && !res.headersSent && res.status(err && err.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
+            return res && !res.headersSent && res.status(err && err.CODE === ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
         }
     }
 

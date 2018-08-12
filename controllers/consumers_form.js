@@ -1,9 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/api_success.json');
+    const API_SUCCESS = require('../config/success.json');
 
     let appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     let appsFieldsMdl = require('../models/apps_fields');
@@ -26,11 +26,11 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!appId) {
-                    return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_APPID_WAS_EMPTY);
                 }
 
                 if (!platformUid) {
-                    return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.PLATFORMUID_WAS_EMPTY);
                 }
 
                 return Promise.all([
@@ -39,11 +39,11 @@ module.exports = (function() {
                 ]);
             }).then(([ appsFields, appsChatroomsMessagers ]) => {
                 if (!(appsFields && appsFields[appId])) {
-                    return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_FIELD_FAILED_TO_FIND);
                 }
 
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                 }
 
                 let fields = appsFields[appId].fields;
@@ -71,17 +71,17 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!appId) {
-                    return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_APPID_WAS_EMPTY);
                 }
 
                 if (!platformUid) {
-                    return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.PLATFORMUID_WAS_EMPTY);
                 }
 
                 return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid);
             }).then((appsChatroomsMessagers) => {
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                 }
 
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -100,7 +100,7 @@ module.exports = (function() {
                 return Promise.all(Object.keys(chatrooms).map((chatroomId) => {
                     return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, putMessager).then((_appsChatroomsMessagers) => {
                         if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
+                            return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_UPDATE);
                         }
                         return Promise.resolve(_appsChatroomsMessagers);
                     });

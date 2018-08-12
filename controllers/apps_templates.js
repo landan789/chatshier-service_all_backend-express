@@ -1,9 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/api_success.json');
+    const API_SUCCESS = require('../config/success.json');
     const storageHlp = require('../helpers/storage');
 
     let appsTemplatesMdl = require('../models/apps_templates');
@@ -23,7 +23,7 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsTemplatesMdl.find(appIds).then((appsTemplates) => {
                     if (!appsTemplates) {
-                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_TEMPLATE_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsTemplates);
                 });
@@ -43,13 +43,11 @@ module.exports = (function() {
             let templateId = req.params.templateid;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
-                }
+
                 return appsTemplatesMdl.find(appId, templateId);
             }).then((appsTemplates) => {
                 if (!(appsTemplates && appsTemplates[appId])) {
-                    return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_TEMPLATE_FAILED_TO_FIND);
                 }
                 return Promise.resolve(appsTemplates);
             }).then((appsTemplates) => {
@@ -73,13 +71,10 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
-                }
 
                 return appsTemplatesMdl.insert(appId, postTemplate).then((appsTemplates) => {
                     if (!appsTemplates || (appsTemplates && 0 === Object.keys(appsTemplates).length)) {
-                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(appsTemplates);
                 });
@@ -105,17 +100,14 @@ module.exports = (function() {
             ('object' === typeof req.body.template) && (putTemplateData.template = req.body.template);
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
-                }
 
                 if (!templateId) {
-                    return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TEMPLATE_TEMPLATEID_WAS_EMPTY);
                 }
                 return appsTemplatesMdl.update(appId, templateId, putTemplateData);
             }).then((appsTemplate) => {
                 if (!appsTemplate) {
-                    return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_UPDATE);
+                    return Promise.reject(ERROR.APP_TEMPLATE_FAILED_TO_UPDATE);
                 }
                 return Promise.resolve(appsTemplate);
             }).then((appsTemplate) => {
@@ -134,17 +126,14 @@ module.exports = (function() {
             let templateId = req.params.templateid;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                if (checkedAppIds.length >= 2) {
-                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
-                }
 
                 if (!templateId) {
-                    return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TEMPLATE_TEMPLATEID_WAS_EMPTY);
                 }
 
                 return appsTemplatesMdl.remove(appId, templateId).then((appsTemplates) => {
                     if (!(appsTemplates && appsTemplates[appId])) {
-                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsTemplates);
                 });

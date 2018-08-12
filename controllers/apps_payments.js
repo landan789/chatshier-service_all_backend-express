@@ -1,9 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/api_success.json');
+    const API_SUCCESS = require('../config/success.json');
 
     const appsPaymentsMdl = require('../models/apps_payments');
 
@@ -22,7 +22,7 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsPaymentsMdl.find(appIds).then((appsPayments) => {
                     if (!appsPayments) {
-                        return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsPayments);
                 });
@@ -44,7 +44,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsPaymentsMdl.find(appId, paymentId).then((appsPayments) => {
                     if (!(appsPayments && appsPayments[appId])) {
-                        return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsPayments);
                 });
@@ -75,7 +75,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsPaymentsMdl.insert(appId, postTikeck).then((appsPayments) => {
                     if (!(appsPayments && appsPayments[appId])) {
-                        return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(appsPayments);
                 });
@@ -106,23 +106,23 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!paymentId) {
-                    return Promise.reject(API_ERROR.PAYMENTID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_PAYMENT_PAYMENTID_WAS_EMPTY);
                 }
                 return appsPaymentsMdl.find(appId);
             }).then((appPayments) => {
                 if (!(appPayments && appPayments[appId])) {
-                    return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_FIND);
                 }
 
                 // 判斷 payments 中是否有目前 paymentId
                 let payments = appPayments[appId].payments;
                 if (!payments[paymentId]) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_PAYMENT);
+                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_PAYMENT);
                 }
 
                 return appsPaymentsMdl.update(appId, paymentId, putTikcket).then((appsPayments) => {
                     if (!(appsPayments && appsPayments[appId])) {
-                        return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(appsPayments);
                 });
@@ -143,24 +143,24 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!paymentId) {
-                    return Promise.reject(API_ERROR.PAYMENTID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_PAYMENT_PAYMENTID_WAS_EMPTY);
                 }
                 // 取得目前 appId 下所有 payments
                 return appsPaymentsMdl.find(appId);
             }).then((appPayments) => {
                 if (!(appPayments && appPayments[appId])) {
-                    return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_FIND);
                 }
 
                 // 判斷 payments 中是否有目前 paymentId
                 let payments = appPayments[appId].payments;
                 if (!payments[paymentId]) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_PAYMENT);
+                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_PAYMENT);
                 }
 
                 return appsPaymentsMdl.remove(appId, paymentId).then((appsPayments) => {
                     if (!(appsPayments && appsPayments[appId])) {
-                        return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsPayments);
                 });

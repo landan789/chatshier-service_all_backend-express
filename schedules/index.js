@@ -10,7 +10,7 @@ const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 
 /** @type {any} */
-const API_ERROR = require('../config/api_error.json');
+const ERROR = require('../config/error.json');
 const SOCKET_EVENTS = require('../config/socket-events');
 
 const CHATSHIER = 'CHATSHIER';
@@ -22,7 +22,7 @@ let jobProcess = () => {
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
     return appsMdl.find().then((apps) => {
         if (!apps) {
-            return Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
+            return Promise.reject(ERROR.APP_FAILED_TO_FIND);
         }
 
         // LINE BOT 相異 apps 允許 同時間群發。
@@ -36,7 +36,7 @@ let jobProcess = () => {
 
             return appsComposesMdl.find(appId).then((appsComposes) => {
                 if (!appsComposes) {
-                    return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_COMPOSE_FAILED_TO_FIND);
                 }
 
                 let appComposes = appsComposes[appId] || {};
@@ -89,7 +89,7 @@ let jobProcess = () => {
                                         console.log('[database] insert each message to chatroom - ' + chatroomId);
                                         return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]).then((appsChatroomsMessages) => {
                                             if (!appsChatroomsMessages) {
-                                                return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                                                return Promise.reject(ERROR.APP_CHATROOM_MESSAGE_FAILED_TO_INSERT);
                                             }
 
                                             let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
@@ -115,7 +115,7 @@ let jobProcess = () => {
 
                                         return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((_appsChatroomsMessagers) => {
                                             if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
-                                                return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                                return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                                             }
 
                                             let chatroom = _appsChatroomsMessagers[appId].chatrooms[chatroomId];

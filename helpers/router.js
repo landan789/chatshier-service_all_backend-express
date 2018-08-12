@@ -1,6 +1,6 @@
 module.exports = (function() {
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
 
     class RouterHelper {
         /**
@@ -16,7 +16,7 @@ module.exports = (function() {
         requestNotExistentApi(req, res, next) {
             let json = {
                 status: 0,
-                msg: API_ERROR.REQUESTED_NOT_EXISTENT_API.MSG
+                msg: ERROR.REQUESTED_NOT_EXISTENT_API.MSG
             };
             res.status(400).json(json);
         }

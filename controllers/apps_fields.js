@@ -1,9 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/api_success.json');
+    const API_SUCCESS = require('../config/success.json');
 
     let appsFieldsMdl = require('../models/apps_fields');
 
@@ -22,7 +22,7 @@ module.exports = (function() {
                 // 1. 根據 appId 清單去 Fields model 抓取清單
                 return appsFieldsMdl.find(appIds).then((appsFields) => {
                     if (!appsFields) {
-                        return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_FIELD_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsFields);
                 });
@@ -54,7 +54,7 @@ module.exports = (function() {
                 // 1. 將 field 資料插入至指定 appId 中
                 return appsFieldsMdl.insert(appId, postField).then((appsFields) => {
                     if (!(appsFields && appsFields[appId])) {
-                        return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_FIELD_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(appsFields);
                 });
@@ -85,7 +85,7 @@ module.exports = (function() {
                 // 1. 將 field 資料更新至指定 appId 中
                 return appsFieldsMdl.update(appId, fieldId, putField).then((appsFields) => {
                     if (!(appsFields && appsFields[appId])) {
-                        return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.APP_FIELD_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(appsFields);
                 });
@@ -108,7 +108,7 @@ module.exports = (function() {
                 // 1. 藉由 Fields model 將指定的 field 資料刪除
                 return appsFieldsMdl.remove(appId, fieldId).then((appsFields) => {
                     if (!(appsFields && appsFields[appId])) {
-                        return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_FIELD_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsFields);
                 });

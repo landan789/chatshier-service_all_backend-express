@@ -4,9 +4,9 @@ module.exports = (function() {
 
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/api_success.json');
+    const API_SUCCESS = require('../config/success.json');
     const CHATSHIER = require('../config/chatshier');
     const OF_GROUP = '的部門';
 
@@ -49,11 +49,11 @@ module.exports = (function() {
             let domain = domainHlp.get(req.hostname);
             return Promise.resolve().then(() => {
                 if (!user.email) {
-                    return Promise.reject(API_ERROR.EMAIL_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_EMAIL_WAS_EMPTY);
                 };
 
                 if (!user.password) {
-                    return Promise.reject(API_ERROR.PASSWORD_WAS_EMPTY);
+                    return Promise.reject(ERROR.PASSWORD_WAS_EMPTY);
                 };
 
                 return Promise.resolve();
@@ -62,7 +62,7 @@ module.exports = (function() {
                     usersMdl.find(void 0, user.email, (_users) => {
                         // If the user email deoes not exist then REST API can not sign up
                         if (!_users || (_users && 0 === Object.keys(_users).length)) {
-                            reject(API_ERROR.USER_FAILED_TO_FIND);
+                            reject(ERROR.USER_FAILED_TO_FIND);
                             return;
                         };
                         users = _users;
@@ -74,7 +74,7 @@ module.exports = (function() {
                 let user = users[userId];
                 // The encoded user password from front end must match to the user password in database
                 if (ciperHlp.encode(req.body.password) !== user.password) {
-                    return Promise.reject(API_ERROR.PASSWORD_WAS_INCORRECT);
+                    return Promise.reject(ERROR.USER_PASSWORD_WAS_INCORRECT);
                 };
                 // user password must never reponse to client
                 users[userId].password = void 0;
@@ -135,15 +135,15 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userName) {
-                    return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
+                    return Promise.reject(ERROR.NAME_WAS_EMPTY);
                 };
 
                 if (!userEmail) {
-                    return Promise.reject(API_ERROR.EMAIL_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_EMAIL_WAS_EMPTY);
                 };
 
                 if (!req.body.password) {
-                    return Promise.reject(API_ERROR.PASSWORD_WAS_EMPTY);
+                    return Promise.reject(ERROR.PASSWORD_WAS_EMPTY);
                 };
 
                 return Promise.resolve();
@@ -152,7 +152,7 @@ module.exports = (function() {
                     usersMdl.find(void 0, userEmail, (users) => {
                         // If the user email exists then REST API can not insert any user
                         if (users && 0 < Object.keys(users).length) {
-                            reject(API_ERROR.USER_EMAIL_HAD_BEEN_SIGNED_UP);
+                            reject(ERROR.USER_EMAIL_HAD_BEEN_SIGNED_UP);
                             return;
                         };
                         resolve(users);
@@ -166,7 +166,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     groupsMdl.insert(userId, group, (groups) => {
                         if (!groups) {
-                            reject(API_ERROR.GROUP_FAILED_TO_INSERT);
+                            reject(ERROR.GROUP_FAILED_TO_INSERT);
                             return;
                         }
                         resolve(groups);
@@ -213,20 +213,22 @@ module.exports = (function() {
                 return appsMdl.insert(postApp);
             }).then((apps) => {
                 if (!apps || (apps && 0 === Object.keys(apps).length)) {
-                    return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
+                    return Promise.reject(ERROR.APP_FAILED_TO_INSERT);
                 }
                 let appId = Object.keys(apps).shift() || '';
 
                 // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
+
+                // TODO 耦合性太高 chatroom 不因該 相依於 signup
                 return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
                     if (!appsChatrooms) {
-                        return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_CHATROOM_FAILED_TO_INSERT);
                     }
 
                     // 將預設的客戶分類條件資料新增至 App 中
                     return appsFieldsMdl.insertDefaultFields(appId).then((appsFields) => {
                         if (!appsFields) {
-                            return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
+                            return Promise.reject(ERROR.APP_FAILED_TO_INSERT);
                         }
                         return Promise.resolve(appsFields);
                     });
@@ -257,7 +259,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!req.params.userid) {
-                    return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
                 };
 
                 return Promise.resolve();
@@ -267,7 +269,7 @@ module.exports = (function() {
                         // If the user exists then REST API can not insert any user
                         users = _users;
                         if (!users) {
-                            reject(API_ERROR.USER_FAILED_TO_FIND);
+                            reject(ERROR.USER_FAILED_TO_FIND);
                             return;
                         };
                         resolve();
@@ -303,22 +305,22 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userEmail) {
-                    return Promise.reject(API_ERROR.EMAIL_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_EMAIL_WAS_EMPTY);
                 }
 
                 if (!recaptchaResponse) {
-                    return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                    return Promise.reject(ERROR.INVALID_REQUEST_BODY_DATA);
                 }
 
                 return grecaptchaHlp.verifyingUserResponse(recaptchaResponse);
             }).then((resJson) => {
                 if (!resJson.success) {
-                    return Promise.reject(API_ERROR.PASSWORD_FAILED_TO_RESET);
+                    return Promise.reject(ERROR.USER_PASSWORD_FAILED_TO_RESET);
                 }
                 return usersMdl.find(void 0, userEmail);
             }).then((users) => {
                 if (!users || (users && 1 !== Object.keys(users).length)) {
-                    return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.USER_FAILED_TO_FIND);
                 }
 
                 let userId = Object.keys(users)[0];
@@ -327,7 +329,7 @@ module.exports = (function() {
 
                 return emailHlp.sendResetPWMail(serverAddr, userEmail, token).then((result) => {
                     if (result.rejected.indexOf(userEmail) >= 0) {
-                        return Promise.reject(API_ERROR.EMAIL_FAILED_TO_SEND);
+                        return Promise.reject(ERROR.EMAIL_FAILED_TO_SEND);
                     }
                     return result;
                 });
@@ -351,19 +353,19 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!password) {
-                    return Promise.reject(API_ERROR.PASSWORD_WAS_EMPTY);
+                    return Promise.reject(ERROR.PASSWORD_WAS_EMPTY);
                 } else if (!(newPassword && newPasswordCfm && newPassword === newPasswordCfm)) {
-                    return Promise.reject(API_ERROR.NEW_PASSWORD_WAS_INCONSISTENT);
+                    return Promise.reject(ERROR.NEW_PASSWORD_WAS_INCONSISTENT);
                 }
 
                 return usersMdl.find(userId).then((users) => {
                     if (!users || (users && 1 !== Object.keys(users).length)) {
-                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.USER_FAILED_TO_FIND);
                     }
 
                     let user = users[userId];
                     if (ciperHlp.encode(password) !== user.password) {
-                        return Promise.reject(API_ERROR.PASSWORD_WAS_INCORRECT);
+                        return Promise.reject(ERROR.USER_PASSWORD_WAS_INCORRECT);
                     }
 
                     let postUser = {
@@ -371,7 +373,7 @@ module.exports = (function() {
                     };
                     return usersMdl.update(userId, postUser).then((users) => {
                         if (!(users && users[userId])) {
-                            return Promise.reject(API_ERROR.USER_FAILED_TO_UPDATE);
+                            return Promise.reject(ERROR.USER_FAILED_TO_UPDATE);
                         }
                         // user password must never reponse to client
                         users[userId].password = void 0;
@@ -407,12 +409,12 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!(newPassword && newPasswordCfm && newPassword === newPasswordCfm)) {
-                    return Promise.reject(API_ERROR.NEW_PASSWORD_WAS_INCONSISTENT);
+                    return Promise.reject(ERROR.NEW_PASSWORD_WAS_INCONSISTENT);
                 }
 
                 return usersMdl.find(userId).then((users) => {
                     if (!users || (users && 0 === Object.keys(users).length)) {
-                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.USER_FAILED_TO_FIND);
                     }
 
                     let user = {
@@ -420,7 +422,7 @@ module.exports = (function() {
                     };
                     return usersMdl.update(userId, user).then((users) => {
                         if (!users || (users && 0 === Object.keys(users).length)) {
-                            return Promise.reject(API_ERROR.USER_FAILED_TO_UPDATE);
+                            return Promise.reject(ERROR.USER_FAILED_TO_UPDATE);
                         }
                         // user password must never reponse to client
                         users[userId].password = void 0;

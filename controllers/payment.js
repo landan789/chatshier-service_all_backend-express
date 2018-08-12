@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const ERROR = require('../config/error.json');
     const SOCKET_EVENTS = require('../config/socket-events');
     const CHATSHIER_CFG = require('../config/chatshier');
 
@@ -66,7 +66,7 @@ module.exports = (function() {
                 this._createOrder(appId, consumerUid, paymentParams)
             ]).then(([ appsPayments, order ]) => {
                 if (!(appsPayments && appsPayments[appId])) {
-                    return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_FIND);
                 }
 
                 let paymentId = Object.keys(appsPayments[appId].payments).shift() || '';
@@ -152,7 +152,7 @@ module.exports = (function() {
             let merchantId = paymentResult.MerchantID;
             return appsPaymentsMdl.findByMerchantId(merchantId).then((appsPayments) => {
                 if (!appsPayments) {
-                    return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_FIND);
                 }
 
                 let appId = Object.keys(appsPayments).shift() || '';
@@ -195,7 +195,7 @@ module.exports = (function() {
 
             return appsPaymentsMdl.findByMerchantId(merchantId).then((appsPayments) => {
                 if (!appsPayments) {
-                    return Promise.reject(API_ERROR.APP_PAYMENT_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_FIND);
                 }
 
                 let appId = Object.keys(appsPayments).shift() || '';
@@ -288,7 +288,7 @@ module.exports = (function() {
 
                     return ordersMdl.update(orderId, putOrder).then((orders) => {
                         if (!(orders && orders[orderId])) {
-                            return Promise.reject(API_ERROR.ORDER_FAILED_TO_UPDATE);
+                            return Promise.reject(ERROR.ORDER_FAILED_TO_UPDATE);
                         }
                         return Promise.resolve(orders[orderId]);
                     });
@@ -332,7 +332,7 @@ module.exports = (function() {
 
             return appsMdl.find(appId).then((apps) => {
                 if (!(apps && apps[appId])) {
-                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                 }
                 return Promise.resolve(apps[appId]);
             }).then((_app) => {
@@ -342,7 +342,7 @@ module.exports = (function() {
                 return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false);
             }).then((appsChatroomsMessagers) => {
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                 }
 
                 chatroomId = Object.keys(appsChatroomsMessagers[appId].chatrooms).shift() || '';
@@ -350,7 +350,7 @@ module.exports = (function() {
                 return appsChatroomsMessagesMdl.insert(appId, chatroomId, [message]);
             }).then((appsChatroomsMessages) => {
                 if (!(appsChatroomsMessages && appsChatroomsMessages[appId])) {
-                    return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGE_FAILED_TO_INSERT);
                 }
                 return Promise.resolve(appsChatroomsMessages);
             }).then((appsChatroomsMessages) => {
@@ -358,7 +358,7 @@ module.exports = (function() {
 
                 return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
                     if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                     }
 
                     let _chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
@@ -391,7 +391,7 @@ module.exports = (function() {
         _createOrder(appId, consumerUid, params) {
             return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, consumerUid).then((appsChatroomsMessagers) => {
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                 }
 
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -423,7 +423,7 @@ module.exports = (function() {
 
                 return ordersMdl.insert(order).then((orders) => {
                     if (!orders) {
-                        return Promise.reject(API_ERROR.ORDER_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.ORDER_FAILED_TO_INSERT);
                     }
 
                     let orderId = Object.keys(orders).shift() || '';
@@ -446,13 +446,13 @@ module.exports = (function() {
 
             return ordersMdl.findByTradeId(tradeId).then((orders) => {
                 if (!(orders && orders[tradeId])) {
-                    return Promise.reject(API_ERROR.ORDER_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.ORDER_FAILED_TO_FIND);
                 }
 
                 let orderId = orders[tradeId]._id;
                 return ordersMdl.update(orderId, putOrder).then((orders) => {
                     if (!(orders && orders[orderId])) {
-                        return Promise.reject(API_ERROR.ORDER_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.ORDER_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(orders[orderId]);
                 });
