@@ -109,7 +109,7 @@ module.exports = (function() {
                 });
             }).then((appIds) => {
                 if (0 > appIds.indexOf(appId)) {
-                    return Promise.reject(ERROR.USER_OF_GROUP_DID_NOT_HAVE_THIS_APP);
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                 };
                 return Promise.resolve();
             }).then(() => {
