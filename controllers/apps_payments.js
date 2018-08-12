@@ -117,7 +117,7 @@ module.exports = (function() {
                 // 判斷 payments 中是否有目前 paymentId
                 let payments = appPayments[appId].payments;
                 if (!payments[paymentId]) {
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_PAYMENT);
+                    return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_FIND);
                 }
 
                 return appsPaymentsMdl.update(appId, paymentId, putTikcket).then((appsPayments) => {
@@ -155,7 +155,7 @@ module.exports = (function() {
                 // 判斷 payments 中是否有目前 paymentId
                 let payments = appPayments[appId].payments;
                 if (!payments[paymentId]) {
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_PAYMENT);
+                    return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_FIND);
                 }
 
                 return appsPaymentsMdl.remove(appId, paymentId).then((appsPayments) => {

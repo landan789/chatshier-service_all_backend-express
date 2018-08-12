@@ -57,7 +57,7 @@ module.exports = (function() {
 
                     // 判斷 richmenus 中是否有目前 richmenuId
                     if (!richmenus[richmenuId]) {
-                        return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
+                        return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_FIND);
                     }
                     return Promise.resolve(richmenus);
                 });
@@ -215,7 +215,7 @@ module.exports = (function() {
                 // 判斷 richmenus 中是否有目前 richmenuId
                 let richmenu = appsRichmenus[appId].richmenus[richmenuId];
                 if (!richmenu) {
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
+                    return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
 
                 putRichmenu.size = putRichmenu.size || richmenu.size;
@@ -310,7 +310,7 @@ module.exports = (function() {
                 // 判斷 richmenus 中是否有目前 richmenuId
                 let richmenu = richmenus[richmenuId];
                 if (!richmenu) {
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
+                    return Promise.reject(ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
 
                 let platformMenuId = richmenu.platformMenuId;

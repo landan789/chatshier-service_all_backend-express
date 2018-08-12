@@ -154,7 +154,7 @@ module.exports = (function() {
                         };
                         let calendarIds = userCalendarId || [];
                         if (!calendarIds.includes(calendarId)) {
-                            reject(ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
+                            reject(ERROR.CALENDAR_FAILED_TO_FIND);
                             return;
                         }
                         resolve();
@@ -192,7 +192,7 @@ module.exports = (function() {
                         };
                         let calendarIds = userCalendarId || [];
                         if (!calendarIds.includes(calendarId)) {
-                            reject(ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
+                            reject(ERROR.CALENDAR_FAILED_TO_FIND);
                             return;
                         }
                         resolve();
