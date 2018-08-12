@@ -135,7 +135,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userName) {
-                    return Promise.reject(ERROR.NAME_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_NAME_WAS_EMPTY);
                 };
 
                 if (!userEmail) {

@@ -10,7 +10,6 @@
     "USERID_WAS_EMPTY": { "MSG": "userid was empty", "CODE": "1.3" },
     "TICKETID_WAS_EMPTY": { "MSG": "ticketid was empty", "CODE": "1.5" },
     "ID1_WAS_EMPTY": { "MSG": "id1 was empty", "CODE": "1.6" },
-    "NAME_WAS_EMPTY": { "MSG": "name was empty", "CODE": "1.7" },
     "TOKEN1_WAS_EMPTY": { "MSG": "token1 was empty", "CODE": "1.8" },
     "PLATFORMUID_WAS_EMPTY": { "MSG": "platformuid was empty", "CODE": "1.15" },
 
@@ -24,6 +23,7 @@
     "USER_EMAIL_WAS_EMPTY": { "MSG": "user email was empty", "CODE": "3.2" },
     "USER_PASSWORD_WAS_INCORRECT": { "MSG": "user password was incorrect", "CODE": "3.3"},
     "USER_PASSWORD_FAILED_TO_RESET": { "MSG": "user password failed to reset", "CODE": "3.4"},
+    "USER_NAME_WAS_EMPTY": { "MSG": "user name was empty", "CODE": "1.7" },
 
     "USER_DID_NOT_HAVE_THIS_APP": { "MSG": "user did not have this app", "CODE": "3.2" },
     "USER_WAS_NOT_IN_THIS_GROUP": { "MSG": "user was not in this group", "CODE": "3.3" },
@@ -57,7 +57,8 @@
     "APP_TOKEN2_WAS_EMPTY": { "MSG": "app token2 was empty", "CODE": "4.7" },
     "APP_ID2_WAS_EMPTY": { "MSG": "app id2 was empty", "CODE": "4.8" },
     "APP_TYPE_WAS_EMPTY": { "MSG": "type was empty", "CODE": "4.9" },
-    "APP_SECRET_WAS_EMPTY": { "MSG": "app secret is empty", "CODE": "4.10" },
+    "APP_SECRET_WAS_EMPTY": { "MSG": "app secret was empty", "CODE": "4.10" },
+    "APP_NAME_WAS_EMPTY": { "MSG": "app name was empty", "CODE": "4.10" },
 
     "GROUP_MEMBER_FAILED_TO_FIND": { "MSG": "group member failed to find", "CODE": "5.1" },
     "GROUP_MEMBER_FAILED_TO_INSERT": { "MSG": "group member failed to insert", "CODE": "5.2" },
@@ -70,6 +71,7 @@
     "GROUP_FAILED_TO_UPDATE": { "MSG": "group failed to update", "CODE": "5.3" },
     "GROUP_FAILED_TO_REMOVE": { "MSG": "group failed to remove", "CODE": "5.4" },
     "GROUP_GROUPID_WAS_EMPTY": { "MSG": "groupid was empty", "CODE": "5.5" },
+    "GROUP_NAME_WAS_EMPTY": { "MSG": "group name was empty", "CODE": "1.7" },
 
     "APP_TICKET_FAILED_TO_FIND": { "MSG": "app ticket failed to find", "CODE": "6.1" },
     "APP_TICKET_FAILED_TO_INSERT": { "MSG": "app ticket failed to insert", "CODE": "6.2" },

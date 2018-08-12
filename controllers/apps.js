@@ -169,7 +169,7 @@ module.exports = (function() {
                 }
 
                 if (!postApp.name) {
-                    return Promise.reject(ERROR.NAME_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_NAME_WAS_EMPTY);
                 }
 
                 if (!postApp.secret) {

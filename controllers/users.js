@@ -108,7 +108,7 @@ module.exports = (function() {
                 }
 
                 if ('string' === typeof putUser.name && 0 === putUser.name.length) {
-                    reject(ERROR.NAME_WAS_EMPTY);
+                    reject(ERROR.USER_NAME_WAS_EMPTY);
                     return;
                 }
 

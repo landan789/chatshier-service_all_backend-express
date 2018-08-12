@@ -13,7 +13,7 @@
     const ACTIVE = '啟用';
     const INACTIVE = '未啟用';
 
-    const NAME_WAS_EMPTY = '1.7';
+    const USER_NAME_WAS_EMPTY = '1.7';
     const NO_PERMISSION_CODE = '3.16';
     const USER_PASSWORD_WAS_INCORRECT = '2.2';
     const NEW_PASSWORD_WAS_INCONSISTENT = '2.4';
@@ -1234,7 +1234,7 @@
             $('#prof-phonenumber').text(_user.phone);
             $('#prof-address').text(_user.address);
         }).catch(function(err) {
-            if (NAME_WAS_EMPTY === err.code) {
+            if (USER_NAME_WAS_EMPTY === err.code) {
                 $.notify('顯示名稱不能設為空', { type: 'danger' });
                 return;
             }

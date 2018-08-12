@@ -76,7 +76,7 @@ module.exports = (function() {
                 if (!userId) {
                     return Promise.reject(ERROR.USERID_WAS_EMPTY);
                 } else if (!postGroup.name) {
-                    return Promise.reject(ERROR.NAME_WAS_EMPTY);
+                    return Promise.reject(ERROR.GRUOP_NAME_WAS_EMPTY);
                 }
 
                 return usersMdl.find(userId).then((users) => {
