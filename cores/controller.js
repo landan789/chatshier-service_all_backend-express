@@ -105,7 +105,7 @@ module.exports = (function() {
                 msg: err.MSG || '',
                 code: err.CODE || ''
             };
-            return res && !res.headersSent && res.status(err && err.CODE === ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
+            return res && !res.headersSent && res.status(err && err.CODE === ERROR.JWT_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
         }
     }
 
