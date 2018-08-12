@@ -348,6 +348,8 @@ module.exports = (function() {
             this.ConsumersSchema = ConsumersSchema;
             this.GroupsSchema = GroupsSchema;
             this.UsersSchema = UsersSchema;
+            this.OrdersSchema = OrdersSchema;
+
         }
 
         model(collection, schema) {
@@ -380,7 +382,6 @@ module.exports = (function() {
         }
     };
 
-    ModelCore.OrdersSchema = OrdersSchema;
 
     return ModelCore;
 })();
