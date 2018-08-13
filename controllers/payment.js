@@ -16,6 +16,7 @@ module.exports = (function() {
     const appsPaymentsMdl = require('../models/apps_payments');
     const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
+    const consumersMdl = require('../models/consumers');
     const ordersMdl = require('../models/orders');
 
     const CHATSHIER = 'CHATSHIER';
@@ -33,14 +34,14 @@ module.exports = (function() {
 
         postSubmit(req, res) {
             let appId = req.query.aid;
-            let consumerUid = req.query.cid;
+            let platformUid = req.query.cid;
 
             let amount = req.body.amount;
             let tradeDesc = req.body.tradeDescription;
             let itemName = req.body.itemName;
 
             // 以上資料缺一不可
-            if (!(appId && consumerUid && amount && tradeDesc && itemName)) {
+            if (!(appId && platformUid && amount && tradeDesc && itemName)) {
                 return res.sendStatus(400);
             }
 
@@ -63,7 +64,7 @@ module.exports = (function() {
 
             return Promise.all([
                 appsPaymentsMdl.find(appId),
-                this._createOrder(appId, consumerUid, paymentParams)
+                this._createOrder(appId, platformUid, paymentParams)
             ]).then(([ appsPayments, order ]) => {
                 if (!(appsPayments && appsPayments[appId])) {
                     return Promise.reject(ERROR.APP_PAYMENT_FAILED_TO_FIND);
@@ -237,7 +238,7 @@ module.exports = (function() {
         _issueInvoice(payment, order, isTestMode) {
             let orderId = order._id;
             let appId = order.app_id;
-            let consumerUid = order.consumerUid;
+            let consumerId = order.consumer_id;
             let replyText = (
                 '=== 支付成功 ===\n' +
                 '感謝您！'
@@ -306,18 +307,20 @@ module.exports = (function() {
                         _order.invoiceNumber.substring(2))
                     );
                 }
-                return this._replyToConsumer(appId, consumerUid, replyText);
+                return this._replyToConsumer(appId, consumerId, replyText);
             });
         }
 
         /**
          * @param {string} appId
-         * @param {string} platformUid
+         * @param {string} consumerId
          * @param {string} replyText
          */
-        _replyToConsumer(appId, platformUid, replyText) {
+        _replyToConsumer(appId, consumerId, replyText) {
             /** @type {Chatshier.Models.App} */
             let app;
+            /** @type {string} */
+            let platformUid;
             /** @type {string} */
             let chatroomId;
             /** @type {Chatshier.Models.Chatroom} */
@@ -330,13 +333,20 @@ module.exports = (function() {
                 messager_id: ''
             };
 
-            return appsMdl.find(appId).then((apps) => {
+            return Promise.all([
+                appsMdl.find(appId),
+                consumersMdl.findById(consumerId)
+            ]).then(([ apps, consumers ]) => {
                 if (!(apps && apps[appId])) {
                     return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                 }
-                return Promise.resolve(apps[appId]);
-            }).then((_app) => {
-                app = _app;
+
+                if (!(consumers && consumers[appId])) {
+                    return Promise.reject(ERROR.CONSUMER_FAILED_TO_FIND);
+                }
+
+                app = apps[appId];
+                platformUid = consumers[consumerId].platformUid;
                 return botSvc.pushMessage(platformUid, message, void 0, appId, app);
             }).then(() => {
                 return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false);
@@ -384,23 +394,31 @@ module.exports = (function() {
 
         /**
          * @param {string} appId
-         * @param {string} consumerUid
+         * @param {string} platformUid
          * @param {Chatshier.Controllers.PaymentSubmit} params
          * @returns {Promise<Chatshier.Models.Order>}
          */
-        _createOrder(appId, consumerUid, params) {
-            return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, consumerUid).then((appsChatroomsMessagers) => {
+        _createOrder(appId, platformUid, params) {
+            return Promise.all([
+                consumersMdl.find(platformUid),
+                appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid)
+            ]).then(([ consumers, appsChatroomsMessagers ]) => {
+                if (!(consumers && consumers[platformUid])) {
+                    return Promise.reject(ERROR.CONSUMER_FAILED_TO_FIND);
+                }
+
                 if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
                     return Promise.reject(ERROR.APP_CHATROOM_MESSAGER_FAILED_TO_FIND);
                 }
 
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                 let chatroomId = Object.keys(chatrooms).shift() || '';
-                let messager = chatrooms[chatroomId].messagers[consumerUid];
+                let messager = chatrooms[chatroomId].messagers[platformUid];
+                let consumerId = consumers[platformUid]._id;
 
                 let order = {
                     app_id: appId,
-                    consumerUid: consumerUid,
+                    consumer_id: consumerId,
                     invoiceId: params.hasRequestInvoice ? cipherHlp.generateRandomHex(30) : '',
                     taxId: params.taxId || '',
                     products: [{
@@ -415,7 +433,7 @@ module.exports = (function() {
                     tradeDate: Date.now(),
                     tradeAmount: 'string' === typeof params.amount ? parseInt(params.amount, 10) : params.amount,
                     tradeDescription: params.tradeDescription,
-                    payerName: params.payerName || messager.namings[consumerUid],
+                    payerName: params.payerName || messager.namings[platformUid],
                     payerEmail: (params.payerEmail || messager.email).toLowerCase(),
                     payerPhone: params.payerPhone || messager.phone,
                     payerAddress: params.payerAddress || messager.address

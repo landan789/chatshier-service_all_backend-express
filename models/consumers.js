@@ -42,6 +42,28 @@ module.exports = (function() {
         }
 
         /**
+         * @param {string} consumerId
+         * @param {(consumers: Chatshier.Models.Consumers | null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Consumers | null>}
+         */
+        findById(consumerId, callback) {
+            let query = {
+                '_id': this.Types.ObjectId(consumerId),
+                'isDeleted': false
+            };
+
+            return this.Model.find(query).sort({ createdTime: -1 }).lean().then((consumers) => {
+                return this.toObject(consumers);
+            }).then((consumers) => {
+                ('function' === typeof callback) && callback(consumers);
+                return consumers;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
          * @param {string} platformUid
          * @param {any} consumer
          * @param {(consumers: Chatshier.Models.Consumers | null) => any} [callback]

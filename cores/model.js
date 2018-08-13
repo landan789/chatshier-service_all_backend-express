@@ -409,7 +409,7 @@ module.exports = (function() {
         'invoiceNumber': {type: String, default: ''},
         'invoiceRandomNumber': {type: String, default: ''},
         'taxId': {type: String, default: ''},
-        'consumerUid': {type: String, default: ''}, // 'consumer_id': {type: String, default: ''}
+        'consumer_id': {type: String, default: ''},
         'payerName': {type: String, default: ''},
         'payerEmail': {type: String, default: ''},
         'payerPhone': {type: String, default: ''},

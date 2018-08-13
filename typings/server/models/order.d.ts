@@ -24,7 +24,7 @@ declare module Chatshier {
             invoiceNumber: string,
             invoiceRandomNumber: string,
             taxId: string,
-            consumerUid: string,
+            consumer_id: string,
             payerName: string,
             payerEmail: string,
             payerPhone: string,
