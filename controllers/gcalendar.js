@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/api_error.json');
+    const API_ERROR = require('../config/error.json');
     const CHATSHIER_CFG = require('../config/chatshier');
 
     const appsMdl = require('../models/apps');
