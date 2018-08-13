@@ -408,7 +408,7 @@ module.exports = (function() {
         'invoiceNumber': {type: String, default: ''},
         'invoiceRandomNumber': {type: String, default: ''},
         'taxId': {type: String, default: ''},
-        'consumerUid': {type: String, default: ''},
+        'consumerUid': {type: String, default: ''}, // 'consumer_id': {type: String, default: ''}, 
         'payerName': {type: String, default: ''},
         'payerEmail': {type: String, default: ''},
         'payerPhone': {type: String, default: ''},
@@ -427,6 +427,8 @@ module.exports = (function() {
             this.ConsumersSchema = ConsumersSchema;
             this.GroupsSchema = GroupsSchema;
             this.UsersSchema = UsersSchema;
+            this.OrdersSchema = OrdersSchema;
+
         }
 
         model(collection, schema) {
@@ -459,7 +461,6 @@ module.exports = (function() {
         }
     };
 
-    ModelCore.OrdersSchema = OrdersSchema;
 
     return ModelCore;
 })();

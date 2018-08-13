@@ -54,7 +54,7 @@ module.exports = (function() {
                     }
 
                     if (!appsImagemaps[imagemapId]) {
-                        return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
+                        return Promise.reject(ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
                     }
 
                     return Promise.resolve(appsImagemaps);
@@ -152,7 +152,7 @@ module.exports = (function() {
                     }
 
                     if (!imagemaps[imagemapId]) {
-                        return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
+                        return Promise.reject(ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
                     }
 
                     return Promise.resolve(imagemaps);
@@ -190,7 +190,7 @@ module.exports = (function() {
                     }
 
                     if (!imagemaps[imagemapId]) {
-                        return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
+                        return Promise.reject(ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
                     }
 
                     return Promise.resolve(imagemaps);

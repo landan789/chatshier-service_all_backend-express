@@ -35,7 +35,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     let userId = req.params.userid;
                     if (!userId) {
-                        reject(ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USER_USERID_WAS_EMPTY);
                         return;
                     };
                     usersMdl.find(userId, void 0, (users) => {
@@ -83,7 +83,7 @@ module.exports = (function() {
                     }
 
                     if ('' === userId || null === userId) {
-                        reject(ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USER_USERID_WAS_EMPTY);
                         return;
                     }
 
@@ -108,7 +108,7 @@ module.exports = (function() {
                 });
             }).then((appIds) => {
                 if (0 > appIds.indexOf(appId)) {
-                    return Promise.reject(ERROR.USER_OF_GROUP_DID_NOT_HAVE_THIS_APP);
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                 };
                 return Promise.resolve();
             }).then(() => {
@@ -155,11 +155,11 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 }
 
                 if (!postApp.id1) {
-                    return Promise.reject(ERROR.ID1_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_ID1_WAS_EMPTY);
                 }
 
                 // 只有 Facebook 需要輸入 id2
@@ -168,16 +168,16 @@ module.exports = (function() {
                 }
 
                 if (!postApp.name) {
-                    return Promise.reject(ERROR.NAME_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_NAME_WAS_EMPTY);
                 }
 
                 if (!postApp.secret) {
-                    return Promise.reject(ERROR.SECRET_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_SECRET_WAS_EMPTY);
                 }
 
                 // 只有 LINE 和 Facebook 需要輸入 token1
                 if ((FACEBOOK === postApp.type || LINE === postApp.type) && !postApp.token1) {
-                    return Promise.reject(ERROR.TOKEN1_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TOKEN1_WAS_EMPTY);
                 }
 
                 // 只有 Facebook 需要輸入 token2
@@ -186,11 +186,11 @@ module.exports = (function() {
                 }
 
                 if (!postApp.type) {
-                    return Promise.reject(ERROR.TYPE_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TYPE_WAS_EMPTY);
                 }
 
                 if (!postApp.group_id) {
-                    return Promise.reject(ERROR.GROUPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.GROUP_GROUPID_WAS_EMPTY);
                 }
 
                 return usersMdl.find(userId).then((users) => {
@@ -202,12 +202,12 @@ module.exports = (function() {
             }).then((user) => {
                 let groupIds = user.group_ids || [];
                 if (0 > groupIds.indexOf(req.body.group_id)) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 };
 
                 return groupsMdl.find(req.body.group_id, req.params.userid).then((groups) => {
                     if (!groups || (groups && 0 === Object.keys(groups).length)) {
-                        return Promise.reject(ERROR.GROUP_DID_NOT_EXIST);
+                        return Promise.reject(ERROR.GROUP_FAILED_TO_FIND);
                     }
                     return Promise.resolve(groups[req.body.group_id]);
                 });
@@ -226,11 +226,11 @@ module.exports = (function() {
                 let member = Object.values(members)[index];
 
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 if (!member.status) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE);
                 }
 
                 if (READ === member.type) {
@@ -347,7 +347,7 @@ module.exports = (function() {
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     if ('' === userId || null === userId || undefined === userId) {
-                        reject(ERROR.USERID_WAS_EMPTY);
+                        reject(ERROR.USER_USERID_WAS_EMPTY);
                         return;
                     }
                     if (0 === Object.keys(putApp).length) {
@@ -399,13 +399,13 @@ module.exports = (function() {
                 let index = userIds.indexOf(req.params.userid);
 
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 };
 
                 let member = Object.values(members)[index];
 
                 if (0 === member.status) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE);
                 };
 
                 if (READ === member.type) {
@@ -440,7 +440,7 @@ module.exports = (function() {
 
             Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 }
 
                 if (!appId) {
@@ -481,12 +481,12 @@ module.exports = (function() {
 
                 let index = userIds.indexOf(req.params.userid);
                 if (0 > index) {
-                    return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                 }
 
                 let member = Object.values(members)[index];
                 if (!member.status) {
-                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+                    return Promise.reject(ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE);
                 }
 
                 if (READ === member.type) {

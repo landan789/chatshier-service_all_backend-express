@@ -27,7 +27,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 }
 
                 // 1. 先用 userId 去 users model 找到 appId 清單
@@ -74,7 +74,7 @@ module.exports = (function() {
                     let memberIdOfUser = Object.keys(members).filter((memberId) => userId === members[memberId].user_id).shift();
 
                     if (!(memberIdOfUser && members[memberIdOfUser])) {
-                        return Promise.reject(ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                        return Promise.reject(ERROR.GROUP_MEMBER_DID_NOT_EXIST_THIS_USER);
                     }
 
                     let memberOfUser = members[memberIdOfUser];
@@ -105,7 +105,7 @@ module.exports = (function() {
                 msg: err.MSG || '',
                 code: err.CODE || ''
             };
-            return res && !res.headersSent && res.status(err && err.CODE === ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
+            return res && !res.headersSent && res.status(err && err.CODE === ERROR.JWT_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
         }
     }
 

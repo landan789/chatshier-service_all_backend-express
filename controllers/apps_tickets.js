@@ -102,7 +102,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!ticketId) {
-                    return Promise.reject(ERROR.TICKETID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TICKET_TICKETID_WAS_EMPTY);
                 }
                 return appsTicketsMdl.find(appId);
             }).then((appTickets) => {
@@ -113,7 +113,7 @@ module.exports = (function() {
                 // 判斷 tickets 中是否有目前 ticketId
                 let tickets = appTickets[appId].tickets;
                 if (!tickets[ticketId]) {
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
+                    return Promise.reject(ERROR.APP_TICKET_FAILED_TO_FIND);
                 }
 
                 return appsTicketsMdl.update(appId, ticketId, putTikcket).then((appsTickets) => {
@@ -139,7 +139,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!ticketId) {
-                    return Promise.reject(ERROR.TICKETID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_TICKET_TICKETID_WAS_EMPTY);
                 }
                 // 取得目前 appId 下所有 tickets
                 return appsTicketsMdl.find(appId);
@@ -151,7 +151,7 @@ module.exports = (function() {
                 // 判斷 tickets 中是否有目前 ticketId
                 let tickets = appTickets[appId].tickets;
                 if (!tickets[ticketId]) {
-                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
+                    return Promise.reject(ERROR.APP_TICKET_FAILED_TO_FIND);
                 }
 
                 return appsTicketsMdl.remove(appId, ticketId).then((appsTickets) => {

@@ -56,7 +56,7 @@ module.exports = (function() {
                     }
 
                     if (payload.uid !== req.params.userid) {
-                        return Promise.reject(ERROR.USER_WAS_NOT_PERMITTED);
+                        return Promise.reject(ERROR.JWT_WAS_NOT_PERMITTED);
                     }
 
                     return usersMdl.find(userId).then((users) => {
@@ -84,8 +84,8 @@ module.exports = (function() {
                 if (err || !users) {
                     let json = {
                         status: 0,
-                        msg: ERROR.MSG || ERROR.USER_WAS_NOT_AUTHORIZED.MSG,
-                        code: ERROR.CODE || ERROR.USER_WAS_NOT_AUTHORIZED.CODE
+                        msg: ERROR.MSG || ERROR.JWT_WAS_NOT_AUTHORIZED.MSG,
+                        code: ERROR.CODE || ERROR.JWT_WAS_NOT_AUTHORIZED.CODE
                     };
                     res.status(401).json(json);
                     return;

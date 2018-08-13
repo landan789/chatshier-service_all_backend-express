@@ -28,7 +28,7 @@ module.exports = (function() {
             if (useFuzzy) {
                 return Promise.resolve().then(() => {
                     if (!userId) {
-                        return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                        return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                     }
 
                     // 沒有輸入搜尋的關鍵字樣本，回傳空陣列
@@ -56,7 +56,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!userId) {
-                    return Promise.reject(ERROR.USERID_WAS_EMPTY);
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 }
 
                 return usersMdl.find(userId).then((users) => {
@@ -70,7 +70,7 @@ module.exports = (function() {
 
                 return groupsMdl.findUserIds(groupIds, true).then((userIds) => {
                     if (!userIds) {
-                        return Promise.reject(ERROR.GROUP_MEMBER_USER_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                     }
                     (userIds.indexOf(userId) < 0) && userIds.push(userId);
 
@@ -103,12 +103,12 @@ module.exports = (function() {
 
             return new Promise((resolve, reject) => {
                 if (!userId) {
-                    reject(ERROR.USERID_WAS_EMPTY);
+                    reject(ERROR.USER_USERID_WAS_EMPTY);
                     return;
                 }
 
                 if ('string' === typeof putUser.name && 0 === putUser.name.length) {
-                    reject(ERROR.NAME_WAS_EMPTY);
+                    reject(ERROR.USER_NAME_WAS_EMPTY);
                     return;
                 }
 

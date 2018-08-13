@@ -30,7 +30,7 @@ module.exports = (function() {
                 }
 
                 if (!platformUid) {
-                    return Promise.reject(ERROR.PLATFORMUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.CONSUMER_PLATFORMUID_WAS_EMPTY);
                 }
 
                 return Promise.all([
@@ -75,7 +75,7 @@ module.exports = (function() {
                 }
 
                 if (!platformUid) {
-                    return Promise.reject(ERROR.PLATFORMUID_WAS_EMPTY);
+                    return Promise.reject(ERROR.CONSUMER_PLATFORMUID_WAS_EMPTY);
                 }
 
                 return appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid);
