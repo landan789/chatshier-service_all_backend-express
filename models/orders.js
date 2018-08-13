@@ -5,7 +5,7 @@ module.exports = (function() {
     class OrdersModel extends ModelCore {
         constructor() {
             super();
-            this.Model = this.model(ORDERS, ModelCore.OrdersSchema);
+            this.Model = this.model(ORDERS, this.OrdersSchema);
         }
 
         /**
