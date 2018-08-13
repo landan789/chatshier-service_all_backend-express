@@ -6,7 +6,8 @@ module.exports = (function() {
     const url = 'mongodb://' + CHATSHIER.MONGODB.HOST + ':' + CHATSHIER.MONGODB.PORT + '/' + CHATSHIER.MONGODB.DATABASE;
     const options = {
         user: CHATSHIER.MONGODB.USERNAME,
-        pass: CHATSHIER.MONGODB.PASSWORD
+        pass: CHATSHIER.MONGODB.PASSWORD,
+        connectTimeoutMS: 60000
     };
     mongoose.connect(url, options);
 
@@ -408,7 +409,7 @@ module.exports = (function() {
         'invoiceNumber': {type: String, default: ''},
         'invoiceRandomNumber': {type: String, default: ''},
         'taxId': {type: String, default: ''},
-        'consumerUid': {type: String, default: ''}, // 'consumer_id': {type: String, default: ''}, 
+        'consumerUid': {type: String, default: ''}, // 'consumer_id': {type: String, default: ''}
         'payerName': {type: String, default: ''},
         'payerEmail': {type: String, default: ''},
         'payerPhone': {type: String, default: ''},
@@ -428,7 +429,6 @@ module.exports = (function() {
             this.GroupsSchema = GroupsSchema;
             this.UsersSchema = UsersSchema;
             this.OrdersSchema = OrdersSchema;
-
         }
 
         model(collection, schema) {
@@ -460,7 +460,6 @@ module.exports = (function() {
             }, {});
         }
     };
-
 
     return ModelCore;
 })();
