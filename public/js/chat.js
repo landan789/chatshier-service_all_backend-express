@@ -814,19 +814,19 @@
                 }
 
                 var person = CHATSHIER === message.from ? consumers[recipientUid] : consumers[senderUid];
-                var consumerUid = person ? person.platformUid : '';
+                var platformUid = person ? person.platformUid : '';
 
                 var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
                 if (isGroupChatroom) {
                     person = Object.assign({}, users[userId]);
                     person.photo = LINE === app.type ? LOGOS[LINE_GROUP] : 'image/group.png';
                     var $chatroomProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-                    var _$chatroomProfileGroup = $(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                    var _$chatroomProfileGroup = $(generateProfileHtml(appId, chatroomId, platformUid, person));
                     $chatroomProfileGroup.hasClass('d-none') && _$chatroomProfileGroup.addClass('d-none');
                     $chatroomProfileGroup.replaceWith(_$chatroomProfileGroup);
                 } else if (senderUid && person) {
-                    var $personProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + consumerUid + '"]');
-                    var _$personProfileGroup = $(generateProfileHtml(appId, chatroomId, consumerUid, person));
+                    var $personProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]');
+                    var _$personProfileGroup = $(generateProfileHtml(appId, chatroomId, platformUid, person));
                     $personProfileGroup.hasClass('d-none') && _$personProfileGroup.addClass('d-none');
                     $personProfileGroup.replaceWith(_$personProfileGroup);
                 }
@@ -946,7 +946,7 @@
             /** @type {Chatshier.Models.Consumer} */
             let consumer = data.consumer;
             let messagerId = messager._id;
-            let consumerUid = consumer.platformUid;
+            let platformUid = consumer.platformUid;
 
             if (!appsChatrooms[appId]) {
                 appsChatrooms[appId] = { chatrooms: {} };
@@ -956,7 +956,7 @@
                 appsChatrooms[appId].chatrooms[chatroomId] = { messagers: {} };
             }
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager;
-            consumers[consumerUid] = consumer;
+            consumers[platformUid] = consumer;
 
             let $openedChatroomNow = $chatContentPanel.find('.chat-content.shown');
             let _appId = $openedChatroomNow.attr('app-id');
