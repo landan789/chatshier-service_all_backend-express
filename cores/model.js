@@ -6,7 +6,8 @@ module.exports = (function() {
     const url = 'mongodb://' + CHATSHIER.MONGODB.HOST + ':' + CHATSHIER.MONGODB.PORT + '/' + CHATSHIER.MONGODB.DATABASE;
     const options = {
         user: CHATSHIER.MONGODB.USERNAME,
-        pass: CHATSHIER.MONGODB.PASSWORD
+        pass: CHATSHIER.MONGODB.PASSWORD,
+        connectTimeoutMS: 60000
     };
     mongoose.connect(url, options);
 
@@ -349,7 +350,6 @@ module.exports = (function() {
             this.GroupsSchema = GroupsSchema;
             this.UsersSchema = UsersSchema;
             this.OrdersSchema = OrdersSchema;
-
         }
 
         model(collection, schema) {
@@ -381,7 +381,6 @@ module.exports = (function() {
             }, {});
         }
     };
-
 
     return ModelCore;
 })();
