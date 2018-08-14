@@ -11,29 +11,29 @@ module.exports = (function() {
         /**
          * @param {string | string[]} appIds
          * @param {string | string[]} [productIds]
-         * @param {any} [query]
+         * @param {any} [match]
          * @param {(appsProducts: Chatshier.Models.AppsProducts | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsProducts | null>}
          */
-        find(appIds, productIds, query, callback) {
+        find(appIds, productIds, match, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            query = Object.assign({
+            match = Object.assign({
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false,
                 'products.isDeleted': false
-            }, query || {});
+            }, match || {});
 
             if (productIds && !(productIds instanceof Array)) {
                 productIds = [productIds];
             }
 
             if (productIds instanceof Array) {
-                query['products._id'] = {
+                match['products._id'] = {
                     $in: productIds.map((productId) => this.Types.ObjectId(productId))
                 };
             }
@@ -42,7 +42,7 @@ module.exports = (function() {
                 {
                     $unwind: '$products'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         products: true
@@ -82,7 +82,7 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.AppsProducts | null>}
          */
         findByReceptionistId(appId, receptionistId, callback) {
-            let query = {
+            let match = {
                 '_id': this.Types.ObjectId(appId),
                 'isDeleted': false,
                 'products.isDeleted': false,
@@ -95,7 +95,7 @@ module.exports = (function() {
                 {
                     $unwind: '$products'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         products: true
@@ -140,17 +140,17 @@ module.exports = (function() {
             _product._id = productId;
             _product.createdTime = _product.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId)
             };
 
-            let updateOper = {
+            let doc = {
                 $push: {
                     products: _product
                 }
             };
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, productId.toHexString());
             }).then((appsProducts) => {
                 ('function' === typeof callback) && callback(appsProducts);
@@ -176,19 +176,19 @@ module.exports = (function() {
             product = product || {};
             product.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': {
                     $in: appIds
                 },
                 'products._id': productId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in product) {
-                updateOper.$set['products.$.' + prop] = product[prop];
+                doc.$set['products.$.' + prop] = product[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appIds, productId);
             }).then((appsProducts) => {
                 ('function' === typeof callback) && callback(appsProducts);
@@ -215,28 +215,29 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'products._id': this.Types.ObjectId(productId)
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in product) {
-                updateOper.$set['products.$.' + prop] = product[prop];
+                doc.$set['products.$.' + prop] = product[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 if (!(appIds instanceof Array)) {
                     appIds = [appIds];
                 }
 
+                let match = Object.assign({}, conditions);
                 let aggregations = [
                     {
                         $unwind: '$products'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             products: true

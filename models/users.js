@@ -25,23 +25,23 @@ module.exports = (function() {
                 emails = [emails];
             }
 
-            let query = {
+            let conditions = {
                 isDeleted: false
             };
 
             if (userIds instanceof Array) {
-                query['_id'] = {
+                conditions['_id'] = {
                     $in: userIds.map((userId) => this.Types.ObjectId(userId))
                 };
             }
 
             if (emails instanceof Array) {
-                query['email'] = {
+                conditions['email'] = {
                     $in: emails
                 };
             }
 
-            return this.Model.find(query).sort({ createdTime: -1 }).then((results) => {
+            return this.Model.find(conditions).sort({ createdTime: -1 }).then((results) => {
                 let users = {};
                 if (0 !== results.length) {
                     users = this.toObject(results);
@@ -62,10 +62,10 @@ module.exports = (function() {
          * @returns {Promise<string[] | null>}
          */
         findCalendarId(userId, callback) {
-            let query = {
+            let conditions = {
                 '_id': userId
             };
-            return this.Model.findOne(query).then((user) => {
+            return this.Model.findOne(conditions).then((user) => {
                 if (!user) {
                     return Promise.reject(new Error());
                 };
@@ -85,7 +85,7 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.Users | null>}
          */
         insert(user, callback) {
-            let query = {};
+            let conditions = {};
 
             let _user = new this.Model();
             _user._id = user._id || '';
@@ -97,18 +97,18 @@ module.exports = (function() {
             _user.createdTime = user.updatedTime = Date.now();
 
             if (_user.email) {
-                query['email'] = _user.email;
+                conditions['email'] = _user.email;
             }
-            return this.Model.findOne(query).then((__user) => {
+            return this.Model.findOne(conditions).then((__user) => {
                 if (__user) {
                     return Promise.reject(new Error('USER_IS_EXIST'));
                 }
                 return _user.save();
             }).then((__user) => {
-                let _query = {
+                let _conditions = {
                     '_id': __user._id
                 };
-                return this.Model.findOne(_query);
+                return this.Model.findOne(_conditions);
             }).then((user) => {
                 let _user = {
                     createdTime: user.createdTime,
@@ -141,7 +141,7 @@ module.exports = (function() {
             putUser = putUser || {};
             putUser.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(userId)
             };
 
@@ -150,11 +150,11 @@ module.exports = (function() {
                 doc.$set[prop] = putUser[prop];
             }
 
-            return this.Model.update(query, doc).then((result) => {
+            return this.Model.update(conditions, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
-                return this.Model.findOne(query).lean();
+                return this.Model.findOne(conditions).lean();
             }).then((user) => {
                 let users = {
                     [user._id]: user

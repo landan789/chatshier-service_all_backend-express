@@ -18,7 +18,7 @@ module.exports = (function() {
          */
         find(appId, receptionistId, scheduleId, callback) {
             // 尋找符合的欄位
-            let query = {
+            let match = {
                 '_id': this.Types.ObjectId(appId),
                 'isDeleted': false,
                 'receptionists._id': this.Types.ObjectId(receptionistId),
@@ -29,7 +29,7 @@ module.exports = (function() {
                 {
                     $unwind: '$receptionists'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         // 篩選需要的項目
@@ -96,7 +96,7 @@ module.exports = (function() {
             schedule._id = scheduleId;
             schedule.createdTime = schedule.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'receptionists._id': this.Types.ObjectId(receptionistId)
             };
@@ -114,7 +114,7 @@ module.exports = (function() {
             };
 
             let _scheduleId = scheduleId.toHexString();
-            return this.AppsModel.update(query, doc, options).then(() => {
+            return this.AppsModel.update(conditions, doc, options).then(() => {
                 return this.find(appId, receptionistId, _scheduleId);
             }).then((appsReceptionistsSchedules) => {
                 if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
@@ -154,7 +154,7 @@ module.exports = (function() {
             schedule = schedule || {};
             schedule.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'receptionists._id': this.Types.ObjectId(receptionistId)
             };
@@ -172,7 +172,7 @@ module.exports = (function() {
                 }]
             };
 
-            return this.AppsModel.update(query, doc, options).then(() => {
+            return this.AppsModel.update(conditions, doc, options).then(() => {
                 return this.find(appId, receptionistId, scheduleId);
             }).then((appsReceptionistsSchedules) => {
                 if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
@@ -214,7 +214,7 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'receptionists._id': this.Types.ObjectId(receptionistId),
                 'receptionists.schedules._id': this.Types.ObjectId(scheduleId)
@@ -222,27 +222,28 @@ module.exports = (function() {
 
             let options = {
                 arrayFilters: [{
-                    'receptionist._id': query['receptionists._id']
+                    'receptionist._id': conditions['receptionists._id']
                 }, {
-                    'schedule._id': query['receptionists.schedules._id']
+                    'schedule._id': conditions['receptionists.schedules._id']
                 }]
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in schedule) {
-                updateOper.$set['receptionists.$[receptionist].schedules.$[schedule].' + prop] = schedule[prop];
+                doc.$set['receptionists.$[receptionist].schedules.$[schedule].' + prop] = schedule[prop];
             }
 
-            return this.AppsModel.update(query, updateOper, options).then((result) => {
+            return this.AppsModel.update(conditions, doc, options).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(result);
                 }
 
+                let match = Object.assign({}, conditions);
                 let aggregations = [
                     {
                         $unwind: '$receptionists'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             // 篩選需要的項目
@@ -255,7 +256,7 @@ module.exports = (function() {
                                         as: 'schedule',
                                         cond: {
                                             $and: [{
-                                                $eq: [ '$$schedule._id', query['receptionists.schedules._id'] ]
+                                                $eq: [ '$$schedule._id', conditions['receptionists.schedules._id'] ]
                                             }, {
                                                 $eq: [ '$$schedule.isDeleted', true ]
                                             }]

@@ -23,7 +23,7 @@ module.exports = (function() {
             }
 
             // 尋找符合的欄位
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -32,7 +32,7 @@ module.exports = (function() {
             };
 
             if (chatroomId) {
-                query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
+                match['chatrooms._id'] = this.Types.ObjectId(chatroomId);
             }
 
             if (messageIds) {
@@ -40,7 +40,7 @@ module.exports = (function() {
                     messageIds = [messageIds];
                 }
 
-                query['chatrooms.messages._id'] = {
+                match['chatrooms.messages._id'] = {
                     $in: messageIds.map((messageId) => this.Types.ObjectId(messageId))
                 };
             }
@@ -49,7 +49,7 @@ module.exports = (function() {
                 {
                     $unwind: '$chatrooms'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         // 篩選需要的項目
@@ -144,12 +144,12 @@ module.exports = (function() {
                     _message.imagemap = message;
                 }
 
-                let query = {
+                let conditions = {
                     '_id': appId,
                     'chatrooms._id': chatroomId
                 };
 
-                let updateOper = {
+                let doc = {
                     $push: {
                         'chatrooms.$[chatroom].messages': _message
                     }
@@ -162,7 +162,7 @@ module.exports = (function() {
                     }]
                 };
 
-                return this.AppsModel.update(query, updateOper, options).then(() => {
+                return this.AppsModel.update(conditions, doc, options).then(() => {
                     return messageId.toHexString();
                 });
             })).then((messageIds) => {

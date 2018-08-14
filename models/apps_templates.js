@@ -16,7 +16,7 @@ module.exports = (function() {
          * @return {Promise<Chatshier.Models.AppsTemplates | null>}
          */
         find(appIds, templateIds, callback) {
-            let query = {
+            let match = {
                 'isDeleted': false,
                 'templates.isDeleted': false
             };
@@ -26,7 +26,7 @@ module.exports = (function() {
                     appIds = [appIds];
                 }
 
-                query['_id'] = {
+                match['_id'] = {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 };
             }
@@ -36,7 +36,7 @@ module.exports = (function() {
                     templateIds = [templateIds];
                 }
 
-                query['templates._id'] = {
+                match['templates._id'] = {
                     $in: templateIds.map((templateId) => this.Types.ObjectId(templateId))
                 };
             }
@@ -45,7 +45,7 @@ module.exports = (function() {
                 {
                     $unwind: '$templates' // 只針對 document 處理
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         // 篩選項目
@@ -91,7 +91,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -103,7 +103,7 @@ module.exports = (function() {
                 {
                     $unwind: '$templates' // 只針對 document 處理
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         // 篩選項目
@@ -162,7 +162,7 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.AppsTemplates | null>}
          */
         update(appId, templateId, putTemplate, callback) {
-            let query = {
+            let match = {
                 '_id': appId,
                 'templates._id': templateId
             };
@@ -174,7 +174,7 @@ module.exports = (function() {
                 }
             };
 
-            return this.AppsModel.findOneAndUpdate(query, operate).then(() => {
+            return this.AppsModel.findOneAndUpdate(match, operate).then(() => {
                 return this.find(appId, templateId);
             }).then((appsTemplates) => {
                 ('function' === typeof callback) && callback(appsTemplates);
@@ -197,7 +197,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -211,7 +211,7 @@ module.exports = (function() {
                 }
             };
 
-            return this.AppsModel.update(query, operate).then((updateResult) => {
+            return this.AppsModel.update(match, operate).then((updateResult) => {
                 if (!updateResult.ok) {
                     return Promise.reject(new Error());
                 }
@@ -220,7 +220,7 @@ module.exports = (function() {
                     {
                         $unwind: '$templates'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             templates: true

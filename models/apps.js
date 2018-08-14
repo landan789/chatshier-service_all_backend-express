@@ -39,24 +39,24 @@ module.exports = (function() {
         /**
          * @param {string|string[]} [appIds]
          * @param {string} [webhookId]
-         * @param {any} [query]
+         * @param {any} [conditions]
          * @param {(apps: Chatshier.Models.Apps | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.Apps | null>}
          */
-        find(appIds, webhookId, query, callback) {
+        find(appIds, webhookId, conditions, callback) {
             if (appIds && !(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            let _query = query || { isDeleted: false };
-            appIds instanceof Array && (_query._id = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
-            webhookId && (_query.webhook_id = this.Types.ObjectId(webhookId));
+            let _conditions = conditions || { isDeleted: false };
+            appIds instanceof Array && (_conditions._id = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
+            webhookId && (_conditions.webhook_id = this.Types.ObjectId(webhookId));
 
             let sortArgs = {
                 createdTime: -1
             };
 
-            return this.AppsModel.find(_query, this.project).sort(sortArgs).then((results) => {
+            return this.AppsModel.find(_conditions, this.project).sort(sortArgs).then((results) => {
                 let apps = {};
                 if (0 === results.length) {
                     return apps;
@@ -112,11 +112,11 @@ module.exports = (function() {
                 let newApp = new this.AppsModel(_app);
                 return newApp.save();
             }).then((__apps) => {
-                let query = {
+                let conditions = {
                     '_id': groupId
                 };
 
-                return this.GroupsModel.findOne(query).then((group) => {
+                return this.GroupsModel.findOne(conditions).then((group) => {
                     let _appId = __apps._id;
                     let appIds = undefined === group.app_ids ? [] : group.app_ids;
                     appIds.push(_appId);
@@ -125,7 +125,7 @@ module.exports = (function() {
                             'app_ids': appIds
                         }
                     };
-                    return this.GroupsModel.update(query, putGroup).then((result) => {
+                    return this.GroupsModel.update(conditions, putGroup).then((result) => {
                         if (!result.ok) {
                             return Promise.reject(new Error());
                         }
@@ -153,7 +153,7 @@ module.exports = (function() {
             putApp = putApp || {};
             putApp.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId)
             };
 
@@ -162,7 +162,7 @@ module.exports = (function() {
                 doc.$set[prop] = putApp[prop];
             }
 
-            return this.AppsModel.update(query, doc).then((result) => {
+            return this.AppsModel.update(conditions, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
@@ -187,7 +187,7 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId)
             };
 
@@ -195,7 +195,7 @@ module.exports = (function() {
                 $set: putApp
             };
 
-            return this.AppsModel.update(query, doc).then((result) => {
+            return this.AppsModel.update(conditions, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 }

@@ -20,17 +20,17 @@ module.exports = (function() {
                 platformUids = [platformUids];
             }
 
-            let query = {
+            let conditions = {
                 'isDeleted': false
             };
 
             if (platformUids instanceof Array) {
-                query['platformUid'] = {
+                conditions['platformUid'] = {
                     $in: platformUids
                 };
             }
 
-            return this.Model.find(query).sort({ createdTime: -1 }).lean().then((consumers) => {
+            return this.Model.find(conditions).sort({ createdTime: -1 }).lean().then((consumers) => {
                 return this.toObject(consumers, 'platformUid');
             }).then((consumers) => {
                 ('function' === typeof callback) && callback(consumers);
@@ -47,12 +47,12 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.Consumers | null>}
          */
         findById(consumerId, callback) {
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(consumerId),
                 'isDeleted': false
             };
 
-            return this.Model.find(query).sort({ createdTime: -1 }).lean().then((consumers) => {
+            return this.Model.find(conditions).sort({ createdTime: -1 }).lean().then((consumers) => {
                 return this.toObject(consumers);
             }).then((consumers) => {
                 ('function' === typeof callback) && callback(consumers);
@@ -74,7 +74,7 @@ module.exports = (function() {
             consumer.platformUid = platformUid;
             consumer.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 platformUid: platformUid
             };
 
@@ -88,7 +88,7 @@ module.exports = (function() {
                 setDefaultsOnInsert: true
             };
 
-            return this.Model.update(query, doc, optons).then((result) => {
+            return this.Model.update(conditions, doc, optons).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 }
@@ -113,7 +113,7 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 platformUid: platformUid
             };
 
@@ -122,12 +122,12 @@ module.exports = (function() {
                 doc.$set[prop] = consumer[prop];
             }
 
-            return this.Model.update(query, doc).then((result) => {
+            return this.Model.update(conditions, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 }
 
-                return this.Model.findOne(query).lean().then((consumer) => {
+                return this.Model.findOne(conditions).lean().then((consumer) => {
                     return this.toObject(consumer);
                 });
             }).then((consumers) => {

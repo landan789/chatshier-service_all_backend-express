@@ -11,29 +11,29 @@ module.exports = (function() {
         /**
          * @param {string | string[]} appIds
          * @param {string | string[]} [categoryIds]
-         * @param {any} [query]
+         * @param {any} [match]
          * @param {(appsCategories: Chatshier.Models.AppsCategories | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsCategories | null>}
          */
-        find(appIds, categoryIds, query, callback) {
+        find(appIds, categoryIds, match, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            query = Object.assign({
+            match = Object.assign({
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false,
                 'categories.isDeleted': false
-            }, query || {});
+            }, match || {});
 
             if (categoryIds && !(categoryIds instanceof Array)) {
                 categoryIds = [categoryIds];
             }
 
             if (categoryIds instanceof Array) {
-                query['categories._id'] = {
+                match['categories._id'] = {
                     $in: categoryIds.map((categoryId) => this.Types.ObjectId(categoryId))
                 };
             }
@@ -42,7 +42,7 @@ module.exports = (function() {
                 {
                     $unwind: '$categories'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         categories: true
@@ -87,17 +87,17 @@ module.exports = (function() {
             _category._id = categoryId;
             _category.createdTime = _category.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId)
             };
 
-            let updateOper = {
+            let doc = {
                 $push: {
                     categories: _category
                 }
             };
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, categoryId.toHexString());
             }).then((appsCategories) => {
                 ('function' === typeof callback) && callback(appsCategories);
@@ -123,19 +123,19 @@ module.exports = (function() {
             category = category || {};
             category.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': {
                     $in: appIds
                 },
                 'categories._id': categoryId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in category) {
-                updateOper.$set['categories.$.' + prop] = category[prop];
+                doc.$set['categories.$.' + prop] = category[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appIds, categoryId);
             }).then((appsCategories) => {
                 ('function' === typeof callback) && callback(appsCategories);
@@ -162,28 +162,29 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'categories._id': this.Types.ObjectId(categoryId)
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in category) {
-                updateOper.$set['categories.$.' + prop] = category[prop];
+                doc.$set['categories.$.' + prop] = category[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 if (!(appIds instanceof Array)) {
                     appIds = [appIds];
                 }
 
+                let match = Object.assign({}, conditions);
                 let aggregations = [
                     {
                         $unwind: '$categories'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             categories: true

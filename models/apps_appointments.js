@@ -11,25 +11,25 @@ module.exports = (function() {
         /**
          * @param {string | string[]} appIds
          * @param {string | string[]} [appointmentIds]
-         * @param {any} [query]
+         * @param {any} [match]
          * @param {(appsAppointments: Chatshier.Models.AppsAppointments | null) => any} [callback]
          * @return {Promise<Chatshier.Models.AppsAppointments | null>}
          */
-        find(appIds, appointmentIds, query, callback) {
+        find(appIds, appointmentIds, match, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            query = Object.assign({
+            match = Object.assign({
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false
-            }, query || { 'appointments.isDeleted': false });
+            }, match || { 'appointments.isDeleted': false });
 
             if (appointmentIds) {
                 !(appointmentIds instanceof Array) && (appointmentIds = [appointmentIds]);
-                query['appointments._id'] = {
+                match['appointments._id'] = {
                     $in: appointmentIds.map((appointmentId) => this.Types.ObjectId(appointmentId))
                 };
             }
@@ -38,7 +38,7 @@ module.exports = (function() {
                 {
                     $unwind: '$appointments'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         appointments: true
@@ -74,7 +74,7 @@ module.exports = (function() {
          * @return {Promise<Chatshier.Models.AppsAppointments | null>}
          */
         findByPlatformUid(appId, platformUid, callback) {
-            let query = {
+            let match = {
                 '_id': this.Types.ObjectId(appId),
                 'isDeleted': false,
                 'appointments.isDeleted': false,
@@ -85,7 +85,7 @@ module.exports = (function() {
                 {
                     $unwind: '$appointments'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         appointments: true
@@ -124,7 +124,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -135,7 +135,7 @@ module.exports = (function() {
                 {
                     $unwind: '$appointments' // 只針對 document 處理
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         // 篩選項目
@@ -209,7 +209,7 @@ module.exports = (function() {
                         return;
                     }
 
-                    let query = {
+                    let conditions = {
                         '_id': this.Types.ObjectId(appId),
                         'receptionists._id': this.Types.ObjectId(receptionistId)
                     };
@@ -217,13 +217,13 @@ module.exports = (function() {
                     let receptionists = this.toObject(results.shift().receptionists);
                     /** @type {Chatshier.Models.Receptionist} */
                     let receptionist = receptionists[receptionistId];
-                    let updateOper = {
+                    let doc = {
                         $set: {
                             'receptionists.$.updatedTime': Date.now(),
                             'receptionists.$.timesOfAppointment': receptionist.timesOfAppointment + 1
                         }
                     };
-                    return this.AppsModel.update(query, updateOper);
+                    return this.AppsModel.update(conditions, doc);
                 });
             }).then(() => {
                 return this.find(appId, appointmentId.toHexString());
@@ -246,17 +246,17 @@ module.exports = (function() {
         update(appId, appointmentId, putAppointment, callback) {
             putAppointment.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': appId,
                 'appointments._id': appointmentId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in putAppointment) {
-                updateOper.$set['appointments.$.' + prop] = putAppointment[prop];
+                doc.$set['appointments.$.' + prop] = putAppointment[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, appointmentId);
             }).then((appsAppointments) => {
                 ('function' === typeof callback) && callback(appsAppointments);
@@ -274,7 +274,7 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.AppsAppointments | null>}
          */
         remove(appId, appointmentId, callback) {
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'appointments._id': this.Types.ObjectId(appointmentId)
             };
@@ -286,7 +286,7 @@ module.exports = (function() {
                 }
             };
 
-            return this.AppsModel.update(query, operate).then((updateResult) => {
+            return this.AppsModel.update(conditions, operate).then((updateResult) => {
                 if (!updateResult.ok) {
                     return Promise.reject(new Error());
                 }

@@ -21,14 +21,14 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false,
                 'richmenus.isDeleted': false
             };
-            richmenuId && (query['richmenus._id'] = this.Types.ObjectId(richmenuId));
+            richmenuId && (match['richmenus._id'] = this.Types.ObjectId(richmenuId));
 
             let aggregations = [
                 {
@@ -36,7 +36,7 @@ module.exports = (function() {
                     $unwind: '$richmenus'
                 }, {
                     // 尋找符合 ID 的欄位
-                    $match: query
+                    $match: match
                 }, {
                     // 篩選項目
                     $project: {
@@ -79,7 +79,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -93,7 +93,7 @@ module.exports = (function() {
                     $unwind: '$richmenus'
                 }, {
                     // 尋找符合 ID 的欄位
-                    $match: query
+                    $match: match
                 }, {
                     // 篩選項目
                     $project: {
@@ -140,7 +140,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -148,7 +148,7 @@ module.exports = (function() {
                 'richmenus.isDeleted': false,
                 'richmenus.isActivated': true
             };
-            isDefault && (query['richmenus.isDefault'] = true);
+            isDefault && (match['richmenus.isDefault'] = true);
 
             let aggregations = [
                 {
@@ -156,7 +156,7 @@ module.exports = (function() {
                     $unwind: '$richmenus'
                 }, {
                     // 尋找符合 ID 的欄位
-                    $match: query
+                    $match: match
                 }, {
                     // 篩選項目
                     $project: {
@@ -226,17 +226,17 @@ module.exports = (function() {
             putRichmenu._id = richmenuId;
             putRichmenu.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'richmenus._id': richmenuId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in putRichmenu) {
-                updateOper.$set['richmenus.$.' + prop] = putRichmenu[prop];
+                doc.$set['richmenus.$.' + prop] = putRichmenu[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, richmenuId);
             }).then((appsRichmenus) => {
                 ('function' === typeof callback) && callback(appsRichmenus);
@@ -260,22 +260,22 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'richmenus._id': this.Types.ObjectId(richmenuId)
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in richmenu) {
-                updateOper.$set['richmenus.$.' + prop] = richmenu[prop];
+                doc.$set['richmenus.$.' + prop] = richmenu[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 let aggregations = [
                     {
                         $unwind: '$richmenus'
                     }, {
-                        $match: query
+                        $match: conditions
                     }, {
                         $project: {
                             richmenus: true

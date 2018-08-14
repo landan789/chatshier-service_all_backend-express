@@ -19,14 +19,14 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false,
                 'imagemaps.isDeleted': false
             };
-            imagemapId && (query['imagemaps._id'] = this.Types.ObjectId(imagemapId));
+            imagemapId && (match['imagemaps._id'] = this.Types.ObjectId(imagemapId));
 
             let aggregations = [
                 {
@@ -34,7 +34,7 @@ module.exports = (function() {
                     $unwind: '$imagemaps'
                 }, {
                     // 尋找符合 ID 的欄位
-                    $match: query
+                    $match: match
                 }, {
                     // 篩選項目
                     $project: {
@@ -79,7 +79,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -93,7 +93,7 @@ module.exports = (function() {
                     $unwind: '$imagemaps'
                 }, {
                     // 尋找符合 ID 的欄位
-                    $match: query
+                    $match: match
                 }, {
                     // 篩選項目
                     $project: {
@@ -159,17 +159,17 @@ module.exports = (function() {
             putImagemap._id = imagemapId;
             putImagemap.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': appId,
                 'imagemaps._id': imagemapId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in putImagemap) {
-                updateOper.$set[`imagemaps.$.${prop}`] = putImagemap[prop];
+                doc.$set[`imagemaps.$.${prop}`] = putImagemap[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, imagemapId);
             }).then((appsImagemaps) => {
                 ('function' === typeof callback) && callback(appsImagemaps);
@@ -188,7 +188,7 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.AppsImagemaps | null>}
          */
         remove(appId, imagemapId, callback) {
-            let query = {
+            let conditions = {
                 '_id': appId,
                 'imagemaps._id': imagemapId
             };
@@ -200,7 +200,7 @@ module.exports = (function() {
                 }
             };
 
-            return this.AppsModel.update(query, operate).then(() => {
+            return this.AppsModel.update(conditions, operate).then(() => {
                 let aggregations = [
                     {
                         $unwind: '$imagemaps'

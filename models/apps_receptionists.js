@@ -21,7 +21,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -34,7 +34,7 @@ module.exports = (function() {
             }
 
             if (receptionistIds instanceof Array) {
-                query['receptionists._id'] = {
+                match['receptionists._id'] = {
                     $in: receptionistIds.map((receptionistId) => this.Types.ObjectId(receptionistId))
                 };
             }
@@ -43,7 +43,7 @@ module.exports = (function() {
                 {
                     $unwind: '$receptionists'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         receptionists: {
@@ -120,12 +120,12 @@ module.exports = (function() {
                 return Promise.resolve(null);
             }
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'isDeleted': false
             };
 
-            return this.AppsModel.findOne(query).then((result) => {
+            return this.AppsModel.findOne(conditions).then((result) => {
                 /** @type {Chatshier.Models.App} */
                 let app = result;
                 let summary = '[' + _receptionist.name + '][' + app.name + '] - ' + receptionistId.toHexString();
@@ -134,12 +134,12 @@ module.exports = (function() {
                     _receptionist.gcalendarId = gcalendar.id;
                 });
             }).then(() => {
-                let updateOper = {
+                let doc = {
                     $push: {
                         receptionists: _receptionist
                     }
                 };
-                return this.AppsModel.update(query, updateOper);
+                return this.AppsModel.update(conditions, doc);
             }).then(() => {
                 return this.find(appId, receptionistId.toHexString());
             }).then((appsReceptionists) => {
@@ -166,19 +166,19 @@ module.exports = (function() {
             receptionist = receptionist || {};
             receptionist.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': {
                     $in: appIds
                 },
                 'receptionists._id': receptionistId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in receptionist) {
-                updateOper.$set['receptionists.$.' + prop] = receptionist[prop];
+                doc.$set['receptionists.$.' + prop] = receptionist[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appIds, receptionistId);
             }).then((appsReceptionists) => {
                 ('function' === typeof callback) && callback(appsReceptionists);
@@ -201,22 +201,23 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'receptionists._id': this.Types.ObjectId(receptionistId)
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in receptionist) {
-                updateOper.$set['receptionists.$.' + prop] = receptionist[prop];
+                doc.$set['receptionists.$.' + prop] = receptionist[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
+                let match = Object.assign({}, conditions);
                 let aggregations = [
                     {
                         $unwind: '$receptionists'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             receptionists: true

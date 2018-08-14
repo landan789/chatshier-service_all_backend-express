@@ -21,13 +21,13 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'greetings.isDeleted': false
             };
-            greetingId && (query['greetings._id'] = this.Types.ObjectId(greetingId));
+            greetingId && (match['greetings._id'] = this.Types.ObjectId(greetingId));
 
             let aggregations = [
                 {
@@ -35,7 +35,7 @@ module.exports = (function() {
                     $unwind: '$greetings'
                 }, {
                     // 尋找符合 ID 的欄位
-                    $match: query
+                    $match: match
                 }, {
                     // 篩選項目
                     $project: {
@@ -163,17 +163,17 @@ module.exports = (function() {
             putGreeting._id = greetingId;
             putGreeting.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': appId,
                 'greetings._id': greetingId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in putGreeting) {
-                updateOper.$set[`greetings.$.${prop}`] = putGreeting[prop];
+                doc.$set[`greetings.$.${prop}`] = putGreeting[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, greetingId);
             }).then((appsGreetings) => {
                 ('function' === typeof callback) && callback(appsGreetings);
@@ -193,7 +193,7 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.AppsGreetings | null>}
          */
         remove(appId, greetingId, callback) {
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'greetings._id': this.Types.ObjectId(greetingId)
             };
@@ -205,12 +205,13 @@ module.exports = (function() {
                 }
             };
 
-            return this.AppsModel.update(query, setGreeting).then(() => {
+            return this.AppsModel.update(conditions, setGreeting).then(() => {
+                let match = Object.assign({}, conditions);
                 let aggregations = [
                     {
                         $unwind: '$greetings'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             greetings: 1

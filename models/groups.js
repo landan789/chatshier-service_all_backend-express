@@ -95,7 +95,7 @@ module.exports = (function() {
                 groupIds = [groupIds];
             };
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
                 },
@@ -108,7 +108,7 @@ module.exports = (function() {
                 {
                     $unwind: '$members'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         app_ids: true
@@ -147,19 +147,19 @@ module.exports = (function() {
                 groupIds = [groupIds];
             };
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
                 },
                 'isDeleted': false
             };
-            !includeAny && (query['members.isDeleted'] = false);
+            !includeAny && (match['members.isDeleted'] = false);
 
             let aggregations = [
                 {
                     $unwind: '$members'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         members: true
@@ -224,7 +224,7 @@ module.exports = (function() {
             putGroup = putGroup || {};
             putGroup.updatedTime = Date.now();
 
-            let query = {
+            let match = {
                 '_id': this.Types.ObjectId(groupId)
             };
 
@@ -233,7 +233,7 @@ module.exports = (function() {
                 group.$set[prop] = putGroup[prop];
             }
 
-            return this.Model.update(query, group).then((result) => {
+            return this.Model.update(match, group).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 }
