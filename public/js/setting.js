@@ -1886,7 +1886,7 @@
                     '<div class="col-12 m-2 card justify-content-around group-member shadow" member-id="' + memberId + '">' +
                         '<div class="d-flex flex-nowrap align-items-center w-100 user chips">' +
                             '<div class="avatar-container">' +
-                                '<img class="member-avatar" src="image/default-user.png" alt="Member avatar" />' +
+                                '<img class="member-avatar" src="image/default-member.png" alt="Member avatar" />' +
                             '</div>' +
                             '<span class="avatar-name">' + (memberUser.name || memberUser.name || '') + '</span>' +
                         '</div>' +

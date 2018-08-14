@@ -973,7 +973,7 @@ module.exports = (function() {
                             let column = {
                                 title: receptionist.name,
                                 text: '請選擇要預約的日期',
-                                thumbnailImageUrl: receptionist.photo || (url + '/image/default-avatar.png'),
+                                thumbnailImageUrl: receptionist.photo || (url + '/image/default-consumer.png'),
                                 actions: actions.slice()
                             };
                             actions.length = 0;
@@ -991,7 +991,7 @@ module.exports = (function() {
                     let column = {
                         title: '預約 - ' + receptionist.name,
                         text: '請選擇要預約的日期',
-                        thumbnailImageUrl: receptionist.photo || (url + '/image/default-avatar.png'),
+                        thumbnailImageUrl: receptionist.photo || (url + '/image/default-consumer.png'),
                         actions: actions.slice()
                     };
 
@@ -1103,7 +1103,7 @@ module.exports = (function() {
                             let column = {
                                 title: receptionist.name,
                                 text: '請選擇要預約的時間',
-                                thumbnailImageUrl: receptionist.photo || url + '/image/default-avatar.png',
+                                thumbnailImageUrl: receptionist.photo || url + '/image/default-consumer.png',
                                 actions: availableTimes.map((availableTime) => {
                                     /** @type {Chatshier.Models.TemplateAction} */
                                     let action = {
@@ -1517,7 +1517,7 @@ module.exports = (function() {
                         let column = {
                             title: product.name + ' - ' + receptionist.name,
                             text: appointDate + ' - ' + startTimeStr + ' ~ ' + endTimeStr,
-                            thumbnailImageUrl: receptionist.photo || url + '/image/default-avatar.png',
+                            thumbnailImageUrl: receptionist.photo || url + '/image/default-consumer.png',
                             actions: [{
                                 type: 'postback',
                                 label: '取消預約',

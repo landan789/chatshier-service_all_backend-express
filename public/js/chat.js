@@ -914,7 +914,7 @@
 
             // 更新 UI 資料
             var person = consumers[platformUid];
-            person.photo = person.photo || 'image/default-avatar.png';
+            person.photo = person.photo || 'image/default-consumer.png';
 
             var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]');
             var _$profileGroup = $(generateProfileHtml(appId, chatroomId, platformUid, person));
@@ -1382,7 +1382,7 @@
         var $consumerPhoto = $appCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
         $consumerPhoto.one('error', function() {
             var $consumerPhotos = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
-            $consumerPhotos.prop('src', '/image/default-avatar.png');
+            $consumerPhotos.prop('src', '/image/default-consumer.png');
 
             // 當載入失敗時發 api 通知後端更新 consumer 的頭像
             return api.bot.getProfile(appId, platformUid).then((resJson) => {
@@ -1392,7 +1392,7 @@
                 var _consumers = resJson.data;
                 var consumer = _consumers[platformUid] || {};
                 // 如果取得 photo 失敗則使用預設頭像
-                consumer.photo = consumer.photo || '/image/default-avatar.png';
+                consumer.photo = consumer.photo || '/image/default-consumer.png';
                 $consumerPhotos.prop('src', consumer.photo);
                 Object.assign(consumers, _consumers);
             });
@@ -2033,7 +2033,7 @@
                                 var memberUser = users[memberUserId];
                                 html += (
                                     '<div class="person-chip">' +
-                                        '<img src="' + (memberUser.photo || 'image/default-user.png') + '" class="person-avatar" alt="" />' +
+                                        '<img src="' + (memberUser.photo || 'image/default-member.png') + '" class="person-avatar" alt="" />' +
                                         '<span>' + memberUser.name + '</span>' +
                                     '</div>'
                                 );
@@ -2048,7 +2048,7 @@
                                 var consumer = consumers[messager.platformUid] || {};
                                 html += (
                                     '<div class="person-chip">' +
-                                        '<img src="' + (consumer.photo || 'image/default-user.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/default-user.png\'" />' +
+                                        '<img src="' + (consumer.photo || 'image/default-member.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/default-member.png\'" />' +
                                         '<span>' + consumer.name + '</span>' +
                                     '</div>'
                                 );
@@ -2795,7 +2795,7 @@
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
 
             var person = consumers[platformUid];
-            person.photo = person.photo || 'image/default-avatar.png';
+            person.photo = person.photo || 'image/default-consumer.png';
 
             var _$profileGroup = $(generateProfileHtml(appId, chatroomId, platformUid, person));
             $profileGroup.hasClass('d-none') && _$profileGroup.addClass('d-none');
@@ -2849,7 +2849,7 @@
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
 
             var person = consumers[platformUid];
-            person.photo = person.photo || 'image/default-avatar.png';
+            person.photo = person.photo || 'image/default-consumer.png';
 
             var _$profileGroup = $(generateProfileHtml(appId, chatroomId, platformUid, person));
             $profileGroup.hasClass('d-none') && _$profileGroup.addClass('d-none');
@@ -2894,7 +2894,7 @@
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
 
             var person = consumers[platformUid];
-            person.photo = person.photo || 'image/default-avatar.png';
+            person.photo = person.photo || 'image/default-consumer.png';
 
             var _$profileGroup = $(generateProfileHtml(appId, chatroomId, platformUid, person));
             $profileGroup.hasClass('d-none') && _$profileGroup.addClass('d-none');
