@@ -78,13 +78,14 @@ module.exports = (function() {
                 if ('string' === typeof putAppointment.name && !putAppointment.name) {
                     return Promise.reject(ERROR.NAME_WAS_EMPTY);
                 }
-                return appsAppointmentsMdl.findAppointments(appId);
-            }).then((appointments) => {
-                if (!appointments) {
+                return appsAppointmentsMdl.find({ appIds: appId });
+            }).then((appsAppointments) => {
+                if (!(appsAppointments && appsAppointments[appId])) {
                     return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                 }
 
-                if (!appointments[appointmentId]) {
+                let appointment = appsAppointments[appId].appointments[appointmentId];
+                if (!appointment) {
                     return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_APPOINTMENT);
                 }
 
@@ -113,13 +114,13 @@ module.exports = (function() {
                 if (!appointmentId) {
                     return Promise.reject(ERROR.APP_APPOINTMENT_APPOINTMENTID_WAS_EMPTY);
                 }
-                return appsAppointmentsMdl.findAppointments(appId);
-            }).then((appointments) => {
-                if (!appointments) {
+                return appsAppointmentsMdl.find({ appIds: appId });
+            }).then((appsAppointments) => {
+                if (!(appsAppointments && appsAppointments[appId])) {
                     return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                 }
 
-                let appointment = appointments[appointmentId];
+                let appointment = appsAppointments[appId].appointments[appointmentId];
                 if (!appointment) {
                     return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_APPOINTMENT);
                 }
