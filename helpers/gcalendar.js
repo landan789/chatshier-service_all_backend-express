@@ -276,7 +276,7 @@ module.exports = (function() {
          * @param {'default' | 'user' | 'group' | 'domain'} [scopeType=DEFAULT_SCOPE_TYPE]
          * @returns {Promise<Chatshier.GCalendar.AccessControllResource>}
          */
-        sharingCalendar(calendarId, email, role = DEFAULT_ROLE, scopeType = DEFAULT_SCOPE_TYPE) {
+        shareCalendar(calendarId, email, role = DEFAULT_ROLE, scopeType = DEFAULT_SCOPE_TYPE) {
             return this.getCalendarACR(calendarId, email, scopeType).then((acr) => {
                 if (acr) {
                     return acr;

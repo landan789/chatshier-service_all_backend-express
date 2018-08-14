@@ -1,9 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     let appsProductsMdl = require('../models/apps_products');
 
@@ -21,13 +21,13 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsProductsMdl.find(appIds).then((appsProducts) => {
                     if (!appsProducts) {
-                        return Promise.reject(API_ERROR.APP_PRODUCTS_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_PRODUCTS_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsProducts);
                 });
             }).then((appsProducts) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsProducts
                 };
                 return this.successJson(req, res, suc);
@@ -51,17 +51,17 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!postProduct.name) {
-                    return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
+                    return Promise.reject(ERROR.NAME_WAS_EMPTY);
                 }
                 return appsProductsMdl.insert(appId, postProduct);
             }).then((appsProducts) => {
                 if (!appsProducts) {
-                    return Promise.reject(API_ERROR.APP_PRODUCTS_FAILED_TO_INSERT);
+                    return Promise.reject(ERROR.APP_PRODUCTS_FAILED_TO_INSERT);
                 }
                 return Promise.resolve(appsProducts);
             }).then((appsProducts) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsProducts
                 };
                 return this.successJson(req, res, suc);
@@ -87,17 +87,17 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if ('string' === typeof putProduct.name && !putProduct.name) {
-                    return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
+                    return Promise.reject(ERROR.NAME_WAS_EMPTY);
                 }
                 return appsProductsMdl.update(appId, productId, putProduct);
             }).then((appsProducts) => {
                 if (!(appsProducts && appsProducts[appId])) {
-                    return Promise.reject(API_ERROR.APP_PRODUCTS_FAILED_TO_UPDATE);
+                    return Promise.reject(ERROR.APP_PRODUCTS_FAILED_TO_UPDATE);
                 }
                 return Promise.resolve(appsProducts);
             }).then((appsProducts) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsProducts
                 };
                 return this.successJson(req, res, suc);
@@ -114,12 +114,12 @@ module.exports = (function() {
                 return appsProductsMdl.remove(appId, productId);
             }).then((appsProducts) => {
                 if (!(appsProducts && appsProducts[appId])) {
-                    return Promise.reject(API_ERROR.APP_PRODUCTS_FAILED_TO_REMOVE);
+                    return Promise.reject(ERROR.APP_PRODUCTS_FAILED_TO_REMOVE);
                 }
                 return Promise.resolve(appsProducts);
             }).then((appsProducts) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsProducts
                 };
                 return this.successJson(req, res, suc);

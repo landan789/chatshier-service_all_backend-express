@@ -1,9 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     const gcalendarHlp = require('../helpers/gcalendar');
     let appsReceptionistsMdl = require('../models/apps_receptionists');
@@ -34,7 +34,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsReceptionistsSchedulesMdl.insert(appId, receptionistId, postSchdule).then((appsReceptionistsSchedules) => {
                     if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
-                        return Promise.reject(API_ERROR.APP_RECEPTIONIST_SCHEDULE_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_RECEPTIONIST_SCHEDULE_FAILED_TO_INSERT);
                     }
 
                     let schedules = appsReceptionistsSchedules[appId].receptionists[receptionistId].schedules;
@@ -43,7 +43,7 @@ module.exports = (function() {
 
                     return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
                         if (!(appsReceptionists && appsReceptionists[appId])) {
-                            return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
                         }
 
                         let receptionist = appsReceptionists[appId].receptionists[receptionistId];
@@ -55,7 +55,7 @@ module.exports = (function() {
                     }).then((channel) => {
                         return appsReceptionistsSchedulesMdl.update(appId, receptionistId, scheduleId, { eventChannelId: channel.resourceId }).then((appsReceptionistsSchedules) => {
                             if (!appsReceptionistsSchedules) {
-                                return Promise.reject(API_ERROR.APP_RECEPTIONIST_SCHEDULE_FAILED_TO_UPDATE);
+                                return Promise.reject(ERROR.APP_RECEPTIONIST_SCHEDULE_FAILED_TO_UPDATE);
                             }
                             return Promise.resolve(appsReceptionistsSchedules);
                         });
@@ -63,7 +63,7 @@ module.exports = (function() {
                 });
             }).then((appsReceptionistsSchedules) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsReceptionistsSchedules
                 };
                 return this.successJson(req, res, suc);
@@ -86,18 +86,18 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (0 === Object.keys(putSchdule).length) {
-                    return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                    return Promise.reject(ERROR.INVALID_REQUEST_BODY_DATA);
                 }
 
                 return appsReceptionistsSchedulesMdl.update(appId, receptionistId, scheduleId, putSchdule).then((appsReceptionistsSchedules) => {
                     if (!appsReceptionistsSchedules) {
-                        return Promise.reject(API_ERROR.APP_RECEPTIONIST_SCHEDULE_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.APP_RECEPTIONIST_SCHEDULE_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(appsReceptionistsSchedules);
                 });
             }).then((appsReceptionistsSchedules) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsReceptionistsSchedules
                 };
                 return this.successJson(req, res, suc);
@@ -114,7 +114,7 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsReceptionistsSchedulesMdl.remove(appId, receptionistId, scheduleId).then((appsReceptionistsSchedules) => {
                     if (!appsReceptionistsSchedules) {
-                        return Promise.reject(API_ERROR.APP_RECEPTIONIST_SCHEDULE_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_RECEPTIONIST_SCHEDULE_FAILED_TO_REMOVE);
                     }
 
                     let schedule = appsReceptionistsSchedules[appId].receptionists[receptionistId].schedules[scheduleId];
@@ -125,7 +125,7 @@ module.exports = (function() {
                 });
             }).then(([ appsReceptionistsSchedules ]) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsReceptionistsSchedules
                 };
                 return this.successJson(req, res, suc);

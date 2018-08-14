@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     let appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     let appsFieldsMdl = require('../models/apps_fields');
@@ -56,7 +56,7 @@ module.exports = (function() {
                 return Promise.resolve(response);
             }).then(() => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: response
                 };
                 return this.successJson(req, res, suc);
@@ -107,7 +107,7 @@ module.exports = (function() {
                 }));
             }).then(() => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {

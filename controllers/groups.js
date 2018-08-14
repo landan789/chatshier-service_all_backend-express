@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     const OWNER = 'OWNER';
     const ADMIN = 'ADMIN';
@@ -57,7 +57,7 @@ module.exports = (function() {
                 });
             }).then((groups) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: groups
                 };
                 return this.successJson(req, res, suc);
@@ -138,7 +138,7 @@ module.exports = (function() {
                 });
             }).then((groups) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: groups
                 };
                 return this.successJson(req, res, suc);
@@ -259,7 +259,7 @@ module.exports = (function() {
                 }));
             }).then(() => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: groups
                 };
                 return this.successJson(req, res, suc);

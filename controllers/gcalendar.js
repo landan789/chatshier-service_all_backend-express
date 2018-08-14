@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/error.json');
+    const ERROR = require('../config/error.json');
     const CHATSHIER_CFG = require('../config/chatshier');
 
     const appsMdl = require('../models/apps');
@@ -52,7 +52,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!appId) {
-                    return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APPID_WAS_EMPTY);
                 }
 
                 let query = {
@@ -63,14 +63,14 @@ module.exports = (function() {
                     return appsAppointmentsMdl.find(appId, void 0, query).then((appsAppointments) => {
                         if (!(appsAppointments && appsAppointments[appId])) {
                             gcalendarHlp.stopChannel(params.eventId, params.resourceId);
-                            return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                         }
                         let appointmentId = Object.keys(appsAppointments[appId].appointments).shift() || '';
                         return appsAppointmentsMdl.remove(appId, appointmentId);
                     }).then((appsAppointments) => {
                         if (!(appsAppointments && appsAppointments[appId])) {
                             gcalendarHlp.stopChannel(params.eventId, params.resourceId);
-                            return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_REMOVE);
+                            return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_REMOVE);
                         }
                         return gcalendarHlp.stopChannel(params.eventId, params.resourceId);
                     }).then(() => {
@@ -82,12 +82,12 @@ module.exports = (function() {
                     if (!(appsAppointments && appsAppointments[appId])) {
                         !res.headersSent && res.sendStatus(200);
                         gcalendarHlp.stopChannel(params.eventId, params.resourceId);
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                     }
 
                     let appointmentId = Object.keys(appsAppointments[appId].appointments).shift() || '';
                     if (!appointmentId) {
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                     }
 
                     let appointment = appsAppointments[appId].appointments[appointmentId];
@@ -106,19 +106,19 @@ module.exports = (function() {
                         consumersMdl.find(platformUid)
                     ]).then(([ apps, appsReceptionists, appsProducts, consumers ]) => {
                         if (!(apps && apps[appId])) {
-                            return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                         }
 
                         if (!(appsReceptionists && appsReceptionists[appId])) {
-                            return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
                         }
 
                         if (!(appsProducts && appsProducts[appId])) {
-                            return Promise.reject(API_ERROR.APP_PRODUCT_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_PRODUCT_FAILED_TO_FIND);
                         }
 
                         if (!(consumers && consumers[platformUid])) {
-                            return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.CONSUMER_FAILED_TO_FIND);
                         }
 
                         let app = apps[appId];
@@ -194,20 +194,20 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 if (!appId) {
-                    return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APPID_WAS_EMPTY);
                 }
 
                 if (!receptionistId) {
-                    return Promise.reject(API_ERROR.RECEPTIONISTID_WAS_EMPTY);
+                    return Promise.reject(ERROR.RECEPTIONISTID_WAS_EMPTY);
                 }
 
                 if (!scheduleId) {
-                    return Promise.reject(API_ERROR.SCHEDULEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.SCHEDULEID_WAS_EMPTY);
                 }
 
                 return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
                     if (!(appsReceptionists && appsReceptionists[appId])) {
-                        return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
                     }
 
                     let receptionist = appsReceptionists[appId].receptionists[receptionistId];
@@ -225,7 +225,7 @@ module.exports = (function() {
                 });
             }).then((appsReceptionistsSchedules) => {
                 if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
-                    return Promise.reject(API_ERROR.SCHEDULEID_WAS_EMPTY);
+                    return Promise.reject(ERROR.SCHEDULEID_WAS_EMPTY);
                 }
                 return Promise.resolve(appsReceptionistsSchedules);
             }).then(() => {

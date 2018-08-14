@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     let appsGreetingsMdl = require('../models/apps_greetings');
 
@@ -28,7 +28,7 @@ module.exports = (function() {
                 });
             }).then((appsGreetings) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsGreetings
                 };
                 return this.successJson(req, res, suc);
@@ -54,7 +54,7 @@ module.exports = (function() {
                 });
             }).then((appGreeting) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appGreeting
                 };
                 return this.successJson(req, res, suc);
@@ -82,7 +82,7 @@ module.exports = (function() {
                 });
             }).then((appsGreetings) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsGreetings
                 };
                 return this.successJson(req, res, suc);
@@ -115,7 +115,7 @@ module.exports = (function() {
                 });
             }).then((appsGreetings) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsGreetings
                 };
                 return this.successJson(req, res, suc);
@@ -141,7 +141,7 @@ module.exports = (function() {
                 });
             }).then((appsGreetings) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
                     data: appsGreetings
                 };
                 return this.successJson(req, res, suc);

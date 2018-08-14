@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     let calendarsEventsMdl = require('../models/calendars_events');
     let userMdl = require('../models/users');
@@ -38,7 +38,7 @@ module.exports = (function() {
             }).then((calendarsEvents) => {
                 let json = {
                     status: 1,
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: calendarsEvents
                 };
                 res.status(200).json(json);
@@ -105,7 +105,7 @@ module.exports = (function() {
                 let calendarsEvents = data;
                 let json = {
                     status: 1,
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: calendarsEvents
                 };
                 res.status(200).json(json);
@@ -168,7 +168,7 @@ module.exports = (function() {
                 });
             }).then((calendarsEvents) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: calendarsEvents
                 };
                 return this.successJson(req, res, suc);
@@ -211,7 +211,7 @@ module.exports = (function() {
                 });
             }).then((calendarsEvents) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: calendarsEvents
                 };
                 return this.successJson(req, res, suc);

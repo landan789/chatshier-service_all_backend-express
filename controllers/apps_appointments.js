@@ -1,9 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     const appsMdl = require('../models/apps');
     const appsAppointmentsMdl = require('../models/apps_appointments');
@@ -23,13 +23,13 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsAppointmentsMdl.find(appIds).then((appsAppointments) => {
                     if (!appsAppointments) {
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsAppointments);
                 });
             }).then((appsAppointments) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsAppointments
                 };
                 return this.successJson(req, res, suc);
@@ -45,13 +45,13 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsAppointmentsMdl.find(appId, appointmentId).then((appsAppointments) => {
                     if (!(appsAppointments && appsAppointments[appId])) {
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsAppointments);
                 });
             }).then((appsAppointments) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsAppointments
                 };
                 return this.successJson(req, res, suc);
@@ -68,31 +68,31 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!appointmentId) {
-                    return Promise.reject(API_ERROR.APP_APPOINTMENT_APPOINTMENTID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_APPOINTMENT_APPOINTMENTID_WAS_EMPTY);
                 }
 
                 if ('string' === typeof putAppointment.name && !putAppointment.name) {
-                    return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
+                    return Promise.reject(ERROR.NAME_WAS_EMPTY);
                 }
                 return appsAppointmentsMdl.findAppointments(appId);
             }).then((appointments) => {
                 if (!appointments) {
-                    return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                 }
 
                 if (!appointments[appointmentId]) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APPOINTMENT);
+                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_APPOINTMENT);
                 }
 
                 return appsAppointmentsMdl.update(appId, appointmentId, putAppointment).then((appsAppointments) => {
                     if (!(appsAppointments && appsAppointments[appId])) {
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(appsAppointments);
                 });
             }).then((appsAppointments) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsAppointments
                 };
                 return this.successJson(req, res, suc);
@@ -107,17 +107,17 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 if (!appointmentId) {
-                    return Promise.reject(API_ERROR.APP_APPOINTMENT_APPOINTMENTID_WAS_EMPTY);
+                    return Promise.reject(ERROR.APP_APPOINTMENT_APPOINTMENTID_WAS_EMPTY);
                 }
                 return appsAppointmentsMdl.findAppointments(appId);
             }).then((appointments) => {
                 if (!appointments) {
-                    return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                    return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                 }
 
                 let appointment = appointments[appointmentId];
                 if (!appointment) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APPOINTMENT);
+                    return Promise.reject(ERROR.USER_DID_NOT_HAVE_THIS_APPOINTMENT);
                 }
 
                 let eventId = appointment.eventId;
@@ -128,7 +128,7 @@ module.exports = (function() {
                     eventId && resourceId && gcalendarHlp.stopChannel(eventId, resourceId)
                 ]).then(([ apps ]) => {
                     if (!(apps && apps[appId])) {
-                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                     }
 
                     let app = apps[appId];
@@ -139,13 +139,13 @@ module.exports = (function() {
                     ]);
                 }).then(([ appsAppointments ]) => {
                     if (!appsAppointments) {
-                        return Promise.reject(API_ERROR.APP_APPOINTMENT_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsAppointments);
                 });
             }).then((appsAppointments) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsAppointments
                 };
                 return this.successJson(req, res, suc);

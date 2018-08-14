@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     let storageHlp = require('../helpers/storage');
 
@@ -29,7 +29,7 @@ module.exports = (function() {
                 return storageHlp.sharingCreateSharedLink(originalFilePath);
             }).then((url) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: { url, originalFilePath } // TO DO ， BAD FORMAT
                 };
                 return this.successJson(req, res, suc);
@@ -49,7 +49,7 @@ module.exports = (function() {
                 return Promise.reject(err);
             }).then(() => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {

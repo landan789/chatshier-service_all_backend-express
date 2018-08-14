@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     let fuseHlp = require('../helpers/fuse');
     let redisHlp = require('../helpers/redis');
@@ -45,7 +45,7 @@ module.exports = (function() {
                     });
                 }).then((users) => {
                     let suc = {
-                        msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                        msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                         data: users
                     };
                     return this.successJson(req, res, suc);
@@ -84,7 +84,7 @@ module.exports = (function() {
                 });
             }).then((users) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: users
                 };
                 return this.successJson(req, res, suc);
@@ -132,7 +132,7 @@ module.exports = (function() {
                 });
             }).then((users) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: users
                 };
                 return this.successJson(req, res, suc);

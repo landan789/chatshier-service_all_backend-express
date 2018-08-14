@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     let botSvc = require('../services/bot');
     let consumersMdl = require('../models/consumers');
@@ -68,7 +68,7 @@ module.exports = (function() {
                 return botSvc.getRichmenuList(appId);
             }).then((richmenuArray) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: richmenuArray
                 };
                 return this.successJson(req, res, suc);
@@ -159,7 +159,7 @@ module.exports = (function() {
                 return appsRichmenus;
             }).then((appsRichmenus) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsRichmenus
                 };
                 return this.successJson(req, res, suc);
@@ -262,7 +262,7 @@ module.exports = (function() {
                 defaultRichmenu && (response[appId].richmenus[defaultRichmenu._id] = defaultRichmenu);
 
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: response
                 };
                 return this.successJson(req, res, suc);
@@ -343,7 +343,7 @@ module.exports = (function() {
                 defaultAppsRichmenus && Object.assign(response[appId].richmenus, defaultAppsRichmenus[appId].richmenus);
 
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: response
                 };
                 return this.successJson(req, res, suc);
@@ -400,7 +400,7 @@ module.exports = (function() {
                 });
             }).then((data) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
                 return this.successJson(req, res, suc);
@@ -424,7 +424,7 @@ module.exports = (function() {
                 return storageHlp.sharingCreateSharedLink(originalFilePath);
             }).then((url) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: {url, originalFilePath} // TO DO ， BAD FORMAT
                 };
                 return this.successJson(req, res, suc);
@@ -447,7 +447,7 @@ module.exports = (function() {
                 return Promise.reject(err);
             }).then((data) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: data
                 };
                 return this.successJson(req, res, suc);
@@ -466,7 +466,7 @@ module.exports = (function() {
                 return appsChatroomsMdl.remove(appId, chatroomId);
             }).then((data) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
                 return this.successJson(req, res, suc);

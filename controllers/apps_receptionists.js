@@ -1,9 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
     const CHATSHIER_CFG = require('../config/chatshier.js');
 
     let gcalendarHlp = require('../helpers/gcalendar');
@@ -24,13 +24,13 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsReceptionistsMdl.find(appIds).then((appsReceptionists) => {
                     if (!appsReceptionists) {
-                        return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsReceptionists);
                 });
             }).then((appsReceptionists) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsReceptionists
                 };
                 return this.successJson(req, res, suc);
@@ -56,17 +56,17 @@ module.exports = (function() {
                 return gcalendarHlp.isAvailableGmail(postReceptionist.email);
             }).then((isAvailable) => {
                 if (!isAvailable) {
-                    return Promise.reject(API_ERROR.UNAVAILABLE_GMAIL);
+                    return Promise.reject(ERROR.UNAVAILABLE_GMAIL);
                 }
                 return appsReceptionistsMdl.insert(appId, postReceptionist);
             }).then((appsReceptionists) => {
                 if (!appsReceptionists) {
-                    return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_INSERT);
+                    return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_INSERT);
                 }
                 return Promise.resolve(appsReceptionists);
             }).then((appsReceptionists) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsReceptionists
                 };
                 return this.successJson(req, res, suc);
@@ -89,27 +89,32 @@ module.exports = (function() {
             ('number' === typeof req.body.interval) && (putReceptionist.interval = req.body.interval);
             (req.body.schedules instanceof Array) && (putReceptionist.schedules = req.body.schedules);
 
-            let shareTo = req.body.shareTo;
+            let shareToGmail = req.body.shareTo;
 
             return this.appsRequestVerify(req).then(() => {
                 if (0 === Object.keys(putReceptionist).length) {
-                    return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                    return Promise.reject(ERROR.INVALID_REQUEST_BODY_DATA);
                 } else if (putReceptionist.email) {
                     return gcalendarHlp.isAvailableGmail(putReceptionist.email).then((isAvailable) => {
                         if (!isAvailable) {
-                            return Promise.reject(API_ERROR.UNAVAILABLE_GMAIL);
+                            return Promise.reject(ERROR.UNAVAILABLE_GMAIL);
                         }
                         return Promise.resolve();
                     });
                 }
                 return Promise.resolve();
             }).then(() => {
-                if (shareTo) {
+                if (shareToGmail) {
                     /** @type {Chatshier.Models.Receptionist} */
                     let receptionist;
-                    return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+                    return gcalendarHlp.isAvailableGmail(shareToGmail).then((isAvailable) => {
+                        if (!isAvailable) {
+                            return Promise.reject(ERROR.UNAVAILABLE_GMAIL);
+                        }
+                        return appsReceptionistsMdl.find(appId, receptionistId);
+                    }).then((appsReceptionists) => {
                         if (!(appsReceptionists && appsReceptionists[appId])) {
-                            return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                            return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
                         }
 
                         receptionist = appsReceptionists[appId].receptionists[receptionistId];
@@ -118,7 +123,7 @@ module.exports = (function() {
                             if (!gcalendarId) {
                                 return appsMdl.find(appId).then((apps) => {
                                     if (!(apps && apps[appId])) {
-                                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                                        return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                                     }
 
                                     let summary = '[' + receptionist.name + '][' + apps[appId].name + '] - ' + receptionistId;
@@ -132,9 +137,9 @@ module.exports = (function() {
                             return gcalendarId;
                         });
                     }).then((gcalendarId) => {
-                        return gcalendarHlp.sharingCalendar(gcalendarId, shareTo);
+                        return gcalendarHlp.shareCalendar(gcalendarId, shareToGmail);
                     }).then(() => {
-                        if (shareTo === receptionist.email) {
+                        if (shareToGmail === receptionist.email) {
                             putReceptionist.isCalendarShared = true;
                         }
                         return appsReceptionistsMdl.update(appId, receptionistId, putReceptionist);
@@ -143,12 +148,12 @@ module.exports = (function() {
                 return appsReceptionistsMdl.update(appId, receptionistId, putReceptionist);
             }).then((appsReceptionists) => {
                 if (!(appsReceptionists && appsReceptionists[appId])) {
-                    return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_UPDATE);
+                    return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_UPDATE);
                 }
                 return Promise.resolve(appsReceptionists);
             }).then((appsReceptionists) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsReceptionists
                 };
                 return this.successJson(req, res, suc);
@@ -165,12 +170,12 @@ module.exports = (function() {
                 return appsReceptionistsMdl.remove(appId, receptionistId);
             }).then((appsReceptionists) => {
                 if (!(appsReceptionists && appsReceptionists[appId])) {
-                    return Promise.reject(API_ERROR.APP_RECEPTIONIST_FAILED_TO_REMOVE);
+                    return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_REMOVE);
                 }
                 return Promise.resolve(appsReceptionists);
             }).then((appsReceptionists) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsReceptionists
                 };
                 return this.successJson(req, res, suc);

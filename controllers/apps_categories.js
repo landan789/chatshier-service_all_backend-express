@@ -1,9 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
-    const API_ERROR = require('../config/error.json');
+    const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
     let appsCategoriesMdl = require('../models/apps_categories');
 
     class AppsCategoriesModel extends ControllerCore {
@@ -20,13 +20,13 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 return appsCategoriesMdl.find(appIds).then((appsCategories) => {
                     if (!appsCategories) {
-                        return Promise.reject(API_ERROR.APP_CATEGORY_FAILED_TO_FIND);
+                        return Promise.reject(ERROR.APP_CATEGORY_FAILED_TO_FIND);
                     }
                     return Promise.resolve(appsCategories);
                 });
             }).then((appsCategories) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsCategories
                 };
                 return this.successJson(req, res, suc);
@@ -50,13 +50,13 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsCategoriesMdl.insert(appId, postCategory).then((appsCategories) => {
                     if (!(appsCategories && appsCategories[appId])) {
-                        return Promise.reject(API_ERROR.APP_CATEGORY_FAILED_TO_INSERT);
+                        return Promise.reject(ERROR.APP_CATEGORY_FAILED_TO_INSERT);
                     }
                     return Promise.resolve(appsCategories);
                 });
             }).then((appsCategories) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsCategories
                 };
                 return this.successJson(req, res, suc);
@@ -79,13 +79,13 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsCategoriesMdl.update(appId, categoryId, putCategory).then((appsCategories) => {
                     if (!(appsCategories && appsCategories[appId])) {
-                        return Promise.reject(API_ERROR.APP_CATEGORY_FAILED_TO_UPDATE);
+                        return Promise.reject(ERROR.APP_CATEGORY_FAILED_TO_UPDATE);
                     }
                     return Promise.resolve(appsCategories);
                 });
             }).then((appsCategories) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsCategories
                 };
                 return this.successJson(req, res, suc);
@@ -101,13 +101,13 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then(() => {
                 return appsCategoriesMdl.remove(appId, categoryId).then((appsCategories) => {
                     if (!(appsCategories && appsCategories[appId])) {
-                        return Promise.reject(API_ERROR.APP_CATEGORY_FAILED_TO_REMOVE);
+                        return Promise.reject(ERROR.APP_CATEGORY_FAILED_TO_REMOVE);
                     }
                     return Promise.resolve(appsCategories);
                 });
             }).then((appsCategories) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsCategories
                 };
                 return this.successJson(req, res, suc);
