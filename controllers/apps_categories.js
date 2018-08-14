@@ -18,7 +18,7 @@ module.exports = (function() {
         getAll(req, res) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return appsCategoriesMdl.find(appIds).then((appsCategories) => {
+                return appsCategoriesMdl.find({ appIds: appIds }).then((appsCategories) => {
                     if (!appsCategories) {
                         return Promise.reject(ERROR.APP_CATEGORY_FAILED_TO_FIND);
                     }

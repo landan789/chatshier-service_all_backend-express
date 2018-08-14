@@ -56,11 +56,11 @@ module.exports = (function() {
                 }
 
                 let query = {
-                    'appointments.eventId': params.eventId,
-                    'appointments.isDeleted': false
+                    appIds: appId,
+                    eventId: params.eventId
                 };
                 if (GOOGLE_RESOURCE_STATE.NOT_EXISTS === params.resourceState) {
-                    return appsAppointmentsMdl.find(appId, void 0, query).then((appsAppointments) => {
+                    return appsAppointmentsMdl.find(query).then((appsAppointments) => {
                         if (!(appsAppointments && appsAppointments[appId])) {
                             gcalendarHlp.stopChannel(params.eventId, params.resourceId);
                             return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
@@ -78,7 +78,7 @@ module.exports = (function() {
                     });
                 }
 
-                return appsAppointmentsMdl.find(appId, void 0, query).then((appsAppointments) => {
+                return appsAppointmentsMdl.find(query).then((appsAppointments) => {
                     if (!(appsAppointments && appsAppointments[appId])) {
                         !res.headersSent && res.sendStatus(200);
                         gcalendarHlp.stopChannel(params.eventId, params.resourceId);
@@ -101,8 +101,8 @@ module.exports = (function() {
 
                     return Promise.all([
                         appsMdl.find(appId),
-                        appsReceptionistsMdl.find(appId, receptionistId),
-                        appsProductMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
+                        appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
+                        appsProductMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
                         consumersMdl.find(platformUid)
                     ]).then(([ apps, appsReceptionists, appsProducts, consumers ]) => {
                         if (!(apps && apps[appId])) {
@@ -205,7 +205,7 @@ module.exports = (function() {
                     return Promise.reject(ERROR.SCHEDULEID_WAS_EMPTY);
                 }
 
-                return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+                return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }).then((appsReceptionists) => {
                     if (!(appsReceptionists && appsReceptionists[appId])) {
                         return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
                     }

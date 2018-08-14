@@ -9,24 +9,27 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string | string[]} appIds
-         * @param {string | string[]} [categoryIds]
-         * @param {any} [match]
+         * @typedef CategoryQuery
+         * @property {string | string[]} appIds
+         * @property {string | string[]} [categoryIds]
+         * @property {string} [type]
+         * @param {CategoryQuery} query
          * @param {(appsCategories: Chatshier.Models.AppsCategories | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsCategories | null>}
          */
-        find(appIds, categoryIds, match, callback) {
+        find({ appIds, categoryIds, type }, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            match = Object.assign({
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false,
                 'categories.isDeleted': false
-            }, match || {});
+            };
+            ('string' === typeof type) && (match['categories.type'] = type);
 
             if (categoryIds && !(categoryIds instanceof Array)) {
                 categoryIds = [categoryIds];
@@ -98,7 +101,11 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(conditions, doc).then(() => {
-                return this.find(appId, categoryId.toHexString());
+                let query = {
+                    appIds: appId,
+                    categoryIds: categoryId.toHexString()
+                };
+                return this.find(query);
             }).then((appsCategories) => {
                 ('function' === typeof callback) && callback(appsCategories);
                 return appsCategories;
@@ -136,7 +143,11 @@ module.exports = (function() {
             }
 
             return this.AppsModel.update(conditions, doc).then(() => {
-                return this.find(appIds, categoryId);
+                let query = {
+                    appIds: appIds,
+                    categoryIds: categoryId
+                };
+                return this.find(query);
             }).then((appsCategories) => {
                 ('function' === typeof callback) && callback(appsCategories);
                 return appsCategories;

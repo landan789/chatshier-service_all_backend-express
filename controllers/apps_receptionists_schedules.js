@@ -41,7 +41,7 @@ module.exports = (function() {
                     let scheduleId = Object.keys(schedules).shift() || '';
                     let schedule = schedules[scheduleId];
 
-                    return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+                    return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }).then((appsReceptionists) => {
                         if (!(appsReceptionists && appsReceptionists[appId])) {
                             return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
                         }

@@ -11,12 +11,14 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string | string[]} appIds
-         * @param {string | string[]} [receptionistIds]
+         * @typedef ReceptionistQuery
+         * @property {string | string[]} appIds
+         * @property {string | string[]} [receptionistIds]
+         * @param {ReceptionistQuery} query
          * @param {(appsReceptionists: Chatshier.Models.AppsReceptionists | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsReceptionists | null>}
          */
-        find(appIds, receptionistIds, callback) {
+        find({ appIds, receptionistIds }, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
@@ -141,7 +143,11 @@ module.exports = (function() {
                 };
                 return this.AppsModel.update(conditions, doc);
             }).then(() => {
-                return this.find(appId, receptionistId.toHexString());
+                let query = {
+                    appIds: appId,
+                    receptionistIds: receptionistId.toHexString()
+                };
+                return this.find(query);
             }).then((appsReceptionists) => {
                 ('function' === typeof callback) && callback(appsReceptionists);
                 return appsReceptionists;
@@ -152,25 +158,19 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string | string[]} appIds
+         * @param {string} appId
          * @param {string} receptionistId
          * @param {any} receptionist
          * @param {(appsReceptionists: Chatshier.Models.AppsReceptionists | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsReceptionists | null>}
          */
-        update(appIds, receptionistId, receptionist, callback) {
-            if (!(appIds instanceof Array)) {
-                appIds = [appIds];
-            }
-
+        update(appId, receptionistId, receptionist, callback) {
             receptionist = receptionist || {};
             receptionist.updatedTime = Date.now();
 
             let conditions = {
-                '_id': {
-                    $in: appIds
-                },
-                'receptionists._id': receptionistId
+                '_id': this.Types.ObjectId(appId),
+                'receptionists._id': this.Types.ObjectId(receptionistId)
             };
 
             let doc = { $set: {} };
@@ -179,7 +179,11 @@ module.exports = (function() {
             }
 
             return this.AppsModel.update(conditions, doc).then(() => {
-                return this.find(appIds, receptionistId);
+                let query = {
+                    appIds: appId,
+                    receptionistIds: receptionistId
+                };
+                return this.find(query);
             }).then((appsReceptionists) => {
                 ('function' === typeof callback) && callback(appsReceptionists);
                 return appsReceptionists;

@@ -3,20 +3,22 @@ module.exports = (function() {
     const gcalendarHlp = require('../helpers/gcalendar');
     const APPS = 'apps';
 
-    class AppsChatroomsMessagersModel extends ModelCore {
+    class AppsReceptionistsSchedulesModel extends ModelCore {
         constructor() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
         }
 
         /**
-         * @param {string} appId
-         * @param {string} receptionistId
-         * @param {string} scheduleId
+         * @typedef ScheduleQuery
+         * @property {string} appId
+         * @property {string} receptionistId
+         * @property {string} scheduleId
+         * @param {ScheduleQuery} query
          * @param {(appsReceptionistsSchedules: Chatshier.Models.AppsReceptionists | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsReceptionists | null>}
          */
-        find(appId, receptionistId, scheduleId, callback) {
+        find({ appId, receptionistId, scheduleId }, callback) {
             // 尋找符合的欄位
             let match = {
                 '_id': this.Types.ObjectId(appId),
@@ -115,7 +117,12 @@ module.exports = (function() {
 
             let _scheduleId = scheduleId.toHexString();
             return this.AppsModel.update(conditions, doc, options).then(() => {
-                return this.find(appId, receptionistId, _scheduleId);
+                let query = {
+                    appId: appId,
+                    receptionistId: receptionistId,
+                    scheduleId: _scheduleId
+                };
+                return this.find(query);
             }).then((appsReceptionistsSchedules) => {
                 if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
                     return Promise.reject(new Error('NULL'));
@@ -173,7 +180,12 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(conditions, doc, options).then(() => {
-                return this.find(appId, receptionistId, scheduleId);
+                let query = {
+                    appId: appId,
+                    receptionistId: receptionistId,
+                    scheduleId: scheduleId
+                };
+                return this.find(query);
             }).then((appsReceptionistsSchedules) => {
                 if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
                     return Promise.reject(new Error('NULL'));
@@ -316,5 +328,5 @@ module.exports = (function() {
         }
     }
 
-    return new AppsChatroomsMessagersModel();
+    return new AppsReceptionistsSchedulesModel();
 })();

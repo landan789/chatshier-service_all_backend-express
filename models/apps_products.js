@@ -9,24 +9,29 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string | string[]} appIds
-         * @param {string | string[]} [productIds]
-         * @param {any} [match]
+         * @typedef ProductQuery
+         * @property {string | string[]} appIds
+         * @property {string | string[]} [productIds]
+         * @property {string} [type]
+         * @property {boolean | null} [isOnShelf]
+         * @param {ProductQuery} query
          * @param {(appsProducts: Chatshier.Models.AppsProducts | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsProducts | null>}
          */
-        find(appIds, productIds, match, callback) {
+        find({ appIds, productIds, type, isOnShelf }, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            match = Object.assign({
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false,
                 'products.isDeleted': false
-            }, match || {});
+            };
+            ('string' === typeof type) && (match['products.type'] = type);
+            ('boolean' === typeof isOnShelf) && (match['products.isOnShelf'] = isOnShelf);
 
             if (productIds && !(productIds instanceof Array)) {
                 productIds = [productIds];
@@ -151,7 +156,11 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(conditions, doc).then(() => {
-                return this.find(appId, productId.toHexString());
+                let query = {
+                    appIds: appId,
+                    productId: productId.toHexString()
+                };
+                return this.find(query);
             }).then((appsProducts) => {
                 ('function' === typeof callback) && callback(appsProducts);
                 return appsProducts;
@@ -162,25 +171,19 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string | string[]} appIds
+         * @param {string} appId
          * @param {string} productId
          * @param {any} product
          * @param {(appsProducts: Chatshier.Models.AppsProducts | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsProducts | null>}
          */
-        update(appIds, productId, product, callback) {
-            if (!(appIds instanceof Array)) {
-                appIds = [appIds];
-            }
-
+        update(appId, productId, product, callback) {
             product = product || {};
             product.updatedTime = Date.now();
 
             let conditions = {
-                '_id': {
-                    $in: appIds
-                },
-                'products._id': productId
+                '_id': this.Types.ObjectId(appId),
+                'products._id': this.Types.ObjectId(productId)
             };
 
             let doc = { $set: {} };
@@ -189,7 +192,11 @@ module.exports = (function() {
             }
 
             return this.AppsModel.update(conditions, doc).then(() => {
-                return this.find(appIds, productId);
+                let query = {
+                    appIds: appId,
+                    productIds: productId
+                };
+                return this.find(query);
             }).then((appsProducts) => {
                 ('function' === typeof callback) && callback(appsProducts);
                 return appsProducts;

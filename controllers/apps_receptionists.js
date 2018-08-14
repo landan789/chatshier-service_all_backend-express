@@ -22,7 +22,7 @@ module.exports = (function() {
         getAll(req, res) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return appsReceptionistsMdl.find(appIds).then((appsReceptionists) => {
+                return appsReceptionistsMdl.find({ appIds: appIds }).then((appsReceptionists) => {
                     if (!appsReceptionists) {
                         return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
                     }
@@ -111,7 +111,8 @@ module.exports = (function() {
                         if (!isAvailable) {
                             return Promise.reject(ERROR.UNAVAILABLE_GMAIL);
                         }
-                        return appsReceptionistsMdl.find(appId, receptionistId);
+
+                        return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId });
                     }).then((appsReceptionists) => {
                         if (!(appsReceptionists && appsReceptionists[appId])) {
                             return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);

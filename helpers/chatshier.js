@@ -648,7 +648,7 @@ module.exports = (function() {
                     return repliedMessages;
                 }
 
-                return appsCategoriesMdl.find(appId, void 0, { 'categories.type': 'APPOINTMENT' }).then((appsCategories) => {
+                return appsCategoriesMdl.find({ appIds: appId, type: 'APPOINTMENT' }).then((appsCategories) => {
                     if (!(appsCategories && appsCategories[appId])) {
                         let noCategoriesMessage = {
                             type: 'text',
@@ -742,7 +742,7 @@ module.exports = (function() {
             };
 
             let categoryId = payload.categoryId || '';
-            return appsCategoriesMdl.find(appId, categoryId, { 'categories.type': 'APPOINTMENT' }).then((appsCategories) => {
+            return appsCategoriesMdl.find({ appIds: appId, categoryIds: categoryId, type: 'APPOINTMENT' }).then((appsCategories) => {
                 if (!(appsCategories && appsCategories[appId])) {
                     let noCategoriesMessage = {
                         type: 'text',
@@ -760,10 +760,12 @@ module.exports = (function() {
                 }
 
                 let query = {
-                    'products.type': 'APPOINTMENT',
-                    'products.isOnShelf': true
+                    appIds: appId,
+                    productIds: productIds,
+                    type: 'APPOINTMENT',
+                    isOnShelf: true
                 };
-                return appsProductsMdl.find(appId, productIds, query).then((appsProducts) => {
+                return appsProductsMdl.find(query).then((appsProducts) => {
                     if (!(appsProducts && appsProducts[appId])) {
                         repliedMessages.push(noProductsMessage);
                         return repliedMessages;
@@ -792,7 +794,7 @@ module.exports = (function() {
 
                         return Promise.all(productColumns.map((receptionistIds) => {
                             // 抓取出此產品內所有的服務人員，以便顯示服務人員名稱
-                            return appsReceptionistsMdl.find(appId, receptionistIds).then((appsReceptionists) => {
+                            return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistIds }).then((appsReceptionists) => {
                                 if (!(appsReceptionists && appsReceptionists[appId])) {
                                     return;
                                 }
@@ -889,7 +891,7 @@ module.exports = (function() {
                 text: '很抱歉，目前沒有可預約的日期。'
             };
 
-            return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+            return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }).then((appsReceptionists) => {
                 if (!(appsReceptionists && appsReceptionists[appId])) {
                     repliedMessages.push(noDateMessage);
                     return repliedMessages;
@@ -1037,7 +1039,7 @@ module.exports = (function() {
                 return Promise.resolve(repliedMessages);
             }
 
-            return appsReceptionistsMdl.find(appId, receptionistId).then((appsReceptionists) => {
+            return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }).then((appsReceptionists) => {
                 if (!(appsReceptionists && appsReceptionists[appId])) {
                     repliedMessages.push(noTimeMessage);
                     return repliedMessages;
@@ -1174,9 +1176,9 @@ module.exports = (function() {
             }
 
             return Promise.all([
-                appsCategoriesMdl.find(appId, categoryId, { 'categories.type': 'APPOINTMENT' }),
-                appsProductsMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
-                appsReceptionistsMdl.find(appId, receptionistId)
+                appsCategoriesMdl.find({ appIds: appId, categoryIds: categoryId, type: 'APPOINTMENT' }),
+                appsProductsMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
+                appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId })
             ]).then(([ appsCategories, appsProducts, appsReceptionists ]) => {
                 if (!(appsCategories && appsCategories[appId]) ||
                     !(appsProducts && appsProducts[appId]) ||
@@ -1278,7 +1280,13 @@ module.exports = (function() {
             let endedTimeStr = payload.endedTime;
             let platformUid = webhookInfo.platformUid;
 
-            return appsAppointmentsMdl.find(appId, appointmentId, {}).then((appsAppointments) => {
+            let query = {
+                appIds: appId,
+                appointmentIds: appointmentId,
+                isDeleted: null
+            };
+
+            return appsAppointmentsMdl.find(query).then((appsAppointments) => {
                 if (appsAppointments && appsAppointments[appId]) {
                     let existedMessage = {
                         type: 'text',
@@ -1297,8 +1305,8 @@ module.exports = (function() {
 
                 return Promise.all([
                     appsMdl.find(appId),
-                    appsProductsMdl.find(appId, productId, { 'products.type': 'APPOINTMENT' }),
-                    appsReceptionistsMdl.find(appId, receptionistId),
+                    appsProductsMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
+                    appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
                     appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false),
                     consumersMdl.find(platformUid),
                     appsAppointmentsMdl.insert(appId, _appointment)
@@ -1442,12 +1450,12 @@ module.exports = (function() {
             };
 
             let query = {
-                'appointments.platformUid': platformUid,
-                'appointments.isDeleted': false,
-                'appointments.endedTime': { $gte: lastAppointmentDate }
+                appIds: appId,
+                platformUid: platformUid,
+                endedTime: lastAppointmentDate
             };
 
-            return appsAppointmentsMdl.find(appId, void 0, query).then((appsAppointments) => {
+            return appsAppointmentsMdl.find(query).then((appsAppointments) => {
                 if (!(appsAppointments && appsAppointments[appId])) {
                     repliedMessages.push(noAppointmentsMessage);
                     return repliedMessages;
@@ -1478,8 +1486,8 @@ module.exports = (function() {
                     let receptionistId = appointment.receptionist_id;
 
                     return Promise.all([
-                        appsProductsMdl.find(appId, productId),
-                        appsReceptionistsMdl.find(appId, receptionistId)
+                        appsProductsMdl.find({ appIds: appId, productIds: productId }),
+                        appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId })
                     ]).then(([ appsProducts, appsReceptionists ]) => {
                         if (!(appsProducts && appsProducts[appId]) ||
                             !(appsReceptionists && appsReceptionists[appId])) {
@@ -1547,7 +1555,7 @@ module.exports = (function() {
                 text: '此預約已經被取消了。'
             };
 
-            return appsAppointmentsMdl.find(appId, appointmentId).then((appsAppointments) => {
+            return appsAppointmentsMdl.find({ appIds: appId }).then((appsAppointments) => {
                 if (!(appsAppointments && appsAppointments[appId])) {
                     repliedMessages.push(notFoundMessage);
                     return Promise.resolve(repliedMessages);
@@ -1570,8 +1578,8 @@ module.exports = (function() {
                     let app = apps[appId];
                     let gcalendarId = app.gcalendarId;
                     return Promise.all([
-                        appsProductsMdl.find(appId, productId),
-                        appsReceptionistsMdl.find(appId, receptionistId),
+                        appsProductsMdl.find({ appIds: appId, productIds: productId }),
+                        appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
                         consumersMdl.find(platformUid),
                         appsAppointmentsMdl.remove(appId, appointmentId),
                         gcalendarId && eventId && gcalendarHlp.deleteEvent(gcalendarId, eventId)

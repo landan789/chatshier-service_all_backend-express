@@ -21,7 +21,7 @@ module.exports = (function() {
         getAll(req, res, next) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return appsAppointmentsMdl.find(appIds).then((appsAppointments) => {
+                return appsAppointmentsMdl.find({ appIds: appIds }).then((appsAppointments) => {
                     if (!appsAppointments) {
                         return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                     }
@@ -43,7 +43,11 @@ module.exports = (function() {
             let appointmentId = req.params.appointmentid;
 
             return this.appsRequestVerify(req).then(() => {
-                return appsAppointmentsMdl.find(appId, appointmentId).then((appsAppointments) => {
+                let query = {
+                    appIds: appId,
+                    appointmentIds: appointmentId
+                };
+                return appsAppointmentsMdl.find(query).then((appsAppointments) => {
                     if (!(appsAppointments && appsAppointments[appId])) {
                         return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
                     }

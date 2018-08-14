@@ -19,7 +19,7 @@ module.exports = (function() {
         getAll(req, res) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return appsProductsMdl.find(appIds).then((appsProducts) => {
+                return appsProductsMdl.find({ appIds: appIds }).then((appsProducts) => {
                     if (!appsProducts) {
                         return Promise.reject(ERROR.APP_PRODUCTS_FAILED_TO_FIND);
                     }

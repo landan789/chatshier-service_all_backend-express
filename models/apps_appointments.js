@@ -9,23 +9,32 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string | string[]} appIds
-         * @param {string | string[]} [appointmentIds]
-         * @param {any} [match]
+         * @typedef AppointmentQuery
+         * @property {string | string[]} appIds
+         * @property {string | string[]} [appointmentIds]
+         * @property {boolean | null} [isDeleted]
+         * @property {string} [eventId]
+         * @property {string} [platformUid]
+         * @property {Date | number} [endedTime]
+         * @param {AppointmentQuery} query
          * @param {(appsAppointments: Chatshier.Models.AppsAppointments | null) => any} [callback]
          * @return {Promise<Chatshier.Models.AppsAppointments | null>}
          */
-        find(appIds, appointmentIds, match, callback) {
+        find({ appIds, appointmentIds, isDeleted, eventId, platformUid, endedTime }, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            match = Object.assign({
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false
-            }, match || { 'appointments.isDeleted': false });
+            };
+            (null !== isDeleted) && (match['appointments.isDeleted'] = !!isDeleted);
+            eventId && (match['appointments.eventId'] = eventId);
+            platformUid && (match['appointments.platformUid'] = platformUid);
+            endedTime && (match['appointments.endedTime'] = { $gte: new Date(endedTime) });
 
             if (appointmentIds) {
                 !(appointmentIds instanceof Array) && (appointmentIds = [appointmentIds]);
@@ -226,7 +235,7 @@ module.exports = (function() {
                     return this.AppsModel.update(conditions, doc);
                 });
             }).then(() => {
-                return this.find(appId, appointmentId.toHexString());
+                return this.find({ appIds: appId, appointmentIds: appointmentId.toHexString() });
             }).then((appsAppointments) => {
                 ('function' === typeof callback) && callback(appsAppointments);
                 return appsAppointments;
@@ -257,7 +266,7 @@ module.exports = (function() {
             }
 
             return this.AppsModel.update(conditions, doc).then(() => {
-                return this.find(appId, appointmentId);
+                return this.find({ appIds: appId, appointmentIds: appointmentId });
             }).then((appsAppointments) => {
                 ('function' === typeof callback) && callback(appsAppointments);
                 return appsAppointments;
