@@ -361,7 +361,7 @@ module.exports = (function() {
         }
 
         _find(query){
-            let virtualModel = 'apps.feeds.messagers.texts.types';
+            let virtualModel = 'apps.feeds.messagers.texts.types.infos';
             let modelsArray = virtualModel.split('.');
             let realModel = modelsArray[0] || '';
             this.realModel = this.model(realModel, this.Schemas[realModel]);
@@ -419,7 +419,7 @@ module.exports = (function() {
                     let _model = modelsArray.slice(1, i + 1).join('_');
                     let __model = modelsArray.slice(1, i + 1).join('.');
 
-                    (j === modelsArray.length) && (_id[`${_model}_id`] = '$' + __model + '._id');
+                    (j === modelsArray.length) && (_id[`${_model}_id`] = '$' + __model + (i === 0 ? '' : '.') + '_id');
                     (j !== modelsArray.length) && (_id[`${_model}_id`] = '$_id.' + _model + '_id');
 
                 }
