@@ -350,10 +350,103 @@ module.exports = (function() {
             this.GroupsSchema = GroupsSchema;
             this.UsersSchema = UsersSchema;
             this.OrdersSchema = OrdersSchema;
+
+            this.Schemas = {
+                'apps': AppsSchema
+            }
         }
 
         model(collection, schema) {
             return mongoose.model(collection, schema);
+        }
+
+        _find(query){
+            let virtualModel = 'apps.feeds.messagers.texts.types';
+            let modelsArray = virtualModel.split('.');
+            let realModel = modelsArray[0] || '';
+            this.realModel = this.model(realModel, this.Schemas[realModel]);
+
+            let pipelinesArray = [];
+
+            // $unwind
+            let _model = '';
+            for(let i = 1; i < modelsArray.length; i ++) {
+                let model = modelsArray[i];
+                _model = _model + (i === 1 ? '' : '.') + model;
+                let pipeline = {
+                    $unwind: '$' + _model
+                };
+                pipelinesArray.push(pipeline);
+            }
+
+            // $match
+            let match = {};
+            _model = '';
+            match['isDeleted'] = false;
+            for(let i = 1; i < modelsArray.length; i ++) {
+                let model = modelsArray[i];
+
+                _model = _model + (i === 1 ? '' : '.') + model;
+                match[`${_model}.isDeleted`] = false;
+
+            }
+            /** @type Object */
+            let pipeline = {
+                $match: { ...match, ...query}
+            };
+            pipelinesArray.push(pipeline);
+
+            // $project
+            pipeline = {
+                $project: {}
+            };
+
+            if (0 === modelsArray.length) {
+                pipeline['$project']['_id'] = true;
+            }
+
+            if (1 < modelsArray.length) {
+                pipeline['$project'][modelsArray[1]] = true;
+            }
+
+            pipelinesArray.push(pipeline);
+
+
+            // $group
+            for(let j = modelsArray.length;j > 1; j--) {
+                let _id = {};
+                for(let i = 0; i < j - 1; i ++) {
+                    let _model = modelsArray.slice(1, i + 1).join('_');
+                    let __model = modelsArray.slice(1, i + 1).join('.');
+
+                    (j === modelsArray.length) && (_id[`${_model}_id`] = '$' + __model + '._id');
+                    (j !== modelsArray.length) && (_id[`${_model}_id`] = '$_id.' + _model + '_id');
+
+                }
+                pipeline = {
+                    $group: {
+                        _id: _id,
+                        [modelsArray[(j- 1)]]: {
+                            $push: '$' + modelsArray.slice(1, j).join('.')
+                        }
+                    }
+                };
+                pipelinesArray.push(pipeline);
+            }
+
+
+            // let __model = modelsArray[(modelsArray.length - 1)];
+            // pipeline['$group'][__model] = {
+            //     $push: '$' + _model
+            // }
+
+
+            console.log(JSON.stringify(pipelinesArray, null, 2));
+
+
+            // return this.realModel.aggregate(pipelinesArray).then((resultsArray) => {
+
+            // });
         }
 
         /**
