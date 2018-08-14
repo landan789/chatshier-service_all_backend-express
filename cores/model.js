@@ -353,7 +353,7 @@ module.exports = (function() {
 
             this.Schemas = {
                 'apps': AppsSchema
-            }
+            };
         }
 
         model(collection, schema) {
