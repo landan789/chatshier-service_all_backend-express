@@ -23,10 +23,10 @@ window.TemplateBuilder = (function() {
         TEXT: 'TEXT',
         IMAGEMAP: 'IMAGEMAP',
         TEMPLATE: 'TEMPLATE',
-        CONSUMER_FORM: 'CONSUMER_FORM',
-        DONATION: 'DONATION',
-        APPOINTMENT: 'APPOINTMENT',
-        APPOINTMENT_LIST: 'APPOINTMENT_LIST'
+        SEND_CONSUMER_FORM: 'SEND_CONSUMER_FORM',
+        PAYMENT_CONFIRM: 'PAYMENT_CONFIRM',
+        SEND_APPOINTMENT_CATEGORIES: 'SEND_APPOINTMENT_CATEGORIES',
+        SEND_CONSUMER_APPOINTMENTS: 'SEND_CONSUMER_APPOINTMENTS'
     });
 
     const BUTTON_ACTIONS_DISPLAY_TEXT = Object.freeze({
@@ -35,10 +35,10 @@ window.TemplateBuilder = (function() {
         [BUTTON_ACTIONS.TEXT]: '發送文字',
         [BUTTON_ACTIONS.IMAGEMAP]: '發送指定圖文訊息',
         [BUTTON_ACTIONS.TEMPLATE]: '發送指定範本訊息',
-        [BUTTON_ACTIONS.CONSUMER_FORM]: '填寫個人資料',
-        [BUTTON_ACTIONS.DONATION]: '候選人捐款功能',
-        [BUTTON_ACTIONS.APPOINTMENT]: '預約目錄',
-        [BUTTON_ACTIONS.APPOINTMENT_LIST]: '顯示用戶個人已預約項目'
+        [BUTTON_ACTIONS.SEND_CONSUMER_FORM]: '用戶填寫個人資料',
+        [BUTTON_ACTIONS.PAYMENT_CONFIRM]: '候選人捐款功能',
+        [BUTTON_ACTIONS.SEND_APPOINTMENT_CATEGORIES]: '顯示預約目錄',
+        [BUTTON_ACTIONS.SEND_CONSUMER_APPOINTMENTS]: '用戶查詢個人預約'
     });
 
     const ERRORS = Object.freeze({
@@ -105,12 +105,8 @@ window.TemplateBuilder = (function() {
                 buttonAction = BUTTON_ACTIONS.TEMPLATE;
             } else if ('message' === action.type) {
                 buttonAction = BUTTON_ACTIONS.TEXT;
-            } else if ('SEND_CONSUMER_FORM' === actionData.action) {
-                buttonAction = BUTTON_ACTIONS.CONSUMER_FORM;
-            } else if ('PAYMENT_CONFIRM' === actionData.action) {
-                buttonAction = BUTTON_ACTIONS.DONATION;
-            } else if ('SEND_APPOINTMENT_CATEGORIES' === actionData.action) {
-                buttonAction = BUTTON_ACTIONS.APPOINTMENT;
+            } else {
+                buttonAction = BUTTON_ACTIONS[actionData.action] || '';
             }
 
             this.$elem = $(
@@ -742,21 +738,12 @@ window.TemplateBuilder = (function() {
                         templateAdditionalText && (templatePostback.additionalText = templateAdditionalText);
                         action.data = templateId ? JSON.stringify(templatePostback) : 'none';
                         break;
-                    case BUTTON_ACTIONS.CONSUMER_FORM:
+                    case BUTTON_ACTIONS.SEND_CONSUMER_FORM:
+                    case BUTTON_ACTIONS.PAYMENT_CONFIRM:
+                    case BUTTON_ACTIONS.SEND_APPOINTMENT_CATEGORIES:
+                    case BUTTON_ACTIONS.SEND_CONSUMER_APPOINTMENTS:
                         action.type = 'postback';
-                        action.data = JSON.stringify({ action: 'SEND_CONSUMER_FORM' });
-                        break;
-                    case BUTTON_ACTIONS.DONATION:
-                        action.type = 'postback';
-                        action.data = JSON.stringify({ action: 'PAYMENT_CONFIRM' });
-                        break;
-                    case BUTTON_ACTIONS.APPOINTMENT:
-                        action.type = 'postback';
-                        action.data = JSON.stringify({ action: 'SEND_APPOINTMENT_CATEGORIES' });
-                        break;
-                    case BUTTON_ACTIONS.APPOINTMENT_LIST:
-                        action.type = 'postback';
-                        action.data = JSON.stringify({ action: 'SEND_CONSUMER_APPOINTMENTS' });
+                        action.data = JSON.stringify({ action: buttonAction });
                         break;
                     default:
                         action.type = 'postback';
