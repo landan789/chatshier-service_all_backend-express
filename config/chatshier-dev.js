@@ -47,14 +47,22 @@ module.exports = {
         FDL_DOMAIN: 'chatshier9450.page.link'
     },
     GMAIL: {
-        USER: 'human@chatshier.com',
+        USER: '9thflr.dev@gmail.com', // google GMAIL
         // https://developers.google.com/oauthplayground
-        CLIENT_ID: '1074711200692-ds4lin2uh3q4bs5doqsdipuak83j6te1.apps.googleusercontent.com',
-        CLIENT_SECRET: '91Bn0GnAEnGuJRWj_9Im-_oq',
         // Google 所配發的 refreshToken 不會失效，會失效可能是以下原因
-        // 1. 使用者解除授權 app
+        // 1. 使用者解除或重新授權 app
         // 2. 使用者授權 app 時，授權的 scope 發生變更
-        REFRESH_TOKEN: '1/rBgB_AywuhwQuZpqnYSAfqtVK8u5ll6Vp2S-XDaLY2hzDFEHIU9C9wNXHivtmo-X'
+        // 3. 使用者變更密碼
+        // 此 REFRESH_TOKEN 具有存取
+        // - Calendar API v3
+        // - Drive API v3
+        // - Firebase Dynamic Links API v1
+        // - Gmail API v1
+        // - Google Analytics API v3
+        // - Google Play Developer API v3
+        REFRESH_TOKEN: '1/Mupj6kE-5Eshzxy2UmNx1OZ_zJFXSESHUmuLpgVFE4CC0WlS87zggMqhJIvXqZa3', // google REFRESH_TOKEN
+        CLIENT_ID: '1074711200692-1t055b7o6r85nut4nipc4tkibvatrmbh.apps.googleusercontent.com',
+        CLIENT_SECRET: 'apmJ4E0ue7lTU6Fy_9kCy7Sd'
     },
     JWT: {
         EXPIRES: EXPIRES,
