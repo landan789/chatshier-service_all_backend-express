@@ -48,8 +48,7 @@ module.exports = (function() {
 
                         let receptionist = appsReceptionists[appId].receptionists[receptionistId];
                         let gcalendarId = receptionist.gcalendarId;
-                        // let hostname = 'https://' + req.hostname;
-                        let hostname = 'https://3bd160b3.ngrok.io';
+                        let hostname = 'https://' + req.hostname;
                         let webhookUrl = hostname + WEBHOOK_PATH + '?appid=' + appId + '&receptionistid=' + receptionistId + '&scheduleid=' + scheduleId;
                         return gcalendarHlp.watchEvent(gcalendarId, schedule.eventId, webhookUrl);
                     }).then((channel) => {
