@@ -33,7 +33,8 @@ declare module Webhook {
                 'SEND_APPOINTMENT_DATES' |
                 'SEND_APPOINTMENT_TIMES' |
                 'SEND_APPOINTMENT_CONFIRM' |
-                'APPOINTMENT_FINISH',
+                'APPOINTMENT_FINISH' |
+                'CANCEL_APPOINTMENT',
             /**
              * CHANGE_RICHMENU
              */
@@ -84,7 +85,9 @@ declare module Webhook {
              * SEND_REPLY_TEXT
              */
             replyText?: string,
-            timestamp?: number
+            timestamp?: number,
+
+            lastAppointmentDate?: Date | number
         }
     }
     

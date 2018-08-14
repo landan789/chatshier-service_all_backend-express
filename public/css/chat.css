@@ -620,6 +620,7 @@
 .template {
     position: relative;
     min-width: 18rem;
+    width: 18rem;
     border: 0.0625rem solid #efefef;
     border-radius: 1rem;
     word-break: break-all; }

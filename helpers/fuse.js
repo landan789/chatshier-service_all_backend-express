@@ -172,12 +172,13 @@ module.exports = (function() {
                     let list = [{
                         text: inputText
                     }];
-                    let keywordRepliyFuse = new FuseJS(list, fuseOptions);
+                    let keywordReplyFuse = new FuseJS(list, fuseOptions);
                     let _keywordreplies = {};
                     keywordreplyIds.forEach((keywordreplyId) => {
-                        let results = keywordRepliyFuse.search(keywordreplies[keywordreplyId].keyword);
+                        let keywordreply = keywordreplies[keywordreplyId];
+                        let results = keywordReplyFuse.search(keywordreply.keyword);
                         if (results.length > 0 && 0.1 > results[0].score) {
-                            _keywordreplies[keywordreplyId] = keywordreplies[keywordreplyId];
+                            _keywordreplies[keywordreplyId] = keywordreply;
                         }
                     });
                     return _keywordreplies;

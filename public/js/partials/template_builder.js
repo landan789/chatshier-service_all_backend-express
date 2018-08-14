@@ -25,7 +25,8 @@ window.TemplateBuilder = (function() {
         TEMPLATE: 'TEMPLATE',
         CONSUMER_FORM: 'CONSUMER_FORM',
         DONATION: 'DONATION',
-        APPOINTMENT: 'APPOINTMENT'
+        APPOINTMENT: 'APPOINTMENT',
+        APPOINTMENT_LIST: 'APPOINTMENT_LIST'
     });
 
     const BUTTON_ACTIONS_DISPLAY_TEXT = Object.freeze({
@@ -36,7 +37,8 @@ window.TemplateBuilder = (function() {
         [BUTTON_ACTIONS.TEMPLATE]: '發送指定範本訊息',
         [BUTTON_ACTIONS.CONSUMER_FORM]: '填寫個人資料',
         [BUTTON_ACTIONS.DONATION]: '候選人捐款功能',
-        [BUTTON_ACTIONS.APPOINTMENT]: '預約目錄'
+        [BUTTON_ACTIONS.APPOINTMENT]: '預約目錄',
+        [BUTTON_ACTIONS.APPOINTMENT_LIST]: '顯示用戶個人已預約項目'
     });
 
     const ERRORS = Object.freeze({
@@ -751,6 +753,10 @@ window.TemplateBuilder = (function() {
                     case BUTTON_ACTIONS.APPOINTMENT:
                         action.type = 'postback';
                         action.data = JSON.stringify({ action: 'SEND_APPOINTMENT_CATEGORIES' });
+                        break;
+                    case BUTTON_ACTIONS.APPOINTMENT_LIST:
+                        action.type = 'postback';
+                        action.data = JSON.stringify({ action: 'SEND_CONSUMER_APPOINTMENTS' });
                         break;
                     default:
                         action.type = 'postback';
