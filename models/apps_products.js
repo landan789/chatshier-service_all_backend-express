@@ -13,12 +13,13 @@ module.exports = (function() {
          * @property {string | string[]} appIds
          * @property {string | string[]} [productIds]
          * @property {string} [type]
+         * @property {boolean | null} [isDeleted]
          * @property {boolean | null} [isOnShelf]
          * @param {ProductQuery} query
          * @param {(appsProducts: Chatshier.Models.AppsProducts | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsProducts | null>}
          */
-        find({ appIds, productIds, type, isOnShelf }, callback) {
+        find({ appIds, productIds, type, isDeleted, isOnShelf }, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
@@ -27,9 +28,9 @@ module.exports = (function() {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
-                'isDeleted': false,
-                'products.isDeleted': false
+                'isDeleted': false
             };
+            (null !== isDeleted) && (match['products.isDeleted'] = !!isDeleted);
             ('string' === typeof type) && (match['products.type'] = type);
             ('boolean' === typeof isOnShelf) && (match['products.isOnShelf'] = isOnShelf);
 

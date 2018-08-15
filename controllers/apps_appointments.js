@@ -7,7 +7,11 @@ module.exports = (function() {
 
     const appsMdl = require('../models/apps');
     const appsAppointmentsMdl = require('../models/apps_appointments');
+    const appsProductsMdl = require('../models/apps_products');
+    const appsReceptionistsMdl = require('../models/apps_receptionists');
+    const consumersMdl = require('../models/consumers');
     const gcalendarHlp = require('../helpers/gcalendar');
+    const botSvc = require('../services/bot');
 
     class AppsAppointmentsController extends ControllerCore {
         constructor() {
@@ -18,7 +22,7 @@ module.exports = (function() {
             this.deleteOne = this.deleteOne.bind(this);
         }
 
-        getAll(req, res, next) {
+        getAll(req, res) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
                 return appsAppointmentsMdl.find({ appIds: appIds }).then((appsAppointments) => {
@@ -38,7 +42,7 @@ module.exports = (function() {
             });
         }
 
-        getOne(req, res, next) {
+        getOne(req, res) {
             let appId = req.params.appid;
             let appointmentId = req.params.appointmentid;
 
@@ -64,7 +68,7 @@ module.exports = (function() {
             });
         }
 
-        putOne(req, res, next) {
+        putOne(req, res) {
             let appId = req.params.appid;
             let appointmentId = req.params.appointmentid;
             let putAppointment = {};
@@ -127,6 +131,9 @@ module.exports = (function() {
 
                 let eventId = appointment.eventId;
                 let resourceId = appointment.eventChannelId;
+                let receptionistId = appointment.receptionist_id;
+                let productId = appointment.product_id;
+                let platformUid = appointment.platformUid;
 
                 return Promise.all([
                     appsMdl.find(appId),
@@ -140,15 +147,63 @@ module.exports = (function() {
                     let gcalendarId = app.gcalendarId;
                     return Promise.all([
                         appsAppointmentsMdl.remove(appId, appointmentId),
+                        appsProductsMdl.find({ appIds: appId, productIds: productId, isDeleted: null }),
+                        appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId, isDeleted: null }),
+                        consumersMdl.find(platformUid),
                         gcalendarId && eventId && gcalendarHlp.deleteEvent(gcalendarId, eventId)
                     ]);
-                }).then(([ appsAppointments ]) => {
-                    if (!appsAppointments) {
+                }).then(([ appsAppointments, appsProducts, appsReceptionists, consumers ]) => {
+                    if (!(appsAppointments && appsAppointments[appId])) {
                         return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_REMOVE);
                     }
-                    return Promise.resolve(appsAppointments);
+
+                    if (!(appsProducts && appsProducts[appId])) {
+                        return Promise.reject(ERROR.APP_PRODUCT_FAILED_TO_FIND);
+                    }
+
+                    if (!(appsReceptionists && appsReceptionists[appId])) {
+                        return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                    }
+
+                    if (!(consumers && consumers[platformUid])) {
+                        return Promise.reject(ERROR.CONSUMER_FAILED_TO_FIND);
+                    }
+
+                    let product = appsProducts[appId].products[productId];
+                    let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                    let consumer = consumers[platformUid];
+
+                    let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                    let startedDate = new Date(new Date(appointment.startedTime).getTime() - timezoneOffset);
+                    let endedDate = new Date(new Date(appointment.endedTime).getTime() - timezoneOffset);
+
+                    let startTime = startedDate.toISOString();
+                    startTime = startTime.split('T').pop() || '';
+                    startTime = startTime.substring(0, 5);
+
+                    let endTime = endedDate.toISOString();
+                    endTime = endTime.split('T').pop() || '';
+                    endTime = endTime.substring(0, 5);
+
+                    let removeNotification = {
+                        type: 'text',
+                        text: (
+                            consumer.name + ' 您好！您在\n\n' +
+                            '【' + product.name + '】\n' +
+                            '【' + receptionist.name + '】\n' +
+                            '【' + startedDate.toISOString().split('T').shift() + '】\n' +
+                            '【' + startTime + ' ~ ' + endTime + '】\n\n' +
+                            '的預約已經被取消了。'
+                        )
+                    };
+                    let shouldSend = new Date(appointment.endedTime).getTime() > Date.now();
+
+                    return Promise.all([
+                        Promise.resolve(appsAppointments),
+                        shouldSend && botSvc.pushMessage(platformUid, removeNotification, void 0, appId).catch(() => void 0)
+                    ]);
                 });
-            }).then((appsAppointments) => {
+            }).then(([ appsAppointments ]) => {
                 let suc = {
                     msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsAppointments

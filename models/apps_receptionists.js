@@ -14,11 +14,12 @@ module.exports = (function() {
          * @typedef ReceptionistQuery
          * @property {string | string[]} appIds
          * @property {string | string[]} [receptionistIds]
+         * @property {boolean | null} [isDeleted]
          * @param {ReceptionistQuery} query
          * @param {(appsReceptionists: Chatshier.Models.AppsReceptionists | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsReceptionists | null>}
          */
-        find({ appIds, receptionistIds }, callback) {
+        find({ appIds, receptionistIds, isDeleted }, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
@@ -27,9 +28,9 @@ module.exports = (function() {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
-                'isDeleted': false,
-                'receptionists.isDeleted': false
+                'isDeleted': false
             };
+            (null !== isDeleted) && (match['receptionists.isDeleted'] = !!isDeleted);
 
             if (receptionistIds && !(receptionistIds instanceof Array)) {
                 receptionistIds = [receptionistIds];
