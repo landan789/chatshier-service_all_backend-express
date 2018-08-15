@@ -341,6 +341,7 @@ module.exports = (function() {
 
     class ModelCore {
         constructor () {
+            this.COLLECTION = '';
             this.Types = mongoose.Types;
             this.AutorepliesSchema = AutorepliesSchema;
             this.RootsSchema = RootsSchema;
@@ -361,7 +362,10 @@ module.exports = (function() {
         }
 
         _find(query) {
-            let virtualModel = 'apps.feeds.messagers.texts.types.infos';
+            if ('' === this.COLLECTION) {
+                return Promise.reject(new Error());
+            }
+            let virtualModel = this.COLLECTION;
             let modelsArray = virtualModel.split('.');
             let realModel = modelsArray[0] || '';
             this.realModel = this.model(realModel, this.Schemas[realModel]);
