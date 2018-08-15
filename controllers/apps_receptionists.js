@@ -142,6 +142,9 @@ module.exports = (function() {
                     }).then(() => {
                         if (shareToGmail === receptionist.email) {
                             putReceptionist.isCalendarShared = true;
+                        } else if (putReceptionist.email && putReceptionist.email !== receptionist.email) {
+                            // 如果變更了服務人員的 gmail 須將行事曆已分享的旗標設為 false 以便能夠重新分享
+                            putReceptionist.isCalendarShared = false;
                         }
                         return appsReceptionistsMdl.update(appId, receptionistId, putReceptionist);
                     });

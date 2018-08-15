@@ -46,7 +46,7 @@ module.exports = (function() {
                     if (error || res.statusCode >= 300) {
                         return reject(res.statusCode);
                     }
-                    resolve(!!(res.headers['set-cookie'] || res.headers['Set-Cookie']));
+                    return resolve(!!(res.headers['set-cookie'] || res.headers['Set-Cookie']));
                 });
             });
         }
@@ -193,22 +193,44 @@ module.exports = (function() {
          * @returns {Promise<string>}
          */
         deleteCalendar(calendarId) {
-            return new Promise((resolve, reject) => {
-                if (!calendarId) {
-                    return reject(new Error('calendarId is empty.'));
-                }
-
-                return this.client.calendars.delete({
-                    calendarId: calendarId
-                }, (err, res) => {
-                    if (err) {
-                        if (NOT_FOUND === err['code'] ||
-                            GONE === err['code']) {
-                            return resolve('');
-                        }
-                        return reject(err);
+            return this.getCalendarACL(calendarId).then((accessControllList) => {
+                // 移除行事曆之前先把此行事曆的所有取消分享者，再移除行事曆
+                let items = accessControllList.items;
+                return Promise.all(items.map((accessControllResource) => {
+                    return new Promise((resolve, reject) => {
+                        this.client.acl.delete({
+                            calendarId: calendarId,
+                            ruleId: accessControllResource.id
+                        }, (err, res) => {
+                            if (err) {
+                                if (NOT_FOUND === err['code'] ||
+                                    GONE === err['code']) {
+                                    return resolve('');
+                                }
+                                return reject(err);
+                            }
+                            return resolve(res.data);
+                        });
+                    });
+                }));
+            }).then(() => {
+                return new Promise((resolve, reject) => {
+                    if (!calendarId) {
+                        return reject(new Error('calendarId is empty.'));
                     }
-                    return resolve(res.data);
+
+                    return this.client.calendars.delete({
+                        calendarId: calendarId
+                    }, (err, res) => {
+                        if (err) {
+                            if (NOT_FOUND === err['code'] ||
+                                GONE === err['code']) {
+                                return resolve('');
+                            }
+                            return reject(err);
+                        }
+                        return resolve(res.data);
+                    });
                 });
             });
         }
@@ -236,23 +258,22 @@ module.exports = (function() {
 
         /**
          * @param {string} calendarId - Calendar identifier
-         * @param {string} email
-         * @param {'default' | 'user' | 'group' | 'domain'} [scopeType=DEFAULT_SCOPE_TYPE]
+         * @param {string} ruleId
          * @returns {Promise<Chatshier.GCalendar.AccessControllResource>}
          */
-        getCalendarACR(calendarId, email, scopeType = DEFAULT_SCOPE_TYPE) {
+        getCalendarACR(calendarId, ruleId) {
             return new Promise((resolve, reject) => {
                 if (!calendarId) {
                     return reject(new Error('calendarId is empty.'));
                 }
 
-                if (!email) {
-                    return reject(new Error('email is empty.'));
+                if (!ruleId) {
+                    return reject(new Error('ruleId is empty.'));
                 }
 
                 return this.client.acl.get({
                     calendarId: calendarId,
-                    ruleId: scopeType + ':' + email
+                    ruleId: ruleId
                 }, (err, res) => {
                     if (err) {
                         if (404 === err['code']) {
@@ -277,7 +298,9 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.GCalendar.AccessControllResource>}
          */
         shareCalendar(calendarId, email, role = DEFAULT_ROLE, scopeType = DEFAULT_SCOPE_TYPE) {
-            return this.getCalendarACR(calendarId, email, scopeType).then((acr) => {
+            let ruleId = scopeType + ':' + email;
+
+            return this.getCalendarACR(calendarId, ruleId).then((acr) => {
                 if (acr) {
                     return acr;
                 }
@@ -309,7 +332,9 @@ module.exports = (function() {
          * @returns {Promise<string>}
          */
         cancelCalendarSharing(calendarId, email, scopeType = DEFAULT_SCOPE_TYPE) {
-            return this.getCalendarACR(calendarId, email, scopeType).then((acr) => {
+            let ruleId = scopeType + ':' + email;
+
+            return this.getCalendarACR(calendarId, ruleId).then((acr) => {
                 if (!acr) {
                     return '';
                 }
