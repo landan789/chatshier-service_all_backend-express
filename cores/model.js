@@ -417,7 +417,9 @@ module.exports = (function() {
             for (let j = modelsArray.length; j > 1; j--) {
                 let _id = {};
                 for (let i = 0; i < j - 1; i++) {
-                    let _model = modelsArray.slice(1, i + 1).join('_');
+                    let _model = modelsArray.slice(1, i + 1).map((model) => {
+                        return model.replace(/s$/g, '');
+                    }).join('_');
                     let __model = modelsArray.slice(1, i + 1).join('.');
 
                     (j === modelsArray.length) && (_id[`${_model}_id`] = '$' + __model + (0 === i ? '' : '.') + '_id');
