@@ -185,7 +185,7 @@ module.exports = (function() {
                     endTime = endTime.split('T').pop() || '';
                     endTime = endTime.substring(0, 5);
 
-                    let removeNotification = {
+                    let notifyMessage = {
                         type: 'text',
                         text: (
                             consumer.name + ' 您好！您在\n\n' +
@@ -200,7 +200,7 @@ module.exports = (function() {
 
                     return Promise.all([
                         Promise.resolve(appsAppointments),
-                        shouldSend && botSvc.pushMessage(platformUid, removeNotification, void 0, appId).catch(() => void 0)
+                        shouldSend && botSvc.pushMessage(platformUid, notifyMessage, void 0, appId).catch(() => void 0)
                     ]);
                 });
             }).then(([ appsAppointments ]) => {
