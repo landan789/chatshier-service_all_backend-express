@@ -20,7 +20,7 @@ module.exports = (function() {
             }
 
             // 尋找符合的欄位
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -28,13 +28,13 @@ module.exports = (function() {
                 'tickets.isDeleted': false
             };
             if (ticketId) {
-                query['tickets._id'] = this.Types.ObjectId(ticketId);
+                match['tickets._id'] = this.Types.ObjectId(ticketId);
             }
 
             let aggregations = [{
                 $unwind: '$tickets'
             }, {
-                $match: query
+                $match: match
             }, {
                 $project: {
                     tickets: true
@@ -79,17 +79,17 @@ module.exports = (function() {
             ticket._id = ticketId;
             ticket.createdTime = ticket.updatedTime = Date.now();
 
-            let query = {
+            let match = {
                 '_id': appId
             };
 
-            let updateOper = {
+            let doc = {
                 $push: {
                     tickets: ticket
                 }
             };
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(match, doc).then(() => {
                 return this.find(appId, ticketId.toHexString());
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
@@ -111,17 +111,17 @@ module.exports = (function() {
             ticket = ticket || {};
             ticket.updatedTime = Date.now();
 
-            let query = {
+            let match = {
                 '_id': appId,
                 'tickets._id': ticketId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in ticket) {
-                updateOper.$set['tickets.$.' + prop] = ticket[prop];
+                doc.$set['tickets.$.' + prop] = ticket[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(match, doc).then(() => {
                 return this.find(appId, ticketId);
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
@@ -148,23 +148,24 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'tickets._id': this.Types.ObjectId(ticketId)
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in ticket) {
-                updateOper.$set['tickets.$.' + prop] = ticket[prop];
+                doc.$set['tickets.$.' + prop] = ticket[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
+                let match = Object.assign({}, conditions);
                 let aggregations = [{
                     $unwind: '$tickets'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         tickets: true

@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     let appsRichmenusMdl = require('../models/apps_richmenus');
     let storageHlp = require('../helpers/storage');
@@ -30,7 +30,7 @@ module.exports = (function() {
                 });
             }).then((appsRichmenus) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsRichmenus
                 };
                 return this.successJson(req, res, suc);
@@ -70,7 +70,7 @@ module.exports = (function() {
                 });
             }).then((appsRichmenus) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsRichmenus
                 };
                 return this.successJson(req, res, suc);
@@ -170,7 +170,7 @@ module.exports = (function() {
                 });
             }).then((appsRichmenus) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsRichmenus
                 };
                 return this.successJson(req, res, suc);
@@ -283,7 +283,7 @@ module.exports = (function() {
                 });
             }).then((appsRichmenus) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsRichmenus
                 };
                 return this.successJson(req, res, suc);
@@ -332,7 +332,7 @@ module.exports = (function() {
                 });
             }).then((appsRichmenus) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsRichmenus
                 };
                 return this.successJson(req, res, suc);

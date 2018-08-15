@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     const fbSvc = require('../services/facebook');
 
@@ -31,7 +31,6 @@ module.exports = (function() {
         }
 
         getAll(req, res, next) {
-            
             Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
                     let userId = req.params.userid;
@@ -63,7 +62,7 @@ module.exports = (function() {
                 });
             }).then((apps) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: apps
                 };
                 return this.successJson(req, res, suc);
@@ -121,7 +120,7 @@ module.exports = (function() {
                 });
             }).then((apps) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: apps
                 };
                 return this.successJson(req, res, suc);
@@ -154,7 +153,7 @@ module.exports = (function() {
                 postApp.token1 = postApp.token1 || fbSvc.appAccessToken;
             }
 
-            Promise.resolve().then(() => {
+            return Promise.resolve().then(() => {
                 if (!userId) {
                     return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 }
@@ -314,7 +313,7 @@ module.exports = (function() {
                 });
             }).then(() => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: apps
                 };
                 return this.successJson(req, res, suc);
@@ -426,7 +425,7 @@ module.exports = (function() {
                 });
             }).then((apps) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: apps
                 };
                 return this.successJson(req, res, suc);
@@ -514,7 +513,7 @@ module.exports = (function() {
                 });
             }).then((apps) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: apps
                 };
                 return this.successJson(req, res, suc);

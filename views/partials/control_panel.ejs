@@ -40,33 +40,56 @@
                     <span>行事曆</span>
                 </li>
                 <li class="text-light list-group-item" onclick="window.location.assign('/ticket')">
-                    <i class="fa fa-list-ul fa-fw"></i>
+                    <i class="fas fa-list-ul fa-fw"></i>
                     <span>待辦事項</span>
                 </li>
                 <li class="text-light list-group-item" onclick="window.location.assign('/analyze')">
-                    <i class="fa fa-chart-bar fa-fw"></i>
+                    <i class="fas fa-chart-bar fa-fw"></i>
                     <span>訊息分析</span>
                 </li>
+                <li class="text-light list-group-item has-collapse">
+                    <i class="fas fa-calendar fa-fw"></i>
+                    <span>預約系統</span>
+                    <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
+                </li>
+                <div class="collapse show" id="ctrlPanelProductsCollapse">
+                    <li class="text-light nested list-group-item" onclick="window.location.assign('/appointment')">
+                        <i class="fas fa-calendar-check fa-fw"></i>
+                        <span>檢視預約項目</span>
+                    </li>
+                    <li class="text-light nested list-group-item" onclick="window.location.assign('/receptionist')">
+                        <i class="fas fa-user-clock fa-fw"></i>
+                        <span>服務人員管理</span>
+                    </li>
+                    <li class="text-light nested list-group-item" onclick="window.location.assign('/product')">
+                        <i class="fas fa-cart-plus fa-fw"></i>
+                        <span>產品管理</span>
+                    </li>
+                    <li class="text-light nested list-group-item" onclick="window.location.assign('/category')">
+                        <i class="fas fa-list-alt fa-fw"></i>
+                        <span>預約目錄</span>
+                    </li>
+                </div>
                 <li class="text-light list-group-item has-collapse" id="ctrlPanelMessages">
-                    <i class="fa fa-envelope fa-fw"></i>
+                    <i class="fas fa-envelope fa-fw"></i>
                     <span>訊息</span>
                     <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
                 </li>
                 <div class="collapse show" id="ctrlPanelMessagesCollapse">
                     <li class="text-light nested list-group-item" onclick="window.location.assign('/compose')">
-                        <i class="fa fa-comments"></i>
+                        <i class="fas fa-comments"></i>
                         <span>群發</span>
                     </li>
                     <li class="text-light nested list-group-item" onclick="window.location.assign('/autoreply')">
-                        <i class="fa fa-comments"></i>
+                        <i class="fas fa-comments"></i>
                         <span>自動回覆</span>
                     </li>
                     <li class="text-light nested list-group-item" onclick="window.location.assign('/keywordsreply')">
-                        <i class="fa fa-comments"></i>
+                        <i class="fas fa-comments"></i>
                         <span>關鍵字回覆</span>
                     </li>
                     <li class="text-light nested list-group-item" onclick="window.location.assign('/greeting')">
-                        <i class="fa fa-comments"></i>
+                        <i class="fas fa-comments"></i>
                         <span>加好友回覆</span>
                     </li>
                 </div>

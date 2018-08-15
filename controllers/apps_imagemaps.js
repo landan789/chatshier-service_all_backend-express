@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     let appsImagemapsMdl = require('../models/apps_imagemaps');
     let storageHlp = require('../helpers/storage');
@@ -29,7 +29,7 @@ module.exports = (function() {
                 });
             }).then((appsImagemaps) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsImagemaps || {}
                 };
                 return this.successJson(req, res, suc);
@@ -61,7 +61,7 @@ module.exports = (function() {
                 });
             }).then((appsImagemaps) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsImagemaps
                 };
                 return this.successJson(req, res, suc);
@@ -109,7 +109,7 @@ module.exports = (function() {
                 return storageHlp.filesMoveV2(fromPath, toPath);
             }).then(() => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsImagemaps || {}
                 };
                 return this.successJson(req, res, suc);
@@ -166,7 +166,7 @@ module.exports = (function() {
                 });
             }).then((appsImagemaps) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsImagemaps
                 };
                 return this.successJson(req, res, suc);
@@ -204,7 +204,7 @@ module.exports = (function() {
                 });
             }).then((appsImagemaps) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsImagemaps || {}
                 };
                 return this.successJson(req, res, suc);

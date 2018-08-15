@@ -19,7 +19,7 @@ module.exports = (function() {
                 calendarIds = [calendarIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: calendarIds.map((calendarId) => this.Types.ObjectId(calendarId))
                 },
@@ -32,7 +32,7 @@ module.exports = (function() {
                     eventIds = [eventIds];
                 }
 
-                query['events._id'] = {
+                match['events._id'] = {
                     $in: eventIds.map((eventId) => this.Types.ObjectId(eventId))
                 };
             }
@@ -40,7 +40,7 @@ module.exports = (function() {
             let aggregations = [{
                 $unwind: '$events'
             }, {
-                $match: query
+                $match: match
             }, {
                 $project: {
                     events: 1
@@ -100,13 +100,13 @@ module.exports = (function() {
                     });
                 }
 
-                let query = {};
+                let conditions = {};
                 if (calendarIds instanceof Array) {
-                    query._id = {
+                    conditions._id = {
                         $in: calendarIds.map((calendarId) => this.Types.ObjectId(calendarId))
                     };
                 } else {
-                    query._id = this.Types.ObjectId(calendarIds);
+                    conditions._id = this.Types.ObjectId(calendarIds);
                 }
 
                 let doc = {
@@ -115,7 +115,7 @@ module.exports = (function() {
                     }
                 };
 
-                return this.CalendarsModel.update(query, doc).then((result) => {
+                return this.CalendarsModel.update(conditions, doc).then((result) => {
                     if (!result.ok) {
                         return Promise.reject(new Error());
                     }
@@ -140,7 +140,7 @@ module.exports = (function() {
             putEvent = putEvent || {};
             putEvent.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(calendarId),
                 'events._id': this.Types.ObjectId(eventId)
             };
@@ -158,7 +158,7 @@ module.exports = (function() {
                 doc.$set['events.$.' + prop] = putEvent[prop];
             }
 
-            return this.CalendarsModel.update(query, doc).then((result) => {
+            return this.CalendarsModel.update(conditions, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 }
@@ -179,7 +179,7 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.Calendars | null>}
          */
         remove(calendarId, eventId, callback) {
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(calendarId),
                 'events._id': this.Types.ObjectId(eventId)
             };
@@ -191,12 +191,13 @@ module.exports = (function() {
                 }
             };
 
-            return this.CalendarsModel.update(query, doc).then(() => {
+            return this.CalendarsModel.update(conditions, doc).then(() => {
+                let match = Object.assign({}, conditions);
                 let aggregations = [
                     {
                         $unwind: '$events'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             events: 1

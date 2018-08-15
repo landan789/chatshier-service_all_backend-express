@@ -21,7 +21,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -34,7 +34,7 @@ module.exports = (function() {
                     autoreplyIds = [autoreplyIds];
                 }
 
-                query['autoreplies._id'] = {
+                match['autoreplies._id'] = {
                     $in: autoreplyIds.map((autoreplyId) => this.Types.ObjectId(autoreplyId))
                 };
             }
@@ -43,7 +43,7 @@ module.exports = (function() {
                 {
                     $unwind: '$autoreplies' // 只針對 document 處理
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         // 篩選項目
@@ -89,7 +89,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -100,7 +100,7 @@ module.exports = (function() {
                 {
                     $unwind: '$autoreplies' // 只針對 document 處理
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         // 篩選項目
@@ -169,17 +169,17 @@ module.exports = (function() {
             putAutoreply._id = autoreplyId;
             putAutoreply.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': appId,
                 'autoreplies._id': autoreplyId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in putAutoreply) {
-                updateOper.$set['autoreplies.$.' + prop] = putAutoreply[prop];
+                doc.$set['autoreplies.$.' + prop] = putAutoreply[prop];
             }
 
-            return this.AppsModel.findOneAndUpdate(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, autoreplyId);
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);
@@ -199,7 +199,7 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.AppsAutoreplies | null>}
          */
         remove(appId, autoreplyId, callback) {
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'autoreplies._id': this.Types.ObjectId(autoreplyId)
             };
@@ -211,7 +211,7 @@ module.exports = (function() {
                 }
             };
 
-            return this.AppsModel.update(query, operate).then((updateResult) => {
+            return this.AppsModel.update(conditions, operate).then((updateResult) => {
                 if (!updateResult.ok) {
                     return Promise.reject(new Error());
                 }

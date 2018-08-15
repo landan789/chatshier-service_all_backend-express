@@ -18,17 +18,17 @@ module.exports = (function() {
                 orderIds = [orderIds];
             }
 
-            let query = {
+            let conditions = {
                 isDeleted: false
             };
 
             if (orderIds instanceof Array) {
-                query['_id'] = {
+                conditions['_id'] = {
                     $in: orderIds.map((orderId) => this.Types.ObjectId(orderId))
                 };
             }
 
-            return this.Model.find(query).sort({ createdTime: -1 }).then((results) => {
+            return this.Model.find(conditions).sort({ createdTime: -1 }).then((results) => {
                 let orders = {};
                 if (0 !== results.length) {
                     orders = this.toObject(results);
@@ -49,12 +49,12 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.Orders | null>}
          */
         findByTradeId(tradeId, callback) {
-            let query = {
+            let conditions = {
                 isDeleted: false,
                 tradeId: tradeId
             };
 
-            return this.Model.find(query).then((results) => {
+            return this.Model.find(conditions).then((results) => {
                 let orders = {};
                 if (0 !== results.length) {
                     orders = this.toObject(results, 'tradeId');
@@ -101,7 +101,7 @@ module.exports = (function() {
             putOrder = putOrder || {};
             putOrder.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(orderId)
             };
 
@@ -110,7 +110,7 @@ module.exports = (function() {
                 order.$set[prop] = putOrder[prop];
             }
 
-            return this.Model.update(query, order).then((result) => {
+            return this.Model.update(conditions, order).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 }
@@ -135,7 +135,7 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(orderId)
             };
 
@@ -144,12 +144,12 @@ module.exports = (function() {
                 order.$set[prop] = putOrder[prop];
             }
 
-            return this.Model.update(query, order).then((result) => {
+            return this.Model.update(conditions, order).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 }
 
-                return this.Model.findOne(query).lean().then((order) => {
+                return this.Model.findOne(conditions).lean().then((order) => {
                     return this.toObject(order);
                 });
             }).then((orders) => {

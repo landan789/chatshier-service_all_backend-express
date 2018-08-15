@@ -89,9 +89,9 @@ module.exports = (function() {
                             TotalAmount: '' + order.tradeAmount,
                             TradeDesc: order.tradeDescription,
                             ItemName: itemName,
-                            ReturnURL: serverAddr + '/payment/ecpay/result'
+                            ReturnURL: serverAddr + '/webhook-payment/ecpay/result'
                             // ChooseSubPayment: '',
-                            // OrderResultURL: serverAddr + 'payment/ecpay/order-result',
+                            // OrderResultURL: serverAddr + 'webhook-payment/ecpay/order-result',
                             // NeedExtraPaidInfo: '1',
                             // ClientBackURL: 'https://www.google.com',
                             // ItemURL: 'http://item.test.tw',
@@ -119,7 +119,7 @@ module.exports = (function() {
                             LangType: 'zh-tw',
                             Amt: order.tradeAmount,
                             ItemDesc: order.tradeDescription,
-                            NotifyURL: serverAddr + '/payment/spgateway/result',
+                            NotifyURL: serverAddr + '/webhook-payment/spgateway/result',
                             Email: order.payerEmail,
                             EmailModify: 0,
                             LoginType: 0
@@ -421,7 +421,7 @@ module.exports = (function() {
                     consumer_id: consumerId,
                     invoiceId: params.hasRequestInvoice ? cipherHlp.generateRandomHex(30) : '',
                     taxId: params.taxId || '',
-                    commodities: [{
+                    products: [{
                         name: params.itemName,
                         description: '',
                         count: params.itemCount,

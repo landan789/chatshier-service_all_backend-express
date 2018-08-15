@@ -5,8 +5,8 @@ declare module Chatshier {
         }
 
         interface Order extends BaseProperty {
-            commodities: {
-                commodity_id: string,
+            products: {
+                product_id: string,
                 name: string,
                 description: string,
                 count: number,

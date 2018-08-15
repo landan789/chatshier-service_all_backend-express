@@ -162,7 +162,14 @@ router.post('/:webhookid', (req, res, next) => {
                 let consumers = {};
 
                 let webhookInfo = botSvc.retrieveWebhookInfo(req, app);
+                let replyToken = webhookInfo.replyToken || '';
+                let eventType = webhookInfo.eventType;
                 let platformUid = webhookInfo.platformUid;
+                let platformGroupId = webhookInfo.platformGroupId;
+                let platformGroupType = webhookInfo.platformGroupType;
+                let isPostback = webhookInfo.isPostback;
+
+                /** @type {Chatshier.Models.Messager} */
                 let platformMessager;
 
                 return botSvc.resolveSpecificEvent(webhookInfo, req, appId, app).then((shouldContinue) => {
@@ -212,12 +219,11 @@ router.post('/:webhookid', (req, res, next) => {
                     });
                 }).then((_consumers) => {
                     if (!_consumers) {
-                        return;
+                        return Promise.resolve(null);
                     }
                     consumers = _consumers;
 
                     return Promise.resolve().then(() => {
-                        let platformGroupId = webhookInfo.platformGroupId;
                         if (!platformGroupId) {
                             return Promise.resolve(null);
                         }
@@ -226,7 +232,6 @@ router.post('/:webhookid', (req, res, next) => {
                         return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId, {}).then((appsChatrooms) => {
                             // 沒有找到此群組聊天室，則自動建立
                             if (!(appsChatrooms && appsChatrooms[appId])) {
-                                let platformGroupType = webhookInfo.platformGroupType;
                                 let chatroom = {
                                     platformGroupId: platformGroupId,
                                     platformGroupType: platformGroupType
@@ -247,7 +252,6 @@ router.post('/:webhookid', (req, res, next) => {
                         });
                     }).then((groupChatroom) => {
                         let chatroomId = groupChatroom ? webhookChatroomId : void 0;
-                        let platformUid = webhookInfo.platformUid;
 
                         return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid, !!groupChatroom).then((appsChatroomsMessagers) => {
                             // 如果平台用戶已屬於某個聊天室中並已存在，則直接與用其 messager 資訊
@@ -345,10 +349,10 @@ router.post('/:webhookid', (req, res, next) => {
                         fromPath = receivedMessages[0].fromPath;
                     }
 
-                    if (webhookInfo.isPostback) {
-                        return botSvc.processPostback(receivedMessages, webhookInfo, appId, app);
+                    if (isPostback) {
+                        return chatshierHlp.getPostbackReplies(receivedMessages, webhookInfo, appId, botSvc);
                     }
-                    return chatshierHlp.getRepliedMessages(receivedMessages, webhookInfo, appId, app);
+                    return chatshierHlp.getMessageReplies(receivedMessages, webhookInfo, appId, app);
                 }).then((messages) => {
                     repliedMessages = messages;
                     if (0 === repliedMessages.length) {
@@ -357,8 +361,6 @@ router.post('/:webhookid', (req, res, next) => {
                         !res.headersSent && res.status(200).send('');
                         return;
                     };
-                    let replyToken = webhookInfo.replyToken || '';
-                    let platformUid = webhookInfo.platformUid;
 
                     // 因各平台處理方式不同
                     // 所以將 http request 做 response 傳入
@@ -371,7 +373,6 @@ router.post('/:webhookid', (req, res, next) => {
                         return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                     }));
                 }).then(() => {
-                    let eventType = webhookInfo.eventType;
                     if (LINE === app.type) {
                         if (botSvc.LINE_EVENT_TYPES.MESSAGE === eventType) {
                             totalMessages = receivedMessages.concat(repliedMessages);
@@ -463,7 +464,7 @@ router.post('/:webhookid', (req, res, next) => {
                             type: app.type,
                             chatroom_id: webhookChatroomId,
                             chatroom: chatroom,
-                            senderUid: webhookInfo.platformUid,
+                            senderUid: platformUid,
                             // 從 webhook 打過來的訊息，不能確定接收人是誰(因為是群組接收)
                             // 因此傳到 chatshier 聊天室裡不需要聲明接收人是誰
                             recipientUid: '',

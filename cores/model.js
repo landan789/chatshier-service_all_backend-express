@@ -2,7 +2,7 @@ module.exports = (function() {
     const CHATSHIER = require('../config/chatshier');
     let mongoose = require('mongoose');
 
-    // region DB 連線只需要做一次，故放 class 外面
+    // #region DB 連線只需要做一次，故放 class 外面
     const url = 'mongodb://' + CHATSHIER.MONGODB.HOST + ':' + CHATSHIER.MONGODB.PORT + '/' + CHATSHIER.MONGODB.DATABASE;
     const options = {
         user: CHATSHIER.MONGODB.USERNAME,
@@ -18,16 +18,16 @@ module.exports = (function() {
     db.once('open', () => {
         console.log('[SUCCEEDED] the db client of api-chatshier is connecting to MongoDB !!');
     });
-    // endregion
+    // #endregion
 
-    // region DB Schema
+    // #region DB Schema
     const Schema = mongoose.Schema;
     const RootsSchema = new Schema();
 
     const AutorepliesSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false},
         'startedTime': {type: Date, default: Date.now()},
         'endedTime': {type: Date, default: Date.now()},
         'timezoneOffset': {type: Number, default: 0},
@@ -45,25 +45,26 @@ module.exports = (function() {
     });
 
     const ChatroomsSchema = new Schema({
-        'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
         'name': {type: String, default: ''},
         'platformGroupId': {type: String, default: ''},
         'platformGroupType': {type: String, default: ''},
-        'updatedTime': {type: Date, default: Date.now()},
         'messagers': [{
+            'isDeleted': {type: Boolean, default: false},
+            'createdTime': {type: Date, default: Date.now()},
+            'updatedTime': {type: Date, default: Date.now()},
             'age': {type: Number, default: 0},
             'assigned_ids': {type: [{type: String}], default: []},
             'address': {type: String, default: ''},
             'county': {type: String, default: ''},
             'chatCount': {type: Number, default: 0},
             'birthday': {type: String, default: '1970-01-01'},
-            'createdTime': {type: Date, default: Date.now()},
             'custom_fields': {type: Object, default: {}},
             'district': {type: String, default: ''},
             'email': {type: String, default: ''},
             'gender': {type: String, default: ''},
-            'isDeleted': {type: Boolean, default: false},
             'isUnfollowed': {type: Boolean, default: false},
             'lastTime': {type: Date, default: Date.now()},
             'namings': {type: Object, default: {}},
@@ -72,12 +73,11 @@ module.exports = (function() {
             'remark': {type: String, default: ''},
             'tags': {type: [{type: String}], default: []},
             'type': {type: String, default: 'CHATSHIER'},
-            'unRead': {type: Number, default: 0},
-            'updatedTime': {type: Date, default: Date.now()}
+            'unRead': {type: Number, default: 0}
         }],
         'messages': [{
-            'from': {type: String, default: 'SYSTEM'},
             'isDeleted': {type: Boolean, default: false},
+            'from': {type: String, default: 'SYSTEM'},
             'messager_id': {type: String, default: ''},
             'src': {type: String, default: ''},
             'text': {type: String, default: ''},
@@ -89,9 +89,9 @@ module.exports = (function() {
     }, { minimize: false });
 
     const KeywordrepliesSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false},
         'keyword': {type: String, default: ''},
         'subKeywords': {type: Array, default: []},
         'replyCount': {type: Number, default: 0},
@@ -104,12 +104,12 @@ module.exports = (function() {
     });
 
     const ComposesSchema = new Schema({
-        'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
         'text': {type: String, default: ''},
         'src': {type: String, default: ''},
         'type': {type: String, default: 'text'},
-        'updatedTime': {type: Date, default: Date.now()},
         'conditions': [{
             'type': {type: String, default: ''},
             'values': {type: Array, default: []},
@@ -123,19 +123,19 @@ module.exports = (function() {
 
     const GreetingsSchema = new Schema({
         'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
-        'updatedTime': {type: Date, default: Date.now()},
-        'createdTime': {type: Date, default: Date.now()},
         'src': {type: String, default: ''},
         'template_id': {type: String, default: ''},
         'imagemap_id': {type: String, default: ''}
     });
 
     const TemplatesSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false},
         'name': {type: String, default: ''},
         'type': {type: String, default: 'template'},
         'altText': {type: String, default: ''},
@@ -179,6 +179,80 @@ module.exports = (function() {
         }]
     }, { minimize: false });
 
+    const CategoriesSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'type': {type: String, default: 'NORMAL'},
+        'parent_id': {type: String, default: ''},
+        'name': {type: String, default: ''},
+        'product_ids': {type: [{type: String}], default: []}
+    });
+
+    const ProductsSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'type': {type: String, default: 'NORMAL'},
+        'name': {type: String, default: ''},
+        'description': {type: String, default: ''},
+        'price': {type: Number, default: 0},
+        'quantity': {type: Number, default: 0},
+        'src': {type: String, default: ''},
+        'isOnShelf': {type: Boolean, default: false},
+        'receptionist_ids': {type: [{type: String}], default: []}
+    });
+
+    const ReceptionistsSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'gcalendarId': {type: String, default: ''},
+        'isCalendarShared': {type: Boolean, default: false},
+        'name': {type: String, default: ''},
+        'photo': {type: String, default: ''},
+        'email': {type: String, default: ''},
+        'phone': {type: String, default: ''},
+        'timezoneOffset': {type: Number, default: 0},
+        'maxNumber': {type: Number, default: 1},
+        'interval': {type: Number, default: 0}, // Unit time
+        'timesOfAppointment': {type: Number, default: 0},
+        'schedules': [{
+            'isDeleted': {type: Boolean, default: false},
+            'createdTime': {type: Date, default: Date.now()},
+            'updatedTime': {type: Date, default: Date.now()},
+            'eventId': {type: String, default: ''},
+            'eventChannelId': {type: String, default: ''},
+            'summary': {type: String, default: ''},
+            'description': {type: String, default: ''},
+            'start': {
+                'date': {type: Date, default: Date.now()},
+                'dateTime': {type: Date, default: Date.now()}
+            },
+            'end': {
+                'date': {type: Date, default: Date.now()},
+                'dateTime': {type: Date, default: Date.now()}
+            },
+            'recurrence': {type: [{type: String}], default: []}
+        }]
+    });
+
+    const AppointmentsSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'product_id': {type: String, default: ''},
+        'receptionist_id': {type: String, default: ''},
+        'platformUid': {type: String, default: ''},
+        'startedTime': {type: Date, default: Date.now()},
+        'endedTime': {type: Date, default: Date.now()},
+        'summary': {type: String, default: ''},
+        'description': {type: String, default: ''},
+        'eventId': {type: String, default: ''}, // Google calendar event,
+        'eventChannelId': {type: String, default: ''},
+        'isAccepted': {type: Boolean, default: false}
+    });
+
     const FieldsSchema = new Schema({
         'text': {type: String, default: ''},
         'alias': {type: String, default: ''},
@@ -193,11 +267,11 @@ module.exports = (function() {
     });
 
     const TicketsSchema = new Schema({
-        'updatedTime': {type: Date, default: Date.now()},
+        'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
         'description': {type: String, default: ''},
         'dueTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false},
         'platformUid': {type: String, default: ''},
         'assigned_id': {type: String, default: ''},
         'priority': {type: Number, default: 0}, // TODO 三個 型態建議用字串大寫
@@ -205,9 +279,9 @@ module.exports = (function() {
     });
 
     const PaymentsSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false},
         'type': {type: String, default: ''},
         'merchantId': {type: String, default: ''},
         'hashKey': {type: String, default: ''},
@@ -219,6 +293,7 @@ module.exports = (function() {
     });
 
     const AppsSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'group_id': {type: String, default: ''},
@@ -230,7 +305,7 @@ module.exports = (function() {
         'token2': {type: String, default: ''},
         'type': {type: String, default: ''},
         'webhook_id': {type: String, default: ''},
-        'isDeleted': {type: Boolean, default: false},
+        'gcalendarId': {type: String, default: ''},
 
         'payments': [PaymentsSchema],
         'autoreplies': [AutorepliesSchema],
@@ -242,46 +317,52 @@ module.exports = (function() {
         'fields': [FieldsSchema],
         'tickets': [TicketsSchema],
         'richmenus': [RichmenusSchema],
-        'imagemaps': [ImagemapsSchema]
+        'imagemaps': [ImagemapsSchema],
+
+        'categories': [CategoriesSchema],
+        'products': [ProductsSchema],
+        'receptionists': [ReceptionistsSchema],
+        'appointments': [AppointmentsSchema]
     });
 
     const EventsSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'description': {type: String, default: ''},
         'endedTime': {type: Date, default: Date.now()},
         'isAllDay': {type: Boolean, default: false},
-        'isDeleted': {type: Boolean, default: false},
         'startedTime': {type: Date, default: Date.now()},
         'title': {type: String, default: ''}
     });
 
     const CalendarsSchema = new Schema({
-        'events': [EventsSchema],
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
-        'updatedTime': {type: Date, default: Date.now()}
+        'updatedTime': {type: Date, default: Date.now()},
+        'events': [EventsSchema]
     });
 
     const MembersSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false},
         'status': {type: Boolean, default: false},
         'type': {type: String, default: ''},
         'user_id': {type: String, default: ''}
     });
 
     const GroupsSchema = new Schema({
-        'app_ids': {type: [{type: String}], default: []},
+        'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false},
         'members': [MembersSchema],
-        'name': {type: String, default: ''}
+        'name': {type: String, default: ''},
+        'app_ids': {type: [{type: String}], default: []}
     });
 
     const UsersSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'address': {type: String, default: ''},
@@ -289,29 +370,28 @@ module.exports = (function() {
         'company': {type: String, default: ''},
         'email': {type: String, default: ''},
         'phone': {type: String, default: ''},
-        'isDeleted': {type: Boolean, default: false},
         'password': {type: String, default: '300102985f51c92c06703ea845025b4fb4c791b7'}, // cipher.Hlp.encode('123456') -> 300102985f51c92c06703ea845025b4fb4c791b7
         'name': {type: String, default: ''},
         'group_ids': {type: [{type: String}], default: []}
     });
 
     const ConsumersSchema = new Schema({
-        'type': {type: String, default: ''},
-        'platformUid': {type: String, default: ''},
+        'isDeleted': {type: Boolean, default: false},
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false},
+        'type': {type: String, default: ''},
+        'platformUid': {type: String, default: ''},
         'name': {type: String, default: ''},
         'photo': {type: String, default: ''},
         'photoOriginal': {type: String, default: ''}
     });
 
     const OrdersSchema = new Schema({
+        'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false},
-        'commodities': [{
-            'commodity_id': {type: String, default: ''},
+        'products': [{
+            'product_id': {type: String, default: ''},
             'name': {type: String, default: ''},
             'description': {type: String, default: ''},
             'count': {type: Number, default: 0},
@@ -337,13 +417,12 @@ module.exports = (function() {
         'app_id': {type: String, default: ''}
     });
 
-    // endregion
+    // #endregion
 
     class ModelCore {
         constructor () {
             this.COLLECTION = '';
             this.Types = mongoose.Types;
-            this.AutorepliesSchema = AutorepliesSchema;
             this.RootsSchema = RootsSchema;
             this.AppsSchema = AppsSchema;
             this.CalendarsSchema = CalendarsSchema;

@@ -23,7 +23,7 @@ module.exports = (function() {
             }
 
             // 尋找符合的欄位
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -32,7 +32,7 @@ module.exports = (function() {
             };
 
             if (chatroomId) {
-                query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
+                match['chatrooms._id'] = this.Types.ObjectId(chatroomId);
             }
 
             if (messageIds) {
@@ -40,7 +40,7 @@ module.exports = (function() {
                     messageIds = [messageIds];
                 }
 
-                query['chatrooms.messages._id'] = {
+                match['chatrooms.messages._id'] = {
                     $in: messageIds.map((messageId) => this.Types.ObjectId(messageId))
                 };
             }
@@ -49,7 +49,7 @@ module.exports = (function() {
                 {
                     $unwind: '$chatrooms'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         // 篩選需要的項目
@@ -87,23 +87,16 @@ module.exports = (function() {
 
                 appsChatroomsMessages = results.reduce((output, app) => {
                     if (!output[app._id]) {
-                        output[app._id] = {
-                            chatrooms: {}
-                        };
+                        output[app._id] = { chatrooms: {} };
                     }
 
                     if (!output[app._id].chatrooms[app.chatrooms._id]) {
-                        output[app._id].chatrooms[app.chatrooms._id] = {
-                            messages: {}
-                        };
+                        output[app._id].chatrooms[app.chatrooms._id] = { messages: {} };
                     }
 
-                    let chatroom = output[app._id].chatrooms[app.chatrooms._id];
-                    chatroom._id = app.chatrooms._id;
-                    chatroom.name = app.chatrooms.name;
-                    chatroom.platformGroupId = app.chatrooms.platformGroupId;
-                    chatroom.platformGroupType = app.chatrooms.platformGroupType;
-                    Object.assign(chatroom.messages, this.toObject(app.chatrooms.messages));
+                    Object.assign(output[app._id].chatrooms, this.toObject(app.chatrooms));
+                    let chatrooms = output[app._id].chatrooms;
+                    chatrooms[app.chatrooms._id].messages = this.toObject(app.chatrooms.messages);
                     return output;
                 }, {});
                 return appsChatroomsMessages;
@@ -151,12 +144,12 @@ module.exports = (function() {
                     _message.imagemap = message;
                 }
 
-                let query = {
+                let conditions = {
                     '_id': appId,
                     'chatrooms._id': chatroomId
                 };
 
-                let updateOper = {
+                let doc = {
                     $push: {
                         'chatrooms.$[chatroom].messages': _message
                     }
@@ -169,7 +162,7 @@ module.exports = (function() {
                     }]
                 };
 
-                return this.AppsModel.update(query, updateOper, options).then(() => {
+                return this.AppsModel.update(conditions, doc, options).then(() => {
                     return messageId.toHexString();
                 });
             })).then((messageIds) => {

@@ -12,7 +12,8 @@ let apiDatabase = require('./routes/api_database');
 let apiSign = require('./routes/api_sign');
 let apiBot = require('./routes/api_bot');
 let webhook = require('./routes/webhook');
-let payment = require('./routes/payment');
+let webhookGoogle = require('./routes/webhook_google');
+let webhookPayment = require('./routes/webhook_payment');
 let apiImage = require('./routes/api_image');
 
 const CHATSHIER = require('./config/chatshier');
@@ -34,7 +35,8 @@ app.use(cors(corsCfg));
 app.use(cookieParser());
 
 app.use('/webhook', webhook);
-app.use('/payment', payment);
+app.use('/webhook-google', webhookGoogle);
+app.use('/webhook-payment', webhookPayment);
 
 // API JWT 權限驗證
 app.use('/api/*/users/:userid', jwtHlp.authenticate);

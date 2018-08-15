@@ -66,6 +66,7 @@ button:focus {
     .page-wrapper.put-away  {
         max-width: calc(100% - 4rem); }
     .page-wrapper > div:first-of-type  {
+        min-height: 100%;
         padding-top: 50px; }
 
 @media (max-width: 768px) {

@@ -4,7 +4,8 @@ module.exports = (function() {
 
     class SocketHelper {
         constructor() {
-            this.socketsAppsMap = {};
+            /** @type {{ [socketId: string]: { [userId: string]: SocketIO.Socket } }} */
+            this.socketMap = {};
 
             this._subscriberOnMessage = this._subscriberOnMessage.bind(this);
             redisHlp.ready.then(() => {
@@ -42,20 +43,20 @@ module.exports = (function() {
                 return;
             }
 
-            for (let socketId in this.socketsAppsMap) {
-                for (let _userId in this.socketsAppsMap[socketId]) {
+            for (let socketId in this.socketMap) {
+                for (let _userId in this.socketMap[socketId]) {
                     let i = userIds.indexOf(_userId);
                     if (i < 0) {
                         continue;
                     }
-                    this.socketsAppsMap[socketId][userIds[i]].emit(eventName, socketData);
+                    this.socketMap[socketId][userIds[i]].emit(eventName, socketData);
                 }
             }
         }
 
         /**
          * @param {string} userId
-         * @param {any} socket
+         * @param {SocketIO.Socket} socket
          * @returns {boolean}
          */
         addSocket(userId, socket) {
@@ -63,15 +64,15 @@ module.exports = (function() {
                 return false;
             }
 
-            if (!this.socketsAppsMap[socket.id]) {
-                this.socketsAppsMap[socket.id] = {};
+            if (!this.socketMap[socket.id]) {
+                this.socketMap[socket.id] = {};
             }
-            this.socketsAppsMap[socket.id][userId] = socket;
+            this.socketMap[socket.id][userId] = socket;
             return true;
         };
 
         /**
-         * @param {any} socket
+         * @param {SocketIO.Socket} socket
          * @returns {boolean}
          */
         removeSocket(socket) {
@@ -79,11 +80,11 @@ module.exports = (function() {
                 return false;
             }
 
-            if (this.socketsAppsMap[socket.id]) {
-                for (let userId in this.socketsAppsMap[socket.id]) {
-                    delete this.socketsAppsMap[socket.id][userId];
+            if (this.socketMap[socket.id]) {
+                for (let userId in this.socketMap[socket.id]) {
+                    delete this.socketMap[socket.id][userId];
                 }
-                delete this.socketsAppsMap[socket.id];
+                delete this.socketMap[socket.id];
             }
             return true;
         };

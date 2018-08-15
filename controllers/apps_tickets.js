@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     const appsTicketsMdl = require('../models/apps_tickets');
 
@@ -28,7 +28,7 @@ module.exports = (function() {
                 });
             }).then((appsTickets) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsTickets
                 };
                 return this.successJson(req, res, suc);
@@ -50,7 +50,7 @@ module.exports = (function() {
                 });
             }).then((appsTickets) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsTickets
                 };
                 return this.successJson(req, res, suc);
@@ -79,7 +79,7 @@ module.exports = (function() {
                 });
             }).then((data) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: data
                 };
                 return this.successJson(req, res, suc);
@@ -124,7 +124,7 @@ module.exports = (function() {
                 });
             }).then((appsTickets) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsTickets
                 };
                 return this.successJson(req, res, suc);
@@ -163,7 +163,7 @@ module.exports = (function() {
             }).then((appsTickets) => {
                 let json = {
                     status: 1,
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsTickets
                 };
                 res.status(200).json(json);

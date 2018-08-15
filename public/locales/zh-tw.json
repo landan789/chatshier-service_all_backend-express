@@ -2,9 +2,12 @@
     "Add": "新增",
     "Add bot": "新增機器人",
     "Add calendar event": "新增行事曆事件",
+    "Add category": "新增類別",
     "Add group": "新增群組",
-    "Add To-Do item": "新增待辦",
+    "Add receptionist": "新增服務人員",
     "Add successful!": "新增成功！",
+    "Add product": "新增產品",
+    "Add To-Do item": "新增待辦",
     "Age": "年齡",
     "Already have an account?": "已經有帳號了嗎？請按",
     "Analysis": "訊息分析",
@@ -12,6 +15,7 @@
     "App ID can't be empty": "App ID 不能為空",
     "App secret can't be empty": "App secret 不能為空",
     "Appointment system": "預約系統",
+    "Appointment categoies": "預約目錄",
     "April": "四月",
     "Are you sure want to delete it?": "確定要刪除嗎？",
     "Assigned": "已指派",
@@ -35,19 +39,26 @@
     "Confirm": "確認",
     "Confirm password": "確認密碼",
     "Confirm new password": "確認新密碼",
+    "Custom": "自訂",
 
+    "Daily": "每日",
     "Day": "日",
     "December": "十二月",
     "Description": "描述",
+    "Does not repeat": "不重複",
     "Don't have an account yet?": "還沒有帳號嗎？請按",
 
     "Edit bot": "編輯機器人",
     "Edit calendar event": "編輯行事曆事件",
+    "Edit category": "編輯類別",
     "Edit group": "編輯群組",
+    "Edit receptionist": "編輯服務人員",
+    "Edit product": "編輯產品",
     "Email": "電子郵件",
     "Email was empty!": "電子郵件未填寫！",
     "End datetime": "結束時間",
     "Event description": "事件描述",
+    "Every weekday (Monday to Friday)": "平日 (星期一至星期五)",
 
     "Failed to add!": "新增失敗！",
     "Failed to remove!": "刪除失敗！",
@@ -61,6 +72,8 @@
     "Fill the description": "請輸入描述內容",
     "Fill the event title": "請填入事件標題",
     "Fill the group name": "請輸入群組名稱",
+    "Fill the receptionist's name": "請輸入服務人員的姓名",
+    "Fill the receptionist's Gmail": "請輸入服務人員的 Gmail",
     "Fill the title": "請輸入標題",
     "Fill your email": "請輸入電子郵件",
     "Fill your name": "請輸入姓名",
@@ -75,6 +88,7 @@
     "Group name": "群組名稱",
     "Groups": "內部群組",
 
+    "Home": "首頁",
     "Hour": "小時",
 
     "I agree Chatshier": "我同意 Chatshier",
@@ -131,6 +145,9 @@
     "Product management": "產品管理",
 
     "Recent chat date": "最近聊天時間",
+    "Receptionist management": "服務人員管理",
+    "Repeat every": "重複間隔",
+    "Repeat on": "重複日期",
     "Remark": "備註",
     "Remove": "刪除",
     "Remove successful!": "刪除成功！",
@@ -162,6 +179,8 @@
     "Token expired, please perform the reset password procedure again!": "令牌已過期，請重新執行重設密碼流程！",
     "Total count of messages per hour": "每時段總訊息數",
 
+    "View Appointments": "檢視預約",
+
     "Unassigned": "未指派",
     "Unit": "單位",
     "Unread": "未讀",
@@ -169,6 +188,7 @@
     "Update successful!": "更新成功！",
     "User email had been signed up!": "電子郵件已被註冊！",
 
+    "Weekly on Saturday": "每週 星期六",
     "Welcome to Chatshier integration platform": "歡迎使用 錢掌櫃 整合平台",
     "Wrong password!": "密碼錯誤！",
 

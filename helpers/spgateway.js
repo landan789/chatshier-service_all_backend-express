@@ -164,11 +164,11 @@ module.exports = (function() {
                 Amt: order.tradeAmount - taxAmt,
                 TaxAmt: taxAmt,
                 TotalAmt: order.tradeAmount,
-                ItemName: order.commodities.map((commodity) => commodity.name).join('|'),
-                ItemCount: order.commodities.map((commodity) => commodity.count).join('|'),
-                ItemUnit: order.commodities.map((commodity) => commodity.unit).join('|'),
-                ItemPrice: order.commodities.map((commodity) => commodity.unitPrice).join('|'),
-                ItemAmt: order.commodities.map((commodity) => commodity.count * commodity.unitPrice).join('|')
+                ItemName: order.products.map((product) => product.name).join('|'),
+                ItemCount: order.products.map((product) => product.count).join('|'),
+                ItemUnit: order.products.map((product) => product.unit).join('|'),
+                ItemPrice: order.products.map((product) => product.unitPrice).join('|'),
+                ItemAmt: order.products.map((product) => product.count * product.unitPrice).join('|')
             };
             let encryptStr = this.encryptJsonToStr(postData, hashKey, hashIV);
 

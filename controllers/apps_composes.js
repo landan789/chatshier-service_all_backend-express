@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     let appsComposesMdl = require('../models/apps_composes');
 
@@ -28,7 +28,7 @@ module.exports = (function() {
                 });
             }).then((appsComposes) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsComposes
                 };
                 return this.successJson(req, res, suc);
@@ -50,7 +50,7 @@ module.exports = (function() {
                 });
             }).then((appsComposes) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsComposes
                 };
                 return this.successJson(req, res, suc);
@@ -90,7 +90,7 @@ module.exports = (function() {
                 });
             }).then((appsComposes) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsComposes
                 };
                 return this.successJson(req, res, suc);
@@ -132,7 +132,7 @@ module.exports = (function() {
                 });
             }).then((data) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE,
                     data: data
                 };
                 return this.successJson(req, res, suc);
@@ -169,7 +169,7 @@ module.exports = (function() {
                 });
             }).then((appsCompose) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
                     data: appsCompose
                 };
                 return this.successJson(req, res, suc);

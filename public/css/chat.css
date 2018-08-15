@@ -620,6 +620,7 @@
 .template {
     position: relative;
     min-width: 18rem;
+    width: 18rem;
     border: 0.0625rem solid #efefef;
     border-radius: 1rem;
     word-break: break-all; }
@@ -676,6 +677,18 @@
         background-color: #fff;
         border-radius: 0 0 1rem 1rem;
         overflow: hidden; }
+
+.ticket-edit-table {
+    width: 100%; }
+    .ticket-edit-table .ticket-row:nth-child(even) {
+        background-color: #33ccff;
+        color: white; }
+    .ticket-edit-table .ticket-col {
+        border-bottom: 1px solid rgb(5, 82, 87);
+        text-align: left;
+        padding: 8px;
+        margin: 2px 0;
+    }
 
 @media (min-width: 1700px) {
     ::-webkit-scrollbar { 

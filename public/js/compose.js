@@ -1108,7 +1108,9 @@ const ConditionSelector = (function() {
                     };
 
                     return new Promise((resolve, reject) => {
+                        let timeout = window.setTimeout(() => reject(new Error('SOCKET_TIMEOUT')), 5000);
                         socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, socketBody, (err) => {
+                            window.clearTimeout(timeout);
                             if (err) {
                                 return reject(err);
                             }
@@ -1200,8 +1202,11 @@ const ConditionSelector = (function() {
         appsComposes = respJsons[2].data;
         appsFields = respJsons[3].data;
 
-        nowSelectAppId = '';
         let $dropdownMenu = $appsDropdown.find('.dropdown-menu');
+
+        let recentAppId = window.localStorage.getItem('recentAppId') || '';
+        let firstAppId = '';
+
         for (let appId in apps) {
             let app = apps[appId];
             if (app.isDeleted ||
@@ -1216,10 +1221,12 @@ const ConditionSelector = (function() {
                     app.name +
                 '</a>'
             );
-            nowSelectAppId = nowSelectAppId || appId;
+            firstAppId = firstAppId || appId;
         }
 
+        nowSelectAppId = recentAppId && apps[recentAppId] ? recentAppId : firstAppId;
         if (nowSelectAppId) {
+            window.localStorage.setItem('recentAppId', nowSelectAppId);
             $appsDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             refreshComposes(nowSelectAppId);
         }
@@ -1360,6 +1367,7 @@ const ConditionSelector = (function() {
 
     function appSourceChanged() {
         nowSelectAppId = $(this).attr('app-id');
+        window.localStorage.setItem('recentAppId', nowSelectAppId);
         $appsDropdown.find('.dropdown-text').text($(this).text());
         refreshComposes(nowSelectAppId);
     }

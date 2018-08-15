@@ -1,6 +1,9 @@
 
 module.exports = (function() {
-    let ModelCore = require('../cores/model');
+    const ModelCore = require('../cores/model');
+    const CHATSHIER_CFG = require('../config/chatshier');
+    const gcalendarHlp = require('../helpers/gcalendar');
+
     const APPS = 'apps';
     const USERS = 'users';
     const GROUPS = 'GROUPS';
@@ -17,6 +20,9 @@ module.exports = (function() {
             this.GroupsModel = this.model(GROUPS, this.GroupsSchema);
 
             this.project = {
+                isDeleted: true,
+                createdTime: true,
+                updatedTime: true,
                 name: true,
                 id1: true,
                 id2: true,
@@ -25,30 +31,32 @@ module.exports = (function() {
                 token1: true,
                 token2: true,
                 type: true,
-                createdTime: true,
-                updatedTime: true,
                 webhook_id: true,
-                isDeleted: true
+                gcalendarId: true
             };
         }
 
         /**
          * @param {string|string[]} [appIds]
          * @param {string} [webhookId]
-         * @param {any} [query]
+         * @param {any} [conditions]
          * @param {(apps: Chatshier.Models.Apps | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.Apps | null>}
          */
-        find(appIds, webhookId, query, callback) {
+        find(appIds, webhookId, conditions, callback) {
             if (appIds && !(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            let _query = query || { isDeleted: false };
-            appIds instanceof Array && (_query._id = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
-            webhookId && (_query.webhook_id = this.Types.ObjectId(webhookId));
+            let _conditions = conditions || { isDeleted: false };
+            appIds instanceof Array && (_conditions._id = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
+            webhookId && (_conditions.webhook_id = this.Types.ObjectId(webhookId));
 
-            return this.AppsModel.find(_query, this.project).sort({ createdTime: -1 }).then((results) => {
+            let sortArgs = {
+                createdTime: -1
+            };
+
+            return this.AppsModel.find(_conditions, this.project).sort(sortArgs).then((results) => {
                 let apps = {};
                 if (0 === results.length) {
                     return apps;
@@ -74,13 +82,13 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.Apps | null>}
          */
         insert(postApp, callback) {
-            let _appId = this.Types.ObjectId();
+            let appId = this.Types.ObjectId();
             let webhookId = this.Types.ObjectId().toHexString();
             let groupId = postApp.group_id;
 
             /** @type {Chatshier.Models.App} */
-            let _apps = {
-                _id: _appId,
+            let _app = {
+                _id: appId,
                 id1: postApp.id1 || '',
                 id2: postApp.id2 || '',
                 name: postApp.name || '',
@@ -90,41 +98,43 @@ module.exports = (function() {
                 type: postApp.type || '',
                 group_id: postApp.group_id,
                 webhook_id: CHATSHIER === postApp.type ? '' : webhookId,
+                gcalendarId: postApp.gcalendarId || '',
                 isDeleted: false,
                 updatedTime: Date.now(),
                 createdTime: Date.now()
             };
-            let newApp = new this.AppsModel(_apps);
 
-            return newApp.save().then((__apps) => {
-                let query = {
+            let summary = '[' + _app.name + '] - ' + appId.toHexString();
+            let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
+
+            return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
+                _app.gcalendarId = gcalendar.id;
+                let newApp = new this.AppsModel(_app);
+                return newApp.save();
+            }).then((__apps) => {
+                let conditions = {
                     '_id': groupId
                 };
-                return this.GroupsModel.findOne(query).then((group) => {
-                    let appId = __apps._id;
+
+                return this.GroupsModel.findOne(conditions).then((group) => {
+                    let _appId = __apps._id;
                     let appIds = undefined === group.app_ids ? [] : group.app_ids;
-                    appIds.push(appId);
+                    appIds.push(_appId);
                     let putGroup = {
                         $set: {
                             'app_ids': appIds
                         }
                     };
-                    return this.GroupsModel.update(query, putGroup).then((result) => {
+                    return this.GroupsModel.update(conditions, putGroup).then((result) => {
                         if (!result.ok) {
                             return Promise.reject(new Error());
                         }
                         return __apps;
                     });
                 });
-            }).then((__apps) => {
-                let query = {
-                    '_id': __apps._id
-                };
-                return this.AppsModel.findOne(query).select(this.project);
-            }).then((app) => {
-                let apps = {
-                    [app._id]: app
-                };
+            }).then(() => {
+                return this.find(appId.toHexString());
+            }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return apps;
             }).catch(() => {
@@ -143,21 +153,20 @@ module.exports = (function() {
             putApp = putApp || {};
             putApp.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId)
             };
 
-            let doc = {
-                $set: putApp
-            };
+            let doc = { $set: {} };
+            for (let prop in putApp) {
+                doc.$set[prop] = putApp[prop];
+            }
 
-            return this.AppsModel.update(query, doc).then((result) => {
+            return this.AppsModel.update(conditions, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
-                return this.AppsModel.findOne(query).select(this.project);
-            }).then((app) => {
-                return this.toObject(app._doc);
+                return this.find(appId);
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return apps;
@@ -173,24 +182,24 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.Apps | null>}
          */
         remove(appId, callback) {
-            let query = {
+            let putApp = {
+                isDeleted: true,
+                updatedTime: Date.now()
+            };
+
+            let conditions = {
                 '_id': this.Types.ObjectId(appId)
             };
 
             let doc = {
-                $set: {
-                    isDeleted: true,
-                    updatedTime: Date.now()
-                }
+                $set: putApp
             };
 
-            return this.AppsModel.update(query, doc).then((result) => {
+            return this.AppsModel.update(conditions, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
-                };
-                return this.AppsModel.findOne(query).select(this.project);
-            }).then((app) => {
-                return this.toObject(app._doc);
+                }
+                return this.find(appId, void 0, { isDeleted: true });
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return apps;

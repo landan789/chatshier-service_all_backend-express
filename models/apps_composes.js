@@ -31,21 +31,21 @@ module.exports = (function() {
             }
 
             // 尋找符合的欄位
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false
             };
             if (composeId) {
-                query['composes._id'] = this.Types.ObjectId(composeId);
-                query['composes.isDeleted'] = false;
+                match['composes._id'] = this.Types.ObjectId(composeId);
+                match['composes.isDeleted'] = false;
             }
 
             let aggregations = [
                 docUnwind,
                 {
-                    $match: query
+                    $match: match
                 },
                 docOutput
             ];
@@ -82,17 +82,17 @@ module.exports = (function() {
             compose._id = composeId;
             compose.createdTime = compose.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': appId
             };
 
-            let updateOper = {
+            let doc = {
                 $push: {
                     composes: compose
                 }
             };
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, composeId.toHexString());
             }).then((appsComposes) => {
                 ('function' === typeof callback) && callback(appsComposes);
@@ -118,19 +118,19 @@ module.exports = (function() {
             compose = compose || {};
             compose.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': {
                     $in: appIds
                 },
                 'composes._id': composeId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in compose) {
-                updateOper.$set['composes.$.' + prop] = compose[prop];
+                doc.$set['composes.$.' + prop] = compose[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appIds, composeId);
             }).then((appsComposes) => {
                 ('function' === typeof callback) && callback(appsComposes);
@@ -157,28 +157,29 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'composes._id': this.Types.ObjectId(composeId)
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in compose) {
-                updateOper.$set['composes.$.' + prop] = compose[prop];
+                doc.$set['composes.$.' + prop] = compose[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 if (!(appIds instanceof Array)) {
                     appIds = [appIds];
                 }
 
+                let match = Object.assign({}, conditions);
                 let aggregations = [
                     {
                         $unwind: '$composes'
                     }, {
-                        $match: query
+                        $match: match
                     },
                     docOutput
                 ];

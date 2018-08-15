@@ -83,25 +83,25 @@ module.exports = (function() {
                 memberIds = [memberIds];
             }
 
-            let query = {
+            let match = {
                 '_id': this.Types.ObjectId(groupId),
                 'isDeleted': false
             };
 
             if (memberIds instanceof Array) {
-                query['members._id'] = {
+                match['members._id'] = {
                     $in: memberIds.map((memberId) => this.Types.ObjectId(memberId))
                 };
             }
 
             if ('boolean' === typeof isDeleted) {
-                query['members.isDeleted'] = {
+                match['members.isDeleted'] = {
                     $eq: isDeleted
                 };
             }
 
             if ('boolean' === typeof status) {
-                query['members.status'] = {
+                match['members.status'] = {
                     $eq: status
                 };
             }
@@ -110,7 +110,7 @@ module.exports = (function() {
                 {
                     $unwind: '$members'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         members: true
@@ -197,7 +197,7 @@ module.exports = (function() {
             putMember = putMember || {};
             putMember.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(groupId),
                 'members._id': this.Types.ObjectId(memberId)
             };
@@ -215,7 +215,7 @@ module.exports = (function() {
                 member.$set['members.$.' + prop] = putMember[prop];
             }
 
-            return this.GroupsModel.update(query, member).then((result) => {
+            return this.GroupsModel.update(conditions, member).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
@@ -236,7 +236,7 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.Groups | null>}
          */
         remove(groupId, memberId, callback) {
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(groupId),
                 'members._id': this.Types.ObjectId(memberId)
             };
@@ -248,16 +248,17 @@ module.exports = (function() {
                 }
             };
 
-            return this.GroupsModel.update(query, setMember).then((updateResult) => {
+            return this.GroupsModel.update(conditions, setMember).then((updateResult) => {
                 if (!updateResult.ok) {
                     return Promise.reject(new Error());
                 }
 
+                let match = Object.assign({}, conditions);
                 let aggregations = [
                     {
                         $unwind: '$members'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             members: 1

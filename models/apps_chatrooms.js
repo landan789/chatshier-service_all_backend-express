@@ -25,7 +25,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 // 尋找符合 appId 及 chatroomIds 的欄位
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
@@ -39,7 +39,7 @@ module.exports = (function() {
             }
 
             if (chatroomIds instanceof Array) {
-                query['chatrooms._id'] = {
+                match['chatrooms._id'] = {
                     $in: chatroomIds.map((chatroomId) => this.Types.ObjectId(chatroomId))
                 };
             }
@@ -48,7 +48,7 @@ module.exports = (function() {
                 {
                     $unwind: '$chatrooms'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         // 篩選需要的項目
@@ -69,26 +69,17 @@ module.exports = (function() {
 
                 appsChatrooms = results.reduce((output, app) => {
                     if (!output[app._id]) {
-                        output[app._id] = {
-                            chatrooms: {}
-                        };
+                        output[app._id] = { chatrooms: {} };
                     }
 
                     if (!output[app._id].chatrooms[app.chatrooms._id]) {
-                        output[app._id].chatrooms[app.chatrooms._id] = {
-                            messagers: {},
-                            messages: {}
-                        };
+                        output[app._id].chatrooms[app.chatrooms._id] = { messagers: {}, messages: {} };
                     }
 
-                    let chatroom = output[app._id].chatrooms[app.chatrooms._id];
-                    chatroom._id = app.chatrooms._id;
-                    chatroom.name = app.chatrooms.name;
-                    chatroom.isDeleted = app.chatrooms.isDeleted;
-                    chatroom.platformGroupId = app.chatrooms.platformGroupId;
-                    chatroom.platformGroupType = app.chatrooms.platformGroupType;
-                    Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers));
-                    Object.assign(chatroom.messages, this.toObject(app.chatrooms.messages));
+                    Object.assign(output[app._id].chatrooms, this.toObject(app.chatrooms));
+                    let chatrooms = output[app._id].chatrooms;
+                    chatrooms[app.chatrooms._id].messagers = this.toObject(app.chatrooms.messagers);
+                    chatrooms[app.chatrooms._id].messages = this.toObject(app.chatrooms.messages);
                     return output;
                 }, {});
                 return appsChatrooms;
@@ -104,26 +95,26 @@ module.exports = (function() {
         /**
          * @param {string | string[]} appIds
          * @param {string | string[]} platformGroupIds
-         * @param {any} [query]
+         * @param {any} [match]
          * @param {(appsChatrooms: Chatshier.Models.AppsChatrooms | null) => any} [callback]
          * @returns {Promise<Chatshier.Models.AppsChatrooms | null>}
          */
-        findByPlatformGroupId(appIds, platformGroupIds, query, callback) {
+        findByPlatformGroupId(appIds, platformGroupIds, match, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            let _query = query || { 'chatrooms.isDeleted': false };
-            _query['_id'] = {
+            let _match = match || { 'chatrooms.isDeleted': false };
+            _match['_id'] = {
                 $in: appIds.map((appId) => this.Types.ObjectId(appId))
             };
-            _query['isDeleted'] = false;
+            _match['isDeleted'] = false;
 
             if (!(platformGroupIds instanceof Array)) {
                 platformGroupIds = [platformGroupIds];
             }
 
-            _query['chatrooms.platformGroupId'] = {
+            _match['chatrooms.platformGroupId'] = {
                 $in: platformGroupIds
             };
 
@@ -131,7 +122,7 @@ module.exports = (function() {
                 {
                     $unwind: '$chatrooms'
                 }, {
-                    $match: _query
+                    $match: _match
                 }, {
                     $project: {
                         chatrooms: true
@@ -159,14 +150,10 @@ module.exports = (function() {
                         };
                     }
 
-                    let chatroom = output[app._id].chatrooms[app.chatrooms._id];
-                    chatroom._id = app.chatrooms._id;
-                    chatroom.name = app.chatrooms.name;
-                    chatroom.isDeleted = app.chatrooms.isDeleted;
-                    chatroom.platformGroupId = app.chatrooms.platformGroupId;
-                    chatroom.platformGroupType = app.chatrooms.platformGroupType;
-                    Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers));
-                    Object.assign(chatroom.messages, this.toObject(app.chatrooms.messages));
+                    Object.assign(output[app._id].chatrooms, this.toObject(app.chatrooms));
+                    let chatrooms = output[app._id].chatrooms;
+                    chatrooms[app.chatrooms._id].messagers = this.toObject(app.chatrooms.messagers);
+                    chatrooms[app.chatrooms._id].messages = this.toObject(app.chatrooms.messages);
                     return output;
                 }, {});
                 return appsChatrooms;
@@ -191,26 +178,26 @@ module.exports = (function() {
             _chatroom._id = chatroomId;
             _chatroom.createdTime = _chatroom.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId)
             };
 
-            let updateOper = {
+            let doc = {
                 $push: {
                     chatrooms: _chatroom
                 }
             };
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 // 查詢該 app 的 group_id
                 // 將該 group 的 members 都加入此 chatroom 中
                 let project = {
                     group_id: true
                 };
-                return this.AppsModel.findOne(query, project);
+                return this.AppsModel.findOne(conditions, project);
             }).then((app) => {
                 let groupId = app.group_id;
-                let query = {
+                let match = {
                     '_id': this.Types.ObjectId(groupId),
                     'isDeleted': false,
                     'members.isDeleted': false
@@ -220,7 +207,7 @@ module.exports = (function() {
                     {
                         $unwind: '$members'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             members: true
@@ -232,7 +219,7 @@ module.exports = (function() {
                     return results.map((group) => group.members.user_id);
                 });
             }).then((memberUserIds) => {
-                query['chatrooms._id'] = chatroomId;
+                conditions['chatrooms._id'] = chatroomId;
                 let options = {
                     arrayFilters: [
                         {
@@ -255,7 +242,7 @@ module.exports = (function() {
                             'chatrooms.$[chatroom].messagers': messager
                         }
                     };
-                    return this.AppsModel.update(query, doc, options);
+                    return this.AppsModel.update(conditions, doc, options);
                 }));
             }).then(() => {
                 return this.find(appId, chatroomId.toHexString());
@@ -279,24 +266,25 @@ module.exports = (function() {
             chatroom = chatroom || {};
             chatroom.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'chatrooms._id': this.Types.ObjectId(chatroomId)
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in chatroom) {
-                updateOper.$set['chatrooms.$.' + prop] = chatroom[prop];
+                doc.$set['chatrooms.$.' + prop] = chatroom[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
-                query['chatrooms.isDeleted'] = false;
+            return this.AppsModel.update(conditions, doc).then(() => {
+                let match = Object.assign({}, conditions);
+                match['chatrooms.isDeleted'] = false;
 
                 let aggregations = [
                     {
                         $unwind: '$chatrooms'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             // 篩選需要的項目
@@ -357,22 +345,23 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'chatrooms._id': this.Types.ObjectId(chatroomId)
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in chatroom) {
-                updateOper.$set['chatrooms.$.' + prop] = chatroom[prop];
+                doc.$set['chatrooms.$.' + prop] = chatroom[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
+                let match = Object.assign({}, conditions);
                 let aggregations = [
                     {
                         $unwind: '$chatrooms'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             // 篩選需要的項目

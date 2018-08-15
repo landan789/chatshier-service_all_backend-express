@@ -1,8 +1,30 @@
+/// <reference path='../server/models/core.d.ts' />
+/// <reference path='../server/models/apps_autoreplies.d.ts' />
+/// <reference path='../server/models/apps_categories.d.ts' />
+/// <reference path='../server/models/apps_chatrooms.d.ts' />
+/// <reference path='../server/models/apps_composes.d.ts' />
+/// <reference path='../server/models/apps_fields.d.ts' />
+/// <reference path='../server/models/apps_greetings.d.ts' />
+/// <reference path='../server/models/apps_imagemaps.d.ts' />
+/// <reference path='../server/models/apps_keywordreplies.d.ts' />
+/// <reference path='../server/models/apps_payments.d.ts' />
+/// <reference path='../server/models/apps_richmenus.d.ts' />
+/// <reference path='../server/models/apps_templates.d.ts' />
+/// <reference path='../server/models/apps_tickets.d.ts' />
+/// <reference path='../server/models/apps.d.ts' />
+/// <reference path='../server/models/calendars_events.d.ts' />
+/// <reference path='../server/models/consumers.d.ts' />
+/// <reference path='../server/models/groups_members.d.ts' />
+/// <reference path='../server/models/groups.d.ts' />
+/// <reference path='../server/models/users.d.ts' />
+
 interface Window {
     restfulAPI: {
         setJWT: (value: string) => void,
         apps: AppAPI,
         appsAutoreplies: AppsAutorepliesAPI,
+        appsAppointments: AppsAppointmentsAPI,
+        appsCategories: AppsCategoriesAPI,
         appsChatrooms: AppsChatroomsAPI,
         appsChatroomsMessagers: AppsChatroomsMessagersAPI,
         appsComposes: AppsComposesAPI,
@@ -46,11 +68,11 @@ interface Window {
 }
 
 interface AppAPI {
-    findAll: (userId: string) => Promise<any>;
-    findOne: (appId: string, userId: string) => Promise<any>;
-    insert: (userId: string, postAppData: any) => Promise<any>;
-    update: (appId: string, userId: string, putAppData: any) => Promise<any>;
-    remove: (appId: string, userId: string) => Promise<any>;
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Apps }>;
+    findOne: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Apps }>;
+    insert: (userId: string, postAppData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Apps }>;
+    update: (appId: string, userId: string, putAppData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Apps }>;
+    remove: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Apps }>;
     TYPES: {
         SYSTEM: 'SYSTEM',
         CHATSHIER: 'CHATSHIER',
@@ -64,6 +86,20 @@ interface AppsAutorepliesAPI {
     insert: (appId: string, userId: string, autoreplyData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsAutoreplies }>;
     update: (appId: string, autoreplyId: string, userId: string, autoreplyData: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsAutoreplies }>;
     remove: (appId: string, autoreplyId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsAutoreplies }>;
+}
+
+interface AppsAppointmentsAPI {
+    findAll: (appId: string, userId: string) => Promise<any>;
+    insert: (appId: string, userId: string, appointmentData: any) => Promise<any>;
+    update: (appId: string, appointmentId: string, userId: string, appointmentData: any) => Promise<any>;
+    remove: (appId: string, appointmentId: string, userId: string) => Promise<any>;
+}
+
+interface AppsCategoriesAPI {
+    findAll: (appId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsCategories }>;
+    insert: (appId: string, userId: string, category: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsCategories }>;
+    update: (appId: string, categoryId: string, category: any, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsCategories }>;
+    remove: (appId: string, categoryId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsCategories }>;
 }
 
 interface AppsChatroomsAPI {
@@ -107,7 +143,7 @@ interface AppsTemplatesAPI {
 }
 
 interface AppsPaymentsAPI {
-    findAll: (appId?: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
+    findAll: (appId: string | void, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
     findOne: (appId: string, paymentId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
     insert: (appId: string, userId: string, postPayment: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
     update: (appId: string, paymentId: string, userId: string, putPayment: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.AppsPayments }>;
@@ -171,10 +207,10 @@ interface ConsumersAPI {
 }
 
 interface GroupsMembersAPI {
-    findAll: (groupId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
-    insert: (groupId: string, userId: string, postGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
-    update: (groupId: string, memberId: string, userId: string, putGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
-    remove: (groupId: string, memberId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.GroupsMembers }>;
+    findAll: (groupId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
+    insert: (groupId: string, userId: string, postGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
+    update: (groupId: string, memberId: string, userId: string, putGroupMember: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
+    remove: (groupId: string, memberId: string, userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
     TYPES: {
         OWNER: 'OWNER',
         ADMIN: 'ADMIN',

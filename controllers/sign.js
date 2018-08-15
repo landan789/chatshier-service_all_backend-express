@@ -6,7 +6,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
     const CHATSHIER = require('../config/chatshier');
     const OF_GROUP = '的部門';
 
@@ -85,7 +85,7 @@ module.exports = (function() {
                 return Promise.resolve(token);
             }).then((token) => {
                 let suc = {
-                    msg: API_SUCCESS.USER_SUCCEEDED_TO_SIGNIN.MSG,
+                    msg: SUCCESS.USER_SUCCEEDED_TO_SIGNIN.MSG,
                     jwt: token,
                     data: users
                 };
@@ -108,7 +108,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 let suc = {
-                    msg: API_SUCCESS.USER_SUCCEEDED_TO_SIGNOUT.MSG
+                    msg: SUCCESS.USER_SUCCEEDED_TO_SIGNOUT.MSG
                 };
                 let options = {
                     domain: domain,
@@ -235,7 +235,7 @@ module.exports = (function() {
                 });
             }).then(() => {
                 let suc = {
-                    msg: API_SUCCESS.USER_SUCCEEDED_TO_SIGNUP.MSG,
+                    msg: SUCCESS.USER_SUCCEEDED_TO_SIGNUP.MSG,
                     jwt: token,
                     data: users
                 };
@@ -281,7 +281,7 @@ module.exports = (function() {
                 return Promise.resolve(token);
             }).then(() => {
                 let suc = {
-                    msg: API_SUCCESS.USER_SUCCEEDED_TO_SIGNUP.MSG,
+                    msg: SUCCESS.USER_SUCCEEDED_TO_SIGNUP.MSG,
                     jwt: token,
                     data: users
                 };
@@ -335,7 +335,7 @@ module.exports = (function() {
                 });
             }).then(() => {
                 let suc = {
-                    msg: API_SUCCESS.USER_SUCCEEDED_TO_RESET_PASSWORD.MSG
+                    msg: SUCCESS.USER_SUCCEEDED_TO_RESET_PASSWORD.MSG
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -383,7 +383,7 @@ module.exports = (function() {
                 });
             }).then((users) => {
                 let suc = {
-                    msg: API_SUCCESS.USER_SUCCEEDED_TO_CHANGE_PASSWORD.MSG,
+                    msg: SUCCESS.USER_SUCCEEDED_TO_CHANGE_PASSWORD.MSG,
                     jwt: token,
                     data: users
                 };
@@ -432,7 +432,7 @@ module.exports = (function() {
                 });
             }).then((users) => {
                 let suc = {
-                    msg: API_SUCCESS.USER_SUCCEEDED_TO_CHANGE_PASSWORD.MSG,
+                    msg: SUCCESS.USER_SUCCEEDED_TO_CHANGE_PASSWORD.MSG,
                     jwt: token,
                     data: users
                 };

@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
 
     let appsFieldsMdl = require('../models/apps_fields');
 
@@ -28,7 +28,7 @@ module.exports = (function() {
                 });
             }).then((appsFields) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsFields
                 };
                 return this.successJson(req, res, suc);
@@ -60,7 +60,7 @@ module.exports = (function() {
                 });
             }).then((appsFields) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsFields
                 };
                 return this.successJson(req, res, suc);
@@ -91,7 +91,7 @@ module.exports = (function() {
                 });
             }).then((appsFields) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsFields
                 };
                 return this.successJson(req, res, suc);
@@ -114,7 +114,7 @@ module.exports = (function() {
                 });
             }).then((appsFields) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsFields
                 };
                 return this.successJson(req, res, suc);

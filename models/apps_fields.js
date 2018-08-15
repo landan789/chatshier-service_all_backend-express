@@ -79,7 +79,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 // 尋找符合的欄位
                 '_id': {
                     $in: appIds.map((fieldId) => this.Types.ObjectId(fieldId))
@@ -88,14 +88,14 @@ module.exports = (function() {
                 'fields.isDeleted': false
             };
             if (fieldId) {
-                query['fields._id'] = this.Types.ObjectId(fieldId);
+                match['fields._id'] = this.Types.ObjectId(fieldId);
             }
 
             let aggregations = [
                 {
                     $unwind: '$fields' // 只針對 document 處理
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     // 篩選輸出項目
                     $project: {
@@ -146,17 +146,17 @@ module.exports = (function() {
             field._id = fieldId;
             field.createdTime = field.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': appId
             };
 
-            let updateOper = {
+            let doc = {
                 $push: {
                     fields: field
                 }
             };
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, fieldId.toHexString());
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
@@ -207,17 +207,17 @@ module.exports = (function() {
             field = field || {};
             field.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': appId,
                 'fields._id': fieldId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in field) {
-                updateOper.$set['fields.$.' + prop] = field[prop];
+                doc.$set['fields.$.' + prop] = field[prop];
             }
 
-            return this.AppsModel.update(query, updateOper, { new: false }).then(() => {
+            return this.AppsModel.update(conditions, doc, { new: false }).then(() => {
                 return this.find(appId, fieldId);
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
@@ -240,22 +240,23 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'fields._id': this.Types.ObjectId(fieldId)
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in field) {
-                updateOper.$set['fields.$.' + prop] = field[prop];
+                doc.$set['fields.$.' + prop] = field[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
+                let match = Object.assign({}, conditions);
                 let aggregations = [
                     {
                         $unwind: '$fields' // 只針對 document 處理
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         // 篩選輸出項目
                         $project: {

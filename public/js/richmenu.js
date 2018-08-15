@@ -45,21 +45,34 @@
         FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
     };
 
-    const ACTION_TYPES = Object.freeze({
-        TEXT: 'text',
-        URI: 'uri',
-        TEMPLATE: 'template',
-        RICHMENU: 'richmenu',
-        CONSUMER_FORM: 'consumerForm',
-        DONATION: 'donation'
-    });
-
-    const POSTBACK_DATA_TYPES = Object.freeze({
+    const POSTBACK_ACTIONS = Object.freeze({
         CHANGE_RICHMENU: 'CHANGE_RICHMENU',
         SEND_TEMPLATE: 'SEND_TEMPLATE',
         SEND_CONSUMER_FORM: 'SEND_CONSUMER_FORM',
-        PAYMENT_CONFIRM: 'PAYMENT_CONFIRM'
+        PAYMENT_CONFIRM: 'PAYMENT_CONFIRM',
+        SEND_APPOINTMENT_CATEGORIES: 'SEND_APPOINTMENT_CATEGORIES',
+        SEND_CONSUMER_APPOINTMENTS: 'SEND_CONSUMER_APPOINTMENTS'
     });
+
+    const ACTION_TYPES = Object.freeze({
+        TEXT: 'text',
+        URI: 'uri',
+        [POSTBACK_ACTIONS.SEND_TEMPLATE]: POSTBACK_ACTIONS.SEND_TEMPLATE,
+        [POSTBACK_ACTIONS.CHANGE_RICHMENU]: POSTBACK_ACTIONS.CHANGE_RICHMENU,
+        [POSTBACK_ACTIONS.SEND_CONSUMER_FORM]: POSTBACK_ACTIONS.SEND_CONSUMER_FORM,
+        [POSTBACK_ACTIONS.PAYMENT_CONFIRM]: POSTBACK_ACTIONS.PAYMENT_CONFIRM,
+        [POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES]: POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES,
+        [POSTBACK_ACTIONS.SEND_CONSUMER_APPOINTMENTS]: POSTBACK_ACTIONS.SEND_CONSUMER_APPOINTMENTS
+    });
+
+    const ACTION_TEXTS = {
+        [POSTBACK_ACTIONS.SEND_TEMPLATE]: '發送範本',
+        [POSTBACK_ACTIONS.CHANGE_RICHMENU]: '切換圖文選單',
+        [POSTBACK_ACTIONS.SEND_CONSUMER_FORM]: '用戶填寫個人資料',
+        [POSTBACK_ACTIONS.PAYMENT_CONFIRM]: '候選人捐款功能',
+        [POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES]: '顯示預約目錄',
+        [POSTBACK_ACTIONS.SEND_CONSUMER_APPOINTMENTS]: '用戶查詢個人預約'
+    };
 
     elementHide($('.action-input'));
     elementHide($('.content-input'));
@@ -158,15 +171,7 @@
                             }
 
                             let actionJson = JSON.parse(action.data);
-                            if (POSTBACK_DATA_TYPES.CHANGE_RICHMENU === actionJson.action) {
-                                actionType = ACTION_TYPES.RICHMENU;
-                            } else if (POSTBACK_DATA_TYPES.SEND_TEMPLATE === actionJson.action) {
-                                actionType = ACTION_TYPES.TEMPLATE;
-                            } else if (POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM === actionJson.action) {
-                                actionType = ACTION_TYPES.CONSUMER_FORM;
-                            } else if (POSTBACK_DATA_TYPES.PAYMENT_CONFIRM === actionJson.action) {
-                                actionType = ACTION_TYPES.DONATION;
-                            }
+                            actionType = ACTION_TYPES[actionJson.action] || '';
                             break;
                         case 'uri':
                             actionType = ACTION_TYPES.URI;
@@ -267,32 +272,68 @@
         }
 
         function generateActionInput(boxId) {
+            let normalActions = [{
+                actionType: ACTION_TYPES.TEXT,
+                icon: 'fas fa-text-height',
+                tooltip: '發出文字訊息'
+            }, {
+                actionType: ACTION_TYPES.URI,
+                icon: 'fas fa-link',
+                tooltip: '前往連結'
+            }, {
+                actionType: ACTION_TYPES[POSTBACK_ACTIONS.SEND_TEMPLATE],
+                icon: 'fas fa-clipboard-list',
+                tooltip: ACTION_TEXTS[POSTBACK_ACTIONS.SEND_TEMPLATE]
+            }, {
+                actionType: ACTION_TYPES[POSTBACK_ACTIONS.CHANGE_RICHMENU],
+                icon: 'fas fa-exchange-alt',
+                tooltip: ACTION_TEXTS[POSTBACK_ACTIONS.CHANGE_RICHMENU]
+            }];
+
+            let AdvancedActions = [{
+                actionType: ACTION_TYPES[POSTBACK_ACTIONS.PAYMENT_CONFIRM],
+                icon: 'fas fa-donate',
+                tooltip: ACTION_TEXTS[POSTBACK_ACTIONS.PAYMENT_CONFIRM]
+            }, {
+                actionType: ACTION_TYPES[POSTBACK_ACTIONS.SEND_CONSUMER_FORM],
+                icon: 'fas fa-id-badge',
+                tooltip: ACTION_TEXTS[POSTBACK_ACTIONS.SEND_CONSUMER_FORM]
+            }, {
+                actionType: ACTION_TYPES[POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES],
+                icon: 'fas fa-calendar-plus',
+                tooltip: ACTION_TEXTS[POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES]
+            }, {
+                actionType: ACTION_TYPES[POSTBACK_ACTIONS.SEND_CONSUMER_APPOINTMENTS],
+                icon: 'fas fa-calendar-alt',
+                tooltip: ACTION_TEXTS[POSTBACK_ACTIONS.SEND_CONSUMER_APPOINTMENTS]
+            }];
+
             return (
                 '<div class="px-1 flex-wrap action-input" id="' + boxId + '-input">' +
-                    '<div class="w-100 form-group">' +
-                        '<label class="col-form-label font-weight-bold">設定執行動作:</label>' +
-                        '<div class="w-100 btn-group action-select" role="group" action-type="">' +
+                    '<div class="w-100 form-group action-select" action-type="">' +
+                        '<label class="w-100 col-form-label font-weight-bold">設定執行動作:</label>' +
+                        '<div class="btn-group mr-2" role="group" >' +
                             '<button type="button" class="btn btn-light action-item" action-type="" data-toggle="tooltip" data-placement="top" title="不設定">' +
                                 '<i class="fas fa-times"></i>' +
                             '</button>' +
-                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.TEXT + '" data-toggle="tooltip" data-placement="top" title="發出固定文字訊息">' +
-                                '<i class="fas fa-text-height"></i>' +
-                            '</button>' +
-                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.URI + '" data-toggle="tooltip" data-placement="top" title="前往指定連結">' +
-                                '<i class="fas fa-link"></i>' +
-                            '</button>' +
-                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.TEMPLATE + '" data-toggle="tooltip" data-placement="top" title="發送指定範本訊息">' +
-                                '<i class="fas fa-clipboard-list"></i>' +
-                            '</button>' +
-                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.RICHMENU + '" data-toggle="tooltip" data-placement="top" title="切換圖文選單">' +
-                                '<i class="fas fa-exchange-alt"></i>' +
-                            '</button>' +
-                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.CONSUMER_FORM + '" data-toggle="tooltip" data-placement="top" title="填寫個人資料">' +
-                                '<i class="fas fa-id-badge"></i>' +
-                            '</button>' +
-                            '<button type="button" class="btn btn-light action-item" action-type="' + ACTION_TYPES.DONATION + '" data-toggle="tooltip" data-placement="top" title="候選人捐款功能">' +
-                                '<i class="fas fas fa-donate"></i>' +
-                            '</button>' +
+                        '</div>' +
+                        '<div class="btn-group mr-2" role="group" >' +
+                            (() => normalActions.map((action) => {
+                                return (
+                                    '<button type="button" class="btn btn-light action-item" action-type="' + action.actionType + '" data-toggle="tooltip" data-placement="top" title="' + action.tooltip + '">' +
+                                        '<i class="' + action.icon + '"></i>' +
+                                    '</button>'
+                                );
+                            }))().join('') +
+                        '</div>' +
+                        '<div class="btn-group" role="group" >' +
+                            (() => AdvancedActions.map((action) => {
+                                return (
+                                    '<button type="button" class="btn btn-light action-item" action-type="' + action.actionType + '" data-toggle="tooltip" data-placement="top" title="' + action.tooltip + '">' +
+                                        '<i class="' + action.icon + '"></i>' +
+                                    '</button>'
+                                );
+                            }))().join('') +
                         '</div>' +
                     '</div>' +
                     '<div class="position-relative w-100 form-group action-content"></div>' +
@@ -384,7 +425,7 @@
                                 '<input class="form-control content-input action-data" action-property="uri" type="url" />' +
                             '</div>'
                         );
-                    case ACTION_TYPES.TEMPLATE:
+                    case ACTION_TYPES[POSTBACK_ACTIONS.SEND_TEMPLATE]:
                         return Promise.resolve().then(() => {
                             if (!appsTemplates[appId]) {
                                 return api.appsTemplates.findAll(appId, userId).then((resJson) => {
@@ -413,7 +454,7 @@
                                 '</select>'
                             );
                         });
-                    case ACTION_TYPES.RICHMENU:
+                    case ACTION_TYPES[POSTBACK_ACTIONS.CHANGE_RICHMENU]:
                         return Promise.resolve().then(() => {
                             if (!appsRichmenus[appId]) {
                                 return api.appsRichmenus.findAll(appId, userId).then((resJson) => {
@@ -447,16 +488,18 @@
                                 '</select>'
                             );
                         });
-                    case ACTION_TYPES.DONATION:
+                    case ACTION_TYPES[POSTBACK_ACTIONS.PAYMENT_CONFIRM]:
                         return (
                             '<label class="w-100 font-weight-bold col-form-label">' +
                                 '<span class="text-danger">提醒: 機器人必須完成金流設定，否則此功能將無作用</span>' +
                             '</label>'
                         );
-                    case ACTION_TYPES.CONSUMER_FORM:
+                    case ACTION_TYPES[POSTBACK_ACTIONS.SEND_CONSUMER_FORM]:
+                    case ACTION_TYPES[POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES]:
+                    case ACTION_TYPES[POSTBACK_ACTIONS.SEND_CONSUMER_APPOINTMENTS]:
                         return (
                             '<label class="w-100 font-weight-bold col-form-label">' +
-                                '<span>無須設定</span>' +
+                                '<span>無相關設定</span>' +
                             '</label>'
                         );
                     default:
@@ -765,50 +808,43 @@
             let richmenuAction = {};
             switch (actionType) {
                 case ACTION_TYPES.TEXT:
+                    richmenuAction.type = 'message';
                     if (!actionData.text) {
                         $.notify('設定為文字時，文字不可為空', { type: 'warning' });
                         return;
                     }
-                    richmenuAction.type = 'message';
                     richmenuAction.text = actionData.text || '';
                     break;
                 case ACTION_TYPES.URI:
+                    richmenuAction.type = 'uri';
                     if (!actionData.uri) {
                         $.notify('設定為連結時，連結不可為空', { type: 'warning' });
                         return;
                     }
-                    richmenuAction.type = 'uri';
                     richmenuAction.uri = actionData.uri || '';
                     break;
-                case ACTION_TYPES.RICHMENU:
-                    let richmenuData = {
-                        action: POSTBACK_DATA_TYPES.CHANGE_RICHMENU,
-                        richmenuId: actionData.richmenuId
-                    };
+                case ACTION_TYPES[POSTBACK_ACTIONS.SEND_TEMPLATE]:
                     richmenuAction.type = 'postback';
-                    richmenuAction.data = JSON.stringify(richmenuData);
-                    break;
-                case ACTION_TYPES.TEMPLATE:
                     let templateData = {
-                        action: POSTBACK_DATA_TYPES.SEND_TEMPLATE,
+                        action: actionType,
                         templateId: actionData.templateId
                     };
-                    richmenuAction.type = 'postback';
                     richmenuAction.data = JSON.stringify(templateData);
                     break;
-                case ACTION_TYPES.CONSUMER_FORM:
-                    let userFormData = {
-                        action: POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM
-                    };
+                case ACTION_TYPES[POSTBACK_ACTIONS.CHANGE_RICHMENU]:
                     richmenuAction.type = 'postback';
-                    richmenuAction.data = JSON.stringify(userFormData);
+                    let richmenuData = {
+                        action: actionType,
+                        richmenuId: actionData.richmenuId
+                    };
+                    richmenuAction.data = JSON.stringify(richmenuData);
                     break;
-                case ACTION_TYPES.DONATION:
-                    let donateData = {
-                        action: POSTBACK_DATA_TYPES.PAYMENT_CONFIRM
-                    };
+                case ACTION_TYPES[POSTBACK_ACTIONS.PAYMENT_CONFIRM]:
+                case ACTION_TYPES[POSTBACK_ACTIONS.SEND_CONSUMER_FORM]:
+                case ACTION_TYPES[POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES]:
+                case ACTION_TYPES[POSTBACK_ACTIONS.SEND_CONSUMER_APPOINTMENTS]:
                     richmenuAction.type = 'postback';
-                    richmenuAction.data = JSON.stringify(donateData);
+                    richmenuAction.data = JSON.stringify({ action: actionType });
                     break;
                 default:
                     richmenuAction.type = 'postback';
@@ -922,7 +958,9 @@
         let config = window.CHATSHIER.CONFIG;
         $('.richmenu-image-warning').empty().text(`圖片大小不能超過${(Math.floor(window.CHATSHIER.FILE.RICHMENU_IMAGE_MAX_SIZE / (1024 * 1024)))}MB`);
 
-        nowSelectAppId = '';
+        let recentAppId = window.localStorage.getItem('recentAppId') || '';
+        let firstAppId = '';
+
         for (var appId in apps) {
             var app = apps[appId];
 
@@ -941,11 +979,13 @@
             );
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
-            nowSelectAppId = nowSelectAppId || appId;
+            firstAppId = firstAppId || appId;
         }
 
+        nowSelectAppId = recentAppId && apps[recentAppId] ? recentAppId : firstAppId;
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
+            window.localStorage.setItem('recentAppId', nowSelectAppId);
             return reloadRichmenus(nowSelectAppId, userId).then(() => {
                 $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
             });
@@ -955,6 +995,7 @@
     function appSourceChanged() {
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
+        window.localStorage.setItem('recentAppId', nowSelectAppId);
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
         return reloadRichmenus(nowSelectAppId, userId);
     }
@@ -1081,17 +1122,20 @@
     function getRichmenuActionType(action) {
         switch (action.type) {
             case 'postback':
-                let actionData = action.data || '';
-                if (actionData.indexOf(POSTBACK_DATA_TYPES.CHANGE_RICHMENU) >= 0) {
-                    return '切換圖文選單';
-                } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_TEMPLATE) >= 0) {
-                    return '發送範本';
-                } else if (actionData.indexOf(POSTBACK_DATA_TYPES.SEND_CONSUMER_FORM) >= 0) {
-                    return '填寫個人資料';
-                } else if (actionData.indexOf(POSTBACK_DATA_TYPES.PAYMENT_CONFIRM) >= 0) {
-                    return '候選人捐款功能';
+                let payloadStr = action.data || '';
+                let canParseData =
+                ('string' === typeof payloadStr) && (
+                    (payloadStr.startsWith('{') && payloadStr.endsWith('}')) ||
+                    (payloadStr.startsWith('[') && payloadStr.endsWith(']'))
+                );
+
+                let payload = {};
+                try {
+                    payload = canParseData ? JSON.parse(payloadStr) : {};
+                } catch (ex) {
+                    payload = {};
                 }
-                return '未設定';
+                return ACTION_TEXTS[payload.action] || '未設定';
             case 'uri':
                 return action.uri;
             default:

@@ -8,6 +8,7 @@
     "UNKNOWN": { "MSG": "unknown", "CODE": "0.1" },
     "INVALID_REQUEST_BODY_DATA": { "MSG": "invalid request body data", "CODE": "0.2" },
     "EMAIL_FAILED_TO_SEND": { "MSG": "email failed to send", "CODE": "0.3"},
+    "UNAVAILABLE_GMAIL": { "MSG": "unavailable gmail", "CODE": "2.6" },
 
     "FACEBOOK_PAGE_FAILED_TO_SUBSCRIBE_APP": {"MSG": "facebook page failed to subscribe app", "CODE": "21.1"},
     "FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP": {"MSG": "facebook page failed to unsubscribe app", "CODE": "21.2"},
@@ -160,5 +161,32 @@
 
     "ORDER_FAILED_TO_FIND": { "MSG": "order failed to find", "CODE": "23.1" },
     "ORDER_FAILED_TO_INSERT": { "MSG": "order failed to insert", "CODE": "23.2" },
-    "ORDER_FAILED_TO_UPDATE": { "MSG": "order failed to update", "CODE": "23.3" }
+    "ORDER_FAILED_TO_UPDATE": { "MSG": "order failed to update", "CODE": "23.3" },
+
+    "APP_APPOINTMENT_FAILED_TO_FIND": { "MSG": "app appointment failed to find", "CODE": "24.1" },
+    "APP_APPOINTMENT_FAILED_TO_INSERT": { "MSG": "app appointment failed to insert", "CODE": "24.2" },
+    "APP_APPOINTMENT_FAILED_TO_UPDATE": { "MSG": "app appointment failed to update", "CODE": "24.3" },
+    "APP_APPOINTMENT_FAILED_TO_REMOVE": { "MSG": "app appointment failed to remove", "CODE": "24.4" },
+    "APP_APPOINTMENT_APPOINTMENTID_WAS_EMPTY": {"MSG": "app appointment appointmentid was empty", "CODE": "24.5"},
+
+    "APP_RECEPTIONIST_FAILED_TO_FIND": { "MSG": "app receptionist failed to find", "CODE": "25.1" },
+    "APP_RECEPTIONIST_FAILED_TO_INSERT": { "MSG": "app receptionist failed to insert", "CODE": "25.2" },
+    "APP_RECEPTIONIST_FAILED_TO_UPDATE": { "MSG": "app receptionist failed to update", "CODE": "25.3" },
+    "APP_RECEPTIONIST_FAILED_TO_REMOVE": { "MSG": "app receptionist failed to remove", "CODE": "25.4" },
+    "APP_RECEPTIONIST_SCHEDULE_FAILED_TO_INSERT": { "MSG": "app receptionist schedule failed to insert", "CODE": "25.5" },
+    "APP_RECEPTIONIST_SCHEDULE_FAILED_TO_UPDATE": { "MSG": "app receptionist schedule failed to update", "CODE": "25.6" },
+    "APP_RECEPTIONIST_SCHEDULE_FAILED_TO_REMOVE": { "MSG": "app receptionist schedule failed to remove", "CODE": "25.7" },
+
+    "APP_CATEGORY_FAILED_TO_FIND": { "MSG": "app category failed to find", "CODE": "26.1" },
+    "APP_CATEGORY_FAILED_TO_INSERT": { "MSG": "app category failed to insert", "CODE": "26.2" },
+    "APP_CATEGORY_FAILED_TO_UPDATE": { "MSG": "app category failed to update", "CODE": "26.3" },
+    "APP_CATEGORY_FAILED_TO_REMOVE": { "MSG": "app category failed to remove", "CODE": "26.4" },
+
+    "APP_PRODUCT_FAILED_TO_FIND": { "MSG": "app product failed to find", "CODE": "27.1" },
+    "APP_PRODUCT_FAILED_TO_INSERT": { "MSG": "app product failed to insert", "CODE": "27.2" },
+    "APP_PRODUCT_FAILED_TO_UPDATE": { "MSG": "app product failed to update", "CODE": "27.3" },
+    "APP_PRODUCT_FAILED_TO_REMOVE": { "MSG": "app product failed to remove", "CODE": "27.4" },
+
+    "GOOGLE_CALENDAR_FAILED_TO_INSERT": { "MSG": "google calendar failed to insert", "CODE": "28.2" },
+    "GOOGLE_CALENDAR_FAILED_TO_UPDATE": { "MSG": "google calendar failed to remove", "CODE": "28.3" }
 }

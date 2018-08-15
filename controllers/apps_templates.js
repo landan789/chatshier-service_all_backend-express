@@ -3,7 +3,7 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     /** @type {any} */
-    const API_SUCCESS = require('../config/success.json');
+    const SUCCESS = require('../config/success.json');
     const storageHlp = require('../helpers/storage');
 
     let appsTemplatesMdl = require('../models/apps_templates');
@@ -29,7 +29,7 @@ module.exports = (function() {
                 });
             }).then((appsTemplates) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsTemplates
                 };
                 return this.successJson(req, res, suc);
@@ -52,7 +52,7 @@ module.exports = (function() {
                 return Promise.resolve(appsTemplates);
             }).then((appsTemplates) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsTemplates
                 };
                 return this.successJson(req, res, suc);
@@ -80,7 +80,7 @@ module.exports = (function() {
                 });
             }).then((appsTemplates) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsTemplates
                 };
                 return this.successJson(req, res, suc);
@@ -112,7 +112,7 @@ module.exports = (function() {
                 return Promise.resolve(appsTemplate);
             }).then((appsTemplate) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_UPDATE,
                     data: appsTemplate
                 };
                 return this.successJson(req, res, suc);
@@ -139,7 +139,7 @@ module.exports = (function() {
                 });
             }).then((appsTemplates) => {
                 let suc = {
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
+                    msg: SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
                     data: appsTemplates
                 };
                 return this.successJson(req, res, suc);

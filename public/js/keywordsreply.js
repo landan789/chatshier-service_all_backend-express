@@ -258,10 +258,9 @@
         apps = respJson.data;
 
         let $dropdownMenu = $appDropdown.find('.dropdown-menu');
+        let recentAppId = window.localStorage.getItem('recentAppId') || '';
+        let firstAppId = '';
 
-        // 必須把訊息資料結構轉換為 chart 使用的陣列結構
-        // 將所有的 messages 的物件全部塞到一個陣列之中
-        nowSelectAppId = '';
         for (let appId in apps) {
             let app = apps[appId];
             if (app.isDeleted ||
@@ -276,13 +275,12 @@
                 '</a>'
             );
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
-
-            if (!nowSelectAppId) {
-                nowSelectAppId = appId;
-            }
+            firstAppId = firstAppId || appId;
         }
 
+        nowSelectAppId = recentAppId && apps[recentAppId] ? recentAppId : firstAppId;
         if (nowSelectAppId) {
+            window.localStorage.setItem('recentAppId', nowSelectAppId);
             $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             loadKeywordsReplies(nowSelectAppId, userId);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
@@ -318,6 +316,7 @@
     function appSourceChanged() {
         let $dropdownItem = $(this);
         nowSelectAppId = $dropdownItem.attr('id');
+        window.localStorage.setItem('recentAppId', nowSelectAppId);
         $appDropdown.find('.dropdown-text').text($dropdownItem.text());
         return loadKeywordsReplies(nowSelectAppId, userId);
     }

@@ -20,7 +20,7 @@ module.exports = (function() {
             }
 
             // 尋找符合的欄位
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -28,14 +28,14 @@ module.exports = (function() {
                 'payments.isDeleted': false
             };
             if (paymentId) {
-                query['payments._id'] = this.Types.ObjectId(paymentId);
+                match['payments._id'] = this.Types.ObjectId(paymentId);
             }
 
             let aggregations = [
                 {
                     $unwind: '$payments'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         payments: true
@@ -70,7 +70,7 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.AppsPayments | null>}
          */
         findByMerchantId(merchantId, callback) {
-            let query = {
+            let match = {
                 'isDeleted': false,
                 'payments.merchantId': merchantId,
                 'payments.isDeleted': false
@@ -80,7 +80,7 @@ module.exports = (function() {
                 {
                     $unwind: '$payments'
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         payments: true
@@ -126,17 +126,17 @@ module.exports = (function() {
             payment._id = paymentId;
             payment.createdTime = payment.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': appId
             };
 
-            let updateOper = {
+            let doc = {
                 $push: {
                     payments: payment
                 }
             };
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, paymentId.toHexString());
             }).then((appsPayments) => {
                 ('function' === typeof callback) && callback(appsPayments);
@@ -158,17 +158,17 @@ module.exports = (function() {
             payment = payment || {};
             payment.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': appId,
                 'payments._id': paymentId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in payment) {
-                updateOper.$set['payments.$.' + prop] = payment[prop];
+                doc.$set['payments.$.' + prop] = payment[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, paymentId);
             }).then((appsPayments) => {
                 ('function' === typeof callback) && callback(appsPayments);
@@ -195,24 +195,25 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'payments._id': this.Types.ObjectId(paymentId)
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in payment) {
-                updateOper.$set['payments.$.' + prop] = payment[prop];
+                doc.$set['payments.$.' + prop] = payment[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
+                let match = Object.assign({}, conditions);
                 let aggregations = [
                     {
                         $unwind: '$payments'
                     }, {
-                        $match: query
+                        $match: match
                     }, {
                         $project: {
                             payments: true

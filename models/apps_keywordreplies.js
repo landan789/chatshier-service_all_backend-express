@@ -19,7 +19,7 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let query = {
+            let match = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
@@ -32,7 +32,7 @@ module.exports = (function() {
                     keywordreplyIds = [keywordreplyIds];
                 }
 
-                query['keywordreplies._id'] = {
+                match['keywordreplies._id'] = {
                     $in: keywordreplyIds.map((keywordreplyId) => this.Types.ObjectId(keywordreplyId))
                 };
             }
@@ -41,7 +41,7 @@ module.exports = (function() {
                 {
                     $unwind: '$keywordreplies' // 只針對 document 處理
                 }, {
-                    $match: query
+                    $match: match
                 }, {
                     $project: {
                         // 篩選項目
@@ -109,17 +109,17 @@ module.exports = (function() {
             putKeywordreply._id = keywordreplyId;
             putKeywordreply.updatedTime = Date.now();
 
-            let query = {
+            let conditions = {
                 '_id': appId,
                 'keywordreplies._id': keywordreplyId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in putKeywordreply) {
-                updateOper.$set['keywordreplies.$.' + prop] = putKeywordreply[prop];
+                doc.$set['keywordreplies.$.' + prop] = putKeywordreply[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 return this.find(appId, keywordreplyId);
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
@@ -141,7 +141,7 @@ module.exports = (function() {
                 keywordreplyIds = [keywordreplyIds];
             }
 
-            let query = {
+            let conditions = {
                 '_id': this.Types.ObjectId(appId),
                 'keywordreplies._id': {
                     $in: keywordreplyIds.map((keywordreplyId) => this.Types.ObjectId(keywordreplyId))
@@ -155,7 +155,7 @@ module.exports = (function() {
                 'keywordreplies.$.updatedTime': Date.now()
             };
 
-            return this.AppsModel.update(query, operate, { multi: true }).then(() => {
+            return this.AppsModel.update(conditions, operate, { multi: true }).then(() => {
                 return this.find(appId, keywordreplyIds);
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
@@ -178,17 +178,17 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let query = {
+            let conditions = {
                 '_id': appId,
                 'keywordreplies._id': keywordreplyId
             };
 
-            let updateOper = { $set: {} };
+            let doc = { $set: {} };
             for (let prop in putKeywordreply) {
-                updateOper.$set['keywordreplies.$.' + prop] = putKeywordreply[prop];
+                doc.$set['keywordreplies.$.' + prop] = putKeywordreply[prop];
             }
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(conditions, doc).then(() => {
                 let aggregations = [
                     {
                         $unwind: '$keywordreplies'
