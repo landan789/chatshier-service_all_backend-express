@@ -13,6 +13,7 @@ module.exports = (function() {
          * @property {string | string[]} appIds
          * @property {string | string[]} [appointmentIds]
          * @property {boolean | null} [isDeleted]
+         * @property {string} [receptionistId]
          * @property {string} [eventId]
          * @property {string} [platformUid]
          * @property {Date | number} [endedTime]
@@ -20,7 +21,7 @@ module.exports = (function() {
          * @param {(appsAppointments: Chatshier.Models.AppsAppointments | null) => any} [callback]
          * @return {Promise<Chatshier.Models.AppsAppointments | null>}
          */
-        find({ appIds, appointmentIds, isDeleted, eventId, platformUid, endedTime }, callback) {
+        find({ appIds, appointmentIds, isDeleted, receptionistId, eventId, platformUid, endedTime }, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
@@ -32,6 +33,7 @@ module.exports = (function() {
                 'isDeleted': false
             };
             (null !== isDeleted) && (match['appointments.isDeleted'] = !!isDeleted);
+            receptionistId && (match['appointments.receptionist_id'] = this.Types.ObjectId(receptionistId));
             eventId && (match['appointments.eventId'] = eventId);
             platformUid && (match['appointments.platformUid'] = platformUid);
             endedTime && (match['appointments.endedTime'] = { $gte: new Date(endedTime) });

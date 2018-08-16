@@ -1041,7 +1041,10 @@ module.exports = (function() {
                 return Promise.resolve(repliedMessages);
             }
 
-            return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }).then((appsReceptionists) => {
+            return Promise.all([
+                appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
+                appsAppointmentsMdl.find({ appIds: appId, receptionistId: receptionistId })
+            ]).then(([ appsReceptionists, appsAppointments ]) => {
                 if (!(appsReceptionists && appsReceptionists[appId])) {
                     repliedMessages.push(noTimeMessage);
                     return repliedMessages;
@@ -1049,30 +1052,51 @@ module.exports = (function() {
 
                 let receptionist = appsReceptionists[appId].receptionists[receptionistId];
                 let schedule = receptionist.schedules[scheduleId];
-
                 let serviceInterval = receptionist.interval;
                 let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
-                let startTime = new Date(schedule.start.dateTime);
-                let endTime = new Date(schedule.end.dateTime);
-                endTime.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+                let startedTimeLocal = new Date(schedule.start.dateTime);
+                let endedTimeLocal = new Date(schedule.end.dateTime);
+                endedTimeLocal.setFullYear(startedTimeLocal.getFullYear(), startedTimeLocal.getMonth(), startedTimeLocal.getDate());
 
-                let serviceTimes = Math.floor((endTime.getTime() - startTime.getTime()) / serviceInterval);
-                startTime = new Date(startTime.getTime() - timezoneOffset);
+                let serviceTimes = Math.floor((endedTimeLocal.getTime() - startedTimeLocal.getTime()) / serviceInterval);
+                startedTimeLocal = new Date(startedTimeLocal.getTime() - timezoneOffset);
+
+                if (!appsAppointments) {
+                    appsAppointments = { [appId]: { appointments: {} } };
+                }
+
+                let excludeTimes = [];
+                let appointments = appsAppointments[appId].appointments;
+                for (let appointmentId in appointments) {
+                    let appointment = appointments[appointmentId];
+                    let _startedTimeLocal = new Date(new Date(appointment.startedTime).getTime() - timezoneOffset);
+                    let _endedTimeLocal = new Date(new Date(appointment.endedTime).getTime() - timezoneOffset);
+
+                    let _start = _startedTimeLocal.toISOString();
+                    _start = _start.split('T').pop() || '';
+                    _start = _start.substring(0, 5);
+
+                    let _end = _endedTimeLocal.toISOString();
+                    _end = _end.split('T').pop() || '';
+                    _end = _end.substring(0, 5);
+                    excludeTimes.push(_start + ' ~ ' + _end);
+                }
 
                 let availableTimes = [];
                 for (let i = 0; i < serviceTimes; i++) {
-                    endTime = new Date(startTime.getTime() + serviceInterval);
+                    endedTimeLocal = new Date(startedTimeLocal.getTime() + serviceInterval);
 
-                    let start = startTime.toISOString(); // 2018-07-29T07:00:10.411Z
+                    let start = startedTimeLocal.toISOString(); // 2018-07-29T07:00:10.411Z
                     start = start.split('T').pop() || ''; // 07:00:10.411Z
                     start = start.substring(0, 5); // 07:00
 
-                    let end = endTime.toISOString(); // 2018-07-29T08:00:10.411Z
+                    let end = endedTimeLocal.toISOString(); // 2018-07-29T08:00:10.411Z
                     end = end.split('T').pop() || ''; // 08:00:10.411Z
                     end = end.substring(0, 5); // 08:00
 
-                    availableTimes.push(start + ' ~ ' + end);
-                    startTime = new Date(startTime.getTime() + serviceInterval);
+                    let periodStr = start + ' ~ ' + end;
+                    !excludeTimes.includes(periodStr) && availableTimes.push(periodStr);
+                    startedTimeLocal = new Date(startedTimeLocal.getTime() + serviceInterval);
                 }
 
                 if (0 === availableTimes.length) {
@@ -1151,9 +1175,10 @@ module.exports = (function() {
         /**
          * @param {Webhook.Chatshier.PostbackPayload} payload
          * @param {string} appId
+         * @param {Webhook.Chatshier.Information} webhookInfo
          * @returns {Promise<any[]>}
          */
-        _sendAppointmentConfirm(payload, appId) {
+        _sendAppointmentConfirm(payload, appId, webhookInfo) {
             let repliedMessages = [];
             let timestamp = payload.timestamp || 0;
             let timeoutMessage = this._checkTimeout(timestamp);
@@ -1162,6 +1187,7 @@ module.exports = (function() {
                 return Promise.resolve(repliedMessages);
             }
 
+            let platformUid = webhookInfo.platformUid;
             let productId = payload.productId || '';
             let receptionistId = payload.receptionistId || '';
             let scheduleId = payload.scheduleId || '';
@@ -1180,8 +1206,9 @@ module.exports = (function() {
 
             return Promise.all([
                 appsProductsMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
-                appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId })
-            ]).then(([ appsProducts, appsReceptionists ]) => {
+                appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
+                appsAppointmentsMdl.find({ appIds: appId, platformUid: platformUid })
+            ]).then(([ appsProducts, appsReceptionists, appsAppointments ]) => {
                 if (!(appsProducts && appsProducts[appId]) ||
                     !(appsReceptionists && appsReceptionists[appId])) {
                     let invalidMessage = {
@@ -1194,6 +1221,48 @@ module.exports = (function() {
 
                 let product = appsProducts[appId].products[productId];
                 let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+
+                if (!appsAppointments) {
+                    appsAppointments = { [appId]: { appointments: {} } };
+                }
+                let appointments = appsAppointments[appId].appointments;
+
+                for (let appointmentId in appointments) {
+                    let appointment = appointments[appointmentId];
+                    let startedTimeLocal = new Date(new Date(appointment.startedTime).getTime() - timezoneOffset);
+                    let endedTimeLocal = new Date(new Date(appointment.endedTime).getTime() - timezoneOffset);
+
+                    let _startedTime = startedTimeLocal.toISOString();
+                    let _appointDate = _startedTime.split('T').shift();
+                    _startedTime = _startedTime.split('T').pop() || '';
+                    _startedTime = _startedTime.substring(0, 5);
+
+                    let _endedTime = endedTimeLocal.toISOString();
+                    _endedTime = _endedTime.split('T').pop() || '';
+                    _endedTime = _endedTime.substring(0, 5);
+
+                    if (_appointDate === appointDate &&
+                        _startedTime === startedTime &&
+                        _endedTime === endedTime) {
+                        let duplicatedMessage = {
+                            type: 'text',
+                            text: (
+                                '您在:\n\n' +
+                                '預約項目:\n' +
+                                '【' + product.name + '】\n\n' +
+                                '預約對象:\n' +
+                                '【' + receptionist.name + '】\n\n' +
+                                '預約時間:\n' +
+                                '【' + appointDate + '】\n' +
+                                '【' + startedTime + ' ~ ' + endedTime + '】\n\n' +
+                                '已有預約了'
+                            )
+                        };
+                        repliedMessages.push(duplicatedMessage);
+                        return repliedMessages;
+                    }
+                }
 
                 let infoMessage = {
                     type: 'text',
