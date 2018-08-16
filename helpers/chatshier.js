@@ -1201,16 +1201,12 @@ module.exports = (function() {
                 let infoMessage = {
                     type: 'text',
                     text: (
-                        '以下是您的預約資料:\n' +
-                        '\n' +
+                        '以下是您的預約資料:\n\n' +
                         '預約項目:\n' +
-                        '\n' +
-                        '【' + product.name + '】\n' +
+                        '【' + product.name + '】\n\n' +
                         '預約對象:\n' +
-                        '\n' +
-                        '【' + receptionist.name + '】\n' +
+                        '【' + receptionist.name + '】\n\n' +
                         '預約時間:\n' +
-                        '\n' +
                         '【' + appointDate + '】\n' +
                         '【' + startedTime + ' ~ ' + endedTime + '】'
                     )

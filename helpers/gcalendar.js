@@ -116,11 +116,11 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.GCalendar.CalendarResource>}
          */
         insertCalendar(summary, description = '') {
-            return new Promise((resolve, reject) => {
-                if (!summary) {
-                    return reject(new Error('summary is empty.'));
-                }
+            if (!summary) {
+                return Promise.reject(new Error('summary is empty.'));
+            }
 
+            return new Promise((resolve, reject) => {
                 return this.client.calendars.insert({
                     requestBody: {
                         summary: summary,
@@ -144,11 +144,11 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.GCalendar.CalendarResource>}
          */
         updateCalendar(calendarId, summary, description, timeZone, location) {
-            return new Promise((resolve, reject) => {
-                if (!calendarId) {
-                    return reject(new Error('calendarId is empty.'));
-                }
+            if (!calendarId) {
+                return Promise.reject(new Error('calendarId is empty.'));
+            }
 
+            return new Promise((resolve, reject) => {
                 let requestBody = {};
                 ('string' === typeof summary) && (requestBody.summary = summary);
                 ('string' === typeof description) && (requestBody.description = description);
@@ -172,11 +172,11 @@ module.exports = (function() {
          * @returns {Promise<string>}
          */
         clearCalendar(calendarId) {
-            return new Promise((resolve, reject) => {
-                if (!calendarId) {
-                    return reject(new Error('calendarId is empty.'));
-                }
+            if (!calendarId) {
+                return Promise.reject(new Error('calendarId is empty.'));
+            }
 
+            return new Promise((resolve, reject) => {
                 return this.client.calendars.clear({
                     calendarId: calendarId
                 }, (err, res) => {
@@ -193,6 +193,10 @@ module.exports = (function() {
          * @returns {Promise<string>}
          */
         deleteCalendar(calendarId) {
+            if (!calendarId) {
+                return Promise.reject(new Error('calendarId is empty.'));
+            }
+
             return this.getCalendarACL(calendarId).then((accessControllList) => {
                 // 移除行事曆之前先把此行事曆的所有取消分享者，再移除行事曆
                 let items = accessControllList.items;
@@ -215,10 +219,6 @@ module.exports = (function() {
                 }));
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    if (!calendarId) {
-                        return reject(new Error('calendarId is empty.'));
-                    }
-
                     return this.client.calendars.delete({
                         calendarId: calendarId
                     }, (err, res) => {
@@ -240,11 +240,11 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.GCalendar.AccessControllList>}
          */
         getCalendarACL(calendarId) {
-            return new Promise((resolve, reject) => {
-                if (!calendarId) {
-                    return reject(new Error('calendarId is empty.'));
-                }
+            if (!calendarId) {
+                return Promise.reject(new Error('calendarId is empty.'));
+            }
 
+            return new Promise((resolve, reject) => {
                 return this.client.acl.list({
                     calendarId: calendarId
                 }, (err, res) => {
@@ -262,15 +262,15 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.GCalendar.AccessControllResource>}
          */
         getCalendarACR(calendarId, ruleId) {
+            if (!calendarId) {
+                return Promise.reject(new Error('calendarId is empty.'));
+            }
+
+            if (!ruleId) {
+                return Promise.reject(new Error('ruleId is empty.'));
+            }
+
             return new Promise((resolve, reject) => {
-                if (!calendarId) {
-                    return reject(new Error('calendarId is empty.'));
-                }
-
-                if (!ruleId) {
-                    return reject(new Error('ruleId is empty.'));
-                }
-
                 return this.client.acl.get({
                     calendarId: calendarId,
                     ruleId: ruleId
@@ -387,11 +387,11 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.GCalendar.EventList>}
          */
         getEventList(calendarId) {
-            return new Promise((resolve, reject) => {
-                if (!calendarId) {
-                    return reject(new Error('calendarId is empty'));
-                }
+            if (!calendarId) {
+                return Promise.reject(new Error('calendarId is empty'));
+            }
 
+            return new Promise((resolve, reject) => {
                 return this.client.events.list({
                     calendarId: calendarId
                 }, (err, res) => {
@@ -409,15 +409,15 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.GCalendar.EventResource>}
          */
         getEvent(calendarId, eventId) {
+            if (!calendarId) {
+                return Promise.reject(new Error('calendarId is empty'));
+            }
+
+            if (!eventId) {
+                return Promise.reject(new Error('eventId is empty'));
+            }
+
             return new Promise((resolve, reject) => {
-                if (!calendarId) {
-                    return reject(new Error('calendarId is empty'));
-                }
-
-                if (!eventId) {
-                    return reject(new Error('eventId is empty'));
-                }
-
                 return this.client.events.get({
                     calendarId: calendarId,
                     eventId: eventId
@@ -443,11 +443,11 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.GCalendar.EventResource>}
          */
         insertEvent(calendarId, params) {
-            return new Promise((resolve, reject) => {
-                if (!calendarId) {
-                    return reject(new Error('calendarId is empty'));
-                }
+            if (!calendarId) {
+                return Promise.reject(new Error('calendarId is empty'));
+            }
 
+            return new Promise((resolve, reject) => {
                 return this.client.events.insert({
                     calendarId: calendarId,
                     sendNotifications: true,
@@ -490,15 +490,15 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.GCalendar.EventResource>}
          */
         updateEvent(calendarId, eventId, params) {
+            if (!calendarId) {
+                return Promise.reject(new Error('calendarId is empty'));
+            }
+
+            if (!eventId) {
+                return Promise.reject(new Error('eventId is empty'));
+            }
+
             return new Promise((resolve, reject) => {
-                if (!calendarId) {
-                    return reject(new Error('calendarId is empty'));
-                }
-
-                if (!eventId) {
-                    return reject(new Error('eventId is empty'));
-                }
-
                 let requestBody = {};
                 params.summary && (requestBody.summary = params.summary);
                 params.description && (requestBody.description = params.description);
@@ -560,15 +560,15 @@ module.exports = (function() {
          * @returns {Promise<string>}
          */
         deleteEvent(calendarId, eventId) {
+            if (!calendarId) {
+                return Promise.reject(new Error('calendarId is empty'));
+            }
+
+            if (!eventId) {
+                return Promise.reject(new Error('eventId is empty'));
+            }
+
             return new Promise((resolve, reject) => {
-                if (!calendarId) {
-                    return reject(new Error('calendarId is empty'));
-                }
-
-                if (!eventId) {
-                    return reject(new Error('eventId is empty'));
-                }
-
                 return this.client.events.delete({
                     calendarId: calendarId,
                     eventId: eventId
