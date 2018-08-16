@@ -1336,7 +1336,7 @@ module.exports = (function() {
                     let gcalendarId = app.gcalendarId;
                     if (!gcalendarId) {
                         let summary = '[' + app.name + '] - ' + appId;
-                        let description = 'Created by ' + CHATSHIER_CFG.GAPI.USER;
+                        let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
 
                         return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
                             gcalendarId = gcalendar.id;
