@@ -35,59 +35,23 @@ declare module Webhook {
                 'SEND_APPOINTMENT_CONFIRM' |
                 'APPOINTMENT_FINISH' |
                 'CANCEL_APPOINTMENT',
-            /**
-             * CHANGE_RICHMENU
-             */
             richmenuId?: string,
-            /**
-             * SEND_TEMPLATE
-             */
             templateId?: string,
-            /**
-             * SEND_IMAGEMAP
-             */
             imagemapId?: string,
-            /**
-             * APPOINTMENT_PRODUCTS
-             */
-            categoryId?: string,
-            /**
-             * APPOINTMENT_DATE | APPOINTMENT_TIME
-             */
-            receptionistId?: string,
-            /**
-             * APPOINTMENT_DATE | APPOINTMENT_TIME
-             */
-            productId?: string,
-            /**
-             * APPOINTMENT_DATE | APPOINTMENT_TIME
-             */
-            scheduleId?: string,
-            /**
-             * SEND_APPOINTMENT_CONFIRM
-             * format: hh:mm
-             */
-            startedTime?: string,
-            /**
-             * SEND_APPOINTMENT_CONFIRM
-             * format: hh:mm
-             */
-            endedTime?: string,
-            /**
-             * APPOINTMENT_FINISH
-             */
-            appointmentId?: string,
-            /**
-             * SEND_TEMPLATE | SEND_IMAGEMAP
-             */
             additionalText?: string,
-            /**
-             * SEND_REPLY_TEXT
-             */
             replyText?: string,
-            timestamp?: number,
-
-            lastAppointmentDate?: Date | number
+            
+            // Appointment
+            categoryId?: string,
+            receptionistId?: string,
+            productId?: string,
+            scheduleId?: string,
+            appointDate?: string,
+            startedTime?: string,
+            endedTime?: string,
+            appointmentId?: string,
+            lastAppointmentDate?: Date | number,
+            timestamp?: number
         }
     }
     

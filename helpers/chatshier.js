@@ -952,6 +952,8 @@ module.exports = (function() {
                             label: '　',
                             data: 'none'
                         };
+                        let startedTimeLocal = new Date(date.getTime() - timezoneOffset);
+                        let appointDate = startedTimeLocal.toISOString().split('T').shift();
 
                         /** @type {Webhook.Chatshier.PostbackPayload} */
                         let payloadJson = {
@@ -959,11 +961,10 @@ module.exports = (function() {
                             productId: productId,
                             receptionistId: receptionistId,
                             scheduleId: scheduleId,
+                            appointDate: appointDate,
                             timestamp: Date.now()
                         };
 
-                        let startedTimeLocal = new Date(date.getTime() - timezoneOffset);
-                        let appointDate = startedTimeLocal.toISOString().split('T').shift();
                         action.label = appointDate || action.label;
                         action.data = JSON.stringify(payloadJson);
                         actions.push(action);
@@ -1029,6 +1030,7 @@ module.exports = (function() {
             let productId = payload.productId || '';
             let receptionistId = payload.receptionistId || '';
             let scheduleId = payload.scheduleId || '';
+            let appointDate = payload.appointDate || '';
 
             let noTimeMessage = {
                 type: 'text',
@@ -1126,6 +1128,7 @@ module.exports = (function() {
                                         productId: productId,
                                         receptionistId: receptionistId,
                                         scheduleId: scheduleId,
+                                        appointDate: appointDate,
                                         startedTime: startedTime,
                                         endedTime: endedTime,
                                         timestamp: Date.now()
@@ -1159,10 +1162,10 @@ module.exports = (function() {
                 return Promise.resolve(repliedMessages);
             }
 
-            let categoryId = payload.categoryId || '';
             let productId = payload.productId || '';
             let receptionistId = payload.receptionistId || '';
             let scheduleId = payload.scheduleId || '';
+            let appointDate = payload.appointDate;
             let startedTime = payload.startedTime;
             let endedTime = payload.endedTime;
 
@@ -1176,12 +1179,10 @@ module.exports = (function() {
             }
 
             return Promise.all([
-                appsCategoriesMdl.find({ appIds: appId, categoryIds: categoryId, type: 'APPOINTMENT' }),
                 appsProductsMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
                 appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId })
-            ]).then(([ appsCategories, appsProducts, appsReceptionists ]) => {
-                if (!(appsCategories && appsCategories[appId]) ||
-                    !(appsProducts && appsProducts[appId]) ||
+            ]).then(([ appsProducts, appsReceptionists ]) => {
+                if (!(appsProducts && appsProducts[appId]) ||
                     !(appsReceptionists && appsReceptionists[appId])) {
                     let invalidMessage = {
                         type: 'text',
@@ -1193,10 +1194,6 @@ module.exports = (function() {
 
                 let product = appsProducts[appId].products[productId];
                 let receptionist = appsReceptionists[appId].receptionists[receptionistId];
-                let schedule = receptionist.schedules[scheduleId];
-                let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
-                let startedTimeLocal = new Date(new Date(schedule.start.dateTime).getTime() - timezoneOffset);
-                let appointDate = startedTimeLocal.toISOString().split('T').shift();
 
                 let infoMessage = {
                     type: 'text',
@@ -1220,6 +1217,7 @@ module.exports = (function() {
                     productId: productId,
                     receptionistId: receptionistId,
                     scheduleId: payload.scheduleId,
+                    appointDate: appointDate,
                     startedTime: startedTime,
                     endedTime: endedTime,
                     timestamp: Date.now()
@@ -1272,6 +1270,7 @@ module.exports = (function() {
             let productId = payload.productId || '';
             let receptionistId = payload.receptionistId || '';
             let scheduleId = payload.scheduleId || '';
+            let appointDate = payload.appointDate;
             let startedTimeStr = payload.startedTime;
             let endedTimeStr = payload.endedTime;
             let platformUid = webhookInfo.platformUid;
@@ -1362,7 +1361,6 @@ module.exports = (function() {
                     let schedule = receptionist.schedules[scheduleId];
                     let startDateTime = new Date(schedule.start.dateTime);
                     let startTimeLocal = new Date(startDateTime.getTime() - timezoneOffset);
-                    let appointDate = startTimeLocal.toISOString().split('T').shift();
                     startTimeLocal = new Date(appointDate + ' ' + startedTimeStr);
                     startDateTime = new Date(startTimeLocal.getTime() + timezoneOffset);
 
