@@ -919,7 +919,7 @@ module.exports = (function() {
                 for (let i in scheduleIds) {
                     let scheduleId = scheduleIds[i];
                     let schedule = schedules[scheduleId];
-                    let dates = gcalendarHlp.getEventDates(schedule, 30);
+                    let dates = gcalendarHlp.getEventDates(schedule, new Date(), 30);
                     dates.length > 0 && (scheduleDates[scheduleId] = dates);
                 }
 
