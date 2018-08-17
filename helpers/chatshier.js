@@ -685,7 +685,7 @@ module.exports = (function() {
                                 let column = {
                                     title: '預約目錄',
                                     text: '請選擇要預約的目錄',
-                                    thumbnailImageUrl: url + '/image/default-category.jpg',
+                                    thumbnailImageUrl: url + '/image/default-category.png',
                                     actions: categoryIds.map((categoryId) => {
                                         /** @type {Chatshier.Models.TemplateAction} */
                                         let action = {
