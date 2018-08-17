@@ -1,6 +1,15 @@
+= Release 1.5.0 =
+MASTER release: Not Ready
+== Features ==
+ * Created: add appointment system
+ * Created: message local notification
+    - support: chrome, firefox, osx safari, android chrome, IE Edge(unconfirmed)
+    - not support: IE, ios safari
+== Bug Fixes ==
+
 
 = Release 1.4.3 =
-MASTER release: Not ready
+MASTER release: 2018-07-30
 == Features ==
  * Changed: add feature of facebook import fan pages
 == Bug Fixes ==
