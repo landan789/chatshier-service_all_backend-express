@@ -1,6 +1,7 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    const OneSignal = window.OneSignal || [];
     var NO_HISTORY_MSG = '<p class="message-time font-weight-bold">-沒有更舊的歷史訊息-</p>';
     var COLOR = {
         FIND: '#ff0000',
@@ -19,11 +20,15 @@
     var LINE_GROUP = 'LINE_GROUP';
 
     var LOGOS = {
-        [LINE]: 'https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg',
-        [LINE_GROUP]: './image/line-group.jpg',
-        [FACEBOOK]: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Facebook_Messenger_logo.svg',
-        [WECHAT]: 'https://cdn.worldvectorlogo.com/logos/wechat.svg',
-        [CHATSHIER]: 'image/logo-no-transparent.png'
+        [LINE]: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/LINE_logo.svg/240px-LINE_logo.svg.png',
+        [LINE_GROUP]: '/image/line-group.jpg',
+        [FACEBOOK]: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Facebook_Messenger_logo.svg/238px-Facebook_Messenger_logo.svg.png',
+        [WECHAT]: 'https://upload.wikimedia.org/wikipedia/commons/1/17/WeChat_logo.png',
+        [CHATSHIER]: '/image/logo-no-transparent.png'
+    };
+    var NOTIFY_ICONS = {
+        CHATSHIER: window.location.origin + '/image/logo-no-transparent.png',
+        DSDSDS: window.location.origin + '/image/logo-dsdsds.png'
     };
     var newMessageTipText = '🔔(有新訊息)';
 
@@ -779,6 +784,7 @@
                 var senderMsgerId = message.messager_id;
                 senderMsger = messagers[senderMsgerId];
 
+                let shouldNotify = LINE === message.from || FACEBOOK === message.from;
                 if (SYSTEM === message.from && 'imagemap' === message.type) {
                     message.from = CHATSHIER;
                 }
@@ -829,6 +835,20 @@
                     var _$personProfileGroup = $(generateProfileHtml(appId, chatroomId, platformUid, person));
                     $personProfileGroup.hasClass('d-none') && _$personProfileGroup.addClass('d-none');
                     $personProfileGroup.replaceWith(_$personProfileGroup);
+                }
+
+                if (!hasUserFocus && shouldNotify && OneSignal) {
+                    let isDsdsds = window.location.hostname.indexOf('dsdsds.com.tw') >= 0;
+                    OneSignal.sendSelfNotification(
+                        // Title
+                        consumers[senderUid].name + '【' + app.name + '】',
+                        // Message
+                        message.text || newMessageTipText,
+                        // URL
+                        window.location.origin + '/chat',
+                        // Icon
+                        isDsdsds ? NOTIFY_ICONS.DSDSDS : NOTIFY_ICONS.CHATSHIER
+                    );
                 }
 
                 return nextMessage(i + 1);
