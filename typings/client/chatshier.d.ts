@@ -19,6 +19,14 @@ interface Window {
             DISCOVERY_DOCS: string[],
             SCOPES: string
         },
+        ONESIGNAL: {
+            DEV_CHATSHIER_APPID: string,
+            REL_CHATSHIER_APPID: string,
+            CHATSHIER_APPID: string,
+            DEV_DSDSDS_APPID: string,
+            REL_DSDSDS_APPID: string,
+            DSDSDS_APPID: string
+        },
         URL: {
             WWW: string,
             port: string,

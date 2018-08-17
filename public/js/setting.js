@@ -1,6 +1,7 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    const OneSignal = window.OneSignal || [];
     const SOCKET_NAMESPACE = '/chatshier';
     const SOCKET_SERVER_URL = window.CHATSHIER.URL.API.replace('..', window.location.origin) + SOCKET_NAMESPACE;
     const SOCKET_EVENTS = window.SOCKET_EVENTS;
@@ -257,6 +258,32 @@
                 '</div>' +
             '</form>';
         $settingModal.find('.modal-body').append(str);
+    });
+
+    let $notificationCbx = $('#notificationRow #notificationCbx');
+    OneSignal.isPushNotificationsEnabled().then((isPushEnabled) => $notificationCbx.prop('checked', isPushEnabled));
+    OneSignal.on('subscriptionChange', (isSubscribed) => $notificationCbx.prop('checked', isSubscribed));
+
+    $notificationCbx.on('click', (ev) => {
+        ev.preventDefault();
+
+        return Promise.all([
+            OneSignal.isPushNotificationsEnabled(),
+            OneSignal.isOptedOut()
+        ]).then((results) => {
+            let isPushEnabled = results[0];
+            let isOptedOut = results[1];
+
+            if (isPushEnabled) {
+                OneSignal.setSubscription(false);
+            } else {
+                if (isOptedOut) {
+                    OneSignal.setSubscription(true);
+                } else {
+                    OneSignal.registerForPushNotifications();
+                }
+            }
+        });
     });
 
     // payment modal 處理
