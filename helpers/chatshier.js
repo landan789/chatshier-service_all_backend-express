@@ -1637,7 +1637,7 @@ module.exports = (function() {
                 text: '此預約已經被取消了。'
             };
 
-            return appsAppointmentsMdl.find({ appIds: appId }).then((appsAppointments) => {
+            return appsAppointmentsMdl.find({ appIds: appId, appointmentIds: appointmentId }).then((appsAppointments) => {
                 if (!(appsAppointments && appsAppointments[appId])) {
                     repliedMessages.push(notFoundMessage);
                     return Promise.resolve(repliedMessages);
