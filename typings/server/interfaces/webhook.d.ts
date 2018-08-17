@@ -46,7 +46,7 @@ declare module Webhook {
             receptionistId?: string,
             productId?: string,
             scheduleId?: string,
-            appointDate?: string,
+            appointmentDate?: string,
             startedTime?: string,
             endedTime?: string,
             appointmentId?: string,

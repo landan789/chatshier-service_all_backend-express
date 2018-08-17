@@ -381,14 +381,14 @@ module.exports = (function() {
             return templateJson;
         }
 
-        _checkTimeout(timestamp) {
-            if (!(Date.now() - timestamp > 30 * 60 * 1000)) {
+        _checkAppointmentTimeout(timestamp) {
+            if (!(Date.now() - timestamp > 10 * 60 * 1000)) {
                 return;
             }
 
             let timeoutMessage = {
                 type: 'text',
-                text: '此操作已逾時 30 分鐘，請重新操作。'
+                text: '此操作已逾時 10 分鐘，請重新操作。'
             };
             return timeoutMessage;
         }
@@ -730,7 +730,7 @@ module.exports = (function() {
         _sendAppointmentProducts(payload, appId, webhookInfo) {
             let repliedMessages = [];
             let timestamp = payload.timestamp || 0;
-            let timeoutMessage = this._checkTimeout(timestamp);
+            let timeoutMessage = this._checkAppointmentTimeout(timestamp);
             if (timeoutMessage) {
                 repliedMessages.push(timeoutMessage);
                 return Promise.resolve(repliedMessages);
@@ -878,7 +878,7 @@ module.exports = (function() {
         _sendAppointmentDates(payload, appId, webhookInfo) {
             let repliedMessages = [];
             let timestamp = payload.timestamp || 0;
-            let timeoutMessage = this._checkTimeout(timestamp);
+            let timeoutMessage = this._checkAppointmentTimeout(timestamp);
             if (timeoutMessage) {
                 repliedMessages.push(timeoutMessage);
                 return Promise.resolve(repliedMessages);
@@ -953,7 +953,7 @@ module.exports = (function() {
                             data: 'none'
                         };
                         let startedTimeLocal = new Date(date.getTime() - timezoneOffset);
-                        let appointDate = startedTimeLocal.toISOString().split('T').shift();
+                        let appointmentDate = startedTimeLocal.toISOString().split('T').shift();
 
                         /** @type {Webhook.Chatshier.PostbackPayload} */
                         let payloadJson = {
@@ -961,11 +961,11 @@ module.exports = (function() {
                             productId: productId,
                             receptionistId: receptionistId,
                             scheduleId: scheduleId,
-                            appointDate: appointDate,
+                            appointmentDate: appointmentDate,
                             timestamp: Date.now()
                         };
 
-                        action.label = appointDate || action.label;
+                        action.label = appointmentDate || action.label;
                         action.data = JSON.stringify(payloadJson);
                         actions.push(action);
 
@@ -1021,7 +1021,7 @@ module.exports = (function() {
         _sendAppointmentTimes(payload, appId, webhookInfo) {
             let repliedMessages = [];
             let timestamp = payload.timestamp || 0;
-            let timeoutMessage = this._checkTimeout(timestamp);
+            let timeoutMessage = this._checkAppointmentTimeout(timestamp);
             if (timeoutMessage) {
                 repliedMessages.push(timeoutMessage);
                 return Promise.resolve(repliedMessages);
@@ -1030,7 +1030,7 @@ module.exports = (function() {
             let productId = payload.productId || '';
             let receptionistId = payload.receptionistId || '';
             let scheduleId = payload.scheduleId || '';
-            let appointDate = payload.appointDate || '';
+            let appointmentDate = payload.appointmentDate || '';
 
             let noTimeMessage = {
                 type: 'text',
@@ -1041,9 +1041,13 @@ module.exports = (function() {
                 return Promise.resolve(repliedMessages);
             }
 
+            let startedTime = new Date(appointmentDate);
+            let endedTime = new Date(startedTime.getTime() + 86400000);
+
             return Promise.all([
                 appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
-                appsAppointmentsMdl.find({ appIds: appId, receptionistId: receptionistId })
+                // 抓出該日 24 小時內的所有預約
+                appsAppointmentsMdl.find({ appIds: appId, startedTime: startedTime, endedTime: endedTime })
             ]).then(([ appsReceptionists, appsAppointments ]) => {
                 if (!(appsReceptionists && appsReceptionists[appId])) {
                     repliedMessages.push(noTimeMessage);
@@ -1061,7 +1065,7 @@ module.exports = (function() {
                 let serviceTimes = Math.floor((endedTimeLocal.getTime() - startedTimeLocal.getTime()) / serviceInterval);
                 startedTimeLocal = new Date(startedTimeLocal.getTime() - timezoneOffset);
 
-                if (!appsAppointments) {
+                if (!(appsAppointments && appsAppointments[appId])) {
                     appsAppointments = { [appId]: { appointments: {} } };
                 }
 
@@ -1152,7 +1156,7 @@ module.exports = (function() {
                                         productId: productId,
                                         receptionistId: receptionistId,
                                         scheduleId: scheduleId,
-                                        appointDate: appointDate,
+                                        appointmentDate: appointmentDate,
                                         startedTime: startedTime,
                                         endedTime: endedTime,
                                         timestamp: Date.now()
@@ -1181,7 +1185,7 @@ module.exports = (function() {
         _sendAppointmentConfirm(payload, appId, webhookInfo) {
             let repliedMessages = [];
             let timestamp = payload.timestamp || 0;
-            let timeoutMessage = this._checkTimeout(timestamp);
+            let timeoutMessage = this._checkAppointmentTimeout(timestamp);
             if (timeoutMessage) {
                 repliedMessages.push(timeoutMessage);
                 return Promise.resolve(repliedMessages);
@@ -1191,122 +1195,137 @@ module.exports = (function() {
             let productId = payload.productId || '';
             let receptionistId = payload.receptionistId || '';
             let scheduleId = payload.scheduleId || '';
-            let appointDate = payload.appointDate;
-            let startedTime = payload.startedTime;
-            let endedTime = payload.endedTime;
+            let appointmentDate = payload.appointmentDate || '';
+            let startedTimeStr = payload.startedTime;
+            let endedTimeStr = payload.endedTime;
 
-            if (!(receptionistId && scheduleId && startedTime && endedTime)) {
-                let invalidMessage = {
-                    type: 'text',
-                    text: '很抱歉，無法確認您的預約資料，請重新操作。'
-                };
+            let invalidMessage = {
+                type: 'text',
+                text: '很抱歉，無法建立此預約！請重新操作。'
+            };
+            if (!(receptionistId && scheduleId && startedTimeStr && endedTimeStr)) {
                 repliedMessages.push(invalidMessage);
                 return Promise.resolve(repliedMessages);
             }
 
-            return Promise.all([
-                appsProductsMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
-                appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
-                appsAppointmentsMdl.find({ appIds: appId, platformUid: platformUid })
-            ]).then(([ appsProducts, appsReceptionists, appsAppointments ]) => {
-                if (!(appsProducts && appsProducts[appId]) ||
-                    !(appsReceptionists && appsReceptionists[appId])) {
-                    let invalidMessage = {
-                        type: 'text',
-                        text: '很抱歉，無法建立此預約！請重新操作。'
-                    };
+            return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }).then((appsReceptionists) => {
+                if (!(appsReceptionists && appsReceptionists[appId])) {
                     repliedMessages.push(invalidMessage);
                     return repliedMessages;
                 }
-
-                let product = appsProducts[appId].products[productId];
                 let receptionist = appsReceptionists[appId].receptionists[receptionistId];
                 let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                let maxNumberPerDay = receptionist.maxNumberPerDay;
+                let startedTime = new Date(appointmentDate);
+                let endedTime = new Date(startedTime.getTime() + 86400000);
 
-                if (!appsAppointments) {
-                    appsAppointments = { [appId]: { appointments: {} } };
-                }
-                let appointments = appsAppointments[appId].appointments;
-
-                for (let appointmentId in appointments) {
-                    let appointment = appointments[appointmentId];
-                    let startedTimeLocal = new Date(new Date(appointment.startedTime).getTime() - timezoneOffset);
-                    let endedTimeLocal = new Date(new Date(appointment.endedTime).getTime() - timezoneOffset);
-
-                    let _startedTime = startedTimeLocal.toISOString();
-                    let _appointDate = _startedTime.split('T').shift();
-                    _startedTime = _startedTime.split('T').pop() || '';
-                    _startedTime = _startedTime.substring(0, 5);
-
-                    let _endedTime = endedTimeLocal.toISOString();
-                    _endedTime = _endedTime.split('T').pop() || '';
-                    _endedTime = _endedTime.substring(0, 5);
-
-                    if (_appointDate === appointDate &&
-                        _startedTime === startedTime &&
-                        _endedTime === endedTime) {
-                        let duplicatedMessage = {
-                            type: 'text',
-                            text: (
-                                '您在:\n\n' +
-                                '預約項目:\n' +
-                                '【' + product.name + '】\n\n' +
-                                '預約對象:\n' +
-                                '【' + receptionist.name + '】\n\n' +
-                                '預約時間:\n' +
-                                '【' + appointDate + '】\n' +
-                                '【' + startedTime + ' ~ ' + endedTime + '】\n\n' +
-                                '已有預約了'
-                            )
-                        };
-                        repliedMessages.push(duplicatedMessage);
+                return Promise.all([
+                    appsProductsMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
+                    appsAppointmentsMdl.find({ appIds: appId, receptionistId: receptionistId, startedTime: startedTime, endedTime: endedTime }),
+                    appsAppointmentsMdl.find({ appIds: appId, platformUid: platformUid })
+                ]).then(([ appsProducts, appsAppointmentsR, appsAppointmentsP ]) => {
+                    if (!(appsProducts && appsProducts[appId])) {
+                        repliedMessages.push(invalidMessage);
                         return repliedMessages;
                     }
-                }
 
-                let infoMessage = {
-                    type: 'text',
-                    text: (
-                        '以下是您的預約資料:\n\n' +
-                        '預約項目:\n' +
-                        '【' + product.name + '】\n\n' +
-                        '預約對象:\n' +
-                        '【' + receptionist.name + '】\n\n' +
-                        '預約時間:\n' +
-                        '【' + appointDate + '】\n' +
-                        '【' + startedTime + ' ~ ' + endedTime + '】'
-                    )
-                };
-
-                let appointmentId = appsAppointmentsMdl.Types.ObjectId().toHexString();
-                /** @type {Webhook.Chatshier.PostbackPayload} */
-                let payloadJson = {
-                    action: 'APPOINTMENT_FINISH',
-                    appointmentId: appointmentId,
-                    productId: productId,
-                    receptionistId: receptionistId,
-                    scheduleId: payload.scheduleId,
-                    appointDate: appointDate,
-                    startedTime: startedTime,
-                    endedTime: endedTime,
-                    timestamp: Date.now()
-                };
-                let confirmMessage = {
-                    type: 'template',
-                    altText: '預約時間',
-                    template: {
-                        type: 'buttons',
-                        title: '確認預約',
-                        text: '請確認以上資料是否無誤',
-                        actions: [{
-                            type: 'postback',
-                            label: '確認預約',
-                            data: JSON.stringify(payloadJson)
-                        }]
+                    if (!(appsAppointmentsR && appsAppointmentsR[appId])) {
+                        appsAppointmentsR = { [appId]: { appointments: {} } };
                     }
-                };
-                repliedMessages.push(infoMessage, confirmMessage);
-                return repliedMessages;
+                    let appointmentsR = appsAppointmentsR[appId].appointments;
+                    if (maxNumberPerDay && Object.keys(appointmentsR).length >= maxNumberPerDay) {
+                        let fullMessage = {
+                            type: 'text',
+                            text: '很抱歉，該預約對象當天的預約數已達上限，無法預約！請選擇其他日期。'
+                        };
+                        repliedMessages.push(fullMessage);
+                        return repliedMessages;
+                    }
+
+                    if (!(appsAppointmentsP && appsAppointmentsP[appId])) {
+                        appsAppointmentsP = { [appId]: { appointments: {} } };
+                    }
+                    let appointmentsP = appsAppointmentsP[appId].appointments;
+                    let product = appsProducts[appId].products[productId];
+
+                    for (let appointmentId in appointmentsP) {
+                        let appointment = appointmentsP[appointmentId];
+                        let startedTimeLocal = new Date(new Date(appointment.startedTime).getTime() - timezoneOffset);
+                        let endedTimeLocal = new Date(new Date(appointment.endedTime).getTime() - timezoneOffset);
+
+                        let _startedTimeStr = startedTimeLocal.toISOString();
+                        let _appointmentDate = _startedTimeStr.split('T').shift();
+                        _startedTimeStr = (_startedTimeStr.split('T').pop() || '').substring(0, 5);
+
+                        let _endedTimeStr = endedTimeLocal.toISOString();
+                        _endedTimeStr = (_endedTimeStr.split('T').pop() || '').substring(0, 5);
+
+                        if (_appointmentDate === appointmentDate &&
+                            _startedTimeStr === startedTimeStr &&
+                            _endedTimeStr === endedTimeStr) {
+                            let duplicatedMessage = {
+                                type: 'text',
+                                text: (
+                                    '您在:\n\n' +
+                                    '預約項目:\n' +
+                                    '【' + product.name + '】\n\n' +
+                                    '預約對象:\n' +
+                                    '【' + receptionist.name + '】\n\n' +
+                                    '預約時間:\n' +
+                                    '【' + appointmentDate + '】\n' +
+                                    '【' + startedTimeStr + ' ~ ' + endedTimeStr + '】\n\n' +
+                                    '已有預約了'
+                                )
+                            };
+                            repliedMessages.push(duplicatedMessage);
+                            return repliedMessages;
+                        }
+                    }
+
+                    let infoMessage = {
+                        type: 'text',
+                        text: (
+                            '以下是您的預約資料:\n\n' +
+                            '預約項目:\n' +
+                            '【' + product.name + '】\n\n' +
+                            '預約對象:\n' +
+                            '【' + receptionist.name + '】\n\n' +
+                            '預約時間:\n' +
+                            '【' + appointmentDate + '】\n' +
+                            '【' + startedTimeStr + ' ~ ' + endedTimeStr + '】'
+                        )
+                    };
+
+                    let appointmentId = appsAppointmentsMdl.Types.ObjectId().toHexString();
+                    /** @type {Webhook.Chatshier.PostbackPayload} */
+                    let payloadJson = {
+                        action: 'APPOINTMENT_FINISH',
+                        appointmentId: appointmentId,
+                        productId: productId,
+                        receptionistId: receptionistId,
+                        scheduleId: payload.scheduleId,
+                        appointmentDate: appointmentDate,
+                        startedTime: startedTimeStr,
+                        endedTime: endedTimeStr,
+                        timestamp: Date.now()
+                    };
+                    let confirmMessage = {
+                        type: 'template',
+                        altText: '預約時間',
+                        template: {
+                            type: 'buttons',
+                            title: '確認預約',
+                            text: '請確認以上資料是否無誤',
+                            actions: [{
+                                type: 'postback',
+                                label: '確認預約',
+                                data: JSON.stringify(payloadJson)
+                            }]
+                        }
+                    };
+                    repliedMessages.push(infoMessage, confirmMessage);
+                    return repliedMessages;
+                });
             });
         }
 
@@ -1319,7 +1338,7 @@ module.exports = (function() {
         _appointmentFinish(payload, appId, webhookInfo) {
             let repliedMessages = [];
             let timestamp = payload.timestamp || 0;
-            let timeoutMessage = this._checkTimeout(timestamp);
+            let timeoutMessage = this._checkAppointmentTimeout(timestamp);
             if (timeoutMessage) {
                 repliedMessages.push(timeoutMessage);
                 return Promise.resolve(repliedMessages);
@@ -1339,7 +1358,7 @@ module.exports = (function() {
             let productId = payload.productId || '';
             let receptionistId = payload.receptionistId || '';
             let scheduleId = payload.scheduleId || '';
-            let appointDate = payload.appointDate;
+            let appointmentDate = payload.appointmentDate;
             let startedTimeStr = payload.startedTime;
             let endedTimeStr = payload.endedTime;
             let platformUid = webhookInfo.platformUid;
@@ -1430,10 +1449,10 @@ module.exports = (function() {
                     let schedule = receptionist.schedules[scheduleId];
                     let startDateTime = new Date(schedule.start.dateTime);
                     let startTimeLocal = new Date(startDateTime.getTime() - timezoneOffset);
-                    startTimeLocal = new Date(appointDate + ' ' + startedTimeStr);
+                    startTimeLocal = new Date(appointmentDate + ' ' + startedTimeStr);
                     startDateTime = new Date(startTimeLocal.getTime() + timezoneOffset);
 
-                    let endTimeLocal = new Date(appointDate + ' ' + endedTimeStr);
+                    let endTimeLocal = new Date(appointmentDate + ' ' + endedTimeStr);
                     let endDateTime = new Date(endTimeLocal.getTime() + timezoneOffset);
 
                     return gcalendarHlp.insertEvent(gcalendarId, {
@@ -1476,7 +1495,7 @@ module.exports = (function() {
                                     '\n\n' +
                                     '【' + product.name + '】\n' +
                                     '【' + receptionist.name + '】\n' +
-                                    '【' + appointDate + '】\n' +
+                                    '【' + appointmentDate + '】\n' +
                                     '【' + startedTimeStr + ' ~ ' + endedTimeStr + '】\n' +
                                     '\n' +
                                     '感謝您的預約！'
@@ -1565,7 +1584,7 @@ module.exports = (function() {
 
                         let startStrSplits = startedTimeLocal.toISOString().split('T');
                         let endStrSplits = endedTimeLocal.toISOString().split('T');
-                        let appointDate = startStrSplits.shift() || '';
+                        let appointmentDate = startStrSplits.shift() || '';
                         let startTimeStr = (startStrSplits.pop() || '').substring(0, 5);
                         let endTimeStr = (endStrSplits.pop() || '').substring(0, 5);
 
@@ -1579,7 +1598,7 @@ module.exports = (function() {
                         /** @type {Chatshier.Models.TemplateColumn} */
                         let column = {
                             title: product.name + ' - ' + receptionist.name,
-                            text: appointDate + ' - ' + startTimeStr + ' ~ ' + endTimeStr,
+                            text: appointmentDate + ' - ' + startTimeStr + ' ~ ' + endTimeStr,
                             thumbnailImageUrl: receptionist.photo || url + '/image/default-consumer.png',
                             actions: [{
                                 type: 'postback',
@@ -1605,7 +1624,7 @@ module.exports = (function() {
         _cancelAppointment(payload, appId, webhookInfo) {
             let repliedMessages = [];
             let timestamp = payload.timestamp || 0;
-            let timeoutMessage = this._checkTimeout(timestamp);
+            let timeoutMessage = this._checkAppointmentTimeout(timestamp);
             if (timeoutMessage) {
                 repliedMessages.push(timeoutMessage);
                 return Promise.resolve(repliedMessages);
@@ -1663,7 +1682,7 @@ module.exports = (function() {
 
                             let startStrSplits = startedTimeLocal.toISOString().split('T');
                             let endStrSplits = endedTimeLocal.toISOString().split('T');
-                            let appointDate = startStrSplits.shift() || '';
+                            let appointmentDate = startStrSplits.shift() || '';
                             let startTimeStr = (startStrSplits.pop() || '').substring(0, 5);
                             let endTimeStr = (endStrSplits.pop() || '').substring(0, 5);
 
@@ -1671,7 +1690,7 @@ module.exports = (function() {
                                 '\n' +
                                 '\n【' + product.name + '】' +
                                 '\n【' + receptionist.name + '】' +
-                                '\n【' + appointDate + '】' +
+                                '\n【' + appointmentDate + '】' +
                                 '\n【' + startTimeStr + ' ~ ' + endTimeStr + '】'
                             );
                         }

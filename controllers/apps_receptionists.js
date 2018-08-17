@@ -47,7 +47,7 @@ module.exports = (function() {
                 email: ('string' === typeof req.body.email) ? req.body.email : '',
                 phone: ('string' === typeof req.body.phone) ? req.body.phone : '',
                 timezoneOffset: ('number' === typeof req.body.timezoneOffset) ? req.body.timezoneOffset : 0,
-                maxNumber: ('number' === typeof req.body.maxNumber) ? req.body.maxNumber : 0,
+                maxNumberPerDay: ('number' === typeof req.body.maxNumberPerDay) ? req.body.maxNumberPerDay : 0,
                 interval: ('number' === typeof req.body.interval) ? req.body.interval : 0,
                 schedules: (req.body.schedules instanceof Array) ? req.body.schedules : []
             };
@@ -85,7 +85,7 @@ module.exports = (function() {
             ('string' === typeof req.body.email) && (putReceptionist.email = req.body.email);
             ('string' === typeof req.body.phone) && (putReceptionist.phone = req.body.phone);
             ('number' === typeof req.body.timezoneOffset) && (putReceptionist.timezoneOffset = req.body.timezoneOffset);
-            ('number' === typeof req.body.maxNumber) && (putReceptionist.maxNumber = req.body.maxNumber);
+            ('number' === typeof req.body.maxNumberPerDay) && (putReceptionist.maxNumberPerDay = req.body.maxNumberPerDay);
             ('number' === typeof req.body.interval) && (putReceptionist.interval = req.body.interval);
             (req.body.schedules instanceof Array) && (putReceptionist.schedules = req.body.schedules);
 
