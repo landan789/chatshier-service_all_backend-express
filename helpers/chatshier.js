@@ -781,7 +781,9 @@ module.exports = (function() {
                             columns: []
                         }
                     };
-                    return Promise.all(productIds.map((productId) => {
+                    let _productIds = Object.keys(products);
+
+                    return Promise.all(_productIds.map((productId) => {
                         let product = products[productId];
                         let receptionistIds = product.receptionist_ids || [];
 
@@ -799,7 +801,7 @@ module.exports = (function() {
                                     return;
                                 }
 
-                                if (productIds.length > 1 || productColumns.length > 1) {
+                                if (_productIds.length > 1 || productColumns.length > 1) {
                                     while (receptionistIds.length < 3) {
                                         receptionistIds.push('');
                                     }
