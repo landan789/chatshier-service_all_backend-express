@@ -53,20 +53,21 @@ module.exports = (function() {
 
         /**
          * @param {Chatshier.GCalendar.EventResource | Chatshier.Models.Schedule} event
-         * @param {number} maxDates
+         * @param {Date} [dtstart]
+         * @param {number} [maxDates]
          * @returns {Date[]}
          */
-        getEventDates(event, maxDates = 30) {
+        getEventDates(event, dtstart, maxDates = 30) {
             let recurrence = event.recurrence || [];
-            let dtstart = new Date(event.start.dateTime);
-            dtstart.setMinutes(0, 0, 0);
+            let _dtstart = dtstart || new Date(event.start.dateTime);
+            _dtstart.setMinutes(0, 0, 0);
 
             let rruleSet = new RRuleSet();
             if (!recurrence[0]) {
                 let endDateTime = new Date(event.end.dateTime);
                 rruleSet.rrule(new RRule({
                     freq: RRule.DAILY,
-                    dtstart: dtstart,
+                    dtstart: _dtstart,
                     wkst: RRule.SU,
                     until: endDateTime
                 }));
@@ -85,7 +86,7 @@ module.exports = (function() {
                 options.freq === RRule.WEEKLY && (options.freq = RRule.DAILY);
                 options.wkst = RRule.SU;
                 options.byhour = options.byminute = options.bysecond = null;
-                options.dtstart = dtstart;
+                options.dtstart = _dtstart;
 
                 let rrule = new RRule(options);
                 rruleSet.rrule(rrule);

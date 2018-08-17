@@ -214,7 +214,7 @@ module.exports = (function() {
         'email': {type: String, default: ''},
         'phone': {type: String, default: ''},
         'timezoneOffset': {type: Number, default: 0},
-        'maxNumber': {type: Number, default: 1},
+        'maxNumberPerDay': {type: Number, default: 1},
         'interval': {type: Number, default: 0}, // Unit time
         'timesOfAppointment': {type: Number, default: 0},
         'schedules': [{

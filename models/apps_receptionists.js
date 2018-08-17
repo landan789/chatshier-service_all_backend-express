@@ -52,15 +52,15 @@ module.exports = (function() {
                         receptionists: {
                             _id: '$receptionists._id',
                             gcalendarId: '$receptionists.gcalendarId',
+                            isCalendarShared: '$receptionists.isCalendarShared',
                             name: '$receptionists.name',
                             photo: '$receptionists.photo',
                             email: '$receptionists.email',
                             phone: '$receptionists.phone',
                             timezoneOffset: '$receptionists.timezoneOffset',
-                            maxNumber: '$receptionists.maxNumber',
+                            maxNumberPerDay: '$receptionists.maxNumberPerDay',
                             interval: '$receptionists.interval',
                             timesOfAppointment: '$receptionists.timesOfAppointment',
-                            isCalendarShared: '$receptionists.isCalendarShared',
                             schedules: {
                                 $filter: {
                                     input: '$receptionists.schedules',

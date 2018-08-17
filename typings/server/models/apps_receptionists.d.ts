@@ -17,7 +17,7 @@ declare module Chatshier {
             email: string,
             phone: string,
             timezoneOffset: number,
-            maxNumber: number,
+            maxNumberPerDay: number,
             interval: number,
             timesOfAppointment: number,
             isCalendarShared: boolean,
