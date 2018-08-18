@@ -537,9 +537,14 @@ router.post('/:webhookid', (req, res, next) => {
                                         contents: {
                                             en: message.text || '🔔(有新訊息)'
                                         },
-                                        url: 'https://' + req.hostname + '/chat',
+                                        // 後面帶上 chatroomId 可使使用者點擊推播訊息後
+                                        // 前端在載入頁面完成後，可根據是哪個 chatroomId 直接將該 chatroom 開啟，提升使用者體驗
+                                        url: 'https://' + req.hostname + '/chat?chatroom_id=' + webhookChatroomId,
                                         large_icon: 'https://' + req.hostname + notifyIcon,
                                         include_player_ids: oneSignalUserIds
+                                    }).catch((err) => {
+                                        // 推播失敗時，打印錯誤但不擲出錯誤
+                                        console.error(err);
                                     }).then(() => {
                                         return nextMessage(i + 1);
                                     });

@@ -1257,6 +1257,14 @@
         if (maxScrollHeight > 0 && !window.localStorage.getItem('isCtrlPanelPutAway')) {
             $('#ctrlPanel .scroll-bottom').removeClass('d-none');
         }
+
+        // url 如果帶有 chatroom_id 則在聊天室初始化完後，直接將該聊天室開啟
+        // 開啟聊天室後將 url query 清除
+        let queryChatroomId = getUrlQuery('chatroom_id');
+        if (queryChatroomId) {
+            $('.collapse[app-type] [chatroom-id="' + queryChatroomId + '"]').first().trigger('click');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
     }
 
     function generateLoadingJqElem() {
@@ -3411,6 +3419,24 @@
             }
             return Promise.reject(err);
         });
+    }
+
+    function getUrlQuery(name, url) {
+        url = url || window.location.href;
+        name = name.replace(/[[\]]/g, '\\$&');
+
+        let regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+        let results = regex.exec(url);
+
+        if (!results) {
+            return null;
+        }
+
+        if (!results[2]) {
+            return '';
+        }
+
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
     }
 
     // =====end utility function
