@@ -31,6 +31,7 @@ const groupsMembersCtl = require('../controllers/groups_members');
 const groupsCtl = require('../controllers/groups');
 
 const usersCtl = require('../controllers/users');
+const usersOneSignalsCtl = require('../controllers/users_onesignals');
 
 // HTTP body x-www-form-urlencoded parser
 // HTTP body 允許 json 格式
@@ -224,5 +225,8 @@ router.put('/groups/groups/:groupid/users/:userid', groupsCtl.putOne);
 // vendor 的個人資料
 router.get('/users/users/:userid', usersCtl.getOne);
 router.put('/users/users/:userid', usersCtl.putOne);
+router.get('/users-onesignals/users/:userid', usersOneSignalsCtl.getAll);
+router.post('/users-onesignals/users/:userid', usersOneSignalsCtl.postOne);
+router.delete('/users-onesignals/users/:userid/onesignal/:onesignalid', usersOneSignalsCtl.deleteOne);
 
 module.exports = router;

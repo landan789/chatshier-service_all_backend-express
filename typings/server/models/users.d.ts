@@ -12,7 +12,8 @@ declare module Chatshier {
             phone: string,
             password?: string,
             name: string,
-            group_ids: string[]
+            group_ids: string[],
+            oneSignals: OneSignals
         }
     }
 }
