@@ -16,6 +16,7 @@
 /// <reference path='../server/models/consumers.d.ts' />
 /// <reference path='../server/models/groups_members.d.ts' />
 /// <reference path='../server/models/groups.d.ts' />
+/// <reference path='../server/models/users_onesignals.d.ts' />
 /// <reference path='../server/models/users.d.ts' />
 
 interface Window {
@@ -42,6 +43,7 @@ interface Window {
         consumers: ConsumersAPI,
         groupsMembers: GroupsMembersAPI,
         groups: GroupsAPI,
+        usersOneSignals: UsersOneSignalsAPI,
         users: UsersAPI,
         sign: SignAPI
     };
@@ -223,6 +225,12 @@ interface GroupsAPI {
     findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
     insert: (userId: string, group: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
     update: (groupId: string, userId: string, putGroup: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.Groups }>;
+}
+
+interface UsersOneSignalsAPI {
+    findAll: (userId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.UsersOneSignals }>;
+    insert: (userId: string, oneSignal: any) => Promise<{ status: number, msg: string, data: Chatshier.Models.UsersOneSignals }>;
+    remove: (userId: string, oneSignalId: string) => Promise<{ status: number, msg: string, data: Chatshier.Models.UsersOneSignals }>;
 }
 
 interface UsersAPI {

@@ -10,7 +10,7 @@ window.facebookHelper = (function() {
         navigator.userLanguage;
     var fbsdkUrl = 'https://connect.facebook.net/' + language + '/sdk.js';
     var fbsdkId = 'facebook-jssdk';
-    
+
     /** @type {fb.InitParams} */
     var fbCfg = {
         appId: window.CHATSHIER.FACEBOOK.APP_ID, // facebook appId
@@ -64,7 +64,7 @@ window.facebookHelper = (function() {
         /**
          * @returns {Promise<fb.AuthResponse>}
          */
-        init: function(configUrl) {
+        init: function() {
             if (initPromise) {
                 return initPromise;
             }

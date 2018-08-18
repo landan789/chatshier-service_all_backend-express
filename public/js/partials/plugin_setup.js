@@ -80,14 +80,63 @@
                     let isOptedOut = results[1];
 
                     if (isPushEnabled) {
-                        return;
+                        return OneSignal.getUserId();
                     }
+
+                    let promise = new Promise((resolve) => {
+                        OneSignal.once('subscriptionChange', resolve);
+                    }).then(() => {
+                        return OneSignal.getUserId();
+                    });
 
                     if (isOptedOut) {
                         OneSignal.setSubscription(true);
                     } else {
                         OneSignal.registerForPushNotifications();
                     }
+                    return promise;
+                }).then((oneSignalUserId) => {
+                    if (!oneSignalUserId) {
+                        return;
+                    }
+
+                    let api = window.restfulAPI;
+                    let userId;
+                    try {
+                        let payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+                        userId = payload.uid;
+                    } catch (ex) {
+                        userId = '';
+                    }
+
+                    if (!userId) {
+                        return;
+                    }
+
+                    return api.usersOneSignals.findAll(userId).then((res) => {
+                        let usersOneSignals = res.data;
+                        if (!usersOneSignals[userId]) {
+                            usersOneSignals[userId] = { oneSignals: {} };
+                        }
+                        let oneSignals = usersOneSignals[userId].oneSignals;
+
+                        let isExisted = false;
+                        for (let oneSignalId in oneSignals) {
+                            let oneSignal = oneSignals[oneSignalId];
+                            if (oneSignal.oneSignalUserId === oneSignalUserId) {
+                                isExisted = true;
+                                break;
+                            }
+                        }
+
+                        if (!isExisted) {
+                            let postOneSignal = {
+                                oneSignalAppId: oneSignalAppId,
+                                oneSignalUserId: oneSignalUserId
+                            };
+                            return api.usersOneSignals.insert(userId, postOneSignal);
+                        }
+                    });
                 });
             });
         }

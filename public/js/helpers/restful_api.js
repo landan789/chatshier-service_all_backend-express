@@ -39,6 +39,7 @@ window.restfulAPI = (function() {
         groupsMembers: apiDatabaseUrl + 'groups-members/',
         groups: apiDatabaseUrl + 'groups/',
         users: apiDatabaseUrl + 'users/',
+        usersOneSignals: apiDatabaseUrl + 'users-onesignals/',
         signRefresh: apiSignUrl + 'refresh/',
         signOut: apiSignUrl + 'signout/',
         changePassword: apiSignUrl + 'change-password/'
@@ -1046,6 +1047,43 @@ window.restfulAPI = (function() {
         return UsersAPI;
     })();
 
+    var UsersOneSignalsAPI = (function() {
+        function UsersOneSignalsAPI() {
+            this.urlPrefix = apiUrlTable.usersOneSignals;
+        };
+
+        UsersOneSignalsAPI.prototype.findAll = function(userId) {
+            var destUrl = this.urlPrefix + 'users/' + userId;
+
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        UsersOneSignalsAPI.prototype.insert = function(userId, oneSignal) {
+            var destUrl = this.urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(oneSignal)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        UsersOneSignalsAPI.prototype.remove = function(userId, oneSignalId) {
+            var destUrl = this.urlPrefix + 'users/' + userId + '/onesignal/' + oneSignalId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return UsersOneSignalsAPI;
+    })();
+
     var AppsGreetingsAPI = (function() {
         function AppsGreetingsAPI() {
             this.urlPrefix = apiUrlTable.appsGreetings;
@@ -1752,6 +1790,7 @@ window.restfulAPI = (function() {
         groupsMembers: new GroupsMembersAPI(),
         groups: new GroupsAPI(),
         users: new UsersAPI(),
+        usersOneSignals: new UsersOneSignalsAPI(),
         sign: new SignAPI()
     };
 })();

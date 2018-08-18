@@ -10,6 +10,7 @@ const ERROR = require('../config/error.json');
 const chatshierHlp = require('../helpers/chatshier');
 const storageHlp = require('../helpers/storage');
 const socketHlp = require('../helpers/socket');
+const oneSignalHlp = require('../helpers/onesignal');
 const botSvc = require('../services/bot');
 
 const appsMdl = require('../models/apps');
@@ -18,6 +19,7 @@ const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 const appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 const consumersMdl = require('../models/consumers');
+const usersOneSignalsMdl = require('../models/users_onesignals');
 
 const webhooksLog = require('../logs/webhooks');
 
@@ -33,6 +35,11 @@ const SKIP_PROCESS_APP = 'SKIP_PROCESS_APP';
 const FACEBOOK_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 const CHAT_COUNT_INTERVAL_TIME = 900000;
+
+const NOTIFY_ICONS = {
+    CHATSHIER: '/image/logo-no-transparent.png',
+    DSDSDS: '/image/logo-dsdsds.png'
+};
 
 let webhookProcQueue = [];
 
@@ -445,7 +452,7 @@ router.post('/:webhookid', (req, res, next) => {
                     if (!(webhookChatroomId &&
                         (_messages && Object.keys(_messages).length > 0) &&
                         recipientUserIds.length > 0)) {
-                        return;
+                        return [];
                     }
 
                     // 抓出聊天室 messagers 最新的狀態傳給 socket
@@ -457,6 +464,7 @@ router.post('/:webhookid', (req, res, next) => {
 
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let chatroom = chatrooms[webhookChatroomId];
+                        let messages = Object.values(_messages);
 
                         /** @type {ChatshierChatSocketBody} */
                         let messagesToSend = {
@@ -469,9 +477,76 @@ router.post('/:webhookid', (req, res, next) => {
                             // 因此傳到 chatshier 聊天室裡不需要聲明接收人是誰
                             recipientUid: '',
                             consumers: consumers,
-                            messages: Object.values(_messages)
+                            messages: messages
                         };
-                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
+
+                        let onlineUsersIds = [];
+                        let offlineUserIds = [];
+                        for (let i in recipientUserIds) {
+                            let recipientUserId = recipientUserIds[i];
+                            if (socketHlp.isConnected(recipientUserId)) {
+                                onlineUsersIds.push(recipientUserId);
+                            } else {
+                                offlineUserIds.push(recipientUserId);
+                            }
+                        }
+
+                        return Promise.all([
+                            usersOneSignalsMdl.find({ userIds: offlineUserIds }),
+                            socketHlp.emitToAll(onlineUsersIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend)
+                        ]).then(([ usersOneSignals ]) => {
+                            usersOneSignals = usersOneSignals || {};
+                            let oneSignalApps = {};
+                            for (let userId in usersOneSignals) {
+                                let oneSignals = usersOneSignals[userId].oneSignals;
+                                for (let oneSignalId in oneSignals) {
+                                    let oneSignal = oneSignals[oneSignalId];
+                                    let oneSignalAppId = oneSignal.oneSignalAppId;
+
+                                    if (!oneSignalApps[oneSignalAppId]) {
+                                        oneSignalApps[oneSignalAppId] = [];
+                                    }
+                                    oneSignalApps[oneSignalAppId].push(oneSignal.oneSignalUserId);
+                                }
+                            }
+
+                            let isDsdsds = req.hostname.indexOf('dsdsds.com.tw') >= 0;
+                            let notifyIcon = isDsdsds ? NOTIFY_ICONS.DSDSDS : NOTIFY_ICONS.CHATSHIER;
+                            return Promise.all(Object.keys(oneSignalApps).map((oneSignalAppId) => {
+                                let oneSignalUserIds = oneSignalApps[oneSignalAppId] || [];
+                                if (0 === oneSignalUserIds.length) {
+                                    return Promise.resolve();
+                                }
+
+                                let nextMessage = (i) => {
+                                    if (i >= messages.length) {
+                                        return Promise.resolve();
+                                    }
+
+                                    let message = messages[i];
+                                    let isFromPlatform = LINE === message.from || FACEBOOK === message.from;
+                                    if (!isFromPlatform) {
+                                        return nextMessage(i + 1);
+                                    }
+
+                                    return oneSignalHlp.createNotification(oneSignalAppId, {
+                                        app_id: oneSignalAppId,
+                                        headings: {
+                                            en: consumers[platformUid].name + '【' + app.name + '】'
+                                        },
+                                        contents: {
+                                            en: message.text || '🔔(有新訊息)'
+                                        },
+                                        url: 'https://' + req.hostname + '/chat',
+                                        large_icon: 'https://' + req.hostname + notifyIcon,
+                                        include_player_ids: oneSignalUserIds
+                                    }).then(() => {
+                                        return nextMessage(i + 1);
+                                    });
+                                };
+                                return nextMessage(0);
+                            }));
+                        });
                     });
                 }).catch((err) => {
                     if (SKIP_PROCESS_APP === err) {
