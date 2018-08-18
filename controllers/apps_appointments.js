@@ -4,6 +4,7 @@ module.exports = (function() {
     const ERROR = require('../config/error.json');
     /** @type {any} */
     const SUCCESS = require('../config/success.json');
+    const CHATSHIER_CFG = require('../config/chatshier');
 
     const appsMdl = require('../models/apps');
     const appsAppointmentsMdl = require('../models/apps_appointments');
@@ -136,15 +137,9 @@ module.exports = (function() {
                 let platformUid = appointment.platformUid;
 
                 return Promise.all([
-                    appsMdl.find(appId),
+                    this._getAppGCalendarId(appId),
                     eventId && resourceId && gcalendarHlp.stopChannel(eventId, resourceId)
-                ]).then(([ apps ]) => {
-                    if (!(apps && apps[appId])) {
-                        return Promise.reject(ERROR.APP_FAILED_TO_FIND);
-                    }
-
-                    let app = apps[appId];
-                    let gcalendarId = app.gcalendarId;
+                ]).then(([ gcalendarId ]) => {
                     return Promise.all([
                         appsAppointmentsMdl.remove(appId, appointmentId),
                         appsProductsMdl.find({ appIds: appId, productIds: productId, isDeleted: null }),
@@ -213,6 +208,30 @@ module.exports = (function() {
                 return this.errorJson(req, res, err);
             });
         };
+
+        _getAppGCalendarId(appId) {
+            return appsMdl.find(appId).then((apps) => {
+                if (!(apps && apps[appId])) {
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
+                }
+
+                let app = apps[appId];
+                let gcalendarId = app.gcalendarId;
+                if (gcalendarId) {
+                    return gcalendarId;
+                }
+
+                let summary = '[' + app.name + '] - ' + appId;
+                let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
+                return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
+                    gcalendarId = gcalendar.id;
+                    let _app = { gcalendarId: gcalendarId };
+                    return appsMdl.update(appId, _app);
+                }).then(() => {
+                    return gcalendarId;
+                });
+            });
+        }
     }
 
     return new AppsAppointmentsController();

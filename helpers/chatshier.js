@@ -381,6 +381,30 @@ module.exports = (function() {
             return templateJson;
         }
 
+        _getAppGCalendarId(appId) {
+            return appsMdl.find(appId).then((apps) => {
+                if (!(apps && apps[appId])) {
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
+                }
+
+                let app = apps[appId];
+                let gcalendarId = app.gcalendarId;
+                if (gcalendarId) {
+                    return gcalendarId;
+                }
+
+                let summary = '[' + app.name + '] - ' + appId;
+                let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
+                return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
+                    gcalendarId = gcalendar.id;
+                    let _app = { gcalendarId: gcalendarId };
+                    return appsMdl.update(appId, _app);
+                }).then(() => {
+                    return gcalendarId;
+                });
+            });
+        }
+
         _checkAppointmentTimeout(timestamp) {
             if (!(Date.now() - timestamp > 10 * 60 * 1000)) {
                 return;
@@ -1421,22 +1445,7 @@ module.exports = (function() {
                 messager.gender && (description += '\n性別: ' + ('MALE' === messager.gender ? '男' : '女'));
                 messager.age && (description += '\n年齡: ' + messager.age);
 
-                return Promise.resolve().then(() => {
-                    let gcalendarId = app.gcalendarId;
-                    if (!gcalendarId) {
-                        let summary = '[' + app.name + '] - ' + appId;
-                        let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
-
-                        return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
-                            gcalendarId = gcalendar.id;
-                            let _app = { gcalendarId: gcalendarId };
-                            return appsMdl.update(appId, _app);
-                        }).then(() => {
-                            return Promise.resolve(gcalendarId);
-                        });
-                    }
-                    return Promise.resolve(gcalendarId);
-                }).then((gcalendarId) => {
+                return this._getAppGCalendarId(appId).then((gcalendarId) => {
                     let attendees = [{
                         name: receptionist.name,
                         email: receptionist.email
@@ -1652,15 +1661,9 @@ module.exports = (function() {
                 let receptionistId = appointment.receptionist_id;
 
                 return Promise.all([
-                    appsMdl.find(appId),
+                    this._getAppGCalendarId(appId),
                     eventId && resourceId && gcalendarHlp.stopChannel(eventId, resourceId)
-                ]).then(([ apps ]) => {
-                    if (!(apps && apps[appId])) {
-                        return Promise.resolve(null);
-                    }
-
-                    let app = apps[appId];
-                    let gcalendarId = app.gcalendarId;
+                ]).then(([ gcalendarId ]) => {
                     return Promise.all([
                         appsProductsMdl.find({ appIds: appId, productIds: productId }),
                         appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),

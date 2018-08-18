@@ -100,15 +100,11 @@ module.exports = (function() {
                     let productId = appointment.product_id;
 
                     return Promise.all([
-                        appsMdl.find(appId),
+                        this._getAppGCalendarId(appId),
                         appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
                         appsProductMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
                         consumersMdl.find(platformUid)
-                    ]).then(([ apps, appsReceptionists, appsProducts, consumers ]) => {
-                        if (!(apps && apps[appId])) {
-                            return Promise.reject(ERROR.APP_FAILED_TO_FIND);
-                        }
-
+                    ]).then(([ gcalendarId, appsReceptionists, appsProducts, consumers ]) => {
                         if (!(appsReceptionists && appsReceptionists[appId])) {
                             return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
                         }
@@ -121,8 +117,6 @@ module.exports = (function() {
                             return Promise.reject(ERROR.CONSUMER_FAILED_TO_FIND);
                         }
 
-                        let app = apps[appId];
-                        let gcalendarId = app.gcalendarId;
                         return Promise.all([
                             gcalendarHlp.getEvent(gcalendarId, params.eventId),
                             appsProducts[appId].products[productId],
@@ -232,6 +226,30 @@ module.exports = (function() {
                 !res.headersSent && res.sendStatus(200);
             }).catch((err) => {
                 return this.errorJson(req, res, err);
+            });
+        }
+
+        _getAppGCalendarId(appId) {
+            return appsMdl.find(appId).then((apps) => {
+                if (!(apps && apps[appId])) {
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
+                }
+
+                let app = apps[appId];
+                let gcalendarId = app.gcalendarId;
+                if (gcalendarId) {
+                    return gcalendarId;
+                }
+
+                let summary = '[' + app.name + '] - ' + appId;
+                let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
+                return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
+                    gcalendarId = gcalendar.id;
+                    let _app = { gcalendarId: gcalendarId };
+                    return appsMdl.update(appId, _app);
+                }).then(() => {
+                    return gcalendarId;
+                });
             });
         }
     }
