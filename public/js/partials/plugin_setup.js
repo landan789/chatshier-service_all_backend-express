@@ -53,7 +53,7 @@
         'service.rel.dsdsds.com.tw': 'REL_DSDSDS_APPID',
         'service.dev.dsdsds.com.tw': 'DEV_DSDSDS_APPID'
     }[window.location.hostname];
-    let oneSignalAppId = window.CHATSHIER.ONESIGNAL[oneSignalAppIdKey] || '4353dd8a-9cb2-4958-a5b5-d669afce4ca6';
+    let oneSignalAppId = window.CHATSHIER.ONESIGNAL[oneSignalAppIdKey] || '';
 
     if (oneSignalAppId) {
         OneSignal.push(() => {
