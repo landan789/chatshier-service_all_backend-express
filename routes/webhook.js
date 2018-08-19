@@ -464,7 +464,6 @@ router.post('/:webhookid', (req, res, next) => {
 
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let chatroom = chatrooms[webhookChatroomId];
-                        let messages = Object.values(_messages);
 
                         /** @type {ChatshierChatSocketBody} */
                         let messagesToSend = {
@@ -477,80 +476,25 @@ router.post('/:webhookid', (req, res, next) => {
                             // 因此傳到 chatshier 聊天室裡不需要聲明接收人是誰
                             recipientUid: '',
                             consumers: consumers,
-                            messages: messages
+                            messages: Object.values(_messages)
                         };
 
-                        let onlineUsersIds = [];
-                        let offlineUserIds = [];
-                        for (let i in recipientUserIds) {
-                            let recipientUserId = recipientUserIds[i];
-                            if (socketHlp.isConnected(recipientUserId)) {
-                                onlineUsersIds.push(recipientUserId);
-                            } else {
-                                offlineUserIds.push(recipientUserId);
-                            }
-                        }
-
-                        return Promise.all([
-                            usersOneSignalsMdl.find({ userIds: offlineUserIds }),
-                            socketHlp.emitToAll(onlineUsersIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend)
-                        ]).then(([ usersOneSignals ]) => {
-                            usersOneSignals = usersOneSignals || {};
-                            let oneSignalApps = {};
-                            for (let userId in usersOneSignals) {
-                                let oneSignals = usersOneSignals[userId].oneSignals;
-                                for (let oneSignalId in oneSignals) {
-                                    let oneSignal = oneSignals[oneSignalId];
-                                    let oneSignalAppId = oneSignal.oneSignalAppId;
-
-                                    if (!oneSignalApps[oneSignalAppId]) {
-                                        oneSignalApps[oneSignalAppId] = [];
-                                    }
-                                    oneSignalApps[oneSignalAppId].push(oneSignal.oneSignalUserId);
-                                }
+                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend).then(() => {
+                            return socketHlp.getOfflineUserIds(recipientUserIds);
+                        }).then((offlineUserIds) => {
+                            if (0 === offlineUserIds.length) {
+                                return [];
                             }
 
-                            let isDsdsds = req.hostname.indexOf('dsdsds.com.tw') >= 0;
-                            let notifyIcon = isDsdsds ? NOTIFY_ICONS.DSDSDS : NOTIFY_ICONS.CHATSHIER;
-                            return Promise.all(Object.keys(oneSignalApps).map((oneSignalAppId) => {
-                                let oneSignalUserIds = oneSignalApps[oneSignalAppId] || [];
-                                if (0 === oneSignalUserIds.length) {
-                                    return Promise.resolve();
-                                }
-
-                                let nextMessage = (i) => {
-                                    if (i >= messages.length) {
-                                        return Promise.resolve();
-                                    }
-
-                                    let message = messages[i];
-                                    let isFromPlatform = LINE === message.from || FACEBOOK === message.from;
-                                    if (!isFromPlatform) {
-                                        return nextMessage(i + 1);
-                                    }
-
-                                    return oneSignalHlp.createNotification(oneSignalAppId, {
-                                        app_id: oneSignalAppId,
-                                        headings: {
-                                            en: consumers[platformUid].name + '【' + app.name + '】'
-                                        },
-                                        contents: {
-                                            en: message.text || '🔔(有新訊息)'
-                                        },
-                                        // 後面帶上 chatroomId 可使使用者點擊推播訊息後
-                                        // 前端在載入頁面完成後，可根據是哪個 chatroomId 直接將該 chatroom 開啟，提升使用者體驗
-                                        url: 'https://' + req.hostname + '/chat?chatroom_id=' + webhookChatroomId,
-                                        large_icon: 'https://' + req.hostname + notifyIcon,
-                                        include_player_ids: oneSignalUserIds
-                                    }).catch((err) => {
-                                        // 推播失敗時，打印錯誤但不擲出錯誤
-                                        console.error(err);
-                                    }).then(() => {
-                                        return nextMessage(i + 1);
-                                    });
-                                };
-                                return nextMessage(0);
-                            }));
+                            let options = {
+                                userIds: offlineUserIds,
+                                chatroomId: webhookChatroomId,
+                                messages: _messages,
+                                consumer: consumers[platformUid],
+                                app: app,
+                                hostname: req.hostname
+                            };
+                            return sendNotification(options);
                         });
                     });
                 }).catch((err) => {
@@ -589,5 +533,78 @@ router.post('/:webhookid', (req, res, next) => {
     });
     webhookProcQueue.push(webhookPromise);
 });
+
+/**
+ * @typedef NotificationOptions
+ * @property {string[]} userIds
+ * @property {string} chatroomId
+ * @property {Chatshier.Models.Messages} messages
+ * @property {Chatshier.Models.App} app
+ * @property {Chatshier.Models.Consumer} consumer
+ * @property {string} hostname
+ * @param {NotificationOptions} options
+ */
+function sendNotification({ userIds, chatroomId, messages, app, consumer, hostname }) {
+    return usersOneSignalsMdl.find({ userIds: userIds }).then((usersOneSignals) => {
+        usersOneSignals = usersOneSignals || {};
+        let oneSignalApps = {};
+        for (let userId in usersOneSignals) {
+            let oneSignals = usersOneSignals[userId].oneSignals;
+            for (let oneSignalId in oneSignals) {
+                let oneSignal = oneSignals[oneSignalId];
+                let oneSignalAppId = oneSignal.oneSignalAppId;
+
+                if (!oneSignalApps[oneSignalAppId]) {
+                    oneSignalApps[oneSignalAppId] = [];
+                }
+                oneSignalApps[oneSignalAppId].push(oneSignal.oneSignalUserId);
+            }
+        }
+
+        let messageIds = Object.keys(messages);
+        let isDsdsds = hostname.indexOf('dsdsds.com.tw') >= 0;
+        let notifyIcon = isDsdsds ? NOTIFY_ICONS.DSDSDS : NOTIFY_ICONS.CHATSHIER;
+        return Promise.all(Object.keys(oneSignalApps).map((oneSignalAppId) => {
+            let oneSignalUserIds = oneSignalApps[oneSignalAppId] || [];
+            if (0 === oneSignalUserIds.length) {
+                return Promise.resolve();
+            }
+
+            let nextMessage = (i) => {
+                if (i >= messageIds.length) {
+                    return Promise.resolve();
+                }
+
+                let messageId = messageIds[i];
+                let message = messages[messageId];
+                let isFromPlatform = LINE === message.from || FACEBOOK === message.from;
+                if (!isFromPlatform) {
+                    return nextMessage(i + 1);
+                }
+
+                return oneSignalHlp.createNotification(oneSignalAppId, {
+                    app_id: oneSignalAppId,
+                    headings: {
+                        en: consumer.name + '【' + app.name + '】'
+                    },
+                    contents: {
+                        en: message.text || '🔔(有新訊息)'
+                    },
+                    // 後面帶上 chatroomId 可使使用者點擊推播訊息後
+                    // 前端在載入頁面完成後，可根據是哪個 chatroomId 直接將該 chatroom 開啟，提升使用者體驗
+                    url: 'https://' + hostname + '/chat?chatroom_id=' + chatroomId,
+                    large_icon: 'https://' + hostname + notifyIcon,
+                    include_player_ids: oneSignalUserIds
+                }).catch((err) => {
+                    // 推播失敗時，打印錯誤但不擲出錯誤
+                    console.error(err);
+                }).then(() => {
+                    return nextMessage(i + 1);
+                });
+            };
+            return nextMessage(0);
+        }));
+    });
+}
 
 module.exports = router;

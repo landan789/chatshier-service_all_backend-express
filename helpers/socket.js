@@ -1,6 +1,7 @@
 module.exports = (function() {
     const redisHlp = require('./redis');
     const REDIS_SOCKET_CHANNEL = redisHlp.CHANNELS.REDIS_SOCKET_CHANNEL;
+    const ONLINE_USER_IDS_KEY = 'onlineUserIdsKey';
 
     class SocketHelper {
         constructor() {
@@ -15,16 +16,31 @@ module.exports = (function() {
             });
         }
 
-        get connectedUserIds() {
-            return Object.keys(this.userMap);
+        /**
+         * @returns {Promise<string[]>}
+         */
+        getOnlineUserIds() {
+            if (!redisHlp.isRedisConnected) {
+                return Promise.resolve(Object.keys(this.userMap));
+            }
+            return redisHlp.getArrayValues(ONLINE_USER_IDS_KEY);
         }
 
         /**
-         * @param {string} userId
-         * @returns {boolean}
+         * @param {string[]} userIds
+         * @returns {Promise<string[]>}
          */
-        isConnected(userId) {
-            return !!this.userMap[userId];
+        getOfflineUserIds(userIds) {
+            return this.getOnlineUserIds().then((onlineUserIds) => {
+                let offlineUserIds = [];
+                for (let i in userIds) {
+                    let userId = userIds[i];
+                    if (!this.userMap[userId] && !onlineUserIds.includes(userId)) {
+                        offlineUserIds.push(userId);
+                    }
+                }
+                return offlineUserIds;
+            });
         }
 
         /**
@@ -41,6 +57,7 @@ module.exports = (function() {
                 this.socketMap[socket.id] = {};
             }
             this.socketMap[socket.id][userId] = this.userMap[userId] = socket;
+            redisHlp.pushArrayValue(ONLINE_USER_IDS_KEY, userId);
             return true;
         }
 
@@ -60,6 +77,7 @@ module.exports = (function() {
             for (let userId in this.socketMap[socket.id]) {
                 delete this.userMap[userId];
                 delete this.socketMap[socket.id][userId];
+                redisHlp.removeArrayValue(ONLINE_USER_IDS_KEY, userId);
             }
             delete this.socketMap[socket.id];
             return true;
@@ -82,7 +100,7 @@ module.exports = (function() {
 
             // 如果連結到 redis server 有出現錯誤
             // 則不透過 redis server 發送訊息
-            if (redisHlp.noRedis) {
+            if (!redisHlp.isRedisConnected) {
                 this._sendSocketMessage(userIds, eventName, dataToSocket);
                 return Promise.resolve();
             }
@@ -124,14 +142,10 @@ module.exports = (function() {
 
             for (let i in userIds) {
                 let userId = userIds[i];
-                if (!this.userMap[userId]) {
-                    continue;
-                }
-                this.userMap[userId].emit(eventName, socketData);
+                this.userMap[userId] && this.userMap[userId].emit(eventName, socketData);
             }
         }
     }
 
-    let instance = new SocketHelper();
-    return instance;
+    return new SocketHelper();
 })();
