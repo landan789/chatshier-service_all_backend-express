@@ -1,7 +1,7 @@
 module.exports = (function() {
     const redisHlp = require('./redis');
     const REDIS_SOCKET_CHANNEL = redisHlp.CHANNELS.REDIS_SOCKET_CHANNEL;
-    const ONLINE_USER_IDS_KEY = 'onlineUserIdsKey';
+    const ONLINE_USER_IDS = 'ONLINE_USER_IDS';
 
     class SocketHelper {
         constructor() {
@@ -23,7 +23,7 @@ module.exports = (function() {
             if (!redisHlp.isRedisConnected) {
                 return Promise.resolve(Object.keys(this.userMap));
             }
-            return redisHlp.getArrayValues(ONLINE_USER_IDS_KEY);
+            return redisHlp.getArrayValues(ONLINE_USER_IDS);
         }
 
         /**
@@ -57,7 +57,7 @@ module.exports = (function() {
                 this.socketMap[socket.id] = {};
             }
             this.socketMap[socket.id][userId] = this.userMap[userId] = socket;
-            redisHlp.pushArrayValue(ONLINE_USER_IDS_KEY, userId);
+            redisHlp.pushArrayValue(ONLINE_USER_IDS, userId);
             return true;
         }
 
@@ -77,7 +77,7 @@ module.exports = (function() {
             for (let userId in this.socketMap[socket.id]) {
                 delete this.userMap[userId];
                 delete this.socketMap[socket.id][userId];
-                redisHlp.removeArrayValue(ONLINE_USER_IDS_KEY, userId);
+                redisHlp.removeArrayValue(ONLINE_USER_IDS, userId);
             }
             delete this.socketMap[socket.id];
             return true;
