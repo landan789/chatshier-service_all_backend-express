@@ -7,7 +7,7 @@ module.exports = (function() {
     const options = {
         user: CHATSHIER.MONGODB.USERNAME,
         pass: CHATSHIER.MONGODB.PASSWORD,
-        connectTimeoutMS: 60000
+        connectTimeoutMS: 0
     };
     mongoose.connect(url, options);
 
