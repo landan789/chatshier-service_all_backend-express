@@ -58,9 +58,22 @@ module.exports = (function() {
                 if (!isAvailable) {
                     return Promise.reject(ERROR.UNAVAILABLE_GMAIL);
                 }
+                return appsMdl.find(appId);
+            }).then((apps) => {
+                if (!(apps && apps[appId])) {
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
+                }
+
+                postReceptionist._id = appsReceptionistsMdl.Types.ObjectId();
+                let app = apps[appId];
+                let summary = '[' + postReceptionist.name + '][' + app.name + '] - ' + postReceptionist._id.toHexString();
+                let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
+                return gcalendarHlp.insertCalendar(summary, description);
+            }).then((gcalendar) => {
+                postReceptionist.gcalendarId = gcalendar.id;
                 return appsReceptionistsMdl.insert(appId, postReceptionist);
             }).then((appsReceptionists) => {
-                if (!appsReceptionists) {
+                if (!(appsReceptionists && appsReceptionists[appId])) {
                     return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_INSERT);
                 }
                 return Promise.resolve(appsReceptionists);
