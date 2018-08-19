@@ -25,12 +25,12 @@ window.CHATSHIER = {
     ONESIGNAL: {
         // https://onesignal.com/
         // project owner: 9thflr.rd@gmail.com
-        DEV_CHATSHIER_APPID: 'ce680532-b17a-4e4b-8e10-9d8b43767ad9',
-        REL_CHATSHIER_APPID: 'e7b29287-f770-4725-8834-92ed4b03f9da',
-        CHATSHIER_APPID: '63c3419c-4eb2-4980-a738-4e12ef1ae948',
-        DEV_DSDSDS_APPID: '52d47c59-3a88-4390-9fe4-b624fab30fbb',
-        REL_DSDSDS_APPID: '7cd73043-b6bb-4b40-9b08-5ba96a1f05ee',
-        DSDSDS_APPID: 'bdcb2f17-0e27-4156-976c-e03e7effaf26'
+        'service.chatshier.com': '63c3419c-4eb2-4980-a738-4e12ef1ae948',
+        'service.rel.chatshier.com': 'e7b29287-f770-4725-8834-92ed4b03f9da',
+        'service.dev.chatshier.com': 'ce680532-b17a-4e4b-8e10-9d8b43767ad9',
+        'service.dsdsds.com.tw': 'bdcb2f17-0e27-4156-976c-e03e7effaf26',
+        'service.rel.dsdsds.com.tw': '7cd73043-b6bb-4b40-9b08-5ba96a1f05ee',
+        'service.dev.dsdsds.com.tw': '52d47c59-3a88-4390-9fe4-b624fab30fbb'
     },
     URL: {
         /**
