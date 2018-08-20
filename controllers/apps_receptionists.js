@@ -68,7 +68,9 @@ module.exports = (function() {
                 let app = apps[appId];
                 let summary = '[' + postReceptionist.name + '][' + app.name + '] - ' + postReceptionist._id.toHexString();
                 let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
-                return gcalendarHlp.insertCalendar(summary, description);
+                return gcalendarHlp.insertCalendar(summary, description).catch(() => {
+                    return Promise.reject(ERROR.GOOGLE_CALENDAR_FAILED_TO_INSERT);
+                });
             }).then((gcalendar) => {
                 postReceptionist.gcalendarId = gcalendar.id;
                 return appsReceptionistsMdl.insert(appId, postReceptionist);
@@ -133,7 +135,9 @@ module.exports = (function() {
                         let receptionist = appsReceptionists[appId].receptionists[receptionistId];
                         let gcalendarId = receptionist.gcalendarId;
                         let summary = '[' + putReceptionist.name + '][' + app.name + '] - ' + receptionistId;
-                        return gcalendarHlp.updateCalendar(gcalendarId, summary);
+                        return gcalendarHlp.updateCalendar(gcalendarId, summary).catch(() => {
+                            return Promise.reject(ERROR.GOOGLE_CALENDAR_FAILED_TO_UPDATE);
+                        });
                     }).then(() => {
                         return Promise.resolve(putReceptionist);
                     });
@@ -167,7 +171,9 @@ module.exports = (function() {
 
                                     let summary = '[' + receptionist.name + '][' + apps[appId].name + '] - ' + receptionistId;
                                     let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
-                                    return gcalendarHlp.insertCalendar(summary, description);
+                                    return gcalendarHlp.insertCalendar(summary, description).catch(() => {
+                                        return Promise.reject(ERROR.GOOGLE_CALENDAR_FAILED_TO_INSERT);
+                                    });
                                 }).then((gcalendar) => {
                                     gcalendarId = putReceptionist.gcalendarId = gcalendar.id;
                                     return gcalendarId;
@@ -209,6 +215,23 @@ module.exports = (function() {
             let receptionistId = req.params.receptionistid;
 
             return this.appsRequestVerify(req).then(() => {
+                return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId });
+            }).then((appsReceptionists) => {
+                if (!(appsReceptionists && appsReceptionists[appId])) {
+                    return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                }
+
+                let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                return Promise.resolve(receptionist.gcalendarId);
+            }).then((gcalendarId) => {
+                if (!gcalendarId) {
+                    return Promise.resolve(void 0);
+                }
+
+                return gcalendarHlp.deleteCalendar(gcalendarId).catch(() => {
+                    return Promise.reject(ERROR.GOOGLE_CALENDAR_FAILED_TO_REMOVE);
+                });
+            }).then(() => {
                 return appsReceptionistsMdl.remove(appId, receptionistId);
             }).then((appsReceptionists) => {
                 if (!(appsReceptionists && appsReceptionists[appId])) {

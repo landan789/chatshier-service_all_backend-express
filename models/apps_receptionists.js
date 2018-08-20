@@ -1,7 +1,5 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
-    const CHATSHIER_CFG = require('../config/chatshier');
-    const gcalendarHlp = require('../helpers/gcalendar');
     const APPS = 'apps';
 
     class AppsReceptionistsModel extends ModelCore {
@@ -233,15 +231,6 @@ module.exports = (function() {
                         Object.assign(output[app._id].receptionists, this.toObject(app.receptionists));
                         return output;
                     }, {});
-                    return appsReceptionists;
-                });
-            }).then((appsReceptionists) => {
-                let receptionist = appsReceptionists[appId].receptionists[receptionistId];
-                if (!receptionist.gcalendarId) {
-                    return appsReceptionists;
-                }
-
-                return gcalendarHlp.deleteCalendar(receptionist.gcalendarId).then(() => {
                     return appsReceptionists;
                 });
             }).then((appsReceptionists) => {

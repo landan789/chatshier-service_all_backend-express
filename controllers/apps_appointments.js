@@ -223,7 +223,9 @@ module.exports = (function() {
 
                 let summary = '[' + app.name + '] - ' + appId;
                 let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
-                return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
+                return gcalendarHlp.insertCalendar(summary, description).catch(() => {
+                    return Promise.reject(ERROR.GOOGLE_CALENDAR_FAILED_TO_INSERT);
+                }).then((gcalendar) => {
                     gcalendarId = gcalendar.id;
                     let _app = { gcalendarId: gcalendarId };
                     return appsMdl.update(appId, _app);

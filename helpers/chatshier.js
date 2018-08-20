@@ -25,6 +25,7 @@ module.exports = (function() {
     const LINE = 'LINE';
     const SYSTEM = 'SYSTEM';
 
+    /** @type {Webhook.Chatshier.PostbackActions} */
     const POSTBACK_ACTIONS = Object.freeze({
         CHANGE_RICHMENU: 'CHANGE_RICHMENU',
         SEND_REPLY_TEXT: 'SEND_REPLY_TEXT',
@@ -395,7 +396,9 @@ module.exports = (function() {
 
                 let summary = '[' + app.name + '] - ' + appId;
                 let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
-                return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
+                return gcalendarHlp.insertCalendar(summary, description).catch(() => {
+                    return Promise.reject(ERROR.GOOGLE_CALENDAR_FAILED_TO_INSERT);
+                }).then((gcalendar) => {
                     gcalendarId = gcalendar.id;
                     let _app = { gcalendarId: gcalendarId };
                     return appsMdl.update(appId, _app);
@@ -725,7 +728,7 @@ module.exports = (function() {
                                         let category = categories[categoryId];
                                         /** @type {Webhook.Chatshier.PostbackPayload} */
                                         let payloadJson = {
-                                            action: 'SEND_APPOINTMENT_PRODUCTS',
+                                            action: POSTBACK_ACTIONS.SEND_APPOINTMENT_PRODUCTS,
                                             categoryId: categoryId,
                                             timestamp: Date.now()
                                         };
@@ -853,7 +856,7 @@ module.exports = (function() {
                                         let receptionist = receptionists[receptionistId];
                                         /** @type {Webhook.Chatshier.PostbackPayload} */
                                         let payloadJson = {
-                                            action: 'SEND_APPOINTMENT_DATES',
+                                            action: POSTBACK_ACTIONS.SEND_APPOINTMENT_DATES,
                                             productId: productId,
                                             receptionistId: receptionistId,
                                             timestamp: Date.now()
@@ -983,7 +986,7 @@ module.exports = (function() {
 
                         /** @type {Webhook.Chatshier.PostbackPayload} */
                         let payloadJson = {
-                            action: 'SEND_APPOINTMENT_TIMES',
+                            action: POSTBACK_ACTIONS.SEND_APPOINTMENT_TIMES,
                             productId: productId,
                             receptionistId: receptionistId,
                             scheduleId: scheduleId,
@@ -1178,7 +1181,7 @@ module.exports = (function() {
 
                                     /** @type {Webhook.Chatshier.PostbackPayload} */
                                     let payloadJson = {
-                                        action: 'SEND_APPOINTMENT_CONFIRM',
+                                        action: POSTBACK_ACTIONS.SEND_APPOINTMENT_CONFIRM,
                                         productId: productId,
                                         receptionistId: receptionistId,
                                         scheduleId: scheduleId,
@@ -1325,7 +1328,7 @@ module.exports = (function() {
                     let appointmentId = appsAppointmentsMdl.Types.ObjectId().toHexString();
                     /** @type {Webhook.Chatshier.PostbackPayload} */
                     let payloadJson = {
-                        action: 'APPOINTMENT_FINISH',
+                        action: POSTBACK_ACTIONS.APPOINTMENT_FINISH,
                         appointmentId: appointmentId,
                         productId: productId,
                         receptionistId: receptionistId,
@@ -1350,7 +1353,7 @@ module.exports = (function() {
                             }, {
                                 type: 'postback',
                                 label: '重新預約',
-                                data: JSON.stringify({ action: 'SEND_APPOINTMENT_CATEGORIES' })
+                                data: JSON.stringify({ action: POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES })
                             }]
                         }
                     };
@@ -1603,7 +1606,7 @@ module.exports = (function() {
 
                         /** @type {Webhook.Chatshier.PostbackPayload} */
                         let payloadJson = {
-                            action: 'CANCEL_APPOINTMENT',
+                            action: POSTBACK_ACTIONS.CANCEL_APPOINTMENT,
                             appointmentId: appointmentId,
                             timestamp: Date.now()
                         };
