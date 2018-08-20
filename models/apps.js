@@ -1,15 +1,13 @@
 
 module.exports = (function() {
     const ModelCore = require('../cores/model');
-    const CHATSHIER_CFG = require('../config/chatshier');
-    const gcalendarHlp = require('../helpers/gcalendar');
 
     const APPS = 'apps';
     const USERS = 'users';
     const GROUPS = 'GROUPS';
 
-    const LINE = 'LINE';
-    const FACEBOOK = 'FACEBOOK';
+    // const LINE = 'LINE';
+    // const FACEBOOK = 'FACEBOOK';
     const CHATSHIER = 'CHATSHIER';
 
     class AppsModel extends ModelCore {
@@ -98,20 +96,14 @@ module.exports = (function() {
                 type: postApp.type || '',
                 group_id: postApp.group_id,
                 webhook_id: CHATSHIER === postApp.type ? '' : webhookId,
-                gcalendarId: postApp.gcalendarId || '',
+                gcalendarId: '',
                 isDeleted: false,
                 updatedTime: Date.now(),
                 createdTime: Date.now()
             };
+            let newApp = new this.AppsModel(_app);
 
-            let summary = '[' + _app.name + '] - ' + appId.toHexString();
-            let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
-
-            return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
-                _app.gcalendarId = gcalendar.id;
-                let newApp = new this.AppsModel(_app);
-                return newApp.save();
-            }).then((__apps) => {
+            return newApp.save().then((__apps) => {
                 let conditions = {
                     '_id': groupId
                 };
@@ -120,11 +112,13 @@ module.exports = (function() {
                     let _appId = __apps._id;
                     let appIds = undefined === group.app_ids ? [] : group.app_ids;
                     appIds.push(_appId);
+
                     let putGroup = {
                         $set: {
                             'app_ids': appIds
                         }
                     };
+
                     return this.GroupsModel.update(conditions, putGroup).then((result) => {
                         if (!result.ok) {
                             return Promise.reject(new Error());

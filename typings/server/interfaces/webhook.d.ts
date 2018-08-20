@@ -20,21 +20,26 @@ declare module Webhook {
             gender?: string
         }
 
+        interface PostbackActions {
+            CHANGE_RICHMENU: string,
+            SEND_REPLY_TEXT: string,
+            SEND_TEMPLATE: string,
+            SEND_IMAGEMAP: string,
+            SEND_CONSUMER_FORM: string,
+            PAYMENT_CONFIRM: string,
+
+            SEND_APPOINTMENT_CATEGORIES: string,
+            SEND_APPOINTMENT_PRODUCTS: string,
+            SEND_APPOINTMENT_DATES: string,
+            SEND_APPOINTMENT_TIMES: string,
+            SEND_APPOINTMENT_CONFIRM: string,
+            APPOINTMENT_FINISH: string,
+            SEND_CONSUMER_APPOINTMENTS: string,
+            CANCEL_APPOINTMENT: string
+        }
+
         interface PostbackPayload {
-            action:
-                'CHANGE_RICHMENU' |
-                'SEND_REPLY_TEXT' |
-                'SEND_TEMPLATE' |
-                'SEND_IMAGEMAP' |
-                'SEND_CONSUMER_FORM' |
-                'PAYMENT_CONFIRM' |
-                'SEND_APPOINTMENT_CATEGORIES' |
-                'SEND_APPOINTMENT_PRODUCTS' |
-                'SEND_APPOINTMENT_DATES' |
-                'SEND_APPOINTMENT_TIMES' |
-                'SEND_APPOINTMENT_CONFIRM' |
-                'APPOINTMENT_FINISH' |
-                'CANCEL_APPOINTMENT',
+            action: string,
             richmenuId?: string,
             templateId?: string,
             imagemapId?: string,
