@@ -50,123 +50,117 @@ module.exports = (function() {
                 return !res.headersSent && res.sendStatus(200);
             }
 
-            return Promise.resolve().then(() => {
-                if (!appId) {
-                    return Promise.reject(ERROR.APPID_WAS_EMPTY);
-                }
+            // 資料不齊全時，停止此 google api webhook 資源
+            if (!appId) {
+                !res.headersSent && res.sendStatus(200);
+                return gcalendarHlp.stopChannel(params.eventId, params.resourceId).catch(() => void 0);
+            }
 
-                let query = {
-                    appIds: appId,
-                    eventId: params.eventId
-                };
-                if (GOOGLE_RESOURCE_STATE.NOT_EXISTS === params.resourceState) {
-                    return appsAppointmentsMdl.find(query).then((appsAppointments) => {
-                        if (!(appsAppointments && appsAppointments[appId])) {
-                            gcalendarHlp.stopChannel(params.eventId, params.resourceId);
-                            return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
-                        }
-                        let appointmentId = Object.keys(appsAppointments[appId].appointments).shift() || '';
-                        return appsAppointmentsMdl.remove(appId, appointmentId);
-                    }).then((appsAppointments) => {
-                        if (!(appsAppointments && appsAppointments[appId])) {
-                            gcalendarHlp.stopChannel(params.eventId, params.resourceId);
-                            return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_REMOVE);
-                        }
-                        return gcalendarHlp.stopChannel(params.eventId, params.resourceId);
-                    }).then(() => {
-                        return Promise.resolve(void 0);
-                    });
-                }
+            let query = {
+                appIds: appId,
+                eventId: params.eventId
+            };
 
+            if (GOOGLE_RESOURCE_STATE.NOT_EXISTS === params.resourceState) {
                 return appsAppointmentsMdl.find(query).then((appsAppointments) => {
                     if (!(appsAppointments && appsAppointments[appId])) {
-                        !res.headersSent && res.sendStatus(200);
-                        gcalendarHlp.stopChannel(params.eventId, params.resourceId);
-                        return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
+                        return null;
                     }
-
                     let appointmentId = Object.keys(appsAppointments[appId].appointments).shift() || '';
-                    if (!appointmentId) {
-                        return Promise.reject(ERROR.APP_APPOINTMENT_FAILED_TO_FIND);
-                    }
+                    return appsAppointmentsMdl.remove(appId, appointmentId);
+                }).catch(() => {
+                    return Promise.resolve(void 0);
+                }).then(() => {
+                    return gcalendarHlp.stopChannel(params.eventId, params.resourceId);
+                });
+            }
 
-                    let appointment = appsAppointments[appId].appointments[appointmentId];
-                    if (appointment.isAccepted) {
-                        return gcalendarHlp.stopChannel(params.eventId, params.resourceId).then(() => void 0);
-                    }
+            let RESOURCE_SHOULD_BE_RELEASE = new Error('RESOURCE_SHOULD_BE_RELEASE');
+            return appsAppointmentsMdl.find(query).then((appsAppointments) => {
+                if (!(appsAppointments && appsAppointments[appId])) {
+                    return Promise.reject(RESOURCE_SHOULD_BE_RELEASE);
+                }
 
-                    let receptionistId = appointment.receptionist_id;
-                    let platformUid = appointment.platformUid;
-                    let productId = appointment.product_id;
+                let appointmentId = Object.keys(appsAppointments[appId].appointments).shift() || '';
+                if (!appointmentId) {
+                    return Promise.reject(RESOURCE_SHOULD_BE_RELEASE);
+                }
+
+                let appointment = appsAppointments[appId].appointments[appointmentId];
+                if (appointment.isAccepted) {
+                    // 此服務人員已經接受預約了，無需繼續監聽此資源
+                    return Promise.reject(RESOURCE_SHOULD_BE_RELEASE);
+                }
+
+                let receptionistId = appointment.receptionist_id;
+                let platformUid = appointment.platformUid;
+                let productId = appointment.product_id;
+
+                return Promise.all([
+                    this._getAppGCalendarId(appId),
+                    appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
+                    appsProductMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
+                    consumersMdl.find(platformUid)
+                ]).then(([ gcalendarId, appsReceptionists, appsProducts, consumers ]) => {
+                    if (!(appsReceptionists && appsReceptionists[appId]) ||
+                        !(appsProducts && appsProducts[appId]) ||
+                        !(consumers && consumers[platformUid])) {
+                        return Promise.reject(RESOURCE_SHOULD_BE_RELEASE);
+                    }
 
                     return Promise.all([
-                        this._getAppGCalendarId(appId),
-                        appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
-                        appsProductMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
-                        consumersMdl.find(platformUid)
-                    ]).then(([ gcalendarId, appsReceptionists, appsProducts, consumers ]) => {
-                        if (!(appsReceptionists && appsReceptionists[appId])) {
-                            return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
-                        }
-
-                        if (!(appsProducts && appsProducts[appId])) {
-                            return Promise.reject(ERROR.APP_PRODUCT_FAILED_TO_FIND);
-                        }
-
-                        if (!(consumers && consumers[platformUid])) {
-                            return Promise.reject(ERROR.CONSUMER_FAILED_TO_FIND);
-                        }
-
-                        return Promise.all([
-                            gcalendarHlp.getEvent(gcalendarId, params.eventId),
-                            appsProducts[appId].products[productId],
-                            appsReceptionists[appId].receptionists[receptionistId],
-                            consumers[platformUid]
-                        ]);
-                    }).then(([ gcEvent, product, receptionist, consumer ]) => {
-                        let attendees = gcEvent.attendees || [];
-                        return Promise.all(attendees.map((attendee) => {
-                            if (attendee.email !== receptionist.email) {
-                                return Promise.resolve(void 0);
-                            }
-
-                            if (!appointment.isAccepted && 'accepted' === attendee.responseStatus) {
-                                let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
-                                let startedDate = new Date(new Date(appointment.startedTime).getTime() - timezoneOffset);
-                                let endedDate = new Date(new Date(appointment.endedTime).getTime() - timezoneOffset);
-
-                                let startTime = startedDate.toISOString();
-                                startTime = startTime.split('T').pop() || '';
-                                startTime = startTime.substring(0, 5);
-
-                                let endTime = endedDate.toISOString();
-                                endTime = endTime.split('T').pop() || '';
-                                endTime = endTime.substring(0, 5);
-
-                                let acceptedMessage = {
-                                    type: 'text',
-                                    text: (
-                                        receptionist.name + ' 已接受了 ' + consumer.name + ' 您在\n\n' +
-                                        '【' + startedDate.toISOString().split('T').shift() + '】\n' +
-                                        '【' + startTime + ' ~ ' + endTime + '】\n' +
-                                        (product ? '【' + product.name + '】\n\n' : '\n') +
-                                        '的預約'
-                                    )
-                                };
-
-                                return Promise.all([
-                                    botSvc.pushMessage(platformUid, acceptedMessage, void 0, appId),
-                                    appsAppointmentsMdl.update(appId, appointmentId, { isAccepted: true }),
-                                    gcalendarHlp.stopChannel(params.eventId, params.resourceId)
-                                ]);
-                            }
+                        gcalendarHlp.getEvent(gcalendarId, params.eventId),
+                        appsProducts[appId].products[productId],
+                        appsReceptionists[appId].receptionists[receptionistId],
+                        consumers[platformUid]
+                    ]);
+                }).then(([ gcEvent, product, receptionist, consumer ]) => {
+                    let attendees = gcEvent.attendees || [];
+                    return Promise.all(attendees.map((attendee) => {
+                        if (attendee.email !== receptionist.email) {
                             return Promise.resolve(void 0);
-                        }));
-                    });
-                });
+                        }
+
+                        if (!appointment.isAccepted && 'accepted' === attendee.responseStatus) {
+                            let timezoneOffset = receptionist.timezoneOffset * 60 * 1000;
+                            let startedDate = new Date(new Date(appointment.startedTime).getTime() - timezoneOffset);
+                            let endedDate = new Date(new Date(appointment.endedTime).getTime() - timezoneOffset);
+
+                            let startTime = startedDate.toISOString();
+                            startTime = startTime.split('T').pop() || '';
+                            startTime = startTime.substring(0, 5);
+
+                            let endTime = endedDate.toISOString();
+                            endTime = endTime.split('T').pop() || '';
+                            endTime = endTime.substring(0, 5);
+
+                            let acceptedMessage = {
+                                type: 'text',
+                                text: (
+                                    receptionist.name + ' 已接受了 ' + consumer.name + ' 您在\n\n' +
+                                    '【' + startedDate.toISOString().split('T').shift() + '】\n' +
+                                    '【' + startTime + ' ~ ' + endTime + '】\n' +
+                                    (product ? '【' + product.name + '】\n\n' : '\n') +
+                                    '的預約'
+                                )
+                            };
+
+                            return Promise.all([
+                                botSvc.pushMessage(platformUid, acceptedMessage, void 0, appId),
+                                appsAppointmentsMdl.update(appId, appointmentId, { isAccepted: true }),
+                                gcalendarHlp.stopChannel(params.eventId, params.resourceId)
+                            ]);
+                        }
+                        return Promise.resolve(void 0);
+                    }));
+                }).then(() => void 0);
             }).then(() => {
                 !res.headersSent && res.sendStatus(200);
             }).catch((err) => {
+                if (err === RESOURCE_SHOULD_BE_RELEASE) {
+                    !res.headersSent && res.sendStatus(200);
+                    return gcalendarHlp.stopChannel(params.eventId, params.resourceId).catch(() => void 0);
+                }
                 return this.errorJson(req, res, err);
             });
         }
@@ -178,36 +172,30 @@ module.exports = (function() {
             let params = this.getGoogleParams(req.headers);
 
             if (CHATSHIER_CFG.JWT.SECRET !== params.channelToken) {
-                return !res.headersSent && res.sendStatus(400);
+                !res.headersSent && res.sendStatus(400);
+                return Promise.resolve();
             }
 
             // 當 webhook channel 被建立時，會收到資源 sync 狀態，此時不做任何處理
             if (GOOGLE_RESOURCE_STATE.SYNC === params.resourceState) {
-                return !res.headersSent && res.sendStatus(200);
+                !res.headersSent && res.sendStatus(200);
+                return Promise.resolve();
             }
 
-            return Promise.resolve().then(() => {
-                if (!appId) {
-                    return Promise.reject(ERROR.APPID_WAS_EMPTY);
+            // 資料不齊全時，停止此 google api webhook 資源
+            if (!appId || !receptionistId || !scheduleId) {
+                !res.headersSent && res.sendStatus(200);
+                return gcalendarHlp.stopChannel(params.eventId, params.resourceId).catch(() => void 0);
+            }
+
+            return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }).then((appsReceptionists) => {
+                if (!(appsReceptionists && appsReceptionists[appId])) {
+                    return null;
                 }
 
-                if (!receptionistId) {
-                    return Promise.reject(ERROR.RECEPTIONISTID_WAS_EMPTY);
-                }
-
-                if (!scheduleId) {
-                    return Promise.reject(ERROR.SCHEDULEID_WAS_EMPTY);
-                }
-
-                return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }).then((appsReceptionists) => {
-                    if (!(appsReceptionists && appsReceptionists[appId])) {
-                        return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
-                    }
-
-                    let receptionist = appsReceptionists[appId].receptionists[receptionistId];
-                    let gcalendarId = receptionist.gcalendarId;
-                    return gcalendarHlp.getEvent(gcalendarId, params.eventId);
-                }).then((gcEvent) => {
+                let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                let gcalendarId = receptionist.gcalendarId;
+                return gcalendarHlp.getEvent(gcalendarId, params.eventId).then((gcEvent) => {
                     let putSchedule = {
                         summary: gcEvent.summary,
                         description: gcEvent.description,
@@ -216,12 +204,15 @@ module.exports = (function() {
                         recurrence: gcEvent.recurrence
                     };
                     return appsReceptionistsSchedulesMdl.update(appId, receptionistId, scheduleId, putSchedule);
+                }).catch(() => {
+                    return null;
                 });
             }).then((appsReceptionistsSchedules) => {
                 if (!(appsReceptionistsSchedules && appsReceptionistsSchedules[appId])) {
-                    return Promise.reject(ERROR.SCHEDULEID_WAS_EMPTY);
+                    // 更新服務人員行程失敗時，停止此 google api webhook 資源
+                    return gcalendarHlp.stopChannel(params.eventId, params.resourceId);
                 }
-                return Promise.resolve(appsReceptionistsSchedules);
+                return Promise.resolve(void 0);
             }).then(() => {
                 !res.headersSent && res.sendStatus(200);
             }).catch((err) => {
