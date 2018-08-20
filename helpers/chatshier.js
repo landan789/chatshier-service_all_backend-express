@@ -1335,6 +1335,7 @@ module.exports = (function() {
                         endedTime: endedTimeStr,
                         timestamp: Date.now()
                     };
+
                     let confirmMessage = {
                         type: 'template',
                         altText: '預約時間',
@@ -1346,6 +1347,10 @@ module.exports = (function() {
                                 type: 'postback',
                                 label: '確認預約',
                                 data: JSON.stringify(payloadJson)
+                            }, {
+                                type: 'postback',
+                                label: '重新預約',
+                                data: JSON.stringify({ action: 'SEND_APPOINTMENT_CATEGORIES' })
                             }]
                         }
                     };
@@ -1413,16 +1418,14 @@ module.exports = (function() {
                 };
 
                 return Promise.all([
-                    appsMdl.find(appId),
                     appsProductsMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
                     appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
                     appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false),
                     consumersMdl.find(platformUid),
                     appsAppointmentsMdl.insert(appId, _appointment)
                 ]);
-            }).then(([ apps, appsProducts, appsReceptionists, appsChatroomsMessagers, consumers ]) => {
-                if (!(apps && apps[appId]) ||
-                    !(appsProducts && appsProducts[appId]) ||
+            }).then(([ appsProducts, appsReceptionists, appsChatroomsMessagers, consumers ]) => {
+                if (!(appsProducts && appsProducts[appId]) ||
                     !(appsReceptionists && appsReceptionists[appId]) ||
                     !(appsChatroomsMessagers && appsChatroomsMessagers[appId]) ||
                     !(consumers && consumers[platformUid])) {
@@ -1430,7 +1433,6 @@ module.exports = (function() {
                     return Promise.reject(new Error('MANUAL_ABORT'));
                 }
 
-                let app = apps[appId];
                 let product = appsProducts[appId].products[productId];
                 let receptionist = appsReceptionists[appId].receptionists[receptionistId];
                 let messager = Object.values(appsChatroomsMessagers[appId].chatrooms)[0].messagers[platformUid];
