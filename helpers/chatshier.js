@@ -2,7 +2,6 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     const CHATSHIER_CFG = require('../config/chatshier');
-    const GenericTemplateBuilder = require('facebook-bot-messenger').GenericTemplateBuilder;
 
     const appsMdl = require('../models/apps');
     const appsAppointmentsMdl = require('../models/apps_appointments');
@@ -305,81 +304,6 @@ module.exports = (function() {
             })).then(() => {
                 return replies;
             });
-        }
-
-        /**
-         * @param {string} recipientUid
-         * @param {Chatshier.Models.Template} templateMessage
-         */
-        convertTemplateToFB(recipientUid, templateMessage) {
-            let template = templateMessage.template;
-            let columns = template.columns ? template.columns : [template];
-            let elements = columns.map((column) => {
-                let element = {
-                    title: column.title,
-                    subtitle: column.text
-                };
-
-                if (!element.title && element.subtitle) {
-                    element.title = element.subtitle;
-                    delete element.subtitle;
-                }
-
-                if (column.thumbnailImageUrl) {
-                    element.image_url = column.thumbnailImageUrl;
-                }
-
-                if (column.defaultAction) {
-                    element.default_action = {
-                        type: 'web_url',
-                        url: column.defaultAction.uri
-                    };
-                }
-
-                let actions = column.actions || [];
-                if (actions.length > 0) {
-                    element.buttons = actions.map((action) => {
-                        /** @type {string} */
-                        let type = action.type;
-                        let button = {
-                            type: type,
-                            title: action.label
-                        };
-
-                        if ('uri' === action.type) {
-                            if (action.uri && action.uri.startsWith('tel:')) {
-                                button.type = 'phone_number';
-                                button.payload = action.uri.replace('tel:', '');
-                            } else {
-                                button.type = 'web_url';
-                                button.url = action.uri;
-                            }
-                        } else if ('message' === action.type) {
-                            button.type = 'postback';
-                            button.payload = JSON.stringify({ action: 'SEND_REPLY_TEXT', replyText: action.text || '' });
-                        } else {
-                            button.type = 'postback';
-                            button.payload = action.data || '{}';
-                        }
-                        return button;
-                    });
-                }
-                return element;
-            });
-
-            let templateBuilder = new GenericTemplateBuilder(elements);
-            let templateJson = {
-                recipient: {
-                    id: recipientUid
-                },
-                message: {
-                    attachment: {
-                        type: 'template',
-                        payload: templateBuilder.buildTemplate()
-                    }
-                }
-            };
-            return templateJson;
         }
 
         _getAppGCalendarId(appId) {

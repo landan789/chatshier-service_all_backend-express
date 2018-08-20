@@ -18,7 +18,7 @@ module.exports = (function() {
 
     const storageHlp = require('../helpers/storage');
     const socketHlp = require('../helpers/socket');
-    const chatshierHlp = require('../helpers/chatshier');
+    const fbSvc = require('./facebook');
     const wechatSvc = require('./wechat');
 
     // app type defined
@@ -895,7 +895,7 @@ module.exports = (function() {
                             }
 
                             if ('template' === message.type) {
-                                return bot.sendJsonMessage(chatshierHlp.convertTemplateToFB(platformUid, message));
+                                return bot.sendJsonMessage(fbSvc.convertTemplateToFB(platformUid, message));
                             }
 
                             if (!message.text) {
@@ -1039,7 +1039,7 @@ module.exports = (function() {
                         }
 
                         if ('template' === message.type) {
-                            return bot.sendJsonMessage(chatshierHlp.convertTemplateToFB(recipientUid, message));
+                            return bot.sendJsonMessage(fbSvc.convertTemplateToFB(recipientUid, message));
                         }
                         return bot.sendTextMessage(recipientUid, message.text);
                     case WECHAT:
@@ -1183,7 +1183,7 @@ module.exports = (function() {
                                         }
 
                                         if ('template' === message.type) {
-                                            return bot.sendJsonMessage(chatshierHlp.convertTemplateToFB(recipientUid, message));
+                                            return bot.sendJsonMessage(fbSvc.convertTemplateToFB(recipientUid, message));
                                         }
                                     }).then(() => {
                                         return nextPromise(i + 1);
