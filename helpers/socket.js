@@ -1,30 +1,46 @@
 module.exports = (function() {
     const redisHlp = require('./redis');
     const REDIS_SOCKET_CHANNEL = redisHlp.CHANNELS.REDIS_SOCKET_CHANNEL;
+    const ONLINE_USER_IDS = 'ONLINE_USER_IDS';
 
     class SocketHelper {
         constructor() {
-            /** @type {{ [socketId: string]: { [userId: string]: SocketIO.Socket } }} */
-            this.socketMap = {};
-            this.userMap = {};
+            /** @type {{ [socketId: string]: string }} */
+            this.socketUserIdMap = {};
+            /** @type {{ [userId: string]: { [socketId: string]: SocketIO.Socket } }} */
+            this.usersSockets = {};
 
-            this._subscriberOnMessage = this._subscriberOnMessage.bind(this);
             redisHlp.ready.then(() => {
-                redisHlp.subscriber.on('message', this._subscriberOnMessage);
+                redisHlp.subscriber.on('message', this._subscriberOnMessage.bind(this));
                 redisHlp.subscriber.subscribe(REDIS_SOCKET_CHANNEL);
             });
         }
 
-        get connectedUserIds() {
-            return Object.keys(this.userMap);
+        /**
+         * @returns {Promise<string[]>}
+         */
+        getOnlineUserIds() {
+            if (!redisHlp.isRedisConnected) {
+                return Promise.resolve(Object.keys(this.usersSockets));
+            }
+            return redisHlp.getArrayValues(ONLINE_USER_IDS);
         }
 
         /**
-         * @param {string} userId
-         * @returns {boolean}
+         * @param {string[]} userIds
+         * @returns {Promise<string[]>}
          */
-        isConnected(userId) {
-            return !!this.userMap[userId];
+        getOfflineUserIds(userIds) {
+            return this.getOnlineUserIds().then((onlineUserIds) => {
+                let offlineUserIds = [];
+                for (let i in userIds) {
+                    let userId = userIds[i];
+                    if (!this.usersSockets[userId] && !onlineUserIds.includes(userId)) {
+                        offlineUserIds.push(userId);
+                    }
+                }
+                return offlineUserIds;
+            });
         }
 
         /**
@@ -37,10 +53,17 @@ module.exports = (function() {
                 return false;
             }
 
-            if (!this.socketMap[socket.id]) {
-                this.socketMap[socket.id] = {};
+            if (!this.usersSockets[userId]) {
+                this.usersSockets[userId] = {};
             }
-            this.socketMap[socket.id][userId] = this.userMap[userId] = socket;
+            this.usersSockets[userId][socket.id] = socket;
+            this.socketUserIdMap[socket.id] = userId;
+
+            // 用戶第 1 次連線時才需要更新 redis 狀態
+            // 因為同一用戶可能使用多個瀏覽器登入，此時就會有同一個 userId 有多個 socket
+            if (1 === Object.keys(this.usersSockets[userId]).length) {
+                redisHlp.pushArrayValue(ONLINE_USER_IDS, userId);
+            }
             return true;
         }
 
@@ -53,15 +76,22 @@ module.exports = (function() {
                 return false;
             }
 
-            if (!this.socketMap[socket.id]) {
+            let userId = this.socketUserIdMap[socket.id];
+            if (!userId) {
                 return true;
             }
+            delete this.socketUserIdMap[socket.id];
 
-            for (let userId in this.socketMap[socket.id]) {
-                delete this.userMap[userId];
-                delete this.socketMap[socket.id][userId];
+            if (!(this.usersSockets[userId] && this.usersSockets[userId][socket.id])) {
+                return true;
             }
-            delete this.socketMap[socket.id];
+            delete this.usersSockets[userId][socket.id];
+
+            // 刪除 socket 後，若此用戶已經沒有任何 socket 連線，則代表用戶已離線
+            if (0 === Object.keys(this.usersSockets[userId]).length) {
+                delete this.usersSockets[userId];
+                redisHlp.removeArrayValue(ONLINE_USER_IDS, userId);
+            }
             return true;
         }
 
@@ -82,7 +112,7 @@ module.exports = (function() {
 
             // 如果連結到 redis server 有出現錯誤
             // 則不透過 redis server 發送訊息
-            if (redisHlp.noRedis) {
+            if (!redisHlp.isRedisConnected) {
                 this._sendSocketMessage(userIds, eventName, dataToSocket);
                 return Promise.resolve();
             }
@@ -124,14 +154,18 @@ module.exports = (function() {
 
             for (let i in userIds) {
                 let userId = userIds[i];
-                if (!this.userMap[userId]) {
+                let sockets = this.usersSockets[userId];
+
+                if (!sockets) {
                     continue;
                 }
-                this.userMap[userId].emit(eventName, socketData);
+
+                for (let socketId in sockets) {
+                    sockets[socketId].emit(eventName, socketData);
+                }
             }
         }
     }
 
-    let instance = new SocketHelper();
-    return instance;
+    return new SocketHelper();
 })();
