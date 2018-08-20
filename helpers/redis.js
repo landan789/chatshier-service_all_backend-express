@@ -10,7 +10,7 @@ module.exports = (function() {
         host: CHATSHIER_CFG.REDIS.HOST,
         port: CHATSHIER_CFG.REDIS.PORT,
         password: CHATSHIER_CFG.REDIS.PASSWORD, // "chatshier" MD5 hash
-        connect_timeout: 15000,
+        connect_timeout: 30000,
         retry_strategy: (options) => {
             // // redis server 已經失去連線則不進行重新嘗試
             // if (options.error && 'ECONNREFUSED' === options.error.code) {

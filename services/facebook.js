@@ -72,7 +72,7 @@ module.exports = (function() {
          * @param {string} recipientUid
          * @param {Chatshier.Models.Template} templateMessage
          */
-        convertTemplateToFB(recipientUid, templateMessage) {
+        templateMessageToFbJson(recipientUid, templateMessage) {
             let template = templateMessage.template;
             let columns = template.columns ? template.columns : [template];
             let elements = columns.map((column) => {
