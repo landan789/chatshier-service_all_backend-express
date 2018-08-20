@@ -52,7 +52,7 @@
         "passport-jwt": "4.0.0",
         "redis": "2.8.0",
         "request": "2.85.0",
-        "rrule": "2.3.3",
+        "rrule": "2.4.1",
         "socket.io": "2.0.3",
         "timekit-booking": "^2.0.0",
         "wechat": "2.1.0",
