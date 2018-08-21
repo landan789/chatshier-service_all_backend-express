@@ -7,7 +7,7 @@ module.exports = (function() {
     const options = {
         user: CHATSHIER.MONGODB.USERNAME,
         pass: CHATSHIER.MONGODB.PASSWORD,
-        connectTimeoutMS: 60000
+        connectTimeoutMS: 0
     };
     mongoose.connect(url, options);
 
@@ -372,7 +372,14 @@ module.exports = (function() {
         'phone': {type: String, default: ''},
         'password': {type: String, default: '300102985f51c92c06703ea845025b4fb4c791b7'}, // cipher.Hlp.encode('123456') -> 300102985f51c92c06703ea845025b4fb4c791b7
         'name': {type: String, default: ''},
-        'group_ids': {type: [{type: String}], default: []}
+        'group_ids': {type: [{type: String}], default: []},
+        'oneSignals': [{ // use for OneSignal notification
+            'isDeleted': {type: Boolean, default: false},
+            'createdTime': {type: Date, default: Date.now()},
+            'updatedTime': {type: Date, default: Date.now()},
+            'oneSignalAppId': {type: String, default: ''},
+            'oneSignalUserId': {type: String, default: ''}
+        }]
     });
 
     const ConsumersSchema = new Schema({

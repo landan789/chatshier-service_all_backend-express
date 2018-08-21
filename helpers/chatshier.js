@@ -2,7 +2,6 @@ module.exports = (function() {
     /** @type {any} */
     const ERROR = require('../config/error.json');
     const CHATSHIER_CFG = require('../config/chatshier');
-    const GenericTemplateBuilder = require('facebook-bot-messenger').GenericTemplateBuilder;
 
     const appsMdl = require('../models/apps');
     const appsAppointmentsMdl = require('../models/apps_appointments');
@@ -25,6 +24,7 @@ module.exports = (function() {
     const LINE = 'LINE';
     const SYSTEM = 'SYSTEM';
 
+    /** @type {Webhook.Chatshier.PostbackActions} */
     const POSTBACK_ACTIONS = Object.freeze({
         CHANGE_RICHMENU: 'CHANGE_RICHMENU',
         SEND_REPLY_TEXT: 'SEND_REPLY_TEXT',
@@ -306,79 +306,30 @@ module.exports = (function() {
             });
         }
 
-        /**
-         * @param {string} recipientUid
-         * @param {Chatshier.Models.Template} templateMessage
-         */
-        convertTemplateToFB(recipientUid, templateMessage) {
-            let template = templateMessage.template;
-            let columns = template.columns ? template.columns : [template];
-            let elements = columns.map((column) => {
-                let element = {
-                    title: column.title,
-                    subtitle: column.text
-                };
-
-                if (!element.title && element.subtitle) {
-                    element.title = element.subtitle;
-                    delete element.subtitle;
+        _getAppGCalendarId(appId) {
+            return appsMdl.find(appId).then((apps) => {
+                if (!(apps && apps[appId])) {
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                 }
 
-                if (column.thumbnailImageUrl) {
-                    element.image_url = column.thumbnailImageUrl;
+                let app = apps[appId];
+                let gcalendarId = app.gcalendarId;
+                if (gcalendarId) {
+                    return gcalendarId;
                 }
 
-                if (column.defaultAction) {
-                    element.default_action = {
-                        type: 'web_url',
-                        url: column.defaultAction.uri
-                    };
-                }
-
-                let actions = column.actions || [];
-                if (actions.length > 0) {
-                    element.buttons = actions.map((action) => {
-                        /** @type {string} */
-                        let type = action.type;
-                        let button = {
-                            type: type,
-                            title: action.label
-                        };
-
-                        if ('uri' === action.type) {
-                            if (action.uri && action.uri.startsWith('tel:')) {
-                                button.type = 'phone_number';
-                                button.payload = action.uri.replace('tel:', '');
-                            } else {
-                                button.type = 'web_url';
-                                button.url = action.uri;
-                            }
-                        } else if ('message' === action.type) {
-                            button.type = 'postback';
-                            button.payload = JSON.stringify({ action: 'SEND_REPLY_TEXT', replyText: action.text || '' });
-                        } else {
-                            button.type = 'postback';
-                            button.payload = action.data || '{}';
-                        }
-                        return button;
-                    });
-                }
-                return element;
+                let summary = '[' + app.name + '] - ' + appId;
+                let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
+                return gcalendarHlp.insertCalendar(summary, description).catch(() => {
+                    return Promise.reject(ERROR.GOOGLE_CALENDAR_FAILED_TO_INSERT);
+                }).then((gcalendar) => {
+                    gcalendarId = gcalendar.id;
+                    let _app = { gcalendarId: gcalendarId };
+                    return appsMdl.update(appId, _app);
+                }).then(() => {
+                    return gcalendarId;
+                });
             });
-
-            let templateBuilder = new GenericTemplateBuilder(elements);
-            let templateJson = {
-                recipient: {
-                    id: recipientUid
-                },
-                message: {
-                    attachment: {
-                        type: 'template',
-                        payload: templateBuilder.buildTemplate()
-                    }
-                }
-            };
-            return templateJson;
         }
 
         _checkAppointmentTimeout(timestamp) {
@@ -685,7 +636,7 @@ module.exports = (function() {
                                 let column = {
                                     title: '預約目錄',
                                     text: '請選擇要預約的目錄',
-                                    thumbnailImageUrl: url + '/image/default-category.jpg',
+                                    thumbnailImageUrl: url + '/image/default-category.png',
                                     actions: categoryIds.map((categoryId) => {
                                         /** @type {Chatshier.Models.TemplateAction} */
                                         let action = {
@@ -701,7 +652,7 @@ module.exports = (function() {
                                         let category = categories[categoryId];
                                         /** @type {Webhook.Chatshier.PostbackPayload} */
                                         let payloadJson = {
-                                            action: 'SEND_APPOINTMENT_PRODUCTS',
+                                            action: POSTBACK_ACTIONS.SEND_APPOINTMENT_PRODUCTS,
                                             categoryId: categoryId,
                                             timestamp: Date.now()
                                         };
@@ -829,7 +780,7 @@ module.exports = (function() {
                                         let receptionist = receptionists[receptionistId];
                                         /** @type {Webhook.Chatshier.PostbackPayload} */
                                         let payloadJson = {
-                                            action: 'SEND_APPOINTMENT_DATES',
+                                            action: POSTBACK_ACTIONS.SEND_APPOINTMENT_DATES,
                                             productId: productId,
                                             receptionistId: receptionistId,
                                             timestamp: Date.now()
@@ -959,7 +910,7 @@ module.exports = (function() {
 
                         /** @type {Webhook.Chatshier.PostbackPayload} */
                         let payloadJson = {
-                            action: 'SEND_APPOINTMENT_TIMES',
+                            action: POSTBACK_ACTIONS.SEND_APPOINTMENT_TIMES,
                             productId: productId,
                             receptionistId: receptionistId,
                             scheduleId: scheduleId,
@@ -1154,7 +1105,7 @@ module.exports = (function() {
 
                                     /** @type {Webhook.Chatshier.PostbackPayload} */
                                     let payloadJson = {
-                                        action: 'SEND_APPOINTMENT_CONFIRM',
+                                        action: POSTBACK_ACTIONS.SEND_APPOINTMENT_CONFIRM,
                                         productId: productId,
                                         receptionistId: receptionistId,
                                         scheduleId: scheduleId,
@@ -1301,7 +1252,7 @@ module.exports = (function() {
                     let appointmentId = appsAppointmentsMdl.Types.ObjectId().toHexString();
                     /** @type {Webhook.Chatshier.PostbackPayload} */
                     let payloadJson = {
-                        action: 'APPOINTMENT_FINISH',
+                        action: POSTBACK_ACTIONS.APPOINTMENT_FINISH,
                         appointmentId: appointmentId,
                         productId: productId,
                         receptionistId: receptionistId,
@@ -1311,6 +1262,7 @@ module.exports = (function() {
                         endedTime: endedTimeStr,
                         timestamp: Date.now()
                     };
+
                     let confirmMessage = {
                         type: 'template',
                         altText: '預約時間',
@@ -1322,6 +1274,10 @@ module.exports = (function() {
                                 type: 'postback',
                                 label: '確認預約',
                                 data: JSON.stringify(payloadJson)
+                            }, {
+                                type: 'postback',
+                                label: '重新預約',
+                                data: JSON.stringify({ action: POSTBACK_ACTIONS.SEND_APPOINTMENT_CATEGORIES })
                             }]
                         }
                     };
@@ -1389,16 +1345,14 @@ module.exports = (function() {
                 };
 
                 return Promise.all([
-                    appsMdl.find(appId),
                     appsProductsMdl.find({ appIds: appId, productIds: productId, type: 'APPOINTMENT' }),
                     appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),
                     appsChatroomsMessagersMdl.findByPlatformUid(appId, void 0, platformUid, false),
                     consumersMdl.find(platformUid),
                     appsAppointmentsMdl.insert(appId, _appointment)
                 ]);
-            }).then(([ apps, appsProducts, appsReceptionists, appsChatroomsMessagers, consumers ]) => {
-                if (!(apps && apps[appId]) ||
-                    !(appsProducts && appsProducts[appId]) ||
+            }).then(([ appsProducts, appsReceptionists, appsChatroomsMessagers, consumers ]) => {
+                if (!(appsProducts && appsProducts[appId]) ||
                     !(appsReceptionists && appsReceptionists[appId]) ||
                     !(appsChatroomsMessagers && appsChatroomsMessagers[appId]) ||
                     !(consumers && consumers[platformUid])) {
@@ -1406,7 +1360,6 @@ module.exports = (function() {
                     return Promise.reject(new Error('MANUAL_ABORT'));
                 }
 
-                let app = apps[appId];
                 let product = appsProducts[appId].products[productId];
                 let receptionist = appsReceptionists[appId].receptionists[receptionistId];
                 let messager = Object.values(appsChatroomsMessagers[appId].chatrooms)[0].messagers[platformUid];
@@ -1421,22 +1374,7 @@ module.exports = (function() {
                 messager.gender && (description += '\n性別: ' + ('MALE' === messager.gender ? '男' : '女'));
                 messager.age && (description += '\n年齡: ' + messager.age);
 
-                return Promise.resolve().then(() => {
-                    let gcalendarId = app.gcalendarId;
-                    if (!gcalendarId) {
-                        let summary = '[' + app.name + '] - ' + appId;
-                        let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
-
-                        return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
-                            gcalendarId = gcalendar.id;
-                            let _app = { gcalendarId: gcalendarId };
-                            return appsMdl.update(appId, _app);
-                        }).then(() => {
-                            return Promise.resolve(gcalendarId);
-                        });
-                    }
-                    return Promise.resolve(gcalendarId);
-                }).then((gcalendarId) => {
+                return this._getAppGCalendarId(appId).then((gcalendarId) => {
                     let attendees = [{
                         name: receptionist.name,
                         email: receptionist.email
@@ -1592,7 +1530,7 @@ module.exports = (function() {
 
                         /** @type {Webhook.Chatshier.PostbackPayload} */
                         let payloadJson = {
-                            action: 'CANCEL_APPOINTMENT',
+                            action: POSTBACK_ACTIONS.CANCEL_APPOINTMENT,
                             appointmentId: appointmentId,
                             timestamp: Date.now()
                         };
@@ -1652,15 +1590,9 @@ module.exports = (function() {
                 let receptionistId = appointment.receptionist_id;
 
                 return Promise.all([
-                    appsMdl.find(appId),
+                    this._getAppGCalendarId(appId),
                     eventId && resourceId && gcalendarHlp.stopChannel(eventId, resourceId)
-                ]).then(([ apps ]) => {
-                    if (!(apps && apps[appId])) {
-                        return Promise.resolve(null);
-                    }
-
-                    let app = apps[appId];
-                    let gcalendarId = app.gcalendarId;
+                ]).then(([ gcalendarId ]) => {
                     return Promise.all([
                         appsProductsMdl.find({ appIds: appId, productIds: productId }),
                         appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId }),

@@ -12,6 +12,9 @@
 
     "FACEBOOK_PAGE_FAILED_TO_SUBSCRIBE_APP": {"MSG": "facebook page failed to subscribe app", "CODE": "21.1"},
     "FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP": {"MSG": "facebook page failed to unsubscribe app", "CODE": "21.2"},
+    "GOOGLE_CALENDAR_FAILED_TO_INSERT": { "MSG": "google calendar failed to insert", "CODE": "28.2" },
+    "GOOGLE_CALENDAR_FAILED_TO_UPDATE": { "MSG": "google calendar failed to update", "CODE": "28.3" },
+    "GOOGLE_CALENDAR_FAILED_TO_REMOVE": { "MSG": "google calendar failed to remove", "CODE": "28.4" },
 
     "BOT_RICHMENU_IMAGE_FAILED_TO_FIND": { "MSG": "bot richmenu image failed to find", "CODE": "8.62" },
     "BOT_RICHMENU_FAILED_TO_LINK": { "MSG": "bot richmenu failed to link", "CODE": "8.9" },
@@ -21,6 +24,9 @@
     "USER_FAILED_TO_UPDATE": { "MSG": "user failed to update", "CODE": "3.11" },
     "USER_FAILED_TO_INSERT": { "MSG": "user failed to insert", "CODE": "3.12"},
     "USER_FAILED_TO_SIGNUP": { "MSG": "user failed to signup", "CODE": "3.13"},
+    "USER_ONESIGNAL_FAILED_TO_FIND": { "MSG": "user onesignal failed to find", "CODE": "3.14" },
+    "USER_ONESIGNAL_FAILED_TO_INSERT": { "MSG": "user onesignal failed to insert", "CODE": "3.15" },
+    "USER_ONESIGNAL_FAILED_TO_REMOVE": { "MSG": "user onesignal failed to remove", "CODE": "3.16" },
     "USER_EMAIL_WAS_EMPTY": { "MSG": "user email was empty", "CODE": "3.2" },
     "USER_PASSWORD_WAS_INCORRECT": { "MSG": "user password was incorrect", "CODE": "3.3"},
     "USER_PASSWORD_FAILED_TO_RESET": { "MSG": "user password failed to reset", "CODE": "3.4"},
@@ -185,8 +191,5 @@
     "APP_PRODUCT_FAILED_TO_FIND": { "MSG": "app product failed to find", "CODE": "27.1" },
     "APP_PRODUCT_FAILED_TO_INSERT": { "MSG": "app product failed to insert", "CODE": "27.2" },
     "APP_PRODUCT_FAILED_TO_UPDATE": { "MSG": "app product failed to update", "CODE": "27.3" },
-    "APP_PRODUCT_FAILED_TO_REMOVE": { "MSG": "app product failed to remove", "CODE": "27.4" },
-
-    "GOOGLE_CALENDAR_FAILED_TO_INSERT": { "MSG": "google calendar failed to insert", "CODE": "28.2" },
-    "GOOGLE_CALENDAR_FAILED_TO_UPDATE": { "MSG": "google calendar failed to remove", "CODE": "28.3" }
+    "APP_PRODUCT_FAILED_TO_REMOVE": { "MSG": "app product failed to remove", "CODE": "27.4" }
 }

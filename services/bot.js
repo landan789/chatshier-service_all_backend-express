@@ -18,7 +18,8 @@ module.exports = (function() {
 
     const storageHlp = require('../helpers/storage');
     const socketHlp = require('../helpers/socket');
-    const chatshierHlp = require('../helpers/chatshier');
+    const fbSvc = require('./facebook');
+    const lineSvc = require('./line');
     const wechatSvc = require('./wechat');
 
     // app type defined
@@ -867,16 +868,18 @@ module.exports = (function() {
             }).then((bot) => {
                 switch (app.type) {
                     case LINE:
-                        return Promise.all(messages.map((message) => {
+                        let _messages = messages.map((message) => {
                             if ('image' === message.type) {
                                 message.originalContentUrl = message.previewImageUrl = message.src;
+                            } else if ('template' === message.type) {
+                                message = lineSvc.templateMessageToFlexMessage(message);
                             }
-                            return Promise.resolve(message);
-                        })).then((_messages) => {
-                            return bot.replyMessage(replyToken, _messages).then(() => {
-                                // 一同將 webhook 打過來的 http request 回覆 200 狀態
-                                return !res.headersSent && res.status(200).send('');
-                            });
+                            return message;
+                        });
+
+                        return bot.replyMessage(replyToken, _messages).then(() => {
+                            // 一同將 webhook 打過來的 http request 回覆 200 狀態
+                            return !res.headersSent && res.status(200).send('');
                         });
                     case FACEBOOK:
                         return Promise.all(messages.map((message) => {
@@ -895,7 +898,7 @@ module.exports = (function() {
                             }
 
                             if ('template' === message.type) {
-                                return bot.sendJsonMessage(chatshierHlp.convertTemplateToFB(platformUid, message));
+                                return bot.sendJsonMessage(fbSvc.templateMessageToFbJson(platformUid, message));
                             }
 
                             if (!message.text) {
@@ -1039,7 +1042,7 @@ module.exports = (function() {
                         }
 
                         if ('template' === message.type) {
-                            return bot.sendJsonMessage(chatshierHlp.convertTemplateToFB(recipientUid, message));
+                            return bot.sendJsonMessage(fbSvc.templateMessageToFbJson(recipientUid, message));
                         }
                         return bot.sendTextMessage(recipientUid, message.text);
                     case WECHAT:
@@ -1183,7 +1186,7 @@ module.exports = (function() {
                                         }
 
                                         if ('template' === message.type) {
-                                            return bot.sendJsonMessage(chatshierHlp.convertTemplateToFB(recipientUid, message));
+                                            return bot.sendJsonMessage(fbSvc.templateMessageToFbJson(recipientUid, message));
                                         }
                                     }).then(() => {
                                         return nextPromise(i + 1);

@@ -260,31 +260,82 @@
         $settingModal.find('.modal-body').append(str);
     });
 
-    let $notificationCbx = $('#notificationRow #notificationCbx');
-    OneSignal.isPushNotificationsEnabled().then((isPushEnabled) => $notificationCbx.prop('checked', isPushEnabled));
-    OneSignal.on('subscriptionChange', (isSubscribed) => $notificationCbx.prop('checked', isSubscribed));
+    let $notificationRow = $('#notificationRow');
+    let $notificationCbx = $notificationRow.find('#notificationCbx');
+    let isPushNotificationsSupported = OneSignal.isPushNotificationsSupported && OneSignal.isPushNotificationsSupported();
+    if (isPushNotificationsSupported) {
+        let notificationChecking = false;
+        let oneSignalUserId = null;
 
-    $notificationCbx.on('click', (ev) => {
-        ev.preventDefault();
-
-        return Promise.all([
-            OneSignal.isPushNotificationsEnabled(),
-            OneSignal.isOptedOut()
-        ]).then((results) => {
-            let isPushEnabled = results[0];
-            let isOptedOut = results[1];
-
-            if (isPushEnabled) {
-                OneSignal.setSubscription(false);
-            } else {
-                if (isOptedOut) {
-                    OneSignal.setSubscription(true);
-                } else {
-                    OneSignal.registerForPushNotifications();
-                }
-            }
+        OneSignal.isPushNotificationsEnabled().then((isPushEnabled) => {
+            $notificationCbx.prop('checked', isPushEnabled);
+            return OneSignal.getUserId().then((_oneSignalUserId) => {
+                oneSignalUserId = _oneSignalUserId;
+            });
         });
-    });
+
+        OneSignal.on('subscriptionChange', (isSubscribed) => {
+            return api.usersOneSignals.findAll(userId).then((res) => {
+                let usersOneSignals = res.data;
+                if (!usersOneSignals[userId]) {
+                    usersOneSignals[userId] = { oneSignals: {} };
+                }
+                let oneSignals = usersOneSignals[userId].oneSignals;
+
+                let isExisted = false;
+                let oneSignalId = '';
+                for (let _oneSignalId in oneSignals) {
+                    let oneSignal = oneSignals[_oneSignalId];
+                    if (oneSignalUserId && oneSignal.oneSignalUserId === oneSignalUserId) {
+                        oneSignalId = _oneSignalId;
+                        isExisted = true;
+                        break;
+                    }
+                }
+
+                if (!isSubscribed && isExisted && oneSignalId) {
+                    return api.usersOneSignals.remove(userId, oneSignalId);
+                } else if (isSubscribed && !isExisted) {
+                    return OneSignal.getUserId().then((_oneSignalUserId) => {
+                        oneSignalUserId = _oneSignalUserId;
+                        let postOneSignal = {
+                            oneSignalAppId: OneSignal.config.appId,
+                            oneSignalUserId: oneSignalUserId
+                        };
+                        return api.usersOneSignals.insert(userId, postOneSignal);
+                    });
+                }
+            }).then(() => {
+                $notificationCbx.prop('checked', isSubscribed);
+                notificationChecking = false;
+            });
+        });
+
+        $notificationCbx.on('click', (ev) => {
+            ev.preventDefault();
+            if (notificationChecking) {
+                return Promise.resolve();
+            }
+
+            notificationChecking = true;
+            return Promise.all([
+                OneSignal.isPushNotificationsEnabled(),
+                OneSignal.isOptedOut()
+            ]).then(([ isPushEnabled, isOptedOut ]) => {
+                if (isPushEnabled) {
+                    OneSignal.setSubscription(false);
+                } else {
+                    if (isOptedOut) {
+                        OneSignal.setSubscription(true);
+                    } else {
+                        OneSignal.registerForPushNotifications();
+                    }
+                }
+            });
+        });
+    } else {
+        $notificationRow.remove();
+    }
 
     // payment modal 處理
     (function() {

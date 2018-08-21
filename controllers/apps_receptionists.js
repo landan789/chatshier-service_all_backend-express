@@ -58,9 +58,24 @@ module.exports = (function() {
                 if (!isAvailable) {
                     return Promise.reject(ERROR.UNAVAILABLE_GMAIL);
                 }
+                return appsMdl.find(appId);
+            }).then((apps) => {
+                if (!(apps && apps[appId])) {
+                    return Promise.reject(ERROR.APP_FAILED_TO_FIND);
+                }
+
+                postReceptionist._id = appsReceptionistsMdl.Types.ObjectId();
+                let app = apps[appId];
+                let summary = '[' + postReceptionist.name + '][' + app.name + '] - ' + postReceptionist._id.toHexString();
+                let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
+                return gcalendarHlp.insertCalendar(summary, description).catch(() => {
+                    return Promise.reject(ERROR.GOOGLE_CALENDAR_FAILED_TO_INSERT);
+                });
+            }).then((gcalendar) => {
+                postReceptionist.gcalendarId = gcalendar.id;
                 return appsReceptionistsMdl.insert(appId, postReceptionist);
             }).then((appsReceptionists) => {
-                if (!appsReceptionists) {
+                if (!(appsReceptionists && appsReceptionists[appId])) {
                     return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_INSERT);
                 }
                 return Promise.resolve(appsReceptionists);
@@ -79,31 +94,58 @@ module.exports = (function() {
             let appId = req.params.appid;
             let receptionistId = req.params.receptionistid;
 
-            let putReceptionist = {};
-            ('string' === typeof req.body.name) && (putReceptionist.name = req.body.name);
-            ('string' === typeof req.body.photo) && (putReceptionist.photo = req.body.photo);
-            ('string' === typeof req.body.email) && (putReceptionist.email = req.body.email);
-            ('string' === typeof req.body.phone) && (putReceptionist.phone = req.body.phone);
-            ('number' === typeof req.body.timezoneOffset) && (putReceptionist.timezoneOffset = req.body.timezoneOffset);
-            ('number' === typeof req.body.maxNumberPerDay) && (putReceptionist.maxNumberPerDay = req.body.maxNumberPerDay);
-            ('number' === typeof req.body.interval) && (putReceptionist.interval = req.body.interval);
-            (req.body.schedules instanceof Array) && (putReceptionist.schedules = req.body.schedules);
-
-            let shareToGmail = req.body.shareTo;
-
             return this.appsRequestVerify(req).then(() => {
+                let putReceptionist = {};
+                ('string' === typeof req.body.name) && (putReceptionist.name = req.body.name);
+                ('string' === typeof req.body.photo) && (putReceptionist.photo = req.body.photo);
+                ('string' === typeof req.body.email) && (putReceptionist.email = req.body.email);
+                ('string' === typeof req.body.phone) && (putReceptionist.phone = req.body.phone);
+                ('number' === typeof req.body.timezoneOffset) && (putReceptionist.timezoneOffset = req.body.timezoneOffset);
+                ('number' === typeof req.body.maxNumberPerDay) && (putReceptionist.maxNumberPerDay = req.body.maxNumberPerDay);
+                ('number' === typeof req.body.interval) && (putReceptionist.interval = req.body.interval);
+                (req.body.schedules instanceof Array) && (putReceptionist.schedules = req.body.schedules);
+
                 if (0 === Object.keys(putReceptionist).length) {
                     return Promise.reject(ERROR.INVALID_REQUEST_BODY_DATA);
-                } else if (putReceptionist.email) {
+                }
+
+                if (putReceptionist.email) {
                     return gcalendarHlp.isAvailableGmail(putReceptionist.email).then((isAvailable) => {
                         if (!isAvailable) {
                             return Promise.reject(ERROR.UNAVAILABLE_GMAIL);
                         }
-                        return Promise.resolve();
+                        return Promise.resolve(putReceptionist);
                     });
                 }
-                return Promise.resolve();
-            }).then(() => {
+
+                if (putReceptionist.name) {
+                    return Promise.all([
+                        appsMdl.find(appId),
+                        appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId })
+                    ]).then(([ apps, appsReceptionists ]) => {
+                        if (!(apps && apps[appId])) {
+                            return Promise.reject(ERROR.APP_FAILED_TO_FIND);
+                        }
+
+                        if (!(appsReceptionists && appsReceptionists[appId])) {
+                            return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                        }
+
+                        let app = apps[appId];
+                        let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                        let gcalendarId = receptionist.gcalendarId;
+                        let summary = '[' + putReceptionist.name + '][' + app.name + '] - ' + receptionistId;
+                        return gcalendarHlp.updateCalendar(gcalendarId, summary).catch(() => {
+                            return Promise.reject(ERROR.GOOGLE_CALENDAR_FAILED_TO_UPDATE);
+                        });
+                    }).then(() => {
+                        return Promise.resolve(putReceptionist);
+                    });
+                }
+
+                return Promise.resolve(putReceptionist);
+            }).then((putReceptionist) => {
+                let shareToGmail = req.body.shareTo;
                 if (shareToGmail) {
                     /** @type {Chatshier.Models.Receptionist} */
                     let receptionist;
@@ -129,7 +171,9 @@ module.exports = (function() {
 
                                     let summary = '[' + receptionist.name + '][' + apps[appId].name + '] - ' + receptionistId;
                                     let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
-                                    return gcalendarHlp.insertCalendar(summary, description);
+                                    return gcalendarHlp.insertCalendar(summary, description).catch(() => {
+                                        return Promise.reject(ERROR.GOOGLE_CALENDAR_FAILED_TO_INSERT);
+                                    });
                                 }).then((gcalendar) => {
                                     gcalendarId = putReceptionist.gcalendarId = gcalendar.id;
                                     return gcalendarId;
@@ -171,6 +215,23 @@ module.exports = (function() {
             let receptionistId = req.params.receptionistid;
 
             return this.appsRequestVerify(req).then(() => {
+                return appsReceptionistsMdl.find({ appIds: appId, receptionistIds: receptionistId });
+            }).then((appsReceptionists) => {
+                if (!(appsReceptionists && appsReceptionists[appId])) {
+                    return Promise.reject(ERROR.APP_RECEPTIONIST_FAILED_TO_FIND);
+                }
+
+                let receptionist = appsReceptionists[appId].receptionists[receptionistId];
+                return Promise.resolve(receptionist.gcalendarId);
+            }).then((gcalendarId) => {
+                if (!gcalendarId) {
+                    return Promise.resolve(void 0);
+                }
+
+                return gcalendarHlp.deleteCalendar(gcalendarId).catch(() => {
+                    return Promise.reject(ERROR.GOOGLE_CALENDAR_FAILED_TO_REMOVE);
+                });
+            }).then(() => {
                 return appsReceptionistsMdl.remove(appId, receptionistId);
             }).then((appsReceptionists) => {
                 if (!(appsReceptionists && appsReceptionists[appId])) {

@@ -10,6 +10,7 @@ const ERROR = require('../config/error.json');
 const chatshierHlp = require('../helpers/chatshier');
 const storageHlp = require('../helpers/storage');
 const socketHlp = require('../helpers/socket');
+const oneSignalHlp = require('../helpers/onesignal');
 const botSvc = require('../services/bot');
 
 const appsMdl = require('../models/apps');
@@ -18,6 +19,7 @@ const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 const appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 const consumersMdl = require('../models/consumers');
+const usersOneSignalsMdl = require('../models/users_onesignals');
 
 const webhooksLog = require('../logs/webhooks');
 
@@ -33,6 +35,11 @@ const SKIP_PROCESS_APP = 'SKIP_PROCESS_APP';
 const FACEBOOK_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 const CHAT_COUNT_INTERVAL_TIME = 900000;
+
+const NOTIFY_ICONS = {
+    CHATSHIER: '/image/logo-no-transparent.png',
+    DSDSDS: '/image/logo-dsdsds.png'
+};
 
 let webhookProcQueue = [];
 
@@ -110,11 +117,11 @@ router.post('/:webhookid', (req, res, next) => {
 
                     // 發送者與接收者其中之一會是 facebook 粉絲專頁的 ID
                     // 因此使用發送者與接收者 facebook uid 來查找 app
-                    let query = {
+                    let conditions = {
                         id1: { $in: [ senderUid, recipientUid ] },
                         isDeleted: false
                     };
-                    return appsMdl.find(void 0, void 0, query).then((apps) => {
+                    return appsMdl.find(void 0, void 0, conditions).then((apps) => {
                         if (!apps || (apps && 0 === Object.keys(apps).length)) {
                             return Promise.reject(ERROR.APP_FAILED_TO_FIND);
                         }
@@ -445,7 +452,7 @@ router.post('/:webhookid', (req, res, next) => {
                     if (!(webhookChatroomId &&
                         (_messages && Object.keys(_messages).length > 0) &&
                         recipientUserIds.length > 0)) {
-                        return;
+                        return [];
                     }
 
                     // 抓出聊天室 messagers 最新的狀態傳給 socket
@@ -471,7 +478,24 @@ router.post('/:webhookid', (req, res, next) => {
                             consumers: consumers,
                             messages: Object.values(_messages)
                         };
-                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
+
+                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend).then(() => {
+                            return socketHlp.getOfflineUserIds(recipientUserIds);
+                        }).then((offlineUserIds) => {
+                            if (0 === offlineUserIds.length) {
+                                return [];
+                            }
+
+                            let options = {
+                                userIds: offlineUserIds,
+                                chatroomId: webhookChatroomId,
+                                messages: _messages,
+                                consumer: consumers[platformUid],
+                                app: app,
+                                hostname: req.hostname
+                            };
+                            return sendNotification(options);
+                        });
                     });
                 }).catch((err) => {
                     if (SKIP_PROCESS_APP === err) {
@@ -509,5 +533,78 @@ router.post('/:webhookid', (req, res, next) => {
     });
     webhookProcQueue.push(webhookPromise);
 });
+
+/**
+ * @typedef NotificationOptions
+ * @property {string[]} userIds
+ * @property {string} chatroomId
+ * @property {Chatshier.Models.Messages} messages
+ * @property {Chatshier.Models.App} app
+ * @property {Chatshier.Models.Consumer} consumer
+ * @property {string} hostname
+ * @param {NotificationOptions} options
+ */
+function sendNotification({ userIds, chatroomId, messages, app, consumer, hostname }) {
+    return usersOneSignalsMdl.find({ userIds: userIds }).then((usersOneSignals) => {
+        usersOneSignals = usersOneSignals || {};
+        let oneSignalApps = {};
+        for (let userId in usersOneSignals) {
+            let oneSignals = usersOneSignals[userId].oneSignals;
+            for (let oneSignalId in oneSignals) {
+                let oneSignal = oneSignals[oneSignalId];
+                let oneSignalAppId = oneSignal.oneSignalAppId;
+
+                if (!oneSignalApps[oneSignalAppId]) {
+                    oneSignalApps[oneSignalAppId] = [];
+                }
+                oneSignalApps[oneSignalAppId].push(oneSignal.oneSignalUserId);
+            }
+        }
+
+        let messageIds = Object.keys(messages);
+        let isDsdsds = hostname.indexOf('dsdsds.com.tw') >= 0;
+        let notifyIcon = isDsdsds ? NOTIFY_ICONS.DSDSDS : NOTIFY_ICONS.CHATSHIER;
+        return Promise.all(Object.keys(oneSignalApps).map((oneSignalAppId) => {
+            let oneSignalUserIds = oneSignalApps[oneSignalAppId] || [];
+            if (0 === oneSignalUserIds.length) {
+                return Promise.resolve();
+            }
+
+            let nextMessage = (i) => {
+                if (i >= messageIds.length) {
+                    return Promise.resolve();
+                }
+
+                let messageId = messageIds[i];
+                let message = messages[messageId];
+                let isFromPlatform = LINE === message.from || FACEBOOK === message.from;
+                if (!isFromPlatform) {
+                    return nextMessage(i + 1);
+                }
+
+                return oneSignalHlp.createNotification(oneSignalAppId, {
+                    app_id: oneSignalAppId,
+                    headings: {
+                        en: consumer.name + '【' + app.name + '】'
+                    },
+                    contents: {
+                        en: message.text || '🔔(有新訊息)'
+                    },
+                    // 後面帶上 chatroomId 可使使用者點擊推播訊息後
+                    // 前端在載入頁面完成後，可根據是哪個 chatroomId 直接將該 chatroom 開啟，提升使用者體驗
+                    url: 'https://' + hostname + '/chat?chatroom_id=' + chatroomId,
+                    large_icon: 'https://' + hostname + notifyIcon,
+                    include_player_ids: oneSignalUserIds
+                }).catch((err) => {
+                    // 推播失敗時，打印錯誤但不擲出錯誤
+                    console.error(err);
+                }).then(() => {
+                    return nextMessage(i + 1);
+                });
+            };
+            return nextMessage(0);
+        }));
+    });
+}
 
 module.exports = router;

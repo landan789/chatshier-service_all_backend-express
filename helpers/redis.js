@@ -10,7 +10,7 @@ module.exports = (function() {
         host: CHATSHIER_CFG.REDIS.HOST,
         port: CHATSHIER_CFG.REDIS.PORT,
         password: CHATSHIER_CFG.REDIS.PASSWORD, // "chatshier" MD5 hash
-        connect_timeout: 15000,
+        connect_timeout: 30000,
         retry_strategy: (options) => {
             // // redis server 已經失去連線則不進行重新嘗試
             // if (options.error && 'ECONNREFUSED' === options.error.code) {
@@ -43,7 +43,7 @@ module.exports = (function() {
                 UPDATE_FUSE_USERS: UPDATE_FUSE_USERS
             };
 
-            this.noRedis = true;
+            this.isRedisConnected = false;
             this.publisher = redis.createClient(redisClientOpts);
             this.subscriber = redis.createClient(redisClientOpts);
             this._ready = this._initRedisClient();
@@ -51,6 +51,75 @@ module.exports = (function() {
 
         get ready() {
             return this._ready;
+        }
+
+        publish(channel, redisReqBody) {
+            return new Promise((resolve) => {
+                if (!this.isRedisConnected) {
+                    return resolve();
+                }
+                this.publisher.publish(channel, redisReqBody, resolve);
+            });
+        }
+
+        /**
+         * https://redis.io/commands/lrange
+         * @param {string} key
+         * @returns {Promise<string[]>}
+         */
+        getArrayValues(key) {
+            return new Promise((resolve, reject) => {
+                if (!this.isRedisConnected) {
+                    return resolve([]);
+                }
+
+                this.publisher.lrange(key, 0, -1, (err, values) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(values);
+                });
+            });
+        }
+
+        /**
+         * https://redis.io/commands/lpush
+         * @param {string} key
+         * @param {string} value
+         */
+        pushArrayValue(key, value) {
+            return new Promise((resolve, reject) => {
+                if (!this.isRedisConnected) {
+                    return resolve(-1);
+                }
+
+                this.publisher.lpush(key, value, (err, idx) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(idx);
+                });
+            });
+        }
+
+        /**
+         * https://redis.io/commands/lrem
+         * @param {string} key
+         * @param {string} value
+         */
+        removeArrayValue(key, value) {
+            return new Promise((resolve, reject) => {
+                if (!this.isRedisConnected) {
+                    return resolve();
+                }
+
+                this.publisher.lrem(key, 0, value, (err) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve();
+                });
+            });
         }
 
         _initRedisClient() {
@@ -71,21 +140,21 @@ module.exports = (function() {
             ]);
 
             this.publisher.on('connect', () => {
-                this.noRedis = false;
+                this.isRedisConnected = true;
                 publisherReadyResolve && publisherReadyResolve();
                 publisherReadyResolve = void 0;
                 console.log('[SUCCEEDED] the pub of api-chatshier is connecting to Redis !!');
             });
 
             this.publisher.on('error', () => {
-                this.noRedis = true;
+                this.isRedisConnected = false;
                 publisherReadyResolve && publisherReadyResolve();
                 publisherReadyResolve = void 0;
                 console.log('[FAILED] the pub of api-chatshier is not connecting to Redis !!');
             });
 
             this.publisher.on('end', () => {
-                this.noRedis = true;
+                this.isRedisConnected = false;
 
                 publisherReadyPromise = new Promise((resolve) => {
                     publisherReadyResolve = resolve;
@@ -98,21 +167,21 @@ module.exports = (function() {
             });
 
             this.subscriber.on('connect', () => {
-                this.noRedis = false;
+                this.isRedisConnected = true;
                 subscriberReadyResolve && subscriberReadyResolve();
                 subscriberReadyResolve = void 0;
                 console.log('[SUCCEEDED] the sub of api-chatshier is connecting to Redis !!');
             });
 
-            this.subscriber.on('error', (s) => {
-                this.noRedis = true;
+            this.subscriber.on('error', () => {
+                this.isRedisConnected = false;
                 subscriberReadyResolve && subscriberReadyResolve();
                 subscriberReadyResolve = void 0;
                 console.log('[FAILED] the sub of api-chatshier is not connecting to Redis !!');
             });
 
             this.subscriber.on('end', () => {
-                this.noRedis = true;
+                this.isRedisConnected = false;
 
                 subscriberReadyPromise = new Promise((resolve) => {
                     subscriberReadyResolve = resolve;
@@ -125,15 +194,6 @@ module.exports = (function() {
             });
 
             return redisReady;
-        };
-
-        publish(channel, redisReqBody) {
-            return new Promise((resolve) => {
-                if (this.noRedis) {
-                    return resolve();
-                }
-                this.publisher.publish(channel, redisReqBody, resolve);
-            });
         }
     }
 

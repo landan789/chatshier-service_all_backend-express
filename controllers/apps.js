@@ -500,16 +500,25 @@ module.exports = (function() {
 
                     let app = apps[appId];
                     if (FACEBOOK === app.type) {
-                        return fbSvc.setFanPageUnsubscribeApp(app.id1, app.token2).then(() => {
-                            return Promise.resolve(apps);
-                        }).catch((err) => {
-                            if (err && err.error && 'OAuthException' === err.error.type) {
-                                return Promise.resolve(apps);
+                        let conditions = {
+                            id1: app.id1,
+                            isDeleted: false
+                        };
+                        return appsMdl.find(void 0, void 0, conditions).then((_apps) => {
+                            // 資料庫內沒有此粉絲專頁時才取消 fb app webhook 訂閱
+                            if (0 < Object.keys(_apps || {}).length) {
+                                return apps;
                             }
-                            return Promise.reject(ERROR.FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP);
+
+                            return fbSvc.setFanPageUnsubscribeApp(app.id1, app.token2).catch((err) => {
+                                if (err && err.error && 'OAuthException' === err.error.type) {
+                                    return Promise.resolve(apps);
+                                }
+                                return Promise.reject(ERROR.FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP);
+                            }).then(() => apps);
                         });
                     }
-                    return Promise.resolve(apps);
+                    return apps;
                 });
             }).then((apps) => {
                 let suc = {

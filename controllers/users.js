@@ -18,7 +18,7 @@ module.exports = (function() {
             this.putOne = this.putOne.bind(this);
         }
 
-        getOne(req, res, next) {
+        getOne(req, res) {
             let userId = req.params.userid;
             let queryEmail = (req.query.email || '').toLowerCase();
             let useFuzzy = !!req.query.fuzzy;
@@ -93,7 +93,7 @@ module.exports = (function() {
             });
         }
 
-        putOne(req, res, next) {
+        putOne(req, res) {
             let userId = req.params.userid;
             let putUser = {};
             ('string' === typeof req.body.name) && (putUser.name = req.body.name);
@@ -101,33 +101,37 @@ module.exports = (function() {
             ('string' === typeof req.body.phone) && (putUser.phone = req.body.phone);
             ('string' === typeof req.body.address) && (putUser.address = req.body.address);
 
-            return new Promise((resolve, reject) => {
+            return Promise.resolve().then(() => {
                 if (!userId) {
-                    reject(ERROR.USER_USERID_WAS_EMPTY);
-                    return;
+                    return Promise.reject(ERROR.USER_USERID_WAS_EMPTY);
                 }
 
-                if ('string' === typeof putUser.name && 0 === putUser.name.length) {
-                    reject(ERROR.USER_NAME_WAS_EMPTY);
-                    return;
+                if ('string' === typeof putUser.name && !putUser.name) {
+                    return Promise.reject(ERROR.USER_NAME_WAS_EMPTY);
                 }
 
-                usersMdl.update(userId, putUser, (users) => {
-                    if (!users) {
-                        reject(ERROR.USER_FAILED_TO_UPDATE);
-                        return;
+                return usersMdl.update(userId, putUser).then((users) => {
+                    if (!(users && users[userId])) {
+                        return Promise.reject(ERROR.USER_FAILED_TO_UPDATE);
                     }
-                    resolve(users);
+                    return Promise.resolve(users);
                 });
             }).then((users) => {
-                // 更新 fuzzy search 清單中此 user 的資料
-                fuseHlp.updateUsers(users);
+                // 使用者名稱有進行變更才需要更新 Fuzzy search 的使用者清單資料
+                let shouldUpdateFuse = !!putUser.name;
+                if (!shouldUpdateFuse) {
+                    return users;
+                }
 
                 let redisReqBody = JSON.stringify({
                     users: users,
                     eventName: redisHlp.EVENTS.UPDATE_FUSE_USERS
                 });
-                return redisHlp.publish(redisHlp.CHANNELS.REDIS_API_CHANNEL, redisReqBody).then(() => {
+
+                return Promise.all([
+                    fuseHlp.updateUsers(users),
+                    redisHlp.publish(redisHlp.CHANNELS.REDIS_API_CHANNEL, redisReqBody)
+                ]).then(() => {
                     return users;
                 });
             }).then((users) => {

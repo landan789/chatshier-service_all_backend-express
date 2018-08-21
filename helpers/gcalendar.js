@@ -82,8 +82,6 @@ module.exports = (function() {
                     continue;
                 }
 
-                // rrule.js 在 WEEKLY 的規則中處理有 bugs 因此轉為使用 DAILY 規則來達到相同結果
-                options.freq === RRule.WEEKLY && (options.freq = RRule.DAILY);
                 options.wkst = RRule.SU;
                 options.byhour = options.byminute = options.bysecond = null;
                 options.dtstart = _dtstart;

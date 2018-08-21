@@ -1,7 +1,5 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
-    const CHATSHIER_CFG = require('../config/chatshier');
-    const gcalendarHlp = require('../helpers/gcalendar');
     const APPS = 'apps';
 
     class AppsReceptionistsModel extends ModelCore {
@@ -113,12 +111,13 @@ module.exports = (function() {
          * @returns {Promise<Chatshier.Models.AppsReceptionists | null>}
          */
         insert(appId, receptionist, callback) {
-            let receptionistId = this.Types.ObjectId();
-            let _receptionist = receptionist || {};
-            _receptionist._id = receptionistId;
-            _receptionist.createdTime = _receptionist.updatedTime = Date.now();
+            receptionist = receptionist || {};
 
-            if (!_receptionist.name) {
+            let receptionistId = receptionist._id || this.Types.ObjectId();
+            receptionist._id = receptionistId;
+            receptionist.createdTime = receptionist.updatedTime = Date.now();
+
+            if (!receptionist.name) {
                 ('function' === typeof callback) && callback(null);
                 return Promise.resolve(null);
             }
@@ -128,22 +127,13 @@ module.exports = (function() {
                 'isDeleted': false
             };
 
-            return this.AppsModel.findOne(conditions).then((result) => {
-                /** @type {Chatshier.Models.App} */
-                let app = result;
-                let summary = '[' + _receptionist.name + '][' + app.name + '] - ' + receptionistId.toHexString();
-                let description = 'Created by ' + CHATSHIER_CFG.GMAIL.USER;
-                return gcalendarHlp.insertCalendar(summary, description).then((gcalendar) => {
-                    _receptionist.gcalendarId = gcalendar.id;
-                });
-            }).then(() => {
-                let doc = {
-                    $push: {
-                        receptionists: _receptionist
-                    }
-                };
-                return this.AppsModel.update(conditions, doc);
-            }).then(() => {
+            let doc = {
+                $push: {
+                    receptionists: receptionist
+                }
+            };
+
+            return this.AppsModel.update(conditions, doc).then(() => {
                 let query = {
                     appIds: appId,
                     receptionistIds: receptionistId.toHexString()
@@ -241,15 +231,6 @@ module.exports = (function() {
                         Object.assign(output[app._id].receptionists, this.toObject(app.receptionists));
                         return output;
                     }, {});
-                    return appsReceptionists;
-                });
-            }).then((appsReceptionists) => {
-                let receptionist = appsReceptionists[appId].receptionists[receptionistId];
-                if (!receptionist.gcalendarId) {
-                    return appsReceptionists;
-                }
-
-                return gcalendarHlp.deleteCalendar(receptionist.gcalendarId).then(() => {
                     return appsReceptionists;
                 });
             }).then((appsReceptionists) => {

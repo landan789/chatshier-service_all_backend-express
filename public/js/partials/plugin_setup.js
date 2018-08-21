@@ -45,17 +45,10 @@
     // };
 
     const OneSignal = window.OneSignal || [];
-    let oneSignalAppIdKey = {
-        'service.chatshier.com': 'CHATSHIER_APPID',
-        'service.rel.chatshier.com': 'REL_CHATSHIER_APPID',
-        'service.dev.chatshier.com': 'DEV_CHATSHIER_APPID',
-        'service.dsdsds.com.tw': 'DSDSDS_APPID',
-        'service.rel.dsdsds.com.tw': 'REL_DSDSDS_APPID',
-        'service.dev.dsdsds.com.tw': 'DEV_DSDSDS_APPID'
-    }[window.location.hostname];
-    let oneSignalAppId = window.CHATSHIER.ONESIGNAL[oneSignalAppIdKey] || '';
+    let oneSignalAppId = window.CHATSHIER.ONESIGNAL[window.location.hostname] || '';
+    let isPushNotificationsSupported = OneSignal.isPushNotificationsSupported && OneSignal.isPushNotificationsSupported();
 
-    if (oneSignalAppId) {
+    if (isPushNotificationsSupported && oneSignalAppId) {
         OneSignal.push(() => {
             OneSignal.init({
                 appId: oneSignalAppId,
@@ -70,26 +63,73 @@
         });
 
         let isInChat = '/chat' === window.location.pathname;
-        if (isInChat) {
-            OneSignal.push(() => {
-                return Promise.all([
-                    OneSignal.isPushNotificationsEnabled(),
-                    OneSignal.isOptedOut()
-                ]).then((results) => {
-                    let isPushEnabled = results[0];
-                    let isOptedOut = results[1];
+        isInChat && OneSignal.push(() => {
+            return Promise.all([
+                OneSignal.isPushNotificationsEnabled(),
+                OneSignal.isOptedOut()
+            ]).then((results) => {
+                let isPushEnabled = results[0];
+                let isOptedOut = results[1];
 
-                    if (isPushEnabled) {
-                        return;
+                if (isPushEnabled) {
+                    return OneSignal.getUserId();
+                }
+
+                let promise = new Promise((resolve) => {
+                    OneSignal.once('subscriptionChange', resolve);
+                }).then(() => {
+                    return OneSignal.getUserId();
+                });
+
+                if (isOptedOut) {
+                    OneSignal.setSubscription(true);
+                } else {
+                    OneSignal.registerForPushNotifications();
+                }
+                return promise;
+            }).then((oneSignalUserId) => {
+                if (!oneSignalUserId) {
+                    return;
+                }
+
+                let api = window.restfulAPI;
+                let userId;
+                try {
+                    let payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+                    userId = payload.uid;
+                } catch (ex) {
+                    userId = '';
+                }
+
+                if (!userId) {
+                    return;
+                }
+
+                return api.usersOneSignals.findAll(userId).then((res) => {
+                    let usersOneSignals = res.data;
+                    if (!usersOneSignals[userId]) {
+                        usersOneSignals[userId] = { oneSignals: {} };
+                    }
+                    let oneSignals = usersOneSignals[userId].oneSignals;
+
+                    let isExisted = false;
+                    for (let oneSignalId in oneSignals) {
+                        let oneSignal = oneSignals[oneSignalId];
+                        if (oneSignal.oneSignalUserId === oneSignalUserId) {
+                            isExisted = true;
+                            break;
+                        }
                     }
 
-                    if (isOptedOut) {
-                        OneSignal.setSubscription(true);
-                    } else {
-                        OneSignal.registerForPushNotifications();
+                    if (!isExisted) {
+                        let postOneSignal = {
+                            oneSignalAppId: oneSignalAppId,
+                            oneSignalUserId: oneSignalUserId
+                        };
+                        return api.usersOneSignals.insert(userId, postOneSignal);
                     }
                 });
             });
-        }
+        });
     }
 })();
